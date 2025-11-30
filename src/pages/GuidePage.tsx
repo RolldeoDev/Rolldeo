@@ -26,7 +26,7 @@ import { DownloadButton } from '@/components/guide'
 
 // Import raw markdown files for download
 import specMd from '@/../docs/randomTableSpecV1.md?raw'
-import schemaMd from '@/../docs/randomTableSchemaV1.json?raw'
+import schemaJson from '@/../public/schemas/random-table-spec-v1.0.json?raw'
 
 const guideCards = [
   {
@@ -246,8 +246,8 @@ export function GuidePage() {
               label="Spec (Markdown)"
             />
             <DownloadButton
-              filename="randomTableSchemaV1.json"
-              content={schemaMd}
+              filename="random-table-spec-v1.0.json"
+              content={schemaJson}
               mimeType="application/json"
               label="Schema (JSON)"
               variant="primary"

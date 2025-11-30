@@ -83,9 +83,115 @@ Optional properties for tracking content origin and licensing.
 | source.isbn | string | - | ISBN if applicable |
 | source.url | string | - | URL to product page or official source |
 | source.license | string | - | License under which content is used (e.g., `OGL 1.0a`, `CC BY 4.0`, `Original`) |
-| source.copyright | string | - | Copyright notice |
+| source.copyright | string \| object | - | Copyright notice (string for simple notice, or structured object) |
 
-### 1.4 Engine Configuration
+#### 1.3.1 Structured Copyright Object
+
+When more detailed copyright information is needed, `source.copyright` can be an object:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| copyright.year | string | Copyright year or range (e.g., `"2024"` or `"2020-2024"`) |
+| copyright.holder | string | Legal entity name that holds the copyright |
+| copyright.notice | string | Full copyright notice text |
+
+**Example:**
+
+```json
+"source": {
+  "copyright": {
+    "year": "2024",
+    "holder": "Open Design LLC",
+    "notice": "© 2024 Open Design LLC. All rights reserved."
+  }
+}
+```
+
+### 1.4 Rights & Permissions
+
+Optional properties for declaring intellectual property rights, usage permissions, and legal contact information. These fields help publishers protect their content while making licensing terms clear to users.
+
+> **Note:** While this specification is open source (CC0), content created using this format remains the intellectual property of its respective copyright holders. These fields provide a standardized way to communicate ownership and usage terms.
+
+#### 1.4.1 Rights Declaration
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| rights.type | string | - | Content classification: `"proprietary"`, `"open-content"`, `"fan-content"`, or `"licensed"` |
+| rights.official | boolean | `false` | Whether this is official publisher content (vs. fan-made) |
+| rights.productIdentity | string[] | `[]` | List of Product Identity elements (names, characters, logos, etc.) |
+| rights.trademarks | string[] | `[]` | Trademark notices (e.g., `"Kobold Press®"`, `"Tome of Beasts™"`) |
+| rights.compatibilityNotice | string | - | Required compatibility/non-affiliation statement |
+
+**Rights Type Values:**
+
+| Value | Description |
+|-------|-------------|
+| `proprietary` | Fully owned content with all rights reserved |
+| `open-content` | Content released under an open license (OGL, CC, etc.) |
+| `fan-content` | Fan-created content using publisher's IP under community policy |
+| `licensed` | Third-party content used under license agreement |
+
+#### 1.4.2 Usage Permissions
+
+Explicit permissions for how the content may be used. All default to `false` if `rights` is specified but permissions are omitted.
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| rights.permissions.commercialUse | boolean | `false` | Whether content may be used in commercial products |
+| rights.permissions.modification | boolean | `false` | Whether content may be modified or adapted |
+| rights.permissions.redistribution | boolean | `false` | Whether content may be redistributed |
+| rights.permissions.derivativeWorks | boolean | `false` | Whether derivative works may be created |
+| rights.permissions.attributionRequired | boolean | `true` | Whether attribution is required when using content |
+
+#### 1.4.3 Legal Contact
+
+| Property | Type | Description |
+|----------|------|-------------|
+| rights.contact.licensing | string | Email or URL for licensing inquiries |
+| rights.contact.dmca | string | DMCA agent contact for takedown requests |
+| rights.contact.general | string | General legal contact |
+
+#### 1.4.4 Terms & Policies
+
+| Property | Type | Description |
+|----------|------|-------------|
+| rights.termsUrl | string | URL to full terms of use |
+| rights.communityPolicyUrl | string | URL to fan content/community use policy |
+
+**Complete Rights Example:**
+
+```json
+"rights": {
+  "type": "proprietary",
+  "official": true,
+  "productIdentity": [
+    "Kobold Press",
+    "Tome of Beasts",
+    "All creature names and descriptions"
+  ],
+  "trademarks": [
+    "Kobold Press®",
+    "Tome of Beasts™"
+  ],
+  "compatibilityNotice": "Compatible with 5th Edition fantasy roleplaying. Not affiliated with or endorsed by Wizards of the Coast.",
+  "permissions": {
+    "commercialUse": false,
+    "modification": true,
+    "redistribution": false,
+    "derivativeWorks": true,
+    "attributionRequired": true
+  },
+  "contact": {
+    "licensing": "licensing@koboldpress.com",
+    "dmca": "dmca@koboldpress.com"
+  },
+  "termsUrl": "https://koboldpress.com/terms",
+  "communityPolicyUrl": "https://koboldpress.com/community-use"
+}
+```
+
+### 1.5 Engine Configuration
 
 These optional properties control engine behavior for this file.
 
@@ -105,14 +211,35 @@ These optional properties control engine behavior for this file.
     "namespace": "fantasy.treasure",
     "version": "2.1.0",
     "specVersion": "1.0",
-    "author": "Game Master",
+    "author": "Example Games",
     "description": "A comprehensive treasure generation system for fantasy RPGs.",
     "tags": ["fantasy", "treasure", "loot", "rewards"],
     "source": {
       "book": "Ultimate Treasure Guide",
       "publisher": "Example Games",
+      "isbn": "978-1-234567-89-0",
       "license": "CC BY 4.0",
-      "url": "https://rolldeo.com/treasure-guide"
+      "url": "https://example-games.com/treasure-guide",
+      "copyright": {
+        "year": "2024",
+        "holder": "Example Games LLC",
+        "notice": "© 2024 Example Games LLC. All rights reserved."
+      }
+    },
+    "rights": {
+      "type": "open-content",
+      "official": true,
+      "permissions": {
+        "commercialUse": true,
+        "modification": true,
+        "redistribution": true,
+        "derivativeWorks": true,
+        "attributionRequired": true
+      },
+      "contact": {
+        "licensing": "licensing@example-games.com"
+      },
+      "termsUrl": "https://example-games.com/license"
     },
     "maxRecursionDepth": 25,
     "maxExplodingDice": 50,
@@ -2523,6 +2650,17 @@ You are free to:
 No attribution required, though it's always appreciated.
 
 [View Full License](https://creativecommons.org/publicdomain/zero/1.0/)
+
+### Content Ownership Notice
+
+**Important:** While this specification format is public domain, the creative content within files conforming to this specification remains the intellectual property of its respective copyright holders.
+
+- The open nature of this format **does not** grant any license to use, copy, or distribute the content contained within individual table files
+- Publishers and content creators retain full copyright over their tables, entries, descriptions, and other creative works
+- Always check the `source` and `rights` metadata fields to understand usage permissions for specific content
+- When in doubt, contact the content's copyright holder for licensing information
+
+This specification provides standardized fields (`rights`, `source.copyright`, `permissions`) specifically to help content creators communicate their ownership and terms clearly.
 
 ---
 

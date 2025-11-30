@@ -4,9 +4,10 @@
  * Main layout container with sidebar, tabs, and content area.
  */
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { useCallback, useMemo, useRef, useEffect } from 'react'
 import { EditorSidebar } from './EditorSidebar'
-import { EditorTabBar, type EditorTab } from './EditorTabBar'
+import { EditorTabBar } from './EditorTabBar'
+import { useUIStore, type EditorTab } from '@/stores/uiStore'
 import { MetadataEditor } from './MetadataEditor'
 import { TableEditor } from './TableEditor'
 import { TemplateEditor } from './TemplateEditor'
@@ -44,9 +45,13 @@ export function EditorWorkspace({
   syncToJson,
   collectionId,
 }: EditorWorkspaceProps) {
-  const [activeTab, setActiveTab] = useState<EditorTab>('tables')
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [selectedItemId, setSelectedItemId] = useState<string>()
+  // Use persisted state from UI store
+  const activeTab = useUIStore((state) => state.editorActiveTab)
+  const setActiveTab = useUIStore((state) => state.setEditorActiveTab)
+  const sidebarCollapsed = useUIStore((state) => state.editorSidebarCollapsed)
+  const setSidebarCollapsed = useUIStore((state) => state.setEditorSidebarCollapsed)
+  const selectedItemId = useUIStore((state) => state.editorSelectedItemId)
+  const setSelectedItemId = useUIStore((state) => state.setEditorSelectedItemId)
   const contentRef = useRef<HTMLDivElement>(null)
 
   // Scroll to item when selected from sidebar
@@ -241,7 +246,7 @@ export function EditorWorkspace({
         onDeleteImport={deleteImport}
         onDeleteTable={deleteTable}
         onDeleteTemplate={deleteTemplate}
-        selectedItemId={selectedItemId}
+        selectedItemId={selectedItemId ?? undefined}
       />
 
       {/* Main Content */}
@@ -298,7 +303,7 @@ export function EditorWorkspace({
 
               <div className="space-y-4">
                 {document.tables.map((table, index) => (
-                  <div key={table.id} data-item-id={table.id}>
+                  <div key={`table-${index}`} data-item-id={table.id}>
                     <TableEditor
                       table={table}
                       onChange={(updated) => updateTable(index, updated)}
@@ -331,13 +336,14 @@ export function EditorWorkspace({
               {(document.templates?.length || 0) > 0 ? (
                 <div className="space-y-4">
                   {document.templates?.map((template, index) => (
-                    <div key={template.id} data-item-id={template.id}>
+                    <div key={`template-${index}`} data-item-id={template.id}>
                       <TemplateEditor
                         template={template}
                         onChange={(updated) => updateTemplate(index, updated)}
                         onDelete={() => deleteTemplate(index)}
                         availableTableIds={availableTableIds}
                         availableTemplateIds={availableTemplateIds}
+                        defaultExpanded={selectedItemId === template.id || (document.templates?.length || 0) === 1}
                         collectionId={collectionId}
                       />
                     </div>

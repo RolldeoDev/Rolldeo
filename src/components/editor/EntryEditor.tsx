@@ -4,7 +4,7 @@
  * Editor for individual table entries in simple tables.
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { ChevronDown, ChevronRight, Trash2, X, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { extractExpressions } from '@/engine/core/parser'
@@ -19,6 +19,8 @@ export interface EntryEditorProps {
   onChange: (entry: Entry) => void
   /** Called when entry should be deleted */
   onDelete: () => void
+  /** Called when Enter is pressed on a valid entry to add a new one */
+  onAddEntry?: () => void
   /** Index for display */
   index: number
   /** Whether entry is being dragged */
@@ -27,22 +29,34 @@ export interface EntryEditorProps {
   canDelete?: boolean
   /** Collection ID for live preview evaluation */
   collectionId?: string
+  /** Whether to auto-focus the value input on mount */
+  autoFocus?: boolean
 }
 
 export function EntryEditor({
   entry,
   onChange,
   onDelete,
+  onAddEntry,
   index,
   isDragging,
   canDelete = true,
   collectionId,
+  autoFocus = false,
 }: EntryEditorProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [weightMode, setWeightMode] = useState<'weight' | 'range'>(
     entry.range ? 'range' : 'weight'
   )
+  const valueInputRef = useRef<HTMLInputElement>(null)
+
+  // Auto-focus the value input when requested
+  useEffect(() => {
+    if (autoFocus && valueInputRef.current) {
+      valueInputRef.current.focus()
+    }
+  }, [autoFocus])
 
   // Check if entry value contains expressions
   const hasExpressions = useMemo(() => {
@@ -95,6 +109,16 @@ export function EntryEditor({
     [entry.range, updateField]
   )
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && entry.value.trim() && onAddEntry) {
+        e.preventDefault()
+        onAddEntry()
+      }
+    },
+    [entry.value, onAddEntry]
+  )
+
   return (
     <div
       className={cn(
@@ -119,9 +143,11 @@ export function EntryEditor({
         <span className="text-sm text-muted-foreground w-8">#{index + 1}</span>
 
         <input
+          ref={valueInputRef}
           type="text"
           value={entry.value}
           onChange={(e) => updateField('value', e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Entry value (supports {{...}} templates)"
           className="flex-1 p-2 border rounded-md bg-background text-sm"
         />

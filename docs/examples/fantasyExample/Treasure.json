@@ -4,7 +4,7 @@
     "namespace": "fantasy.treasure",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify Examples",
+    "author": "Rolldeo Examples",
     "description": "A comprehensive treasure generation system for high fantasy settings. Includes coins, gems, art objects, magic items, and cursed artifacts.",
     "tags": ["fantasy", "treasure", "loot", "rewards", "items"],
     "maxRecursionDepth": 50,

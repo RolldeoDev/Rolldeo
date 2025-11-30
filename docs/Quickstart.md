@@ -332,6 +332,6 @@ These examples demonstrate **every feature** in the specification, from basic ta
 
 ## Happy Creating!
 
-Whether you're crafting treasure hoards for a fantasy dungeon, generating alien species for a space opera, or building something entirely your own—Rollify is here to help bring randomness and creativity to your games.
+Whether you're crafting treasure hoards for a fantasy dungeon, generating alien species for a space opera, or building something entirely your own - Rolldeo is here to help bring randomness and creativity to your games.
 
 Download the examples, experiment with the syntax, and let the dice decide the rest. May your rolls be ever in your favor!

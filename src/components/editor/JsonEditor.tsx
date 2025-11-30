@@ -19,7 +19,7 @@ interface MonacoMarker {
 }
 
 // Import the JSON schema
-import schema from '@/../docs/randomTableSchemaV1.json'
+import schema from '@/../public/schemas/random-table-spec-v1.0.json'
 
 export interface JsonEditorProps {
   /** The JSON content as a string */

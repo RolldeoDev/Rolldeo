@@ -5,7 +5,7 @@
  * Only one collection can be expanded at a time.
  */
 
-import { memo, useCallback, useMemo } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { useUIStore } from '@/stores/uiStore'
 import { CollectionAccordionItem } from './CollectionAccordionItem'
@@ -30,6 +30,11 @@ export const CollectionAccordion = memo(function CollectionAccordion({
   const collectionsMap = useCollectionStore((state) => state.collections)
   const expandedCollectionId = useUIStore((state) => state.expandedCollectionId)
   const toggleCollectionExpanded = useUIStore((state) => state.toggleCollectionExpanded)
+  const setExpandedCollectionId = useUIStore((state) => state.setExpandedCollectionId)
+  const setBrowserActiveTab = useUIStore((state) => state.setBrowserActiveTab)
+
+  // Track which collection should scroll into view
+  const [scrollTargetCollectionId, setScrollTargetCollectionId] = useState<string | null>(null)
 
   // Convert Map to sorted array with useMemo
   const sortedCollections = useMemo(() => {
@@ -49,18 +54,40 @@ export const CollectionAccordion = memo(function CollectionAccordion({
     [toggleCollectionExpanded]
   )
 
+  const handleScrollComplete = useCallback(() => {
+    setScrollTargetCollectionId(null)
+  }, [])
+
   const handleSelectItem = useCallback(
     (item: BrowserItem, collectionId: string) => {
+      // Expand the collection if not already expanded
+      if (expandedCollectionId !== collectionId) {
+        setExpandedCollectionId(collectionId)
+      }
+      // Switch to the correct tab based on item type
+      setBrowserActiveTab(item.type === 'template' ? 'templates' : 'tables')
+      // Trigger scroll to this collection
+      setScrollTargetCollectionId(collectionId)
+      // Call the parent handler
       onSelectItem(item, collectionId)
     },
-    [onSelectItem]
+    [onSelectItem, expandedCollectionId, setExpandedCollectionId, setBrowserActiveTab]
   )
 
   const handleRollItem = useCallback(
     (item: BrowserItem, collectionId: string) => {
+      // Expand the collection if not already expanded
+      if (expandedCollectionId !== collectionId) {
+        setExpandedCollectionId(collectionId)
+      }
+      // Switch to the correct tab based on item type
+      setBrowserActiveTab(item.type === 'template' ? 'templates' : 'tables')
+      // Trigger scroll to this collection
+      setScrollTargetCollectionId(collectionId)
+      // Call the parent handler
       onRollItem(item, collectionId)
     },
-    [onRollItem]
+    [onRollItem, expandedCollectionId, setExpandedCollectionId, setBrowserActiveTab]
   )
 
   if (sortedCollections.length === 0) {
@@ -83,6 +110,8 @@ export const CollectionAccordion = memo(function CollectionAccordion({
           collection={collection}
           isExpanded={expandedCollectionId === collection.id}
           selectedItemId={selectedItemId}
+          shouldScrollIntoView={scrollTargetCollectionId === collection.id}
+          onScrollComplete={handleScrollComplete}
           onToggleExpand={() => handleToggleExpand(collection.id)}
           onSelectItem={(item) => handleSelectItem(item, collection.id)}
           onRollItem={(item) => handleRollItem(item, collection.id)}

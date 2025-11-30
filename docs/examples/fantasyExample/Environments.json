@@ -4,7 +4,7 @@
     "namespace": "fantasy.environments",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify Examples",
+    "author": "Rolldeo Examples",
     "description": "Terrain, weather, locations, and dungeon features for fantasy adventures",
     "tags": ["fantasy", "environments", "locations", "dungeons"]
   },

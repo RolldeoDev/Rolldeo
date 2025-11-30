@@ -4,7 +4,7 @@
     "namespace": "scifi.planets",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify Examples",
+    "author": "Rolldeo Examples",
     "description": "A comprehensive planetary system generator for science fiction worldbuilding. Generates planets with diverse environments, civilizations, points of interest, and native species. Imports the Aliens module for native species generation.",
     "tags": ["sci-fi", "planets", "worldbuilding", "exploration"],
     "maxRecursionDepth": 40,

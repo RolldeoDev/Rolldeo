@@ -4,7 +4,7 @@
  * Visual editor for tables (simple, composite, collection).
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   Plus,
   Trash2,
@@ -53,6 +53,13 @@ export function TableEditor({
   collectionId,
 }: TableEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+
+  // Expand when this item becomes selected (defaultExpanded becomes true)
+  useEffect(() => {
+    if (defaultExpanded) {
+      setIsExpanded(true)
+    }
+  }, [defaultExpanded])
 
   const updateField = useCallback(
     <K extends keyof Table>(field: K, value: Table[K]) => {
@@ -326,11 +333,24 @@ interface SimpleTableEditorProps {
 }
 
 function SimpleTableEditor({ table, onChange, collectionId }: SimpleTableEditorProps) {
+  const [focusedEntryIndex, setFocusedEntryIndex] = useState<number | null>(null)
+
+  // Clear focus state after it's been applied
+  useEffect(() => {
+    if (focusedEntryIndex !== null) {
+      const timer = setTimeout(() => setFocusedEntryIndex(null), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [focusedEntryIndex])
+
   const addEntry = useCallback(() => {
+    const newIndex = table.entries.length
     onChange({
       ...table,
       entries: [...table.entries, { value: '' }],
     })
+    // Set focus to the new entry
+    setFocusedEntryIndex(newIndex)
   }, [table, onChange])
 
   const updateEntry = useCallback(
@@ -394,9 +414,11 @@ function SimpleTableEditor({ table, onChange, collectionId }: SimpleTableEditorP
                 entry={entry}
                 onChange={(updated) => updateEntry(index, updated)}
                 onDelete={() => deleteEntry(index)}
+                onAddEntry={addEntry}
                 index={index}
                 canDelete={table.entries.length > 1}
                 collectionId={collectionId}
+                autoFocus={focusedEntryIndex === index}
               />
             </SortableItem>
           ))}

@@ -4,7 +4,7 @@
     "namespace": "fantasy.monsters",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify Examples",
+    "author": "Rolldeo Examples",
     "description": "A comprehensive collection of high fantasy creatures ranging from common beasts to legendary beings. Includes physical descriptions, behaviors, and environmental traits.",
     "tags": ["fantasy", "monsters", "creatures", "bestiary"],
     "maxRecursionDepth": 50,

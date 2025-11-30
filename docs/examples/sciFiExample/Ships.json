@@ -4,7 +4,7 @@
     "namespace": "scifi.ships",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify Examples",
+    "author": "Rolldeo Examples",
     "description": "A comprehensive starship generator for science fiction settings. Covers vessel classes from small fighters to massive capital ships, with detailed systems, conditions, and crew compositions.",
     "tags": ["sci-fi", "ships", "spacecraft", "vehicles"],
     "maxRecursionDepth": 25,

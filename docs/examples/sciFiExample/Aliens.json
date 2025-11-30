@@ -4,7 +4,7 @@
     "namespace": "scifi.aliens",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify Examples",
+    "author": "Rolldeo Examples",
     "description": "A comprehensive alien species generator for science fiction worldbuilding. Includes physical characteristics, cultural traits, technology levels, and behavioral patterns.",
     "tags": ["sci-fi", "aliens", "species", "worldbuilding"],
     "maxRecursionDepth": 30,
