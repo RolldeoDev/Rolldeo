@@ -28,7 +28,7 @@ const createDefaultDocument = (): RandomTableDocument => ({
     name: '',
     namespace: '',
     version: '1.0.0',
-    specVersion: '1.2',
+    specVersion: '1.0',
   },
   tables: [
     {

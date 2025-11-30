@@ -166,15 +166,15 @@ Explicit permissions for how the content may be used. All default to `false` if 
   "type": "proprietary",
   "official": true,
   "productIdentity": [
-    "Kobold Press",
-    "Tome of Beasts",
-    "All creature names and descriptions"
+    "Rolldeo",
+    "Rolldeo Tables Collection",
+    "All table names and unique entry descriptions"
   ],
   "trademarks": [
-    "Kobold Press®",
-    "Tome of Beasts™"
+    "Rolldeo®",
+    "Rolldeo Tables™"
   ],
-  "compatibilityNotice": "Compatible with 5th Edition fantasy roleplaying. Not affiliated with or endorsed by Wizards of the Coast.",
+  "compatibilityNotice": "Created for use with the Rolldeo random table roller. Compatible with any system-agnostic tabletop gaming.",
   "permissions": {
     "commercialUse": false,
     "modification": true,
@@ -183,11 +183,11 @@ Explicit permissions for how the content may be used. All default to `false` if 
     "attributionRequired": true
   },
   "contact": {
-    "licensing": "licensing@koboldpress.com",
-    "dmca": "dmca@koboldpress.com"
+    "licensing": "licensing@rolldeo.com",
+    "dmca": "dmca@rolldeo.com"
   },
-  "termsUrl": "https://koboldpress.com/terms",
-  "communityPolicyUrl": "https://koboldpress.com/community-use"
+  "termsUrl": "https://rolldeo.com/terms",
+  "communityPolicyUrl": "https://rolldeo.com/community-use"
 }
 ```
 

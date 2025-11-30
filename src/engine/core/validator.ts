@@ -186,13 +186,13 @@ function validateMetadata(doc: RandomTableDocument, issues: ValidationIssue[]): 
     })
   }
 
-  if (meta.specVersion !== '1.2') {
+  if (meta.specVersion !== '1.0') {
     issues.push({
       severity: 'error',
       code: 'INVALID_SPEC_VERSION',
       message: `Unsupported spec version: ${meta.specVersion}`,
       path: 'metadata.specVersion',
-      suggestion: 'Use specVersion "1.2"',
+      suggestion: 'Use specVersion "1.0"',
     })
   }
 

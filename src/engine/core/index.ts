@@ -1224,7 +1224,7 @@ export class RandomTableEngine {
         return this.evaluateVariable(token, context)
 
       case 'placeholder':
-        return this.evaluatePlaceholder(token, context)
+        return this.evaluatePlaceholder(token, context, collectionId)
 
       case 'table':
         return this.evaluateTableRef(token, context, collectionId)
@@ -1314,9 +1314,56 @@ export class RandomTableEngine {
 
   private evaluatePlaceholder(
     token: { name: string; property?: string },
-    context: GenerationContext
+    context: GenerationContext,
+    collectionId?: string
   ): string {
     const value = getPlaceholder(context, token.name, token.property)
+
+    // If the placeholder value is a valid table/template ID, roll on it (dynamic table selection)
+    // This supports patterns like {{@race.firstNameTable}} where firstNameTable = "elfFirstNames"
+    if (value && collectionId) {
+      const tableResult = this.resolveTableRef(value, collectionId)
+      if (tableResult) {
+        // Add placeholder access trace showing it resolved to a table
+        addTraceLeaf(context, 'placeholder_access', `@${token.name}${token.property ? '.' + token.property : ''}`, {
+          raw: token.name,
+          parsed: { property: token.property }
+        }, {
+          value: value,
+        }, {
+          type: 'placeholder',
+          name: token.name,
+          property: token.property,
+          found: true,
+          resolvedToTable: value,
+        } as PlaceholderAccessMetadata)
+
+        // Roll on the resolved table
+        const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
+        return result.text
+      }
+
+      // Also check if it's a template ID
+      const templateResult = this.resolveTemplateRef(value, collectionId)
+      if (templateResult) {
+        // Add placeholder access trace showing it resolved to a template
+        addTraceLeaf(context, 'placeholder_access', `@${token.name}${token.property ? '.' + token.property : ''}`, {
+          raw: token.name,
+          parsed: { property: token.property }
+        }, {
+          value: value,
+        }, {
+          type: 'placeholder',
+          name: token.name,
+          property: token.property,
+          found: true,
+          resolvedToTemplate: value,
+        } as PlaceholderAccessMetadata)
+
+        return this.evaluateTemplateInternal(templateResult.template, templateResult.collectionId, context)
+      }
+    }
+
     const result = value ?? ''
 
     // Add placeholder access trace
@@ -1441,9 +1488,24 @@ export class RandomTableEngine {
       countSource = 'variable'
     }
 
+    // Try to resolve as a table first
     const table = this.getTable(token.tableId, collectionId)
+
+    // If not a table, check if it's a template
     if (!table) {
-      console.warn(`Table not found: ${token.tableId}`)
+      const templateResult = this.resolveTemplateRef(token.tableId, collectionId)
+      if (templateResult) {
+        // Handle template multi-roll
+        return this.evaluateMultiRollTemplate(
+          templateResult.template,
+          templateResult.collectionId,
+          count,
+          countSource,
+          token,
+          context
+        )
+      }
+      console.warn(`Table or template not found: ${token.tableId}`)
       return ''
     }
 
@@ -1479,6 +1541,48 @@ export class RandomTableEngine {
       countSource,
       count,
       unique: token.unique ?? false,
+      separator: token.separator ?? ', ',
+    } as MultiRollMetadata)
+
+    return finalResult
+  }
+
+  /**
+   * Handle multi-roll for templates (e.g., {{4*simpleNpc}})
+   * Note: 'unique' modifier is ignored for templates since they don't have entry IDs
+   */
+  private evaluateMultiRollTemplate(
+    template: Template,
+    templateCollectionId: string,
+    count: number,
+    countSource: 'literal' | 'variable' | 'dice',
+    token: { tableId: string; unique?: boolean; separator?: string; count: number | string },
+    context: GenerationContext
+  ): string {
+    // Start multi_roll trace node for template
+    beginTraceNode(context, 'multi_roll', `${count}x ${token.tableId} (template)`, {
+      raw: `${token.count}*${token.tableId}`,
+      parsed: { count, tableId: token.tableId, unique: token.unique, isTemplate: true }
+    })
+
+    const results: string[] = []
+
+    for (let i = 0; i < count; i++) {
+      const result = this.evaluateTemplateInternal(template, templateCollectionId, context)
+      if (result) {
+        results.push(result)
+      }
+    }
+
+    const finalResult = results.join(token.separator ?? ', ')
+
+    // End multi_roll trace node
+    endTraceNode(context, { value: finalResult }, {
+      type: 'multi_roll',
+      tableId: token.tableId,
+      countSource,
+      count,
+      unique: false, // unique not applicable for templates
       separator: token.separator ?? ', ',
     } as MultiRollMetadata)
 
