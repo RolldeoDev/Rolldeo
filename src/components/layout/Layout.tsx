@@ -3,6 +3,7 @@ import { Dices, Library, PenSquare, Home, Menu, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { ThemeSwitcher } from '@/components/common'
+import rollifyLogo from '@/assets/rollifyLogo.png'
 
 const navItems = [
   { path: '/', icon: Home, label: 'Home' },
@@ -34,9 +35,11 @@ export function Layout() {
             to="/"
             className="flex items-center gap-3 group"
           >
-            <div className="p-2 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-              <Dices className="h-6 w-6 text-primary" />
-            </div>
+            <img
+              src={rollifyLogo}
+              alt="Rolldeo logo"
+              className="h-10 w-10 rounded-xl group-hover:scale-105 transition-transform"
+            />
             <span className="font-bold text-xl tracking-tight">Rolldeo</span>
           </Link>
 

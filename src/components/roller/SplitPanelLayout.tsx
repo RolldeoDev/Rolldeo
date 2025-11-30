@@ -11,6 +11,7 @@ import { useResizable } from '@/hooks/useResizable'
 import { useUIStore } from '@/stores/uiStore'
 import { ResizeHandle } from './ResizeHandle'
 import { cn } from '@/lib/utils'
+import rollifyLogo from '@/assets/rollifyLogo.png'
 
 interface LeftPanelRenderProps {
   /** Callback to close the mobile drawer (only provided on mobile) */
@@ -104,7 +105,14 @@ export function SplitPanelLayout({
           )}
         >
           <div className="h-14 flex items-center justify-between px-4 border-b border-border/50">
-            <span className="font-semibold">Browse Tables</span>
+            <div className="flex items-center gap-2">
+              <img
+                src={rollifyLogo}
+                alt="Rolldeo logo"
+                className="h-8 w-8 rounded-lg"
+              />
+              <span className="font-semibold">Browse Tables</span>
+            </div>
             <button
               onClick={closeDrawer}
               className="p-2 -mr-2 rounded-lg hover:bg-accent transition-colors"
