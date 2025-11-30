@@ -40,7 +40,7 @@ export function useResizable({
 }: UseResizableOptions): UseResizableReturn {
   const [width, setWidthState] = useState(initialWidth)
   const [isResizing, setIsResizing] = useState(false)
-  const persistTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Clamp width to bounds
   const clampWidth = useCallback(
