@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Dices, Library, PenSquare, Home, Menu, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import { ThemeSwitcher } from '@/components/ThemeSwitcher'
+import { ThemeSwitcher } from '@/components/common'
 
 const navItems = [
   { path: '/', icon: Home, label: 'Home' },

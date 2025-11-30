@@ -16,10 +16,7 @@ import { QuickstartPage } from './pages/QuickstartPage'
 import { SpecPage } from './pages/SpecPage'
 import { SchemaPage } from './pages/SchemaPage'
 import { UsingRolldeoPage } from './pages/UsingRolldeoPage'
-import { ErrorBoundary } from './components/ErrorBoundary'
-import { ToastProvider } from './components/Toast'
-import { InstallPrompt } from './components/InstallPrompt'
-import { OfflineIndicator } from './components/OfflineIndicator'
+import { ErrorBoundary, ToastProvider, InstallPrompt, OfflineIndicator } from './components/common'
 
 function App() {
   // Initialization is handled by AppInitializer in main.tsx
