@@ -1,0 +1,497 @@
+{
+  "metadata": {
+    "name": "Starship Generator",
+    "namespace": "scifi.ships",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rollify Examples",
+    "description": "A comprehensive starship generator for science fiction settings. Covers vessel classes from small fighters to massive capital ships, with detailed systems, conditions, and crew compositions.",
+    "tags": ["sci-fi", "ships", "spacecraft", "vehicles"],
+    "maxRecursionDepth": 25,
+    "maxExplodingDice": 50
+  },
+  "variables": {
+    "standardCrew": "mixed species",
+    "defaultFuel": "fusion reactor"
+  },
+  "shared": {
+    "hullIntegrity": "{{dice:2d6+4}}",
+    "systemsStatus": "{{dice:1d100}}"
+  },
+  "tables": [
+    {
+      "id": "shipClass",
+      "name": "Ship Class",
+      "type": "simple",
+      "description": "The general classification and size of the vessel",
+      "resultType": "item",
+      "tags": ["classification", "basic"],
+      "entries": [
+        {
+          "id": "fighter",
+          "value": "Fighter",
+          "weight": 3,
+          "sets": {
+            "size": "tiny",
+            "crewMin": "1",
+            "crewMax": "2",
+            "ftlCapable": "no",
+            "cargoCapacity": "minimal",
+            "combatRole": "assault"
+          }
+        },
+        {
+          "id": "shuttle",
+          "value": "Shuttle",
+          "weight": 3,
+          "sets": {
+            "size": "small",
+            "crewMin": "1",
+            "crewMax": "8",
+            "ftlCapable": "no",
+            "cargoCapacity": "light",
+            "combatRole": "transport"
+          }
+        },
+        {
+          "id": "corvette",
+          "value": "Corvette",
+          "weight": 2,
+          "sets": {
+            "size": "small",
+            "crewMin": "10",
+            "crewMax": "30",
+            "ftlCapable": "yes",
+            "cargoCapacity": "moderate",
+            "combatRole": "patrol"
+          }
+        },
+        {
+          "id": "frigate",
+          "value": "Frigate",
+          "weight": 2,
+          "sets": {
+            "size": "medium",
+            "crewMin": "50",
+            "crewMax": "150",
+            "ftlCapable": "yes",
+            "cargoCapacity": "moderate",
+            "combatRole": "escort"
+          }
+        },
+        {
+          "id": "destroyer",
+          "value": "Destroyer",
+          "weight": 2,
+          "sets": {
+            "size": "medium",
+            "crewMin": "100",
+            "crewMax": "300",
+            "ftlCapable": "yes",
+            "cargoCapacity": "moderate",
+            "combatRole": "hunter-killer"
+          }
+        },
+        {
+          "id": "cruiser",
+          "value": "Cruiser",
+          "weight": 2,
+          "sets": {
+            "size": "large",
+            "crewMin": "300",
+            "crewMax": "800",
+            "ftlCapable": "yes",
+            "cargoCapacity": "substantial",
+            "combatRole": "line-of-battle"
+          }
+        },
+        {
+          "id": "carrier",
+          "value": "Carrier",
+          "weight": 1,
+          "sets": {
+            "size": "large",
+            "crewMin": "500",
+            "crewMax": "2000",
+            "ftlCapable": "yes",
+            "cargoCapacity": "extensive",
+            "combatRole": "force-projection"
+          }
+        },
+        {
+          "id": "battleship",
+          "value": "Battleship",
+          "weight": 1,
+          "sets": {
+            "size": "huge",
+            "crewMin": "1000",
+            "crewMax": "5000",
+            "ftlCapable": "yes",
+            "cargoCapacity": "massive",
+            "combatRole": "fleet-anchor"
+          }
+        },
+        {
+          "id": "freighter",
+          "value": "Freighter",
+          "weight": 3,
+          "sets": {
+            "size": "medium",
+            "crewMin": "5",
+            "crewMax": "30",
+            "ftlCapable": "yes",
+            "cargoCapacity": "extensive",
+            "combatRole": "none"
+          }
+        },
+        {
+          "id": "liner",
+          "value": "Passenger Liner",
+          "weight": 1,
+          "sets": {
+            "size": "large",
+            "crewMin": "100",
+            "crewMax": "500",
+            "ftlCapable": "yes",
+            "cargoCapacity": "passenger-focused",
+            "combatRole": "none"
+          }
+        }
+      ]
+    },
+    {
+      "id": "hullCondition",
+      "name": "Hull Condition",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["condition", "physical"],
+      "entries": [
+        { "id": "pristine", "value": "pristine", "range": [96, 100], "sets": { "repairNeeded": "none", "structuralMod": "+2" } },
+        { "id": "excellent", "value": "excellent", "range": [81, 95], "sets": { "repairNeeded": "minor", "structuralMod": "+1" } },
+        { "id": "good", "value": "good", "range": [51, 80], "sets": { "repairNeeded": "routine", "structuralMod": "0" } },
+        { "id": "fair", "value": "fair", "range": [26, 50], "sets": { "repairNeeded": "moderate", "structuralMod": "-1" } },
+        { "id": "poor", "value": "poor", "range": [11, 25], "sets": { "repairNeeded": "extensive", "structuralMod": "-2" } },
+        { "id": "critical", "value": "critical", "range": [1, 10], "sets": { "repairNeeded": "emergency", "structuralMod": "-4" } }
+      ]
+    },
+    {
+      "id": "hullMaterial",
+      "name": "Hull Material",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["construction", "materials"],
+      "entries": [
+        { "value": "standard durasteel alloy", "sets": { "armorClass": "standard", "cost": "low" } },
+        { "value": "reinforced titanium composite", "sets": { "armorClass": "heavy", "cost": "moderate" } },
+        { "value": "ceramic-metal laminate", "sets": { "armorClass": "ablative", "cost": "moderate" } },
+        { "value": "crystalline matrix armor", "sets": { "armorClass": "energy-resistant", "cost": "high" } },
+        { "value": "organic bio-hull", "sets": { "armorClass": "regenerating", "cost": "exotic" } },
+        { "value": "phased metamaterial plating", "sets": { "armorClass": "adaptive", "cost": "extreme" } }
+      ]
+    },
+    {
+      "id": "propulsionType",
+      "name": "Propulsion System",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["systems", "propulsion"],
+      "entries": [
+        { "value": "chemical rockets", "sets": { "speed": "slow", "efficiency": "poor", "techLevel": "primitive" } },
+        { "value": "ion drive", "sets": { "speed": "moderate", "efficiency": "good", "techLevel": "standard" } },
+        { "value": "fusion torch", "sets": { "speed": "fast", "efficiency": "moderate", "techLevel": "standard" } },
+        { "value": "antimatter drive", "sets": { "speed": "very-fast", "efficiency": "excellent", "techLevel": "advanced" } },
+        { "value": "gravity manipulation", "sets": { "speed": "extreme", "efficiency": "unknown", "techLevel": "exotic" } },
+        { "value": "solar sail array", "sets": { "speed": "variable", "efficiency": "excellent", "techLevel": "standard" } }
+      ]
+    },
+    {
+      "id": "ftlSystem",
+      "name": "FTL Drive Type",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["systems", "ftl"],
+      "entries": [
+        { "value": "jump drive", "sets": { "ftlMethod": "instantaneous", "range": "limited", "cooldown": "long" } },
+        { "value": "warp drive", "sets": { "ftlMethod": "space-warping", "range": "moderate", "cooldown": "short" } },
+        { "value": "hyperspace motivator", "sets": { "ftlMethod": "dimensional", "range": "excellent", "cooldown": "moderate" } },
+        { "value": "wormhole generator", "sets": { "ftlMethod": "tunneling", "range": "unlimited", "cooldown": "extreme" } },
+        { "value": "slipstream drive", "sets": { "ftlMethod": "current-riding", "range": "route-dependent", "cooldown": "minimal" } },
+        { "value": "alcubierre bubble", "sets": { "ftlMethod": "metric-engineering", "range": "excellent", "cooldown": "moderate" } }
+      ]
+    },
+    {
+      "id": "weaponSystem",
+      "name": "Weapon System",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["systems", "weapons"],
+      "entries": [
+        { "value": "pulse laser batteries", "sets": { "damageType": "energy", "range": "medium", "rate": "high" } },
+        { "value": "railgun turrets", "sets": { "damageType": "kinetic", "range": "long", "rate": "moderate" } },
+        { "value": "plasma cannons", "sets": { "damageType": "energy", "range": "short", "rate": "low" } },
+        { "value": "missile pods", "sets": { "damageType": "explosive", "range": "extreme", "rate": "burst" } },
+        { "value": "particle beam arrays", "sets": { "damageType": "particle", "range": "medium", "rate": "moderate" } },
+        { "value": "graviton projectors", "sets": { "damageType": "exotic", "range": "short", "rate": "low" } },
+        { "value": "point defense grid", "sets": { "damageType": "energy", "range": "close", "rate": "extreme" } },
+        { "value": "torpedo launchers", "sets": { "damageType": "variable", "range": "long", "rate": "low" } }
+      ]
+    },
+    {
+      "id": "defenseSystem",
+      "name": "Defense System",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["systems", "defense"],
+      "entries": [
+        { "value": "energy shields", "sets": { "defenseType": "energy", "rechargeRate": "moderate" } },
+        { "value": "ablative armor plating", "sets": { "defenseType": "physical", "rechargeRate": "none" } },
+        { "value": "ECM suite", "sets": { "defenseType": "electronic", "rechargeRate": "continuous" } },
+        { "value": "point defense lasers", "sets": { "defenseType": "active", "rechargeRate": "continuous" } },
+        { "value": "cloaking device", "sets": { "defenseType": "stealth", "rechargeRate": "slow" } },
+        { "value": "magnetic deflectors", "sets": { "defenseType": "kinetic", "rechargeRate": "fast" } }
+      ]
+    },
+    {
+      "id": "shipOrigin",
+      "name": "Ship Origin",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["background", "origin"],
+      "entries": [
+        { "value": "military surplus", "sets": { "legalStatus": "legitimate", "modifications": "standard" } },
+        { "value": "civilian manufacture", "sets": { "legalStatus": "legitimate", "modifications": "custom" } },
+        { "value": "captured enemy vessel", "sets": { "legalStatus": "contested", "modifications": "alien" } },
+        { "value": "salvaged derelict", "sets": { "legalStatus": "questionable", "modifications": "jury-rigged" } },
+        { "value": "custom built", "sets": { "legalStatus": "legitimate", "modifications": "unique" } },
+        { "value": "black market acquisition", "sets": { "legalStatus": "illegal", "modifications": "hidden" } },
+        { "value": "ancient artifact", "sets": { "legalStatus": "unknown", "modifications": "incomprehensible" } },
+        { "value": "corporate prototype", "sets": { "legalStatus": "proprietary", "modifications": "experimental" } }
+      ]
+    },
+    {
+      "id": "shipQuirk",
+      "name": "Ship Quirk",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["flavor", "quirks"],
+      "entries": [
+        { "value": "makes unsettling noises during FTL transit" },
+        { "value": "has a malfunctioning AI with personality issues" },
+        { "value": "runs slightly too hot, requiring constant cooling" },
+        { "value": "has inexplicable cold spots in certain corridors" },
+        { "value": "the navigation computer insists on scenic routes" },
+        { "value": "lights flicker when approaching certain star systems" },
+        { "value": "has a persistent smell no one can identify or remove" },
+        { "value": "occasionally picks up transmissions from nowhere" },
+        { "value": "the artificial gravity hiccups during stress" },
+        { "value": "has a hidden compartment the crew keeps rediscovering" },
+        { "value": "the airlock doors open dramatically slowly" },
+        { "value": "engines produce an unusually melodic hum" }
+      ]
+    },
+    {
+      "id": "cargoType",
+      "name": "Cargo Type",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["cargo", "trade"],
+      "entries": [
+        { "value": "refined ore and minerals" },
+        { "value": "agricultural products" },
+        { "value": "manufactured goods" },
+        { "value": "medical supplies" },
+        { "value": "weapons and ammunition" },
+        { "value": "luxury items" },
+        { "value": "colonization equipment" },
+        { "value": "scientific instruments" },
+        { "value": "live specimens" },
+        { "value": "classified materials" },
+        { "value": "refugees and passengers" },
+        { "value": "archaeological artifacts" }
+      ]
+    },
+    {
+      "id": "shipName",
+      "name": "Ship Name",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["naming"],
+      "entries": [
+        { "value": "{{shipNamePrefix}} {{shipNameSuffix}}" }
+      ]
+    },
+    {
+      "id": "shipNamePrefix",
+      "name": "Ship Name Prefix",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Stellar" }, { "value": "Void" }, { "value": "Iron" }, { "value": "Silver" },
+        { "value": "Dawn" }, { "value": "Night" }, { "value": "Crimson" }, { "value": "Azure" },
+        { "value": "Silent" }, { "value": "Swift" }, { "value": "Eternal" }, { "value": "Raging" },
+        { "value": "Cosmic" }, { "value": "Noble" }, { "value": "Dark" }, { "value": "Bright" }
+      ]
+    },
+    {
+      "id": "shipNameSuffix",
+      "name": "Ship Name Suffix",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Wanderer" }, { "value": "Horizon" }, { "value": "Serpent" }, { "value": "Phoenix" },
+        { "value": "Specter" }, { "value": "Tempest" }, { "value": "Endeavor" }, { "value": "Defiance" },
+        { "value": "Fortune" }, { "value": "Vengeance" }, { "value": "Serenity" }, { "value": "Valkyrie" },
+        { "value": "Hammer" }, { "value": "Arrow" }, { "value": "Star" }, { "value": "Dream" }
+      ]
+    },
+    {
+      "id": "crewMorale",
+      "name": "Crew Morale",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["crew", "status"],
+      "entries": [
+        { "id": "mutinous", "value": "mutinous", "weight": 1, "sets": { "efficiency": "20%", "loyaltyRisk": "extreme" } },
+        { "id": "disgruntled", "value": "disgruntled", "weight": 2, "sets": { "efficiency": "60%", "loyaltyRisk": "high" } },
+        { "id": "adequate", "value": "adequate", "weight": 4, "sets": { "efficiency": "80%", "loyaltyRisk": "low" } },
+        { "id": "motivated", "value": "motivated", "weight": 2, "sets": { "efficiency": "100%", "loyaltyRisk": "minimal" } },
+        { "id": "exceptional", "value": "exceptional", "weight": 1, "sets": { "efficiency": "120%", "loyaltyRisk": "none" } }
+      ]
+    },
+    {
+      "id": "captainTrait",
+      "name": "Captain's Notable Trait",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["crew", "captain"],
+      "entries": [
+        { "value": "veteran of numerous conflicts" },
+        { "value": "former merchant turned privateer" },
+        { "value": "Academy graduate with textbook approach" },
+        { "value": "self-taught with unorthodox methods" },
+        { "value": "haunted by a past failure" },
+        { "value": "renowned for their luck" },
+        { "value": "notoriously strict disciplinarian" },
+        { "value": "beloved by crew for their fairness" },
+        { "value": "hiding from their past" },
+        { "value": "obsessed with a personal mission" }
+      ]
+    },
+    {
+      "id": "militaryShipClasses",
+      "name": "Military Ship Classes",
+      "type": "simple",
+      "description": "Combat-focused vessel classifications",
+      "tags": ["military", "combat"],
+      "entries": [
+        { "id": "fighter", "value": "Fighter", "sets": { "role": "space superiority" } },
+        { "id": "corvette", "value": "Corvette", "sets": { "role": "patrol and interdiction" } },
+        { "id": "frigate", "value": "Frigate", "sets": { "role": "escort and screening" } },
+        { "id": "destroyer", "value": "Destroyer", "sets": { "role": "anti-ship warfare" } },
+        { "id": "cruiser", "value": "Cruiser", "sets": { "role": "independent operations" } },
+        { "id": "battleship", "value": "Battleship", "sets": { "role": "fleet engagement" } },
+        { "id": "carrier", "value": "Carrier", "sets": { "role": "force projection" } }
+      ]
+    },
+    {
+      "id": "civilianShipClasses",
+      "name": "Civilian Ship Classes",
+      "type": "simple",
+      "description": "Non-combat vessel classifications",
+      "tags": ["civilian", "commerce"],
+      "entries": [
+        { "id": "shuttle", "value": "Shuttle", "sets": { "role": "short-range transport" } },
+        { "id": "freighter", "value": "Freighter", "sets": { "role": "cargo hauling" } },
+        { "id": "liner", "value": "Liner", "sets": { "role": "passenger transport" } },
+        { "id": "yacht", "value": "Yacht", "sets": { "role": "luxury travel" } },
+        { "id": "mining", "value": "Mining Vessel", "sets": { "role": "resource extraction" } },
+        { "id": "research", "value": "Research Vessel", "sets": { "role": "scientific exploration" } }
+      ]
+    },
+    {
+      "id": "allShipClasses",
+      "name": "All Ship Classes",
+      "type": "collection",
+      "description": "Combined military and civilian vessel types",
+      "tags": ["collection", "complete"],
+      "collections": ["militaryShipClasses", "civilianShipClasses"]
+    }
+  ],
+  "templates": [
+    {
+      "id": "simpleShip",
+      "name": "Simple Ship",
+      "description": "A basic ship description",
+      "resultType": "item",
+      "tags": ["simple", "quick"],
+      "pattern": "A {{shipClass}} in {{hullCondition}} condition."
+    },
+    {
+      "id": "shipSystems",
+      "name": "Ship Systems Overview",
+      "description": "Technical overview of ship systems",
+      "resultType": "description",
+      "tags": ["technical", "systems"],
+      "pattern": "**Systems Overview**\n\n- **Propulsion:** {{propulsionType}} ({{@propulsionType.speed}} speed, {{@propulsionType.efficiency}} efficiency)\n- **FTL:** {{ftlSystem}} - {{@ftlSystem.ftlMethod}} method with {{@ftlSystem.range}} range\n- **Weapons:** {{weaponSystem}} ({{@weaponSystem.damageType}} damage, {{@weaponSystem.range}} range)\n- **Defenses:** {{defenseSystem}} ({{@defenseSystem.defenseType}} protection)"
+    },
+    {
+      "id": "shipProfile",
+      "name": "Ship Profile",
+      "description": "Complete ship profile with all details",
+      "resultType": "item",
+      "tags": ["complete", "detailed"],
+      "shared": {
+        "vesselName": "{{shipName}}",
+        "crewSize": "{{dice:2d6*10}}"
+      },
+      "pattern": "# {{$vesselName}}\n\n**Class:** {{shipClass}}\n**Size:** {{@shipClass.size}}\n**Combat Role:** {{@shipClass.combatRole}}\n\n## Condition\n\n**Hull:** {{hullCondition}} (structural modifier: {{@hullCondition.structuralMod}})\n**Material:** {{hullMaterial}} ({{@hullMaterial.armorClass}} armor class)\n**Repairs Needed:** {{@hullCondition.repairNeeded}}\n\n## Systems\n\n- **Propulsion:** {{propulsionType}}\n- **FTL Drive:** {{ftlSystem}} ({{@ftlSystem.cooldown}} cooldown)\n- **Primary Weapons:** {{weaponSystem}}\n- **Secondary Weapons:** {{weaponSystem}}\n- **Defenses:** {{defenseSystem}}\n\n## Crew\n\n**Complement:** {{$crewSize}} (capacity: {{@shipClass.crewMin}}-{{@shipClass.crewMax}})\n**Morale:** {{crewMorale}} ({{@crewMorale.efficiency}} efficiency)\n**Captain:** {{captainTrait}}\n\n## Background\n\n**Origin:** {{shipOrigin}}\n**Quirk:** {{shipQuirk}}\n\n## Cargo\n\n**Capacity:** {{@shipClass.cargoCapacity}}\n**Current Cargo:** {{cargoType}}"
+    },
+    {
+      "id": "fleetComposition",
+      "name": "Fleet Composition",
+      "description": "Generate a small fleet using captures",
+      "resultType": "description",
+      "tags": ["fleet", "capture", "advanced"],
+      "pattern": "# Fleet Report\n\n## Vessels in Formation\n{{dice:1d4+2*unique*shipClass >> $ships}}\n\n## Fleet Manifest\n\n| Vessel | Class | Size | Role |\n|--------|-------|------|------|\n{{$ships[0]}} | {{$ships[0]}} | {{$ships[0].@size}} | {{$ships[0].@combatRole}} |\n{{$ships[1]}} | {{$ships[1]}} | {{$ships[1].@size}} | {{$ships[1].@combatRole}} |\n{{$ships[2]}} | {{$ships[2]}} | {{$ships[2].@size}} | {{$ships[2].@combatRole}} |\n\n## Fleet Summary\n\n- **Total Vessels:** {{$ships.count}}\n- **Ship Types:** {{$ships}}\n- **Combat Roles Covered:** {{collect:$ships.@combatRole|unique}}\n- **FTL Capable:** {{collect:$ships.@ftlCapable}}"
+    },
+    {
+      "id": "distressedVessel",
+      "name": "Distressed Vessel",
+      "description": "A ship in trouble - good for encounters",
+      "resultType": "encounter",
+      "tags": ["encounter", "distress"],
+      "shared": {
+        "damageRoll": "{{dice:1d6}}"
+      },
+      "pattern": "**DISTRESS SIGNAL DETECTED**\n\n*Vessel:* {{shipName}}\n*Class:* {{shipClass}}\n*Condition:* {{hullCondition}}\n\n*Reported Damage:*\n- Hull breach severity: {{$damageRoll}}/6\n- {{weaponSystem}} - OFFLINE\n- {{defenseSystem}} - FAILING\n\n*Cargo:* {{cargoType}}\n*Crew Status:* {{crewMorale}}\n\n*Origin:* {{shipOrigin}}\n*Suspicious Factor:* {{shipQuirk}}"
+    },
+    {
+      "id": "shipyardInventory",
+      "name": "Shipyard Inventory",
+      "description": "Multiple ships for sale at a shipyard",
+      "resultType": "description",
+      "tags": ["commerce", "capture", "advanced"],
+      "pattern": "# Starport Shipyard - Current Inventory\n\n{{4*unique*shipClass >> $available|silent}}\n{{4*hullCondition >> $conditions|silent}}\n{{4*shipOrigin >> $origins|silent}}\n\n## Available Vessels\n\n1. **{{$available[0]}}** - {{$conditions[0]}} condition\n   - Origin: {{$origins[0]}}\n   - Price Factor: Based on {{$conditions[0].@repairNeeded}} repairs needed\n\n2. **{{$available[1]}}** - {{$conditions[1]}} condition\n   - Origin: {{$origins[1]}}\n   - Price Factor: Based on {{$conditions[1].@repairNeeded}} repairs needed\n\n3. **{{$available[2]}}** - {{$conditions[2]}} condition\n   - Origin: {{$origins[2]}}\n   - Price Factor: Based on {{$conditions[2].@repairNeeded}} repairs needed\n\n4. **{{$available[3]}}** - {{$conditions[3]}} condition\n   - Origin: {{$origins[3]}}\n   - Price Factor: Based on {{$conditions[3].@repairNeeded}} repairs needed\n\n---\n*Conditions range from {{collect:$conditions|unique|\" to \"}}*"
+    }
+  ],
+  "conditionals": [
+    {
+      "when": "@shipClass.ftlCapable == 'no'",
+      "action": "append",
+      "value": "\n\n*Note: This vessel is not FTL-capable and requires carrier transport for interstellar travel.*",
+      "tags": ["ftl", "limitation"]
+    },
+    {
+      "when": "@hullCondition.structuralMod <= '-2'",
+      "action": "append",
+      "value": "\n\n**WARNING:** This vessel requires immediate structural repairs before any high-stress maneuvers.",
+      "tags": ["condition", "warning"]
+    },
+    {
+      "when": "@shipOrigin.legalStatus == 'illegal'",
+      "action": "append",
+      "value": "\n\n*Caution: This vessel may trigger security alerts in regulated systems.*",
+      "tags": ["legal", "warning"]
+    }
+  ]
+}

@@ -1,0 +1,396 @@
+{
+  "metadata": {
+    "name": "High Fantasy Treasure",
+    "namespace": "fantasy.treasure",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rollify Examples",
+    "description": "A comprehensive treasure generation system for high fantasy settings. Includes coins, gems, art objects, magic items, and cursed artifacts.",
+    "tags": ["fantasy", "treasure", "loot", "rewards", "items"],
+    "maxRecursionDepth": 50,
+    "uniqueOverflowBehavior": "cycle"
+  },
+  "shared": {
+    "baseCoinValue": "{{dice:3d6*10}}"
+  },
+  "tables": [
+    {
+      "id": "coinType",
+      "name": "Coin Type",
+      "type": "simple",
+      "description": "The type of coinage found",
+      "resultType": "currency",
+      "tags": ["coins", "basic"],
+      "entries": [
+        { "id": "copper", "value": "copper pieces", "weight": 5, "sets": { "coinValue": "1", "coinMaterial": "copper", "rarity": "common" } },
+        { "id": "silver", "value": "silver pieces", "weight": 4, "sets": { "coinValue": "10", "coinMaterial": "silver", "rarity": "common" } },
+        { "id": "electrum", "value": "electrum pieces", "weight": 1, "sets": { "coinValue": "50", "coinMaterial": "electrum", "rarity": "uncommon" } },
+        { "id": "gold", "value": "gold pieces", "weight": 3, "sets": { "coinValue": "100", "coinMaterial": "gold", "rarity": "uncommon" } },
+        { "id": "platinum", "value": "platinum pieces", "weight": 1, "sets": { "coinValue": "1000", "coinMaterial": "platinum", "rarity": "rare" } }
+      ]
+    },
+    {
+      "id": "gemType",
+      "name": "Gem Type",
+      "type": "simple",
+      "description": "Precious and semi-precious stones",
+      "resultType": "item",
+      "tags": ["gems", "valuables"],
+      "entries": [
+        { "id": "quartz", "value": "clear quartz", "weight": 4, "sets": { "gemValue": "10", "gemColor": "clear", "rarity": "common" } },
+        { "id": "agate", "value": "banded agate", "weight": 4, "sets": { "gemValue": "10", "gemColor": "multicolored", "rarity": "common" } },
+        { "id": "turquoise", "value": "turquoise", "weight": 3, "sets": { "gemValue": "10", "gemColor": "blue-green", "rarity": "common" } },
+        { "id": "moonstone", "value": "moonstone", "weight": 2, "sets": { "gemValue": "50", "gemColor": "pale blue", "rarity": "uncommon" } },
+        { "id": "jade", "value": "jade", "weight": 2, "sets": { "gemValue": "100", "gemColor": "green", "rarity": "uncommon" } },
+        { "id": "pearl", "value": "pearl", "weight": 2, "sets": { "gemValue": "100", "gemColor": "white", "rarity": "uncommon" } },
+        { "id": "amethyst", "value": "amethyst", "weight": 2, "sets": { "gemValue": "100", "gemColor": "purple", "rarity": "uncommon" } },
+        { "id": "topaz", "value": "topaz", "weight": 1, "sets": { "gemValue": "500", "gemColor": "golden", "rarity": "rare" } },
+        { "id": "emerald", "value": "emerald", "weight": 1, "sets": { "gemValue": "1000", "gemColor": "deep green", "rarity": "rare" } },
+        { "id": "sapphire", "value": "sapphire", "weight": 1, "sets": { "gemValue": "1000", "gemColor": "deep blue", "rarity": "rare" } },
+        { "id": "ruby", "value": "ruby", "weight": 0.5, "sets": { "gemValue": "5000", "gemColor": "blood red", "rarity": "very rare" } },
+        { "id": "diamond", "value": "diamond", "weight": 0.25, "sets": { "gemValue": "5000", "gemColor": "brilliant clear", "rarity": "very rare" } }
+      ]
+    },
+    {
+      "id": "gemQuality",
+      "name": "Gem Quality",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "id": "flawed", "value": "flawed", "weight": 2, "sets": { "qualityMod": "0.5", "qualityDesc": "visibly imperfect" } },
+        { "id": "average", "value": "average", "weight": 4, "sets": { "qualityMod": "1", "qualityDesc": "typical quality" } },
+        { "id": "fine", "value": "fine", "weight": 2, "sets": { "qualityMod": "1.5", "qualityDesc": "excellent clarity" } },
+        { "id": "exceptional", "value": "exceptional", "weight": 1, "sets": { "qualityMod": "2", "qualityDesc": "nearly flawless" } },
+        { "id": "perfect", "value": "perfect", "weight": 0.5, "sets": { "qualityMod": "3", "qualityDesc": "utterly flawless" } }
+      ]
+    },
+    {
+      "id": "artObject",
+      "name": "Art Object",
+      "type": "simple",
+      "description": "Decorative and artistic valuables",
+      "resultType": "item",
+      "tags": ["art", "valuables", "decorative"],
+      "entries": [
+        { "id": "tapestry", "value": "woven tapestry", "weight": 2, "sets": { "artValue": "25", "artMaterial": "cloth", "portable": "awkward" } },
+        { "id": "painting", "value": "oil painting", "weight": 2, "sets": { "artValue": "50", "artMaterial": "canvas", "portable": "fragile" } },
+        { "id": "statue", "value": "carved statue", "weight": 2, "sets": { "artValue": "75", "artMaterial": "stone", "portable": "heavy" } },
+        { "id": "jewelry", "value": "fine jewelry", "weight": 3, "sets": { "artValue": "250", "artMaterial": "precious metal", "portable": "easy" } },
+        { "id": "crown", "value": "ornate crown", "weight": 1, "sets": { "artValue": "750", "artMaterial": "gold", "portable": "easy" } },
+        { "id": "scepter", "value": "jeweled scepter", "weight": 1, "sets": { "artValue": "1000", "artMaterial": "gold and gems", "portable": "easy" } },
+        { "id": "goblet", "value": "gilded goblet", "weight": 2, "sets": { "artValue": "150", "artMaterial": "silver", "portable": "easy" } },
+        { "id": "idol", "value": "religious idol", "weight": 1, "sets": { "artValue": "500", "artMaterial": "precious metal", "portable": "moderate" } }
+      ]
+    },
+    {
+      "id": "artSubject",
+      "name": "Art Subject",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "value": "depicting a great battle" },
+        { "value": "showing a coronation ceremony" },
+        { "value": "portraying a famous hero" },
+        { "value": "illustrating a mythical beast" },
+        { "value": "representing a deity" },
+        { "value": "displaying a scenic landscape" },
+        { "value": "commemorating a royal wedding" },
+        { "value": "honoring fallen warriors" }
+      ]
+    },
+    {
+      "id": "weaponType",
+      "name": "Weapon Type",
+      "type": "simple",
+      "description": "Various weapon types",
+      "resultType": "item",
+      "tags": ["weapons", "equipment"],
+      "defaultSets": {
+        "itemCategory": "weapon",
+        "requiresAttunement": "no"
+      },
+      "entries": [
+        { "id": "dagger", "value": "dagger", "weight": 3, "sets": { "weaponClass": "simple", "damageType": "piercing", "handed": "one" } },
+        { "id": "shortsword", "value": "shortsword", "weight": 3, "sets": { "weaponClass": "martial", "damageType": "piercing", "handed": "one" } },
+        { "id": "longsword", "value": "longsword", "weight": 3, "sets": { "weaponClass": "martial", "damageType": "slashing", "handed": "versatile" } },
+        { "id": "greatsword", "value": "greatsword", "weight": 2, "sets": { "weaponClass": "martial", "damageType": "slashing", "handed": "two" } },
+        { "id": "battleaxe", "value": "battleaxe", "weight": 2, "sets": { "weaponClass": "martial", "damageType": "slashing", "handed": "versatile" } },
+        { "id": "warhammer", "value": "warhammer", "weight": 2, "sets": { "weaponClass": "martial", "damageType": "bludgeoning", "handed": "versatile" } },
+        { "id": "spear", "value": "spear", "weight": 2, "sets": { "weaponClass": "simple", "damageType": "piercing", "handed": "versatile", "thrown": "yes" } },
+        { "id": "longbow", "value": "longbow", "weight": 2, "sets": { "weaponClass": "martial", "damageType": "piercing", "handed": "two", "ranged": "yes" } },
+        { "id": "staff", "value": "quarterstaff", "weight": 2, "sets": { "weaponClass": "simple", "damageType": "bludgeoning", "handed": "versatile" } },
+        { "id": "mace", "value": "mace", "weight": 2, "sets": { "weaponClass": "simple", "damageType": "bludgeoning", "handed": "one" } }
+      ]
+    },
+    {
+      "id": "armorType",
+      "name": "Armor Type",
+      "type": "simple",
+      "description": "Various armor types",
+      "resultType": "item",
+      "tags": ["armor", "equipment"],
+      "defaultSets": {
+        "itemCategory": "armor",
+        "requiresAttunement": "no"
+      },
+      "entries": [
+        { "id": "leather", "value": "leather armor", "weight": 3, "sets": { "armorClass": "light", "acBonus": "11" } },
+        { "id": "studdedLeather", "value": "studded leather", "weight": 2, "sets": { "armorClass": "light", "acBonus": "12" } },
+        { "id": "chainShirt", "value": "chain shirt", "weight": 2, "sets": { "armorClass": "medium", "acBonus": "13" } },
+        { "id": "scaleMail", "value": "scale mail", "weight": 2, "sets": { "armorClass": "medium", "acBonus": "14" } },
+        { "id": "breastplate", "value": "breastplate", "weight": 2, "sets": { "armorClass": "medium", "acBonus": "14" } },
+        { "id": "chainMail", "value": "chain mail", "weight": 2, "sets": { "armorClass": "heavy", "acBonus": "16" } },
+        { "id": "splintMail", "value": "splint mail", "weight": 1, "sets": { "armorClass": "heavy", "acBonus": "17" } },
+        { "id": "plateMail", "value": "plate armor", "weight": 1, "sets": { "armorClass": "heavy", "acBonus": "18" } },
+        { "id": "shield", "value": "shield", "weight": 3, "sets": { "armorClass": "shield", "acBonus": "2" } }
+      ]
+    },
+    {
+      "id": "magicWeaponBonus",
+      "name": "Magic Weapon Bonus",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "id": "plus1", "value": "+1", "weight": 5, "sets": { "bonusValue": "1", "rarity": "uncommon" } },
+        { "id": "plus2", "value": "+2", "weight": 2, "sets": { "bonusValue": "2", "rarity": "rare" } },
+        { "id": "plus3", "value": "+3", "weight": 1, "sets": { "bonusValue": "3", "rarity": "very rare" } }
+      ]
+    },
+    {
+      "id": "weaponEnchantment",
+      "name": "Weapon Enchantment",
+      "type": "simple",
+      "description": "Magical properties for weapons",
+      "resultType": "trait",
+      "tags": ["magic", "enchantment"],
+      "entries": [
+        { "id": "flaming", "value": "flaming", "weight": 2, "sets": { "damageBonus": "fire", "glows": "yes", "requiresAttunement": "yes" } },
+        { "id": "frost", "value": "frost", "weight": 2, "sets": { "damageBonus": "cold", "glows": "yes", "requiresAttunement": "yes" } },
+        { "id": "shock", "value": "shocking", "weight": 2, "sets": { "damageBonus": "lightning", "glows": "yes", "requiresAttunement": "yes" } },
+        { "id": "keen", "value": "keen", "weight": 2, "sets": { "critRange": "expanded", "glows": "no" } },
+        { "id": "vorpal", "value": "vorpal", "weight": 0.5, "sets": { "special": "decapitation", "glows": "no", "requiresAttunement": "yes", "rarity": "legendary" } },
+        { "id": "dragonslayer", "value": "dragon slayer", "weight": 1, "sets": { "bonusVs": "dragons", "glows": "yes", "requiresAttunement": "yes" } },
+        { "id": "defending", "value": "defending", "weight": 1, "sets": { "special": "ac bonus", "glows": "no", "requiresAttunement": "yes" } },
+        { "id": "dancing", "value": "dancing", "weight": 0.5, "sets": { "special": "animated", "glows": "yes", "requiresAttunement": "yes", "rarity": "very rare" } }
+      ]
+    },
+    {
+      "id": "armorEnchantment",
+      "name": "Armor Enchantment",
+      "type": "simple",
+      "description": "Magical properties for armor",
+      "resultType": "trait",
+      "tags": ["magic", "enchantment"],
+      "entries": [
+        { "id": "resistance", "value": "resistance", "weight": 3, "sets": { "special": "damage resistance", "requiresAttunement": "yes" } },
+        { "id": "glamoured", "value": "glamoured", "weight": 2, "sets": { "special": "illusion", "requiresAttunement": "no" } },
+        { "id": "fortification", "value": "fortification", "weight": 2, "sets": { "special": "crit immunity", "requiresAttunement": "yes" } },
+        { "id": "etherealness", "value": "etherealness", "weight": 1, "sets": { "special": "ethereal travel", "requiresAttunement": "yes", "rarity": "legendary" } },
+        { "id": "invulnerability", "value": "invulnerability", "weight": 0.5, "sets": { "special": "damage immunity", "requiresAttunement": "yes", "rarity": "legendary" } }
+      ]
+    },
+    {
+      "id": "potionType",
+      "name": "Potion Type",
+      "type": "simple",
+      "description": "Various magical potions",
+      "resultType": "item",
+      "tags": ["potion", "consumable", "magic"],
+      "defaultSets": {
+        "itemCategory": "potion",
+        "consumable": "yes"
+      },
+      "entries": [
+        { "id": "healing", "value": "potion of healing", "weight": 5, "sets": { "effect": "restore 2d4+2 hp", "rarity": "common" } },
+        { "id": "greaterHealing", "value": "potion of greater healing", "weight": 3, "sets": { "effect": "restore 4d4+4 hp", "rarity": "uncommon" } },
+        { "id": "invisibility", "value": "potion of invisibility", "weight": 1, "sets": { "effect": "invisible 1 hour", "rarity": "very rare" } },
+        { "id": "speed", "value": "potion of speed", "weight": 1, "sets": { "effect": "haste 1 minute", "rarity": "very rare" } },
+        { "id": "fireResist", "value": "potion of fire resistance", "weight": 2, "sets": { "effect": "fire resistance 1 hour", "rarity": "uncommon" } },
+        { "id": "giantStrength", "value": "potion of giant strength", "weight": 1, "sets": { "effect": "strength 21+", "rarity": "rare" } },
+        { "id": "flying", "value": "potion of flying", "weight": 1, "sets": { "effect": "fly 1 hour", "rarity": "very rare" } },
+        { "id": "heroism", "value": "potion of heroism", "weight": 2, "sets": { "effect": "temp hp + bless", "rarity": "rare" } }
+      ]
+    },
+    {
+      "id": "potionColor",
+      "name": "Potion Color",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "value": "crimson red" },
+        { "value": "deep blue" },
+        { "value": "vibrant green" },
+        { "value": "shimmering gold" },
+        { "value": "swirling purple" },
+        { "value": "pale white" },
+        { "value": "midnight black" },
+        { "value": "iridescent rainbow" }
+      ]
+    },
+    {
+      "id": "scrollSpellLevel",
+      "name": "Scroll Spell Level",
+      "type": "simple",
+      "description": "Level of spell contained in scroll",
+      "resultType": "trait",
+      "tags": ["scroll", "magic"],
+      "entries": [
+        { "id": "cantrip", "value": "cantrip", "weight": 3, "sets": { "spellLevel": "0", "rarity": "common" } },
+        { "id": "level1", "value": "1st level", "weight": 4, "sets": { "spellLevel": "1", "rarity": "common" } },
+        { "id": "level2", "value": "2nd level", "weight": 3, "sets": { "spellLevel": "2", "rarity": "uncommon" } },
+        { "id": "level3", "value": "3rd level", "weight": 2, "sets": { "spellLevel": "3", "rarity": "uncommon" } },
+        { "id": "level4", "value": "4th level", "weight": 1, "sets": { "spellLevel": "4", "rarity": "rare" } },
+        { "id": "level5", "value": "5th level", "weight": 0.5, "sets": { "spellLevel": "5", "rarity": "rare" } }
+      ]
+    },
+    {
+      "id": "wonderousItem",
+      "name": "Wondrous Item",
+      "type": "simple",
+      "description": "Miscellaneous magical items",
+      "resultType": "item",
+      "tags": ["wondrous", "magic"],
+      "defaultSets": {
+        "itemCategory": "wondrous",
+        "requiresAttunement": "yes"
+      },
+      "entries": [
+        { "id": "bagHolding", "value": "bag of holding", "weight": 3, "sets": { "effect": "extradimensional storage", "requiresAttunement": "no", "rarity": "uncommon" } },
+        { "id": "cloakProtection", "value": "cloak of protection", "weight": 2, "sets": { "effect": "+1 AC and saves", "rarity": "uncommon" } },
+        { "id": "bootsElvenkind", "value": "boots of elvenkind", "weight": 2, "sets": { "effect": "silent movement", "requiresAttunement": "no", "rarity": "uncommon" } },
+        { "id": "glovesThievery", "value": "gloves of thievery", "weight": 2, "sets": { "effect": "+5 sleight of hand", "requiresAttunement": "no", "rarity": "uncommon" } },
+        { "id": "amuletHealth", "value": "amulet of health", "weight": 1, "sets": { "effect": "constitution 19", "rarity": "rare" } },
+        { "id": "beltGiantStrength", "value": "belt of giant strength", "weight": 1, "sets": { "effect": "enhanced strength", "rarity": "rare" } },
+        { "id": "cloakDisplacement", "value": "cloak of displacement", "weight": 1, "sets": { "effect": "disadvantage to attackers", "rarity": "rare" } },
+        { "id": "robeArchmagi", "value": "robe of the archmagi", "weight": 0.25, "sets": { "effect": "AC 15 + spell bonuses", "rarity": "legendary" } }
+      ]
+    },
+    {
+      "id": "cursedProperty",
+      "name": "Cursed Item Property",
+      "type": "simple",
+      "description": "Negative effects that afflict cursed items",
+      "resultType": "trait",
+      "tags": ["cursed", "negative"],
+      "entries": [
+        { "id": "binding", "value": "cannot be removed once equipped", "weight": 3, "sets": { "curseType": "binding" } },
+        { "id": "unlucky", "value": "causes misfortune (-1 to all saves)", "weight": 2, "sets": { "curseType": "unlucky" } },
+        { "id": "bloodthirsty", "value": "compels the wielder to violence", "weight": 2, "sets": { "curseType": "compulsion" } },
+        { "id": "draining", "value": "slowly drains the user's life force", "weight": 1, "sets": { "curseType": "drain" } },
+        { "id": "possessing", "value": "contains a malevolent spirit", "weight": 1, "sets": { "curseType": "possession" } },
+        { "id": "transforming", "value": "slowly transforms the user", "weight": 0.5, "sets": { "curseType": "transformation" } }
+      ]
+    },
+    {
+      "id": "treasureContainer",
+      "name": "Treasure Container",
+      "type": "simple",
+      "description": "What the treasure is stored in",
+      "resultType": "trait",
+      "tags": ["container", "description"],
+      "entries": [
+        { "id": "chest", "value": "an iron-bound chest", "weight": 3, "sets": { "containerType": "chest", "locked": "possibly" } },
+        { "id": "pouch", "value": "a leather pouch", "weight": 3, "sets": { "containerType": "pouch", "locked": "no" } },
+        { "id": "sack", "value": "a burlap sack", "weight": 2, "sets": { "containerType": "sack", "locked": "no" } },
+        { "id": "coffer", "value": "an ornate coffer", "weight": 1, "sets": { "containerType": "coffer", "locked": "yes" } },
+        { "id": "scattered", "value": "scattered across the floor", "weight": 2, "sets": { "containerType": "none", "locked": "no" } },
+        { "id": "hidden", "value": "hidden in a secret compartment", "weight": 1, "sets": { "containerType": "hidden", "locked": "no" } }
+      ]
+    },
+    {
+      "id": "allEquipment",
+      "name": "All Equipment",
+      "type": "collection",
+      "description": "Combined weapons and armor",
+      "resultType": "item",
+      "tags": ["combined", "equipment"],
+      "collections": ["weaponType", "armorType"]
+    },
+    {
+      "id": "allMagicItems",
+      "name": "All Magic Items",
+      "type": "collection",
+      "description": "Combined magical items",
+      "resultType": "item",
+      "tags": ["combined", "magic"],
+      "collections": ["potionType", "wonderousItem"]
+    },
+    {
+      "id": "treasureByValue",
+      "name": "Treasure by Value",
+      "type": "composite",
+      "description": "Weighted treasure selection",
+      "resultType": "item",
+      "tags": ["weighted", "loot"],
+      "sources": [
+        { "tableId": "coinType", "weight": 4 },
+        { "tableId": "gemType", "weight": 2 },
+        { "tableId": "artObject", "weight": 1 },
+        { "tableId": "allEquipment", "weight": 2 },
+        { "tableId": "allMagicItems", "weight": 0.5 }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "simpleTreasure",
+      "name": "Simple Treasure",
+      "description": "A basic treasure find",
+      "resultType": "treasure",
+      "tags": ["simple", "quick"],
+      "pattern": "{{dice:2d6*10}} {{coinType}}"
+    },
+    {
+      "id": "gemDescription",
+      "name": "Gem Description",
+      "description": "A detailed gem description",
+      "resultType": "treasure",
+      "tags": ["gem", "detailed"],
+      "pattern": "A {{gemQuality}} {{gemType}} worth approximately {{@gemType.gemValue}} gold pieces"
+    },
+    {
+      "id": "artDescription",
+      "name": "Art Object Description",
+      "description": "A detailed art object description",
+      "resultType": "treasure",
+      "tags": ["art", "detailed"],
+      "pattern": "{{artObject}} {{artSubject}}, worth approximately {{@artObject.artValue}} gold pieces"
+    },
+    {
+      "id": "magicWeapon",
+      "name": "Magic Weapon",
+      "description": "A magical weapon with enchantment",
+      "resultType": "item",
+      "tags": ["weapon", "magic"],
+      "pattern": "{{magicWeaponBonus}} {{weaponEnchantment}} {{weaponType}}"
+    },
+    {
+      "id": "potionDescription",
+      "name": "Potion Description",
+      "description": "A potion with visual details",
+      "resultType": "item",
+      "tags": ["potion", "detailed"],
+      "pattern": "A {{potionColor}} {{potionType}} in a crystal vial"
+    },
+    {
+      "id": "cursedItem",
+      "name": "Cursed Item",
+      "description": "An item with a dark curse",
+      "resultType": "item",
+      "tags": ["cursed", "dangerous"],
+      "pattern": "**Cursed:** {{wonderousItem}} - _{{cursedProperty}}_"
+    },
+    {
+      "id": "treasureHoard",
+      "name": "Treasure Hoard",
+      "description": "A collection of various treasures",
+      "resultType": "treasure",
+      "tags": ["hoard", "comprehensive"],
+      "pattern": "## Treasure Hoard\n\n**Coins:** {{dice:4d6*100}} {{coinType}}\n\n**Gems:** {{dice:1d4+1}} gems - {{2*unique*gemType|\", \"}}\n\n**Art:** {{artObject}} {{artSubject}}\n\n**Items:** {{treasureByValue}}, {{treasureByValue}}"
+    }
+  ]
+}

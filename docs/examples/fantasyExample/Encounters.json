@@ -1,0 +1,360 @@
+{
+  "metadata": {
+    "name": "High Fantasy Encounters",
+    "namespace": "fantasy.encounters",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rollify Examples",
+    "description": "Complete encounter generator combining monsters, treasure, and environments",
+    "tags": ["fantasy", "encounters", "adventures"]
+  },
+  "imports": [
+    { "path": "./Monsters.json", "alias": "monsters" },
+    { "path": "./Treasure.json", "alias": "treasure" },
+    { "path": "./Environments.json", "alias": "env" }
+  ],
+  "tables": [
+    {
+      "id": "encounterDifficulty",
+      "name": "Encounter Difficulty",
+      "type": "simple",
+      "description": "How challenging the encounter is",
+      "resultType": "trait",
+      "tags": ["difficulty", "combat"],
+      "entries": [
+        { "id": "trivial", "value": "trivial", "weight": 1, "sets": { "crMod": "-2", "rewardMod": "0.5" } },
+        { "id": "easy", "value": "easy", "weight": 3, "sets": { "crMod": "-1", "rewardMod": "0.75" } },
+        { "id": "medium", "value": "medium", "weight": 4, "sets": { "crMod": "0", "rewardMod": "1" } },
+        { "id": "hard", "value": "hard", "weight": 3, "sets": { "crMod": "1", "rewardMod": "1.5" } },
+        { "id": "deadly", "value": "deadly", "weight": 1, "sets": { "crMod": "2", "rewardMod": "2" } }
+      ]
+    },
+    {
+      "id": "encounterType",
+      "name": "Encounter Type",
+      "type": "simple",
+      "description": "The category of encounter",
+      "resultType": "trait",
+      "tags": ["type", "category"],
+      "entries": [
+        { "id": "combat", "value": "combat", "weight": 4 },
+        { "id": "social", "value": "social", "weight": 2 },
+        { "id": "puzzle", "value": "puzzle", "weight": 2 },
+        { "id": "exploration", "value": "exploration", "weight": 2 },
+        { "id": "trap", "value": "trap", "weight": 1 },
+        { "id": "chase", "value": "chase", "weight": 1 }
+      ]
+    },
+    {
+      "id": "npcDisposition",
+      "name": "NPC Disposition",
+      "type": "simple",
+      "description": "Initial attitude of an NPC",
+      "resultType": "trait",
+      "tags": ["npc", "social"],
+      "entries": [
+        { "id": "hostile", "value": "hostile", "weight": 2, "sets": { "attacksOnSight": "yes", "helpChance": "none" } },
+        { "id": "unfriendly", "value": "unfriendly", "weight": 3, "sets": { "attacksOnSight": "no", "helpChance": "low" } },
+        { "id": "indifferent", "value": "indifferent", "weight": 4, "sets": { "attacksOnSight": "no", "helpChance": "medium" } },
+        { "id": "friendly", "value": "friendly", "weight": 2, "sets": { "attacksOnSight": "no", "helpChance": "high" } },
+        { "id": "helpful", "value": "helpful", "weight": 1, "sets": { "attacksOnSight": "no", "helpChance": "certain" } }
+      ]
+    },
+    {
+      "id": "motivation",
+      "name": "NPC/Monster Motivation",
+      "type": "simple",
+      "description": "Why the creature is here",
+      "resultType": "trait",
+      "tags": ["motivation", "behavior"],
+      "entries": [
+        { "value": "hunting for food" },
+        { "value": "defending territory" },
+        { "value": "protecting young" },
+        { "value": "searching for treasure" },
+        { "value": "fleeing from something worse" },
+        { "value": "performing a ritual" },
+        { "value": "setting an ambush" },
+        { "value": "recovering from injury" },
+        { "value": "guarding a prisoner" },
+        { "value": "migrating to new territory" }
+      ]
+    },
+    {
+      "id": "combatTactic",
+      "name": "Combat Tactic",
+      "type": "simple",
+      "description": "How enemies approach combat",
+      "resultType": "trait",
+      "tags": ["combat", "tactics"],
+      "entries": [
+        { "value": "attacks the nearest target" },
+        { "value": "focuses on the weakest-looking foe" },
+        { "value": "tries to flank and surround" },
+        { "value": "uses hit-and-run tactics" },
+        { "value": "fights defensively, looking for escape" },
+        { "value": "protects a leader or important target" },
+        { "value": "fights to the death fanatically" },
+        { "value": "attempts to capture rather than kill" }
+      ]
+    },
+    {
+      "id": "combatComplication",
+      "name": "Combat Complication",
+      "type": "simple",
+      "description": "Unexpected developments during combat",
+      "resultType": "event",
+      "tags": ["combat", "complication"],
+      "entries": [
+        { "value": "reinforcements arrive mid-battle" },
+        { "value": "the terrain becomes hazardous" },
+        { "value": "a third party intervenes" },
+        { "value": "the environment changes dramatically" },
+        { "value": "an important item is dropped or stolen" },
+        { "value": "a hostage is revealed" },
+        { "value": "the enemy attempts to flee with something valuable" },
+        { "value": "a trap is triggered" }
+      ]
+    },
+    {
+      "id": "questHook",
+      "name": "Quest Hook",
+      "type": "simple",
+      "description": "A reason for adventure",
+      "resultType": "hook",
+      "tags": ["quest", "adventure"],
+      "entries": [
+        { "value": "rescue a prisoner held by bandits" },
+        { "value": "retrieve a stolen magical artifact" },
+        { "value": "clear out a monster lair" },
+        { "value": "escort a merchant through dangerous territory" },
+        { "value": "investigate mysterious disappearances" },
+        { "value": "find a cure for a magical ailment" },
+        { "value": "negotiate peace between feuding factions" },
+        { "value": "recover an artifact from ancient ruins" },
+        { "value": "stop a dark ritual before it completes" },
+        { "value": "map uncharted territory" }
+      ]
+    },
+    {
+      "id": "rewardType",
+      "name": "Reward Type",
+      "type": "simple",
+      "description": "What the quest giver offers",
+      "resultType": "reward",
+      "tags": ["reward", "quest"],
+      "entries": [
+        { "id": "gold", "value": "gold coins", "weight": 4 },
+        { "id": "magic", "value": "a magical item", "weight": 2 },
+        { "id": "info", "value": "valuable information", "weight": 2 },
+        { "id": "favor", "value": "a favor owed", "weight": 1 },
+        { "id": "property", "value": "property or land", "weight": 1 },
+        { "id": "title", "value": "a title or recognition", "weight": 1 }
+      ]
+    },
+    {
+      "id": "npcOccupation",
+      "name": "NPC Occupation",
+      "type": "simple",
+      "description": "What the NPC does for a living",
+      "resultType": "trait",
+      "tags": ["npc", "occupation"],
+      "entries": [
+        { "value": "merchant" },
+        { "value": "soldier" },
+        { "value": "priest" },
+        { "value": "farmer" },
+        { "value": "noble" },
+        { "value": "thief" },
+        { "value": "wizard" },
+        { "value": "bard" },
+        { "value": "blacksmith" },
+        { "value": "innkeeper" },
+        { "value": "healer" },
+        { "value": "bounty hunter" }
+      ]
+    },
+    {
+      "id": "npcQuirk",
+      "name": "NPC Quirk",
+      "type": "simple",
+      "description": "A memorable personality trait",
+      "resultType": "trait",
+      "tags": ["npc", "personality"],
+      "entries": [
+        { "value": "speaks in the third person" },
+        { "value": "constantly fidgets with a coin" },
+        { "value": "makes terrible puns" },
+        { "value": "is overly suspicious of strangers" },
+        { "value": "speaks very loudly" },
+        { "value": "is easily distracted" },
+        { "value": "refuses to make eye contact" },
+        { "value": "is obsessed with cleanliness" },
+        { "value": "tells obvious lies" },
+        { "value": "laughs at inappropriate times" }
+      ]
+    },
+    {
+      "id": "npcSecret",
+      "name": "NPC Secret",
+      "type": "simple",
+      "description": "Something the NPC is hiding",
+      "resultType": "trait",
+      "tags": ["npc", "secret"],
+      "entries": [
+        { "value": "is actually a shapeshifter" },
+        { "value": "is hiding from a powerful enemy" },
+        { "value": "stole something valuable from a noble" },
+        { "value": "witnessed a murder they haven't reported" },
+        { "value": "is a spy for a foreign power" },
+        { "value": "has a forbidden romance" },
+        { "value": "is slowly being transformed by a curse" },
+        { "value": "killed someone in self-defense" },
+        { "value": "knows the location of a treasure" },
+        { "value": "is the long-lost heir to something important" }
+      ]
+    },
+    {
+      "id": "encounterTwist",
+      "name": "Encounter Twist",
+      "type": "simple",
+      "description": "An unexpected development",
+      "resultType": "event",
+      "tags": ["twist", "surprise"],
+      "entries": [
+        { "value": "the enemy is actually under mind control" },
+        { "value": "this is all a case of mistaken identity" },
+        { "value": "an old enemy arrives seeking vengeance" },
+        { "value": "the treasure is cursed" },
+        { "value": "a natural disaster interrupts events" },
+        { "value": "the 'villain' is actually the victim" },
+        { "value": "a key item is a fake" },
+        { "value": "there's a spy among the allies" }
+      ]
+    },
+    {
+      "id": "rumor",
+      "name": "Local Rumor",
+      "type": "simple",
+      "description": "Talk around town",
+      "resultType": "hook",
+      "tags": ["rumor", "information"],
+      "entries": [
+        { "value": "a dragon was spotted near the mountains" },
+        { "value": "the old ruins are haunted again" },
+        { "value": "bandits have been attacking caravans on the road" },
+        { "value": "strange lights appear in the forest at night" },
+        { "value": "a wealthy merchant is hiring adventurers" },
+        { "value": "the local lord is searching for a lost artifact" },
+        { "value": "people have gone missing near the well" },
+        { "value": "a traveling wizard is offering magical services" }
+      ]
+    },
+    {
+      "id": "wildlifeEncounter",
+      "name": "Wildlife Encounter",
+      "type": "simple",
+      "description": "Encountering natural creatures",
+      "hidden": true,
+      "resultType": "encounter",
+      "tags": ["wildlife", "beast"],
+      "entries": [
+        { "value": "{{dice:1d4}} wolves blocking the path" },
+        { "value": "a territorial bear defending its territory" },
+        { "value": "a pack of {{dice:1d6+2}} wild boars" }
+      ]
+    },
+    {
+      "id": "monsterEncounter",
+      "name": "Monster Encounter",
+      "type": "simple",
+      "description": "Encountering hostile monsters",
+      "hidden": true,
+      "resultType": "encounter",
+      "tags": ["monster", "combat"],
+      "entries": [
+        { "value": "{{dice:1d3}} goblins on patrol" },
+        { "value": "a lone undead creature wandering" },
+        { "value": "{{dice:1d4}} elementals guarding something" },
+        { "value": "an aberration lurking in ambush" }
+      ]
+    },
+    {
+      "id": "ambushEncounter",
+      "name": "Ambush Encounter",
+      "type": "simple",
+      "description": "Being ambushed",
+      "hidden": true,
+      "resultType": "encounter",
+      "tags": ["ambush", "combat"],
+      "entries": [
+        { "value": "{{dice:2d4}} bandits hidden in the terrain" },
+        { "value": "{{dice:1d6}} goblinoids in a prepared ambush" },
+        { "value": "an assassin targeting the party" }
+      ]
+    },
+    {
+      "id": "combatEncounters",
+      "name": "Combat Encounters",
+      "type": "composite",
+      "description": "Weighted selection of combat encounters",
+      "resultType": "encounter",
+      "tags": ["combat", "weighted"],
+      "sources": [
+        { "tableId": "wildlifeEncounter", "weight": 3 },
+        { "tableId": "monsterEncounter", "weight": 2 },
+        { "tableId": "ambushEncounter", "weight": 1 }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "simpleEncounter",
+      "name": "Simple Encounter",
+      "description": "Basic encounter with type and difficulty",
+      "resultType": "encounter",
+      "tags": ["simple", "quick"],
+      "pattern": "**Encounter:** {{encounterType}} ({{encounterDifficulty}})"
+    },
+    {
+      "id": "combatEncounter",
+      "name": "Combat Encounter",
+      "description": "A combat scenario with enemies and tactics",
+      "resultType": "encounter",
+      "tags": ["combat", "detailed"],
+      "pattern": "**Combat Encounter**\n\nDifficulty: {{encounterDifficulty}}\n\n**Enemies:** {{combatEncounters}}\n\n**Motivation:** They are {{motivation}}.\n\n**Tactics:** The enemy {{combatTactic}}."
+    },
+    {
+      "id": "socialEncounter",
+      "name": "Social Encounter",
+      "description": "Meeting an NPC",
+      "resultType": "encounter",
+      "tags": ["social", "npc"],
+      "pattern": "**Social Encounter**\n\nYou meet a {{npcDisposition}} {{npcOccupation}}.\n\n**Quirk:** This person {{npcQuirk}}.\n\n**Secret:** Unbeknownst to you, this person {{npcSecret}}."
+    },
+    {
+      "id": "questGiver",
+      "name": "Quest Giver",
+      "description": "An NPC with a quest to offer",
+      "resultType": "encounter",
+      "tags": ["quest", "npc"],
+      "pattern": "**Quest Available**\n\nA {{npcDisposition}} {{npcOccupation}} approaches with a task:\n\n**Quest:** {{questHook}}.\n\n**Reward:** {{rewardType}}.\n\n**Complication:** The NPC {{npcQuirk}}, and {{npcSecret}}."
+    },
+    {
+      "id": "adventureHook",
+      "name": "Adventure Hook",
+      "description": "Starting point for an adventure",
+      "resultType": "hook",
+      "tags": ["adventure", "hook"],
+      "pattern": "# Adventure Hook\n\n**Rumor Heard:** {{rumor}}\n\n**Quest Available:** {{questHook}}\n\n**Contact:** A {{npcDisposition}} {{npcOccupation}} who {{npcQuirk}}\n\n**Reward Offered:** {{rewardType}}"
+    },
+    {
+      "id": "fullEncounter",
+      "name": "Full Encounter",
+      "description": "Complete encounter with all details",
+      "resultType": "encounter",
+      "tags": ["complete", "detailed"],
+      "pattern": "# Encounter Report\n\n**Type:** {{encounterType}}\n**Difficulty:** {{encounterDifficulty}}\n\n## Challenge\n{{combatEncounters}}\n\nThey are {{motivation}} and {{combatTactic}}.\n\n## Potential Twist\n{{encounterTwist}}"
+    }
+  ]
+}

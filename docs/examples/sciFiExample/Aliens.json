@@ -1,0 +1,386 @@
+{
+  "metadata": {
+    "name": "Alien Species Generator",
+    "namespace": "scifi.aliens",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rollify Examples",
+    "description": "A comprehensive alien species generator for science fiction worldbuilding. Includes physical characteristics, cultural traits, technology levels, and behavioral patterns.",
+    "tags": ["sci-fi", "aliens", "species", "worldbuilding"],
+    "maxRecursionDepth": 30,
+    "uniqueOverflowBehavior": "cycle"
+  },
+  "variables": {
+    "defaultSeparator": ", ",
+    "unknownValue": "unknown"
+  },
+  "shared": {
+    "techModifier": "{{dice:1d6-3}}"
+  },
+  "tables": [
+    {
+      "id": "bodyType",
+      "name": "Body Type",
+      "type": "simple",
+      "description": "The primary body structure of the alien species",
+      "resultType": "trait",
+      "tags": ["physical", "basic"],
+      "entries": [
+        { "id": "humanoid", "value": "humanoid", "weight": 3, "sets": { "limbs": "4", "symmetry": "bilateral" } },
+        { "id": "insectoid", "value": "insectoid", "weight": 2, "sets": { "limbs": "6", "symmetry": "bilateral" } },
+        { "id": "cephalopod", "value": "cephalopod", "weight": 1, "sets": { "limbs": "8", "symmetry": "radial" } },
+        { "id": "serpentine", "value": "serpentine", "weight": 1, "sets": { "limbs": "0", "symmetry": "bilateral" } },
+        { "id": "amorphous", "value": "amorphous", "weight": 1, "sets": { "limbs": "variable", "symmetry": "none" } },
+        { "id": "crystalline", "value": "crystalline", "weight": 1, "sets": { "limbs": "0", "symmetry": "geometric" } },
+        { "id": "avian", "value": "avian", "weight": 2, "sets": { "limbs": "4", "symmetry": "bilateral" } },
+        { "id": "quadruped", "value": "quadrupedal", "weight": 2, "sets": { "limbs": "4", "symmetry": "bilateral" } }
+      ]
+    },
+    {
+      "id": "skinTexture",
+      "name": "Skin Texture",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "appearance"],
+      "entries": [
+        { "value": "smooth and rubbery" },
+        { "value": "covered in fine scales" },
+        { "value": "chitinous and segmented" },
+        { "value": "translucent and gelatinous" },
+        { "value": "rough and bark-like" },
+        { "value": "metallic and reflective" },
+        { "value": "feathered" },
+        { "value": "covered in bioluminescent patches" },
+        { "value": "leathery and wrinkled" },
+        { "value": "crystalline and faceted" }
+      ]
+    },
+    {
+      "id": "primaryColor",
+      "name": "Primary Coloration",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "appearance"],
+      "entries": [
+        { "value": "deep blue", "sets": { "colorFamily": "cool" } },
+        { "value": "vibrant green", "sets": { "colorFamily": "cool" } },
+        { "value": "pale gray", "sets": { "colorFamily": "neutral" } },
+        { "value": "obsidian black", "sets": { "colorFamily": "dark" } },
+        { "value": "iridescent purple", "sets": { "colorFamily": "cool" } },
+        { "value": "burnt orange", "sets": { "colorFamily": "warm" } },
+        { "value": "crimson red", "sets": { "colorFamily": "warm" } },
+        { "value": "pearlescent white", "sets": { "colorFamily": "light" } },
+        { "value": "mottled brown", "sets": { "colorFamily": "neutral" } },
+        { "value": "shifting chromatic", "sets": { "colorFamily": "variable" } }
+      ]
+    },
+    {
+      "id": "secondaryColor",
+      "name": "Secondary Coloration",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "appearance"],
+      "entries": [
+        { "value": "silver" },
+        { "value": "gold" },
+        { "value": "copper" },
+        { "value": "pale blue" },
+        { "value": "dark green" },
+        { "value": "amber" },
+        { "value": "violet" },
+        { "value": "charcoal" }
+      ]
+    },
+    {
+      "id": "distinctiveFeature",
+      "name": "Distinctive Physical Feature",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "unique"],
+      "entries": [
+        { "value": "multiple compound eyes", "sets": { "senseType": "visual" } },
+        { "value": "bioluminescent markings", "sets": { "senseType": "visual" } },
+        { "value": "prehensile tail", "sets": { "senseType": "tactile" } },
+        { "value": "vestigial wings", "sets": { "senseType": "proprioceptive" } },
+        { "value": "antennae that sense electromagnetic fields", "sets": { "senseType": "electromagnetic" } },
+        { "value": "retractable claws", "sets": { "senseType": "tactile" } },
+        { "value": "chromatophores for color-changing", "sets": { "senseType": "visual" } },
+        { "value": "echolocation organs", "sets": { "senseType": "auditory" } },
+        { "value": "heat-sensing pits", "sets": { "senseType": "thermal" } },
+        { "value": "symbiotic organisms living on their skin", "sets": { "senseType": "chemical" } }
+      ]
+    },
+    {
+      "id": "sizeCategory",
+      "name": "Size Category",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "basic"],
+      "defaultSets": { "heightUnit": "meters" },
+      "entries": [
+        { "id": "tiny", "value": "tiny", "weight": 1, "sets": { "heightRange": "0.1-0.3", "massRange": "0.5-2 kg" } },
+        { "id": "small", "value": "small", "weight": 2, "sets": { "heightRange": "0.5-1.0", "massRange": "10-30 kg" } },
+        { "id": "medium", "value": "medium", "weight": 4, "sets": { "heightRange": "1.5-2.0", "massRange": "50-100 kg" } },
+        { "id": "large", "value": "large", "weight": 2, "sets": { "heightRange": "2.5-4.0", "massRange": "200-500 kg" } },
+        { "id": "huge", "value": "huge", "weight": 1, "sets": { "heightRange": "5.0-10.0", "massRange": "1000-5000 kg" } }
+      ]
+    },
+    {
+      "id": "homeEnvironment",
+      "name": "Native Environment",
+      "type": "simple",
+      "resultType": "environment",
+      "tags": ["origin", "habitat"],
+      "entries": [
+        { "id": "aquatic", "value": "aquatic depths", "sets": { "atmosphere": "water-breather", "gravity": "variable" } },
+        { "id": "desert", "value": "scorching deserts", "sets": { "atmosphere": "oxygen-nitrogen", "gravity": "standard" } },
+        { "id": "arctic", "value": "frozen wastelands", "sets": { "atmosphere": "oxygen-nitrogen", "gravity": "standard" } },
+        { "id": "jungle", "value": "dense jungles", "sets": { "atmosphere": "oxygen-rich", "gravity": "standard" } },
+        { "id": "volcanic", "value": "volcanic regions", "sets": { "atmosphere": "sulfur-rich", "gravity": "high" } },
+        { "id": "underground", "value": "subterranean caverns", "sets": { "atmosphere": "methane-mix", "gravity": "low" } },
+        { "id": "gasGiant", "value": "gas giant atmospheres", "sets": { "atmosphere": "hydrogen-helium", "gravity": "crushing" } },
+        { "id": "asteroid", "value": "asteroid belts", "sets": { "atmosphere": "vacuum-adapted", "gravity": "micro" } },
+        { "id": "tidally_locked", "value": "tidally-locked twilight zones", "sets": { "atmosphere": "thin", "gravity": "low" } }
+      ]
+    },
+    {
+      "id": "governmentType",
+      "name": "Government Type",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["culture", "politics"],
+      "entries": [
+        { "value": "hive-mind collective", "sets": { "individualism": "none", "decisionSpeed": "instant" } },
+        { "value": "democratic federation", "sets": { "individualism": "high", "decisionSpeed": "slow" } },
+        { "value": "theocratic empire", "sets": { "individualism": "low", "decisionSpeed": "moderate" } },
+        { "value": "corporate oligarchy", "sets": { "individualism": "moderate", "decisionSpeed": "fast" } },
+        { "value": "tribal council", "sets": { "individualism": "moderate", "decisionSpeed": "moderate" } },
+        { "value": "military dictatorship", "sets": { "individualism": "low", "decisionSpeed": "fast" } },
+        { "value": "anarchic communes", "sets": { "individualism": "high", "decisionSpeed": "chaotic" } },
+        { "value": "AI-guided technocracy", "sets": { "individualism": "variable", "decisionSpeed": "optimal" } }
+      ]
+    },
+    {
+      "id": "techLevel",
+      "name": "Technology Level",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["culture", "technology"],
+      "entries": [
+        { "id": "primitive", "value": "primitive (stone-age equivalent)", "weight": 1, "sets": { "techTier": "0", "spaceCapable": "no" } },
+        { "id": "preindustrial", "value": "pre-industrial", "weight": 1, "sets": { "techTier": "1", "spaceCapable": "no" } },
+        { "id": "industrial", "value": "industrial", "weight": 2, "sets": { "techTier": "2", "spaceCapable": "no" } },
+        { "id": "atomic", "value": "atomic age", "weight": 2, "sets": { "techTier": "3", "spaceCapable": "limited" } },
+        { "id": "spacefaring", "value": "spacefaring", "weight": 3, "sets": { "techTier": "4", "spaceCapable": "yes" } },
+        { "id": "ftl", "value": "FTL-capable", "weight": 2, "sets": { "techTier": "5", "spaceCapable": "interstellar" } },
+        { "id": "transcendent", "value": "transcendent", "weight": 1, "sets": { "techTier": "6", "spaceCapable": "unlimited" } }
+      ]
+    },
+    {
+      "id": "culturalValue",
+      "name": "Core Cultural Value",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["culture", "values"],
+      "entries": [
+        { "value": "honor and martial prowess" },
+        { "value": "knowledge and scientific inquiry" },
+        { "value": "harmony with nature" },
+        { "value": "artistic expression" },
+        { "value": "economic prosperity" },
+        { "value": "spiritual enlightenment" },
+        { "value": "expansion and conquest" },
+        { "value": "preservation of tradition" },
+        { "value": "individual freedom" },
+        { "value": "collective survival" }
+      ]
+    },
+    {
+      "id": "communicationMethod",
+      "name": "Primary Communication",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["culture", "communication"],
+      "entries": [
+        { "value": "complex vocalizations", "sets": { "humanCompatible": "translatable" } },
+        { "value": "bioluminescent patterns", "sets": { "humanCompatible": "visual-only" } },
+        { "value": "pheromone signals", "sets": { "humanCompatible": "requires-tech" } },
+        { "value": "telepathic projection", "sets": { "humanCompatible": "one-way" } },
+        { "value": "ultrasonic pulses", "sets": { "humanCompatible": "requires-tech" } },
+        { "value": "electromagnetic bursts", "sets": { "humanCompatible": "requires-tech" } },
+        { "value": "tactile sign language", "sets": { "humanCompatible": "learnable" } },
+        { "value": "subsonic vibrations", "sets": { "humanCompatible": "requires-tech" } }
+      ]
+    },
+    {
+      "id": "disposition",
+      "name": "Disposition Toward Outsiders",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["behavior", "diplomacy"],
+      "entries": [
+        { "id": "hostile", "value": "hostile and xenophobic", "weight": 1, "sets": { "diplomacyMod": "-3", "tradeWilling": "no" } },
+        { "id": "suspicious", "value": "suspicious and isolationist", "weight": 2, "sets": { "diplomacyMod": "-1", "tradeWilling": "reluctant" } },
+        { "id": "neutral", "value": "neutral and pragmatic", "weight": 3, "sets": { "diplomacyMod": "0", "tradeWilling": "conditional" } },
+        { "id": "curious", "value": "curious and inquisitive", "weight": 2, "sets": { "diplomacyMod": "+1", "tradeWilling": "eager" } },
+        { "id": "friendly", "value": "friendly and welcoming", "weight": 1, "sets": { "diplomacyMod": "+2", "tradeWilling": "yes" } },
+        { "id": "manipulative", "value": "outwardly friendly but manipulative", "weight": 1, "sets": { "diplomacyMod": "+1", "tradeWilling": "exploitative" } }
+      ]
+    },
+    {
+      "id": "specialAbility",
+      "name": "Special Ability",
+      "type": "simple",
+      "resultType": "ability",
+      "tags": ["abilities", "unique"],
+      "entries": [
+        { "value": "natural camouflage" },
+        { "value": "regeneration of lost limbs" },
+        { "value": "venomous bite or sting" },
+        { "value": "natural armor plating" },
+        { "value": "electrical discharge" },
+        { "value": "psychic sensitivity" },
+        { "value": "extreme temperature tolerance" },
+        { "value": "enhanced reflexes" },
+        { "value": "photosynthesis" },
+        { "value": "magnetic field manipulation" },
+        { "value": "sonic projection" },
+        { "value": "phase shifting" }
+      ]
+    },
+    {
+      "id": "weakness",
+      "name": "Species Weakness",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["weaknesses", "vulnerability"],
+      "entries": [
+        { "value": "sensitivity to bright light" },
+        { "value": "dependency on specific atmospheric conditions" },
+        { "value": "vulnerability to certain frequencies" },
+        { "value": "slow reproduction rate" },
+        { "value": "addiction to a rare substance" },
+        { "value": "psychological instability under stress" },
+        { "value": "extreme temperature sensitivity" },
+        { "value": "short natural lifespan" },
+        { "value": "vulnerability to common pathogens" },
+        { "value": "dependence on hive connection" }
+      ]
+    },
+    {
+      "id": "namePrefix",
+      "name": "Name Prefix",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Zor" }, { "value": "Keth" }, { "value": "Vrax" }, { "value": "Nyl" },
+        { "value": "Thar" }, { "value": "Grix" }, { "value": "Mael" }, { "value": "Qua" },
+        { "value": "Xen" }, { "value": "Vor" }, { "value": "Jel" }, { "value": "Plix" }
+      ]
+    },
+    {
+      "id": "nameSuffix",
+      "name": "Name Suffix",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "ians" }, { "value": "oni" }, { "value": "ax" }, { "value": "een" },
+        { "value": "oth" }, { "value": "uri" }, { "value": "eki" }, { "value": "ara" },
+        { "value": "oid" }, { "value": "ix" }, { "value": "um" }, { "value": "ess" }
+      ]
+    },
+    {
+      "id": "speciesName",
+      "name": "Species Name",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["naming"],
+      "entries": [
+        { "value": "{{namePrefix}}{{nameSuffix}}" }
+      ]
+    },
+    {
+      "id": "physicalTraits",
+      "name": "Physical Traits Collection",
+      "type": "collection",
+      "description": "All physical trait tables combined",
+      "tags": ["physical", "collection"],
+      "collections": ["bodyType", "skinTexture", "primaryColor", "sizeCategory"]
+    },
+    {
+      "id": "culturalTraits",
+      "name": "Cultural Traits Collection",
+      "type": "collection",
+      "description": "All cultural trait tables combined",
+      "tags": ["culture", "collection"],
+      "collections": ["governmentType", "techLevel", "culturalValue", "communicationMethod"]
+    }
+  ],
+  "templates": [
+    {
+      "id": "simpleAlien",
+      "name": "Simple Alien Description",
+      "description": "A basic alien species with minimal details",
+      "resultType": "creature",
+      "tags": ["simple", "quick"],
+      "pattern": "A {{sizeCategory}} {{bodyType}} species with {{skinTexture}} skin."
+    },
+    {
+      "id": "physicalDescription",
+      "name": "Physical Description",
+      "description": "Detailed physical characteristics of an alien species",
+      "resultType": "description",
+      "tags": ["physical", "detailed"],
+      "pattern": "**Physical Characteristics**\n\nThis {{sizeCategory}} {{bodyType}} species stands approximately {{@sizeCategory.heightRange}} {{@sizeCategory.heightUnit}} tall. Their skin is {{skinTexture}}, colored {{primaryColor}} with {{secondaryColor}} markings. They possess {{distinctiveFeature}}.\n\n*Limb configuration:* {{@bodyType.limbs}} limbs with {{@bodyType.symmetry}} symmetry."
+    },
+    {
+      "id": "culturalProfile",
+      "name": "Cultural Profile",
+      "description": "Overview of alien culture and society",
+      "resultType": "description",
+      "tags": ["culture", "detailed"],
+      "pattern": "**Cultural Overview**\n\nThis species is governed by a {{governmentType}}. They have achieved {{techLevel}} technology and are {{@techLevel.spaceCapable}} of space travel. Their society values {{culturalValue}} above all else.\n\nThey communicate primarily through {{communicationMethod}}, which is {{@communicationMethod.humanCompatible}} for human interaction. Their general disposition toward outsiders is {{disposition}}."
+    },
+    {
+      "id": "fullSpecies",
+      "name": "Full Species Profile",
+      "description": "Complete alien species generation with all details",
+      "resultType": "creature",
+      "tags": ["complete", "detailed"],
+      "shared": {
+        "species": "{{speciesName}}"
+      },
+      "pattern": "# The {{$species}}\n\n## Physical Characteristics\n\nThe {{$species}} are a {{sizeCategory}} {{bodyType}} species, typically standing {{@sizeCategory.heightRange}} {{@sizeCategory.heightUnit}} tall and massing {{@sizeCategory.massRange}}. Their skin is {{skinTexture}}, predominantly {{primaryColor}} with {{secondaryColor}} accents. A distinctive feature is their {{distinctiveFeature}}.\n\n## Homeworld\n\nThe {{$species}} evolved in {{homeEnvironment}}. They are adapted to {{@homeEnvironment.atmosphere}} atmospheres and {{@homeEnvironment.gravity}} gravity conditions.\n\n## Society & Culture\n\nTheir civilization operates as a {{governmentType}}, with decision-making speed described as {{@governmentType.decisionSpeed}}. They have reached {{techLevel}} (Tech Tier {{@techLevel.techTier}}). The core value of their society is {{culturalValue}}.\n\nCommunication occurs through {{communicationMethod}}. Contact feasibility: {{@communicationMethod.humanCompatible}}.\n\n## Diplomacy\n\nThe {{$species}} are generally {{disposition}} toward other species. Trade willingness: {{@disposition.tradeWilling}}.\n\n## Special Traits\n\n- **Ability:** {{specialAbility}}\n- **Weakness:** {{weakness}}"
+    },
+    {
+      "id": "alienEncounterBrief",
+      "name": "Alien Encounter Brief",
+      "description": "Quick reference for alien encounter",
+      "resultType": "encounter",
+      "tags": ["encounter", "quick"],
+      "pattern": "**Species:** {{speciesName}}\n**Appearance:** {{sizeCategory}} {{bodyType}}, {{primaryColor}}\n**Disposition:** {{disposition}}\n**Tech Level:** {{techLevel}}"
+    },
+    {
+      "id": "multipleSpeciesComparison",
+      "name": "Multiple Species Comparison",
+      "description": "Generate and compare multiple alien species using captures",
+      "resultType": "description",
+      "tags": ["capture", "comparison", "advanced"],
+      "pattern": "# Xenobiological Survey Report\n\n## Species Catalogued\n{{3*unique*speciesName >> $speciesNames}}\n\n## Body Types Observed\n{{3*unique*bodyType >> $bodies}}\n\n## Disposition Analysis\n{{3*unique*disposition >> $dispositions}}\n\n---\n\n### Summary\n\n- **Species Names:** {{$speciesNames}}\n- **Body Types:** {{$bodies}}\n- **Dispositions:** {{$dispositions}}\n\n### Detailed Breakdown\n\n1. **{{$speciesNames[0]}}** - {{$bodies[0]}} physiology, {{$dispositions[0]}}\n2. **{{$speciesNames[1]}}** - {{$bodies[1]}} physiology, {{$dispositions[1]}}\n3. **{{$speciesNames[2]}}** - {{$bodies[2]}} physiology, {{$dispositions[2]}}"
+    }
+  ],
+  "conditionals": [
+    {
+      "when": "@bodyType.symmetry == 'radial'",
+      "action": "append",
+      "value": "\n\n*Note: Radial symmetry suggests this species may have evolved in aquatic or microgravity environments.*",
+      "tags": ["physical", "note"]
+    },
+    {
+      "when": "@techLevel.techTier >= '5'",
+      "action": "append",
+      "value": "\n\n*Warning: This species possesses interstellar travel capability. First contact protocols apply.*",
+      "tags": ["technology", "warning"]
+    }
+  ]
+}
