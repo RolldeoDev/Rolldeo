@@ -160,13 +160,14 @@ export function RollerPage() {
   return (
     <div className="h-[calc(100vh-4rem)]">
       <SplitPanelLayout
-        leftPanel={
+        leftPanel={({ onMobileClose }) => (
           <BrowserPanel
             selectedItemId={selectedItemId}
             onSelectItem={handleSelectItem}
             onRollItem={handleRollItem}
+            onMobileClose={onMobileClose}
           />
-        }
+        )}
         rightPanel={
           <ResultsPanel
             selectedItem={selectedItem}

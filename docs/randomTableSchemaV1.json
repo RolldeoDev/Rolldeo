@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://example.com/schemas/random-table-spec-v1.0.json",
+  "$id": "https://rolldeo.com/schemas/random-table-spec-v1.0.json",
   "title": "Random Table JSON Template Specification v1.0",
   "description": "A JSON schema for configurable random table generators supporting weighted tables, composite tables, template-based text generation, mathematical operations, conditional logic, multi-level table inheritance, external file references, and generation-time shared variables.",
   "type": "object",
@@ -219,9 +219,9 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "Relative path (e.g., './creatures/undead.json'), parent directory path (e.g., '../shared/core.json'), or absolute URL (e.g., 'https://example.com/tables.json').",
+          "description": "Relative path (e.g., './creatures/undead.json'), parent directory path (e.g., '../shared/core.json'), or absolute URL (e.g., 'https://rolldeo.com/tables.json').",
           "minLength": 1,
-          "examples": ["./creatures/undead.json", "../shared/core.json", "https://publisher.com/tables/v2/core.json"]
+          "examples": ["./creatures/undead.json", "../shared/core.json", "https://rolldeo.com/tables/v2/core.json"]
         },
         "alias": {
           "type": "string",
@@ -475,7 +475,7 @@
         "type": "string",
         "description": "Asset path: relative path, absolute URL, or data URI"
       },
-      "examples": [{"image": "images/goblin.png", "token": "tokens/goblin.webp"}, {"portrait": "https://cdn.example.com/orc.jpg"}]
+      "examples": [{"image": "images/goblin.png", "token": "tokens/goblin.webp"}, {"portrait": "https://cdn.rolldeo.com/orc.jpg"}]
     },
     "template": {
       "type": "object",

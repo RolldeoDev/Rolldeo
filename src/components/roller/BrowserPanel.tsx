@@ -16,25 +16,32 @@ interface BrowserPanelProps {
   onSelectItem: (item: BrowserItem, collectionId: string) => void
   /** Callback when an item is rolled */
   onRollItem: (item: BrowserItem, collectionId: string) => void
+  /** Callback to close the mobile drawer (only provided on mobile) */
+  onMobileClose?: () => void
 }
 
 export const BrowserPanel = memo(function BrowserPanel({
   selectedItemId,
   onSelectItem,
   onRollItem,
+  onMobileClose,
 }: BrowserPanelProps) {
   const handleSelectItem = useCallback(
     (item: BrowserItem, collectionId: string) => {
       onSelectItem(item, collectionId)
+      // Close mobile drawer after selection
+      onMobileClose?.()
     },
-    [onSelectItem]
+    [onSelectItem, onMobileClose]
   )
 
   const handleRollItem = useCallback(
     (item: BrowserItem, collectionId: string) => {
       onRollItem(item, collectionId)
+      // Close mobile drawer after roll
+      onMobileClose?.()
     },
-    [onRollItem]
+    [onRollItem, onMobileClose]
   )
 
   return (

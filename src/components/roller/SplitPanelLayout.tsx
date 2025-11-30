@@ -11,9 +11,14 @@ import { useResizable } from '@/hooks/useResizable'
 import { useUIStore } from '@/stores/uiStore'
 import { ResizeHandle } from './ResizeHandle'
 
+interface LeftPanelRenderProps {
+  /** Callback to close the mobile drawer (only provided on mobile) */
+  onMobileClose?: () => void
+}
+
 interface SplitPanelLayoutProps {
-  /** Content for the left browser panel */
-  leftPanel: ReactNode
+  /** Render function for the left browser panel */
+  leftPanel: (props: LeftPanelRenderProps) => ReactNode
   /** Content for the right results panel */
   rightPanel: ReactNode
 }
@@ -126,7 +131,7 @@ export function SplitPanelLayout({
             </button>
           </div>
           <div className="h-[calc(100%-3.5rem)] overflow-hidden">
-            {leftPanel}
+            {leftPanel({ onMobileClose: closeDrawer })}
           </div>
         </div>
 
@@ -146,7 +151,7 @@ export function SplitPanelLayout({
         className="flex-shrink-0 flex flex-col bg-card border-r border-border/50 overflow-hidden"
         style={{ width: `${width}px` }}
       >
-        {leftPanel}
+        {leftPanel({})}
       </div>
 
       {/* Resize Handle */}

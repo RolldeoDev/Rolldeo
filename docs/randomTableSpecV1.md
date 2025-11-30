@@ -112,7 +112,7 @@ These optional properties control engine behavior for this file.
       "book": "Ultimate Treasure Guide",
       "publisher": "Example Games",
       "license": "CC BY 4.0",
-      "url": "https://example.com/treasure-guide"
+      "url": "https://rolldeo.com/treasure-guide"
     },
     "maxRecursionDepth": 25,
     "maxExplodingDice": 50,
@@ -144,7 +144,7 @@ Paths can be specified in several formats:
 | ---------------- | ----------------------------------------------- | --------------------------------------- |
 | Relative path    | `"./creatures/undead.json"`                     | Relative to the current file's location |
 | Parent directory | `"../shared/core.json"`                         | Navigate up directory tree              |
-| Absolute URL     | `"https://example.com/tables/v2/monsters.json"` | Remote file (requires network access)   |
+| Absolute URL     | `"https://rolldeo.com/tables/v2/monsters.json"` | Remote file (requires network access)   |
 
 **Security Note:** Implementations SHOULD restrict remote URLs to HTTPS and MAY implement allowlists for permitted domains.
 
@@ -196,7 +196,7 @@ Once imported, content is referenced using the alias as a prefix:
       "description": "Shared treasure generation tables"
     },
     {
-      "path": "https://publisher.com/tables/core-v2.json",
+      "path": "https://rolldeo.com/tables/core-v2.json",
       "alias": "core",
       "description": "Publisher's official core tables"
     }
@@ -468,7 +468,7 @@ The `assets` object uses arbitrary string keys to identify asset types. This fle
 
 Asset values can be:
 - **Relative paths:** `"images/goblin.png"` (relative to the JSON file)
-- **Absolute URLs:** `"https://cdn.example.com/tokens/goblin.webp"`
+- **Absolute URLs:** `"https://cdn.rolldeo.com/tokens/goblin.webp"`
 - **Data URIs:** `"data:image/png;base64,..."` (for embedded small assets)
 
 **Inheritance Behavior:** When a child entry overrides a parent entry, `assets` are deep-merged. Child assets override matching keys; unspecified keys are inherited from the parent.
@@ -2508,5 +2508,30 @@ weather     - Weather conditions
 ```
 
 Custom types should use namespace conventions: `"publisher/category/type"`
+
+---
+
+## License
+
+This specification is released under the **CC0 1.0 Universal** (Public Domain) license.
+
+You are free to:
+- **Use** — Copy, modify, and distribute this specification
+- **Build** — Create your own implementations, tools, or engines
+- **Share** — Include this specification in your own projects
+
+No attribution required, though it's always appreciated.
+
+[View Full License](https://creativecommons.org/publicdomain/zero/1.0/)
+
+---
+
+## Source Code
+
+The Rolldeo application is open source under the **Apache License 2.0**.
+
+- **GitHub Repository**: [https://github.com/RolldeoDev/rolldeo](https://github.com/RolldeoDev/rolldeo)
+- **Report Issues**: [https://github.com/RolldeoDev/rolldeo/issues](https://github.com/RolldeoDev/rolldeo/issues)
+- **Official Website**: [https://rolldeo.com](https://rolldeo.com)
 
 ---

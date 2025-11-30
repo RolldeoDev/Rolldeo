@@ -4,6 +4,7 @@
  * Landing page for the Guide section with navigation cards and download buttons.
  */
 
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BookOpen,
@@ -14,6 +15,12 @@ import {
   Download,
   ArrowRight,
   Sparkles,
+  Github,
+  Scale,
+  Package,
+  ChevronDown,
+  Swords,
+  RocketIcon,
 } from 'lucide-react'
 import { DownloadButton } from '@/components/guide'
 
@@ -46,7 +53,7 @@ const guideCards = [
     id: 'spec',
     title: 'Full Specification',
     description:
-      'Complete reference for the Random Table JSON Spec v1.2. Covers all features including imports, inheritance, and conditionals.',
+      'Complete reference for the Random Table JSON Spec v1.0. Covers all features including imports, inheritance, and conditionals.',
     icon: FileCode,
     path: '/guide/spec',
     color: 'amber',
@@ -88,6 +95,9 @@ const colorClasses = {
 }
 
 export function GuidePage() {
+  const [fantasyExpanded, setFantasyExpanded] = useState(false)
+  const [sciFiExpanded, setSciFiExpanded] = useState(false)
+
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -161,8 +171,61 @@ export function GuidePage() {
         })}
       </section>
 
-      {/* Downloads Section */}
+      {/* Open Source Section */}
       <section className="card-elevated border border-border/50 p-8 animate-slide-up stagger-4">
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-2">
+            <Scale className="h-6 w-6 text-primary" />
+            <h2 className="text-xl font-bold">Open Source & Free to Use</h2>
+          </div>
+
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Rolldeo is open source. The Random Table Specification and JSON Schema are released
+            under <strong className="text-foreground">CC0 (Public Domain)</strong> — use them freely to build your own
+            tools, engines, or table collections without any restrictions.
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50 border border-border/50">
+              <span className="text-sm text-muted-foreground">Application:</span>
+              <a
+                href="https://www.apache.org/licenses/LICENSE-2.0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:underline"
+              >
+                Apache 2.0
+              </a>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50 border border-border/50">
+              <span className="text-sm text-muted-foreground">Spec & Schema:</span>
+              <a
+                href="https://creativecommons.org/publicdomain/zero/1.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:underline"
+              >
+                CC0 Public Domain
+              </a>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <a
+              href="https://github.com/RolldeoDev/rolldeo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <Github className="h-4 w-4" />
+              View on GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Downloads Section */}
+      <section className="card-elevated border border-border/50 p-8 animate-slide-up stagger-5">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-center md:text-left">
             <div className="flex items-center gap-2 mb-2">
@@ -193,8 +256,132 @@ export function GuidePage() {
         </div>
       </section>
 
+      {/* Example Downloads Section */}
+      <section className="card-elevated border border-border/50 p-8 animate-slide-up stagger-6">
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Package className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-bold">Download Pre-built Examples</h2>
+            </div>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Complete example packs demonstrating every feature in the specification.
+              Import them into Rolldeo, study the code, and remix them for your own projects.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Fantasy Example */}
+            <div className="rounded-xl border border-border/50 overflow-hidden">
+              <div className="p-4 bg-amber-500/5 border-b border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+                      <Swords className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Fantasy Toolkit</h3>
+                      <p className="text-sm text-muted-foreground">Dungeon crawling adventures</p>
+                    </div>
+                  </div>
+                  <a
+                    href="/guide/examples/fantasyExample.zip"
+                    download
+                    className="btn-primary text-sm px-4 py-2"
+                  >
+                    Download
+                  </a>
+                </div>
+              </div>
+              <div className="p-4">
+                <button
+                  onClick={() => setFantasyExpanded(!fantasyExpanded)}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+                >
+                  <ChevronDown className={`h-4 w-4 transition-transform ${fantasyExpanded ? 'rotate-180' : ''}`} />
+                  {fantasyExpanded ? 'Hide contents' : 'Show contents'}
+                </button>
+                {fantasyExpanded && (
+                  <div className="mt-4 space-y-3 text-sm animate-fade-in">
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <div className="font-medium mb-1">Monsters.json</div>
+                      <p className="text-muted-foreground text-xs">Creatures from common beasts to legendary dragons. Demonstrates weights, sets, defaultSets, collection/composite types, hidden helper tables, and templates.</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <div className="font-medium mb-1">Treasure.json</div>
+                      <p className="text-muted-foreground text-xs">Loot including coins, gems, weapons, and magic items. Demonstrates dice expressions, shared variables, table references, gem quality modifiers, and cursed items.</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <div className="font-medium mb-1">Environments.json</div>
+                      <p className="text-muted-foreground text-xs">Dungeons, taverns, wilderness, and urban locations. Demonstrates multiple rolls, unique selections, custom separators, and location atmosphere.</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <div className="font-medium mb-1">Encounters.json</div>
+                      <p className="text-muted-foreground text-xs">Combat, social, and quest encounters. Demonstrates imports, composite tables, NPC generation, quest hooks, and encounter twists.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Sci-Fi Example */}
+            <div className="rounded-xl border border-border/50 overflow-hidden">
+              <div className="p-4 bg-cyan-500/5 border-b border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-500">
+                      <RocketIcon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Sci-Fi Worldbuilding</h3>
+                      <p className="text-sm text-muted-foreground">Space exploration system</p>
+                    </div>
+                  </div>
+                  <a
+                    href="/guide/examples/sciFiExample.zip"
+                    download
+                    className="btn-primary text-sm px-4 py-2"
+                  >
+                    Download
+                  </a>
+                </div>
+              </div>
+              <div className="p-4">
+                <button
+                  onClick={() => setSciFiExpanded(!sciFiExpanded)}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+                >
+                  <ChevronDown className={`h-4 w-4 transition-transform ${sciFiExpanded ? 'rotate-180' : ''}`} />
+                  {sciFiExpanded ? 'Hide contents' : 'Show contents'}
+                </button>
+                {sciFiExpanded && (
+                  <div className="mt-4 space-y-3 text-sm animate-fade-in">
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <div className="font-medium mb-1">Aliens.json</div>
+                      <p className="text-muted-foreground text-xs">Alien species with physical and cultural traits. Demonstrates conditionals, template-level shared variables, capture syntax, and species naming.</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <div className="font-medium mb-1">Ships.json</div>
+                      <p className="text-muted-foreground text-xs">Starships from fighters to battleships. Demonstrates ranges (d100 style), extends inheritance, ship systems, and fleet generation with captures.</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <div className="font-medium mb-1">Planets.json</div>
+                      <p className="text-muted-foreground text-xs">Planets with environments, resources, and hazards. Demonstrates imports, star classification, colonization status, native life, and multi-world comparison.</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <div className="font-medium mb-1">Encounters.json</div>
+                      <p className="text-muted-foreground text-xs">Space encounters combining all modules. Demonstrates multiple imports, complex captures, combat/peaceful variants, and full scenario generation.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Quick Tips */}
-      <section className="grid gap-4 md:grid-cols-3 animate-slide-up stagger-5">
+      <section className="grid gap-4 md:grid-cols-3 animate-slide-up">
         <QuickTip
           icon={<Sparkles className="h-5 w-5" />}
           title="Start Simple"

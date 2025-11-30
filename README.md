@@ -26,6 +26,12 @@ Rolldeo is two things:
 
 ---
 
+## Try It Online
+
+**[rolldeo.com](https://rolldeo.com)** — See Rolldeo in action. No installation required.
+
+---
+
 ## Features
 
 ### The Roller
@@ -61,7 +67,7 @@ The Specification and Schema are licensed under **CC0** (public domain) to encou
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/rolldeo.git
+git clone https://github.com/RolldeoDev/rolldeo.git
 cd rolldeo
 
 # Install dependencies

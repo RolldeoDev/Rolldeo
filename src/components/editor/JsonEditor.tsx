@@ -65,7 +65,7 @@ export function JsonEditor({
       validate: true,
       schemas: [
         {
-          uri: 'https://rolldeo.app/schemas/random-table-spec-v1.0.json',
+          uri: 'https://rolldeo.com/schemas/random-table-spec-v1.0.json',
           fileMatch: ['*'],
           schema: schema,
         },
