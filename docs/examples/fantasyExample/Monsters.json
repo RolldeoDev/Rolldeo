@@ -1,0 +1,388 @@
+{
+  "metadata": {
+    "name": "High Fantasy Monsters",
+    "namespace": "fantasy.monsters",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rollify Examples",
+    "description": "A comprehensive collection of high fantasy creatures ranging from common beasts to legendary beings. Includes physical descriptions, behaviors, and environmental traits.",
+    "tags": ["fantasy", "monsters", "creatures", "bestiary"],
+    "maxRecursionDepth": 50,
+    "uniqueOverflowBehavior": "cycle"
+  },
+  "tables": [
+    {
+      "id": "creatureSize",
+      "name": "Creature Size",
+      "type": "simple",
+      "description": "The physical size category of the creature",
+      "resultType": "trait",
+      "tags": ["size", "basic"],
+      "entries": [
+        { "id": "tiny", "value": "tiny", "weight": 1, "sets": { "sizeCategory": "tiny", "spaceRequired": "minimal", "strengthDesc": "feeble" } },
+        { "id": "small", "value": "small", "weight": 2, "sets": { "sizeCategory": "small", "spaceRequired": "cramped", "strengthDesc": "weak" } },
+        { "id": "medium", "value": "medium", "weight": 4, "sets": { "sizeCategory": "medium", "spaceRequired": "standard", "strengthDesc": "average" } },
+        { "id": "large", "value": "large", "weight": 2, "sets": { "sizeCategory": "large", "spaceRequired": "spacious", "strengthDesc": "powerful" } },
+        { "id": "huge", "value": "huge", "weight": 1, "sets": { "sizeCategory": "huge", "spaceRequired": "vast", "strengthDesc": "mighty" } },
+        { "id": "gargantuan", "value": "gargantuan", "weight": 0.5, "sets": { "sizeCategory": "gargantuan", "spaceRequired": "immense", "strengthDesc": "titanic" } }
+      ]
+    },
+    {
+      "id": "temperament",
+      "name": "Creature Temperament",
+      "type": "simple",
+      "description": "The general disposition and behavior patterns",
+      "resultType": "trait",
+      "tags": ["behavior", "basic"],
+      "entries": [
+        { "id": "aggressive", "value": "aggressive and territorial", "weight": 2, "sets": { "hostility": "high", "fleeChance": "low", "negotiable": "no" } },
+        { "id": "defensive", "value": "defensive but not hostile", "weight": 2, "sets": { "hostility": "medium", "fleeChance": "medium", "negotiable": "possibly" } },
+        { "id": "curious", "value": "curious and investigative", "weight": 1, "sets": { "hostility": "low", "fleeChance": "medium", "negotiable": "yes" } },
+        { "id": "skittish", "value": "skittish and easily frightened", "weight": 1, "sets": { "hostility": "low", "fleeChance": "high", "negotiable": "yes" } },
+        { "id": "predatory", "value": "predatory and calculating", "weight": 2, "sets": { "hostility": "high", "fleeChance": "low", "negotiable": "no" } },
+        { "id": "neutral", "value": "neutral and indifferent", "weight": 1, "sets": { "hostility": "none", "fleeChance": "medium", "negotiable": "yes" } },
+        { "id": "protective", "value": "protective of its territory", "weight": 1, "sets": { "hostility": "conditional", "fleeChance": "low", "negotiable": "possibly" } }
+      ]
+    },
+    {
+      "id": "hideTexture",
+      "name": "Hide or Skin Texture",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "value": "smooth, leathery" },
+        { "value": "rough, scaled" },
+        { "value": "covered in thick fur" },
+        { "value": "armored with bony plates" },
+        { "value": "slimy and glistening" },
+        { "value": "feathered" },
+        { "value": "covered in coarse bristles" },
+        { "value": "translucent and ethereal" }
+      ]
+    },
+    {
+      "id": "eyeDescription",
+      "name": "Eye Description",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "value": "glowing red eyes" },
+        { "value": "multifaceted compound eyes" },
+        { "value": "pale, milky eyes" },
+        { "value": "burning golden eyes" },
+        { "value": "deep black eyes like pools of shadow" },
+        { "value": "bright green eyes with slitted pupils" },
+        { "value": "no visible eyes" },
+        { "value": "dozens of tiny eyes covering its face" },
+        { "value": "a single massive central eye" }
+      ]
+    },
+    {
+      "id": "distinctiveFeature",
+      "name": "Distinctive Feature",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "value": "a crown of twisted horns" },
+        { "value": "bioluminescent markings" },
+        { "value": "razor-sharp claws dripping with venom" },
+        { "value": "a tail ending in a wicked barb" },
+        { "value": "wings that shimmer with iridescent colors" },
+        { "value": "an extra set of limbs" },
+        { "value": "scars from countless battles" },
+        { "value": "runes carved into its flesh" },
+        { "value": "wisps of smoke trailing from its body" },
+        { "value": "crystals growing from its spine" }
+      ]
+    },
+    {
+      "id": "commonBeasts",
+      "name": "Common Beasts",
+      "type": "simple",
+      "description": "Ordinary animals found throughout the realm",
+      "resultType": "creature",
+      "tags": ["beast", "common", "wildlife"],
+      "defaultSets": {
+        "creatureType": "beast",
+        "intelligence": "animal",
+        "threat": "low"
+      },
+      "entries": [
+        { "id": "wolf", "value": "wolf", "weight": 3, "sets": { "habitat": "forest", "packAnimal": "yes", "diet": "carnivore" } },
+        { "id": "bear", "value": "bear", "weight": 2, "sets": { "habitat": "forest", "packAnimal": "no", "diet": "omnivore" } },
+        { "id": "boar", "value": "wild boar", "weight": 2, "sets": { "habitat": "forest", "packAnimal": "sometimes", "diet": "omnivore" } },
+        { "id": "stag", "value": "great stag", "weight": 2, "sets": { "habitat": "forest", "packAnimal": "herd", "diet": "herbivore" } },
+        { "id": "serpent", "value": "giant serpent", "weight": 1, "sets": { "habitat": "swamp", "packAnimal": "no", "diet": "carnivore" } },
+        { "id": "eagle", "value": "giant eagle", "weight": 1, "sets": { "habitat": "mountain", "packAnimal": "no", "diet": "carnivore" } },
+        { "id": "spider", "value": "giant spider", "weight": 2, "sets": { "habitat": "cave", "packAnimal": "colony", "diet": "carnivore" } },
+        { "id": "rat", "value": "dire rat", "weight": 2, "sets": { "habitat": "underground", "packAnimal": "swarm", "diet": "omnivore" } }
+      ]
+    },
+    {
+      "id": "undeadHorrors",
+      "name": "Undead Horrors",
+      "type": "simple",
+      "description": "Creatures animated by dark magic or cursed to undeath",
+      "resultType": "creature",
+      "tags": ["undead", "horror", "evil"],
+      "defaultSets": {
+        "creatureType": "undead",
+        "intelligence": "varies",
+        "threat": "medium",
+        "vulnerabilities": "radiant, fire"
+      },
+      "entries": [
+        { "id": "skeleton", "value": "animated skeleton", "weight": 4, "sets": { "intelligence": "none", "corporeal": "yes" } },
+        { "id": "zombie", "value": "shambling zombie", "weight": 4, "sets": { "intelligence": "none", "corporeal": "yes" } },
+        { "id": "ghoul", "value": "ravenous ghoul", "weight": 2, "sets": { "intelligence": "low", "corporeal": "yes", "paralysis": "yes" } },
+        { "id": "wight", "value": "life-draining wight", "weight": 1, "sets": { "intelligence": "medium", "corporeal": "yes", "lifeDrain": "yes" } },
+        { "id": "wraith", "value": "spectral wraith", "weight": 1, "sets": { "intelligence": "medium", "corporeal": "no", "lifeDrain": "yes" } },
+        { "id": "ghost", "value": "vengeful ghost", "weight": 1, "sets": { "intelligence": "high", "corporeal": "no", "possession": "yes" } },
+        { "id": "vampire", "value": "vampire spawn", "weight": 0.5, "sets": { "intelligence": "high", "corporeal": "yes", "lifeDrain": "yes", "threat": "high" } },
+        { "id": "lich", "value": "ancient lich", "weight": 0.25, "sets": { "intelligence": "genius", "corporeal": "yes", "spellcaster": "yes", "threat": "extreme" } }
+      ]
+    },
+    {
+      "id": "goblinoids",
+      "name": "Goblinoid Creatures",
+      "type": "simple",
+      "description": "The various races of goblin-kind",
+      "resultType": "creature",
+      "tags": ["humanoid", "goblinoid", "tribal"],
+      "defaultSets": {
+        "creatureType": "humanoid",
+        "intelligence": "low",
+        "threat": "low",
+        "society": "tribal"
+      },
+      "entries": [
+        { "id": "goblin", "value": "goblin", "weight": 5, "sets": { "size": "small", "tactics": "ambush" } },
+        { "id": "hobgoblin", "value": "hobgoblin", "weight": 2, "sets": { "size": "medium", "tactics": "military", "intelligence": "medium", "threat": "medium" } },
+        { "id": "bugbear", "value": "bugbear", "weight": 1, "sets": { "size": "large", "tactics": "stealth", "threat": "medium" } },
+        { "id": "goblinChief", "value": "goblin chief", "weight": 0.5, "sets": { "size": "small", "tactics": "command", "intelligence": "medium", "threat": "medium" } },
+        { "id": "goblinShaman", "value": "goblin shaman", "weight": 0.5, "sets": { "size": "small", "tactics": "magic", "spellcaster": "yes", "threat": "medium" } }
+      ]
+    },
+    {
+      "id": "elementalBeings",
+      "name": "Elemental Beings",
+      "type": "simple",
+      "description": "Creatures formed from the raw elements",
+      "resultType": "creature",
+      "tags": ["elemental", "magical", "otherworldly"],
+      "defaultSets": {
+        "creatureType": "elemental",
+        "intelligence": "low",
+        "threat": "medium"
+      },
+      "entries": [
+        { "id": "fireElemental", "value": "fire elemental", "weight": 2, "sets": { "element": "fire", "damage": "fire", "vulnerability": "cold" } },
+        { "id": "waterElemental", "value": "water elemental", "weight": 2, "sets": { "element": "water", "damage": "bludgeoning", "vulnerability": "lightning" } },
+        { "id": "earthElemental", "value": "earth elemental", "weight": 2, "sets": { "element": "earth", "damage": "bludgeoning", "vulnerability": "thunder" } },
+        { "id": "airElemental", "value": "air elemental", "weight": 2, "sets": { "element": "air", "damage": "lightning", "vulnerability": "none" } },
+        { "id": "magmaElemental", "value": "magma elemental", "weight": 1, "sets": { "element": "fire/earth", "damage": "fire", "threat": "high" } },
+        { "id": "iceElemental", "value": "ice elemental", "weight": 1, "sets": { "element": "water/air", "damage": "cold", "threat": "high" } }
+      ]
+    },
+    {
+      "id": "draconicCreatures",
+      "name": "Draconic Creatures",
+      "type": "simple",
+      "description": "Dragons and their lesser kin",
+      "resultType": "creature",
+      "tags": ["dragon", "legendary", "powerful"],
+      "defaultSets": {
+        "creatureType": "dragon",
+        "intelligence": "high",
+        "threat": "high",
+        "flight": "yes",
+        "breathWeapon": "yes"
+      },
+      "entries": [
+        { "id": "wyrmling", "value": "dragon wyrmling", "weight": 2, "sets": { "age": "wyrmling", "size": "medium", "threat": "medium" } },
+        { "id": "drake", "value": "lesser drake", "weight": 3, "sets": { "age": "adult", "size": "large", "intelligence": "low", "threat": "medium", "breathWeapon": "no" } },
+        { "id": "wyvern", "value": "wyvern", "weight": 2, "sets": { "age": "adult", "size": "large", "intelligence": "animal", "threat": "medium", "breathWeapon": "no", "poison": "yes" } },
+        { "id": "youngDragon", "value": "young dragon", "weight": 1, "sets": { "age": "young", "size": "large", "threat": "high" } },
+        { "id": "adultDragon", "value": "adult dragon", "weight": 0.5, "sets": { "age": "adult", "size": "huge", "threat": "extreme" } },
+        { "id": "ancientDragon", "value": "ancient dragon", "weight": 0.1, "sets": { "age": "ancient", "size": "gargantuan", "threat": "legendary", "spellcaster": "yes" } }
+      ]
+    },
+    {
+      "id": "dragonColor",
+      "name": "Dragon Color",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "id": "red", "value": "red", "sets": { "breathType": "fire", "alignment": "evil", "habitat": "volcanic" } },
+        { "id": "blue", "value": "blue", "sets": { "breathType": "lightning", "alignment": "evil", "habitat": "desert" } },
+        { "id": "green", "value": "green", "sets": { "breathType": "poison", "alignment": "evil", "habitat": "forest" } },
+        { "id": "black", "value": "black", "sets": { "breathType": "acid", "alignment": "evil", "habitat": "swamp" } },
+        { "id": "white", "value": "white", "sets": { "breathType": "cold", "alignment": "evil", "habitat": "arctic" } },
+        { "id": "gold", "value": "gold", "sets": { "breathType": "fire", "alignment": "good", "habitat": "any" } },
+        { "id": "silver", "value": "silver", "sets": { "breathType": "cold", "alignment": "good", "habitat": "mountain" } },
+        { "id": "bronze", "value": "bronze", "sets": { "breathType": "lightning", "alignment": "good", "habitat": "coastal" } },
+        { "id": "copper", "value": "copper", "sets": { "breathType": "acid", "alignment": "good", "habitat": "hills" } },
+        { "id": "brass", "value": "brass", "sets": { "breathType": "fire", "alignment": "good", "habitat": "desert" } }
+      ]
+    },
+    {
+      "id": "feyCreatures",
+      "name": "Fey Creatures",
+      "type": "simple",
+      "description": "Beings from the mystical Feywild",
+      "resultType": "creature",
+      "tags": ["fey", "magical", "otherworldly"],
+      "defaultSets": {
+        "creatureType": "fey",
+        "intelligence": "medium",
+        "threat": "varies",
+        "magicResistance": "yes"
+      },
+      "entries": [
+        { "id": "pixie", "value": "pixie", "weight": 2, "sets": { "size": "tiny", "threat": "low", "flight": "yes", "invisibility": "yes" } },
+        { "id": "sprite", "value": "sprite", "weight": 2, "sets": { "size": "tiny", "threat": "low", "flight": "yes" } },
+        { "id": "satyr", "value": "satyr", "weight": 2, "sets": { "size": "medium", "threat": "low", "charming": "yes" } },
+        { "id": "dryad", "value": "dryad", "weight": 1, "sets": { "size": "medium", "threat": "low", "treebound": "yes" } },
+        { "id": "nymph", "value": "nymph", "weight": 1, "sets": { "size": "medium", "threat": "low", "blinding": "yes" } },
+        { "id": "redcap", "value": "redcap", "weight": 1, "sets": { "size": "small", "threat": "medium", "alignment": "evil" } },
+        { "id": "hag", "value": "hag", "weight": 0.5, "sets": { "size": "medium", "threat": "high", "alignment": "evil", "spellcaster": "yes" } },
+        { "id": "archfey", "value": "archfey noble", "weight": 0.1, "sets": { "size": "medium", "threat": "extreme", "spellcaster": "yes" } }
+      ]
+    },
+    {
+      "id": "giantKin",
+      "name": "Giants and Giant-kin",
+      "type": "simple",
+      "description": "The towering races of giants",
+      "resultType": "creature",
+      "tags": ["giant", "humanoid", "powerful"],
+      "defaultSets": {
+        "creatureType": "giant",
+        "intelligence": "low",
+        "threat": "high",
+        "size": "huge"
+      },
+      "entries": [
+        { "id": "ogre", "value": "ogre", "weight": 3, "sets": { "size": "large", "threat": "medium" } },
+        { "id": "troll", "value": "troll", "weight": 2, "sets": { "size": "large", "threat": "medium", "regeneration": "yes", "vulnerability": "fire" } },
+        { "id": "hillGiant", "value": "hill giant", "weight": 2, "sets": { "giantType": "hill", "intelligence": "very low" } },
+        { "id": "stoneGiant", "value": "stone giant", "weight": 1, "sets": { "giantType": "stone", "intelligence": "medium", "rockThrowing": "yes" } },
+        { "id": "frostGiant", "value": "frost giant", "weight": 1, "sets": { "giantType": "frost", "immunity": "cold", "threat": "very high" } },
+        { "id": "fireGiant", "value": "fire giant", "weight": 1, "sets": { "giantType": "fire", "immunity": "fire", "threat": "very high" } },
+        { "id": "cloudGiant", "value": "cloud giant", "weight": 0.5, "sets": { "giantType": "cloud", "intelligence": "high", "threat": "extreme", "spellcaster": "yes" } },
+        { "id": "stormGiant", "value": "storm giant", "weight": 0.25, "sets": { "giantType": "storm", "intelligence": "high", "threat": "legendary", "spellcaster": "yes" } }
+      ]
+    },
+    {
+      "id": "aberrations",
+      "name": "Aberrations",
+      "type": "simple",
+      "description": "Alien creatures from beyond reality",
+      "resultType": "creature",
+      "tags": ["aberration", "horror", "alien"],
+      "defaultSets": {
+        "creatureType": "aberration",
+        "intelligence": "varies",
+        "threat": "high",
+        "origin": "far realm"
+      },
+      "entries": [
+        { "id": "gibbering", "value": "gibbering mouther", "weight": 2, "sets": { "intelligence": "none", "threat": "medium", "madness": "yes" } },
+        { "id": "otyugh", "value": "otyugh", "weight": 2, "sets": { "intelligence": "low", "threat": "medium", "disease": "yes" } },
+        { "id": "mindFlayer", "value": "mind flayer", "weight": 1, "sets": { "intelligence": "genius", "threat": "high", "psionics": "yes" } },
+        { "id": "beholder", "value": "beholder", "weight": 0.5, "sets": { "intelligence": "genius", "threat": "extreme", "antimagic": "yes", "eyeRays": "yes" } },
+        { "id": "aboleth", "value": "aboleth", "weight": 0.5, "sets": { "intelligence": "genius", "threat": "extreme", "psionics": "yes", "aquatic": "yes" } }
+      ]
+    },
+    {
+      "id": "allCreatures",
+      "name": "All Creatures",
+      "type": "collection",
+      "description": "Combined collection of all creature types",
+      "resultType": "creature",
+      "tags": ["combined", "all"],
+      "collections": ["commonBeasts", "undeadHorrors", "goblinoids", "elementalBeings", "draconicCreatures", "feyCreatures", "giantKin", "aberrations"]
+    },
+    {
+      "id": "creatureByThreat",
+      "name": "Creature by Threat Level",
+      "type": "composite",
+      "description": "Weighted selection favoring appropriate threat levels",
+      "resultType": "creature",
+      "tags": ["weighted", "balanced"],
+      "sources": [
+        { "tableId": "commonBeasts", "weight": 4 },
+        { "tableId": "goblinoids", "weight": 3 },
+        { "tableId": "undeadHorrors", "weight": 2 },
+        { "tableId": "elementalBeings", "weight": 1 },
+        { "tableId": "feyCreatures", "weight": 1 },
+        { "tableId": "draconicCreatures", "weight": 0.5 },
+        { "tableId": "giantKin", "weight": 0.5 },
+        { "tableId": "aberrations", "weight": 0.25 }
+      ]
+    },
+    {
+      "id": "creatureNamePrefix",
+      "name": "Creature Name Prefix",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Shadow" }, { "value": "Blood" }, { "value": "Iron" }, { "value": "Storm" },
+        { "value": "Frost" }, { "value": "Flame" }, { "value": "Night" }, { "value": "Dire" },
+        { "value": "Elder" }, { "value": "Ancient" }, { "value": "Fel" }, { "value": "Doom" }
+      ]
+    },
+    {
+      "id": "creatureNameSuffix",
+      "name": "Creature Name Suffix",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "fang" }, { "value": "claw" }, { "value": "maw" }, { "value": "wing" },
+        { "value": "scale" }, { "value": "bane" }, { "value": "terror" }, { "value": "fiend" },
+        { "value": "horror" }, { "value": "spawn" }, { "value": "beast" }, { "value": "stalker" }
+      ]
+    },
+    {
+      "id": "uniqueCreatureName",
+      "name": "Unique Creature Name",
+      "type": "simple",
+      "description": "Generates a unique name for a creature",
+      "resultType": "name",
+      "tags": ["naming"],
+      "entries": [
+        { "value": "{{creatureNamePrefix}}{{creatureNameSuffix}}" }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "simpleCreature",
+      "name": "Simple Creature",
+      "description": "A basic creature description",
+      "resultType": "creature",
+      "tags": ["simple", "quick"],
+      "pattern": "A {{creatureSize}} {{creatureByThreat}}"
+    },
+    {
+      "id": "detailedCreature",
+      "name": "Detailed Creature Description",
+      "description": "A richly detailed creature description with physical traits",
+      "resultType": "creature",
+      "tags": ["detailed", "description"],
+      "pattern": "A {{creatureSize}} creature with {{hideTexture}} skin and {{eyeDescription}}. It appears {{temperament}}. Notable features include {{distinctiveFeature}}."
+    },
+    {
+      "id": "namedMonster",
+      "name": "Named Monster",
+      "description": "A creature with a unique name",
+      "resultType": "creature",
+      "tags": ["named", "unique"],
+      "pattern": "**{{uniqueCreatureName}}**, the {{creatureSize}} {{creatureByThreat}} - {{temperament}}"
+    }
+  ]
+}

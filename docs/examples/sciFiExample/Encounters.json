@@ -1,0 +1,410 @@
+{
+  "metadata": {
+    "name": "Space Encounter Generator",
+    "namespace": "scifi.encounters",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rollify Examples",
+    "description": "A comprehensive encounter generator for science fiction roleplaying. Combines aliens, ships, and planets to create dynamic scenarios. Demonstrates advanced features including imports, captures, inheritance, conditionals, math expressions, and complex template patterns.",
+    "tags": ["sci-fi", "encounters", "adventure", "scenarios"],
+    "maxRecursionDepth": 50,
+    "maxExplodingDice": 100,
+    "maxInheritanceDepth": 5,
+    "uniqueOverflowBehavior": "cycle"
+  },
+  "imports": [
+    {
+      "path": "./Aliens.json",
+      "alias": "aliens",
+      "description": "Alien species for encounters"
+    },
+    {
+      "path": "./Ships.json",
+      "alias": "ships",
+      "description": "Spacecraft for encounters"
+    },
+    {
+      "path": "./Planets.json",
+      "alias": "planets",
+      "description": "Planetary settings for encounters"
+    }
+  ],
+  "variables": {
+    "encounterPrefix": "ENC",
+    "defaultDifficulty": "moderate",
+    "campaignEra": "Expansion Era"
+  },
+  "shared": {
+    "encounterSeed": "{{dice:1d1000000}}",
+    "baseThreatLevel": "{{dice:1d10}}",
+    "timeOfDay": "{{shipTime}}"
+  },
+  "tables": [
+    {
+      "id": "encounterType",
+      "name": "Encounter Type",
+      "type": "simple",
+      "description": "The fundamental nature of the encounter",
+      "resultType": "encounter",
+      "tags": ["classification", "basic"],
+      "entries": [
+        { "id": "combat", "value": "Combat", "weight": 3, "sets": { "nature": "hostile", "resolution": "force", "timeScale": "minutes" } },
+        { "id": "exploration", "value": "Exploration", "weight": 3, "sets": { "nature": "neutral", "resolution": "investigation", "timeScale": "hours" } },
+        { "id": "social", "value": "Social", "weight": 2, "sets": { "nature": "diplomatic", "resolution": "negotiation", "timeScale": "variable" } },
+        { "id": "mystery", "value": "Mystery", "weight": 2, "sets": { "nature": "unknown", "resolution": "deduction", "timeScale": "days" } },
+        { "id": "survival", "value": "Survival", "weight": 2, "sets": { "nature": "environmental", "resolution": "endurance", "timeScale": "hours" } },
+        { "id": "chase", "value": "Chase", "weight": 1, "sets": { "nature": "pursuit", "resolution": "speed", "timeScale": "minutes" } },
+        { "id": "heist", "value": "Heist", "weight": 1, "sets": { "nature": "stealth", "resolution": "planning", "timeScale": "hours" } },
+        { "id": "rescue", "value": "Rescue", "weight": 2, "sets": { "nature": "urgent", "resolution": "speed", "timeScale": "minutes" } }
+      ]
+    },
+    {
+      "id": "encounterLocation",
+      "name": "Encounter Location",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["setting", "location"],
+      "entries": [
+        { "id": "space", "value": "deep space", "sets": { "environment": "vacuum", "cover": "none", "gravity": "zero" } },
+        { "id": "orbit", "value": "planetary orbit", "sets": { "environment": "vacuum", "cover": "debris", "gravity": "micro" } },
+        { "id": "station", "value": "space station", "sets": { "environment": "artificial", "cover": "structures", "gravity": "artificial" } },
+        { "id": "asteroid", "value": "asteroid field", "sets": { "environment": "vacuum", "cover": "heavy", "gravity": "micro" } },
+        { "id": "surface", "value": "planetary surface", "sets": { "environment": "variable", "cover": "terrain", "gravity": "variable" } },
+        { "id": "underground", "value": "subterranean complex", "sets": { "environment": "enclosed", "cover": "structures", "gravity": "standard" } },
+        { "id": "underwater", "value": "underwater installation", "sets": { "environment": "aquatic", "cover": "limited", "gravity": "buoyant" } },
+        { "id": "atmosphere", "value": "upper atmosphere", "sets": { "environment": "gaseous", "cover": "clouds", "gravity": "reduced" } },
+        { "id": "derelict", "value": "abandoned vessel", "sets": { "environment": "failing", "cover": "structures", "gravity": "variable" } },
+        { "id": "hyperspace", "value": "hyperspace transit", "sets": { "environment": "exotic", "cover": "none", "gravity": "warped" } }
+      ]
+    },
+    {
+      "id": "complication",
+      "name": "Encounter Complication",
+      "type": "simple",
+      "resultType": "event",
+      "tags": ["complications", "twists"],
+      "entries": [
+        { "value": "A third party arrives with their own agenda" },
+        { "value": "Environmental conditions suddenly deteriorate" },
+        { "value": "Key equipment malfunctions at a critical moment" },
+        { "value": "An unexpected ally reveals themselves" },
+        { "value": "The situation is not what it initially appeared" },
+        { "value": "A countdown begins that cannot be stopped" },
+        { "value": "Communication systems are jammed or compromised" },
+        { "value": "Someone important is taken hostage" },
+        { "value": "Hidden enemies reveal themselves" },
+        { "value": "An ancient system activates unexpectedly" },
+        { "value": "The exit route is suddenly blocked" },
+        { "value": "A betrayal from within the group" }
+      ]
+    },
+    {
+      "id": "motivation",
+      "name": "Antagonist Motivation",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["motivation", "antagonist"],
+      "entries": [
+        { "value": "seeking revenge for a past wrong", "sets": { "negotiable": "possibly", "intensity": "personal" } },
+        { "value": "following orders from a higher authority", "sets": { "negotiable": "no", "intensity": "professional" } },
+        { "value": "protecting something precious", "sets": { "negotiable": "yes", "intensity": "desperate" } },
+        { "value": "pursuing profit at any cost", "sets": { "negotiable": "yes", "intensity": "mercenary" } },
+        { "value": "driven by religious or ideological fervor", "sets": { "negotiable": "unlikely", "intensity": "fanatical" } },
+        { "value": "acting out of fear", "sets": { "negotiable": "yes", "intensity": "reactive" } },
+        { "value": "fulfilling an ancient prophecy", "sets": { "negotiable": "no", "intensity": "ordained" } },
+        { "value": "testing the protagonists' worthiness", "sets": { "negotiable": "conditional", "intensity": "evaluative" } },
+        { "value": "survival - this is their last option", "sets": { "negotiable": "yes", "intensity": "desperate" } },
+        { "value": "maintaining a cover identity", "sets": { "negotiable": "situational", "intensity": "covert" } }
+      ]
+    },
+    {
+      "id": "reward",
+      "name": "Potential Reward",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["rewards", "treasure"],
+      "entries": [
+        { "value": "valuable cargo worth {{dice:2d6*1000}} credits", "sets": { "type": "monetary", "portable": "yes" } },
+        { "value": "rare alien technology", "sets": { "type": "tech", "portable": "varies" } },
+        { "value": "crucial information or intelligence", "sets": { "type": "data", "portable": "yes" } },
+        { "value": "a powerful new ally", "sets": { "type": "social", "portable": "no" } },
+        { "value": "claim to valuable territory", "sets": { "type": "political", "portable": "no" } },
+        { "value": "ancient artifacts of historical significance", "sets": { "type": "artifact", "portable": "yes" } },
+        { "value": "ship upgrades or new vessel", "sets": { "type": "equipment", "portable": "no" } },
+        { "value": "reputation and renown", "sets": { "type": "social", "portable": "no" } },
+        { "value": "debt forgiveness or legal amnesty", "sets": { "type": "political", "portable": "no" } },
+        { "value": "coordinates to a hidden location", "sets": { "type": "data", "portable": "yes" } }
+      ]
+    },
+    {
+      "id": "shipTime",
+      "name": "Ship Time",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "time",
+      "entries": [
+        { "value": "0300 hours (night cycle)" },
+        { "value": "0600 hours (dawn cycle)" },
+        { "value": "1200 hours (day cycle)" },
+        { "value": "1800 hours (evening cycle)" },
+        { "value": "2100 hours (late cycle)" }
+      ]
+    },
+    {
+      "id": "distressSignal",
+      "name": "Distress Signal Type",
+      "type": "simple",
+      "resultType": "event",
+      "tags": ["signals", "hooks"],
+      "entries": [
+        { "value": "Automated mayday from a damaged vessel" },
+        { "value": "Personal emergency beacon" },
+        { "value": "Colonial distress call" },
+        { "value": "Military priority signal" },
+        { "value": "Medical emergency broadcast" },
+        { "value": "Unknown signal pattern of alien origin" },
+        { "value": "Repeating coordinates with no other data" },
+        { "value": "Garbled transmission with sounds of combat" }
+      ]
+    },
+    {
+      "id": "anomaly",
+      "name": "Space Anomaly",
+      "type": "simple",
+      "resultType": "event",
+      "tags": ["phenomena", "mystery"],
+      "entries": [
+        { "value": "Unexplained energy readings" },
+        { "value": "Gravitational distortion" },
+        { "value": "Temporal fluctuations" },
+        { "value": "Dimensional rift" },
+        { "value": "Radiation burst of unknown origin" },
+        { "value": "Sensor ghost that matches no known profile" },
+        { "value": "Subspace interference patterns" },
+        { "value": "Bioluminescent space organisms" }
+      ]
+    },
+    {
+      "id": "urgency",
+      "name": "Urgency Level",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["pacing", "tension"],
+      "entries": [
+        { "id": "low", "value": "Low", "sets": { "timeLimit": "none", "consequences": "minor" } },
+        { "id": "moderate", "value": "Moderate", "sets": { "timeLimit": "days", "consequences": "significant" } },
+        { "id": "high", "value": "High", "sets": { "timeLimit": "hours", "consequences": "severe" } },
+        { "id": "critical", "value": "Critical", "sets": { "timeLimit": "minutes", "consequences": "catastrophic" } }
+      ]
+    },
+    {
+      "id": "combatEncounter",
+      "name": "Combat Encounter",
+      "type": "simple",
+      "description": "Combat-focused encounter variants",
+      "extends": "encounterType",
+      "tags": ["combat", "action"],
+      "entries": [
+        { "id": "combat", "value": "Ship-to-ship battle", "sets": { "scale": "naval", "resolution": "firepower" } },
+        { "id": "exploration", "weight": 0 },
+        { "id": "social", "weight": 0 },
+        { "id": "mystery", "weight": 0 },
+        { "id": "survival", "weight": 0 },
+        { "id": "heist", "weight": 0 },
+        { "id": "boarding", "value": "Boarding action", "sets": { "scale": "tactical", "resolution": "combat", "nature": "hostile" } },
+        { "id": "ambush", "value": "Ambush", "sets": { "scale": "surprise", "resolution": "reaction", "nature": "hostile" } },
+        { "id": "defense", "value": "Defensive stand", "sets": { "scale": "fortified", "resolution": "endurance", "nature": "hostile" } }
+      ]
+    },
+    {
+      "id": "peacefulEncounter",
+      "name": "Peaceful Encounter",
+      "type": "simple",
+      "description": "Non-combat encounter variants",
+      "extends": "encounterType",
+      "tags": ["peaceful", "social"],
+      "entries": [
+        { "id": "combat", "weight": 0 },
+        { "id": "chase", "weight": 0 },
+        { "id": "social", "value": "First contact situation", "sets": { "stakes": "diplomatic", "resolution": "communication" } },
+        { "id": "trade", "value": "Trade negotiation", "sets": { "nature": "commercial", "resolution": "bargaining", "timeScale": "hours" } },
+        { "id": "cultural", "value": "Cultural exchange", "sets": { "nature": "educational", "resolution": "understanding", "timeScale": "days" } }
+      ]
+    },
+    {
+      "id": "allEncounterTypes",
+      "name": "All Encounter Types",
+      "type": "collection",
+      "description": "Combined encounter type tables",
+      "collections": ["combatEncounter", "peacefulEncounter"]
+    },
+    {
+      "id": "weatherCondition",
+      "name": "Weather/Environmental Condition",
+      "type": "simple",
+      "resultType": "environment",
+      "tags": ["environment", "conditions"],
+      "entries": [
+        { "value": "Clear and calm", "sets": { "visibility": "excellent", "hazard": "none" } },
+        { "value": "Light particulate interference", "sets": { "visibility": "good", "hazard": "minor" } },
+        { "value": "Electromagnetic storm activity", "sets": { "visibility": "reduced", "hazard": "moderate" } },
+        { "value": "Dense debris field", "sets": { "visibility": "poor", "hazard": "significant" } },
+        { "value": "Solar flare radiation", "sets": { "visibility": "variable", "hazard": "severe" } },
+        { "value": "Sensor-blocking interference", "sets": { "visibility": "none", "hazard": "navigation" } }
+      ]
+    },
+    {
+      "id": "npcRole",
+      "name": "NPC Role",
+      "type": "simple",
+      "resultType": "npc",
+      "tags": ["characters", "npcs"],
+      "entries": [
+        { "value": "merchant captain", "sets": { "disposition": "neutral", "resources": "trade goods" } },
+        { "value": "military officer", "sets": { "disposition": "official", "resources": "military" } },
+        { "value": "pirate leader", "sets": { "disposition": "hostile", "resources": "stolen" } },
+        { "value": "scientist researcher", "sets": { "disposition": "curious", "resources": "knowledge" } },
+        { "value": "diplomat envoy", "sets": { "disposition": "formal", "resources": "political" } },
+        { "value": "smuggler", "sets": { "disposition": "wary", "resources": "contraband" } },
+        { "value": "bounty hunter", "sets": { "disposition": "professional", "resources": "weapons" } },
+        { "value": "refugee leader", "sets": { "disposition": "desperate", "resources": "people" } },
+        { "value": "corporate agent", "sets": { "disposition": "calculating", "resources": "credits" } },
+        { "value": "mysterious stranger", "sets": { "disposition": "enigmatic", "resources": "unknown" } }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "simpleEncounter",
+      "name": "Simple Encounter",
+      "description": "A basic encounter with minimal details",
+      "resultType": "encounter",
+      "tags": ["simple", "quick"],
+      "pattern": "**{{encounterType}} Encounter** at {{encounterLocation}}.\n\nComplication: {{complication}}"
+    },
+    {
+      "id": "spaceEncounter",
+      "name": "Space Encounter",
+      "description": "An encounter in space with ships",
+      "resultType": "encounter",
+      "tags": ["space", "ships"],
+      "pattern": "## Space Encounter\n\n**Location:** {{encounterLocation}}\n**Conditions:** {{weatherCondition}} (Visibility: {{@weatherCondition.visibility}})\n\n**Contact:** {{ships.shipClass}} designated *{{ships.shipName}}*\n**Condition:** {{ships.hullCondition}}\n**Posture:** {{ships.crewMorale}} crew\n\n**Situation:** {{encounterType}}\n**Urgency:** {{urgency}}"
+    },
+    {
+      "id": "alienContact",
+      "name": "Alien Contact Encounter",
+      "description": "First contact or meeting with alien species",
+      "resultType": "encounter",
+      "tags": ["aliens", "diplomatic"],
+      "pattern": "## Alien Contact\n\n**Species:** {{aliens.speciesName}}\n**Appearance:** {{aliens.sizeCategory}} {{aliens.bodyType}}, {{aliens.primaryColor}} coloration\n**Disposition:** {{aliens.disposition}}\n**Tech Level:** {{aliens.techLevel}}\n\n**Communication:** {{aliens.communicationMethod}}\n**Human Compatibility:** {{@aliens.communicationMethod.humanCompatible}}\n\n**Their Motivation:** {{motivation}}\n**Negotiation Possible:** {{@motivation.negotiable}}\n\n**Potential Complication:** {{complication}}"
+    },
+    {
+      "id": "planetaryEncounter",
+      "name": "Planetary Encounter",
+      "description": "An encounter on a planet surface",
+      "resultType": "encounter",
+      "tags": ["planetary", "surface"],
+      "pattern": "## Planetary Encounter\n\n**World:** {{planets.planetName}}\n**Type:** {{planets.planetType}}\n**Atmosphere:** {{planets.atmosphereType}}\n**Climate:** {{planets.climateZone}}\n\n**Situation:** {{encounterType}}\n**Location:** {{planets.pointOfInterest}}\n**Danger Level:** {{@planets.pointOfInterest.dangerLevel}}\n\n**Environmental Hazard:** {{planets.hazard}}\n**Complication:** {{complication}}\n\n**Potential Reward:** {{reward}}"
+    },
+    {
+      "id": "fullEncounter",
+      "name": "Full Encounter",
+      "description": "Complete encounter with all elements",
+      "resultType": "encounter",
+      "tags": ["complete", "detailed"],
+      "shared": {
+        "threatLevel": "{{dice:1d10}}",
+        "encounterCode": "{{$encounterPrefix}}-{{dice:1d9999}}"
+      },
+      "pattern": "# Encounter {{$encounterCode}}\n\n**Threat Level:** {{$threatLevel}}/10\n**Time:** {{$timeOfDay}}\n\n## Situation\n\n**Type:** {{encounterType}}\n**Nature:** {{@encounterType.nature}}\n**Resolution:** {{@encounterType.resolution}}\n**Time Scale:** {{@encounterType.timeScale}}\n\n## Location\n\n**Setting:** {{encounterLocation}}\n**Environment:** {{@encounterLocation.environment}}\n**Cover:** {{@encounterLocation.cover}}\n**Gravity:** {{@encounterLocation.gravity}}\n**Conditions:** {{weatherCondition}}\n\n## Opposition\n\n**NPC:** {{npcRole}}\n**Disposition:** {{@npcRole.disposition}}\n**Resources:** {{@npcRole.resources}}\n**Motivation:** {{motivation}} ({{@motivation.intensity}})\n\n## Complications\n\n1. {{complication}}\n2. {{complication}}\n\n## Stakes\n\n**Urgency:** {{urgency}}\n**Time Limit:** {{@urgency.timeLimit}}\n**Failure Consequences:** {{@urgency.consequences}}\n\n## Rewards\n\n{{reward}} ({{@reward.type}})"
+    },
+    {
+      "id": "multiShipEncounter",
+      "name": "Multi-Ship Encounter",
+      "description": "Encounter with multiple vessels using captures",
+      "resultType": "encounter",
+      "tags": ["fleet", "capture", "advanced"],
+      "shared": {
+        "fleetSize": "{{dice:1d4+1}}"
+      },
+      "pattern": "# Fleet Contact\n\n**Vessels Detected:** {{$fleetSize}}\n\n{{$fleetSize*ships.shipClass >> $contacts}}\n{{$fleetSize*ships.hullCondition >> $conditions}}\n{{$fleetSize*ships.crewMorale >> $morale}}\n\n## Fleet Composition\n\n| Vessel | Class | Condition | Crew Status |\n|--------|-------|-----------|-------------|\n| 1 | {{$contacts[0]}} | {{$conditions[0]}} | {{$morale[0]}} |\n| 2 | {{$contacts[1]}} | {{$conditions[1]}} | {{$morale[1]}} |\n| 3 | {{$contacts[2]}} | {{$conditions[2]}} | {{$morale[2]}} |\n| 4 | {{$contacts[3]}} | {{$conditions[3]}} | {{$morale[3]}} |\n| 5 | {{$contacts[4]}} | {{$conditions[4]}} | {{$morale[4]}} |\n\n## Fleet Analysis\n\n**Ship Types:** {{$contacts}}\n**Overall Condition:** {{collect:$conditions.value|unique|\" / \"}}\n**Crew Morale Spread:** {{collect:$morale.@efficiency|unique}}\n\n## Tactical Assessment\n\n**Combat Roles Present:** {{collect:$contacts.@combatRole|unique}}\n**FTL Capability:** {{collect:$contacts.@ftlCapable|unique}}"
+    },
+    {
+      "id": "distressResponse",
+      "name": "Distress Call Response",
+      "description": "Responding to a distress signal",
+      "resultType": "encounter",
+      "tags": ["rescue", "hooks"],
+      "shared": {
+        "distanceMinutes": "{{dice:3d6*10}}"
+      },
+      "pattern": "# DISTRESS SIGNAL RECEIVED\n\n**Signal Type:** {{distressSignal}}\n**Distance:** {{$distanceMinutes}} minutes at standard thrust\n\n## Source\n\n**Vessel:** {{ships.shipName}} ({{ships.shipClass}})\n**Last Known Condition:** {{ships.hullCondition}}\n**Reported Cargo:** {{ships.cargoType}}\n\n## Situation Assessment\n\n**Location:** {{encounterLocation}}\n**Environmental Conditions:** {{weatherCondition}}\n**Possible Anomaly:** {{anomaly}}\n\n## Urgency Analysis\n\n**Priority:** {{urgency}}\n**Time Limit:** {{@urgency.timeLimit}}\n**Potential Consequences:** {{@urgency.consequences}}\n\n## Potential Complications\n\n- {{complication}}\n- {{complication}}\n\n## Risk vs Reward\n\n**Potential Reward:** {{reward}}\n**Reward Type:** {{@reward.type}}"
+    },
+    {
+      "id": "mysteryEncounter",
+      "name": "Mystery Encounter",
+      "description": "An encounter focused on investigation",
+      "resultType": "encounter",
+      "tags": ["mystery", "investigation"],
+      "pattern": "# Mysterious Situation\n\n## The Scene\n\n**Location:** {{encounterLocation}}\n**Initial Anomaly:** {{anomaly}}\n**Environmental Note:** {{weatherCondition}}\n\n## What You Find\n\n**Vessel:** {{ships.shipName}} ({{ships.shipClass}})\n**State:** {{ships.hullCondition}}\n**Origin:** {{ships.shipOrigin}}\n**Quirk:** {{ships.shipQuirk}}\n\n## Clues\n\n1. {{complication}}\n2. {{motivation}} - someone was {{@motivation.intensity}} about something\n3. {{planets.pointOfInterest}} nearby\n\n## Questions\n\n- Why is this {{ships.shipClass}} here?\n- What caused the {{anomaly}}?\n- Who benefits from {{@motivation.negotiable}} resolution?\n\n## Potential Resolution\n\n**Reward if Solved:** {{reward}}"
+    },
+    {
+      "id": "complexScenario",
+      "name": "Complex Multi-Element Scenario",
+      "description": "Full scenario combining all imported modules with captures",
+      "resultType": "encounter",
+      "tags": ["complex", "capture", "advanced", "comprehensive"],
+      "shared": {
+        "scenarioSeed": "{{dice:1d1000000}}",
+        "factionCount": "{{dice:1d3+1}}"
+      },
+      "pattern": "# SCENARIO BRIEFING #{{$scenarioSeed}}\n\n## Setting\n\n**Star System:** {{planets.starClassification}}\n**Primary World:** {{planets.planetName}}\n**World Type:** {{planets.planetType}} ({{@planets.planetType.surface}} surface)\n**Atmosphere:** {{planets.atmosphereType}}\n**Colonial Status:** {{planets.colonizationStatus}}\n\n## The Situation\n\n**Encounter Type:** {{encounterType}}\n**Urgency:** {{urgency}} ({{@urgency.timeLimit}} time limit)\n**Stakes:** {{@urgency.consequences}} consequences\n\n## Factions Involved\n\n{{4*aliens.speciesName >> $species|silent}}\n{{4*unique*aliens.disposition >> $attitudes|silent}}\n{{4*unique*motivation >> $goals|silent}}\n\n| Faction | Disposition | Goal |\n|---------|-------------|------|\n| {{$species[0]}} | {{$attitudes[0]}} | {{$goals[0]}} |\n| {{$species[1]}} | {{$attitudes[1]}} | {{$goals[1]}} |\n| {{$species[2]}} | {{$attitudes[2]}} | {{$goals[2]}} |\n| {{$species[3]}} | {{$attitudes[3]}} | {{$goals[3]}} |\n\n### Faction Analysis\n\n- **Species Present:** {{$species}}\n- **Diplomatic Range:** {{collect:$attitudes.@diplomacyMod|unique}}\n- **Trade Willingness:** {{collect:$attitudes.@tradeWilling|unique}}\n- **Negotiation Possibility:** {{collect:$goals.@negotiable|unique}}\n\n## Naval Assets\n\n{{3*unique*ships.shipClass >> $vessels}}\n{{3*ships.hullCondition >> $vesselConditions}}\n\n**Vessels in Theater:**\n1. {{$vessels[0]}} - {{$vesselConditions[0]}} condition\n2. {{$vessels[1]}} - {{$vesselConditions[1]}} condition\n3. {{$vessels[2]}} - {{$vesselConditions[2]}} condition\n\n**Combat Roles Available:** {{collect:$vessels.@combatRole|unique}}\n**FTL Status:** {{collect:$vessels.@ftlCapable|unique}}\n\n## Environmental Factors\n\n**Local Conditions:** {{weatherCondition}}\n**Visibility:** {{@weatherCondition.visibility}}\n**Hazard Level:** {{@weatherCondition.hazard}}\n**Planetary Hazard:** {{planets.hazard}}\n\n## Key Location\n\n**Point of Interest:** {{planets.pointOfInterest}}\n**Danger Level:** {{@planets.pointOfInterest.dangerLevel}}\n**Exploration Value:** {{@planets.pointOfInterest.explorationValue}}\n\n## Complications\n\n1. {{complication}}\n2. {{complication}}\n3. {{anomaly}}\n\n## Victory Conditions\n\n**Primary Objective:** Resolve the {{@encounterType.nature}} situation through {{@encounterType.resolution}}\n**Time Estimate:** {{@encounterType.timeScale}}\n\n## Rewards\n\n**Primary:** {{reward}} ({{@reward.type}})\n**Secondary:** {{reward}} ({{@reward.type}})\n\n---\n\n*Scenario complexity rating: {{$species.count}} factions, {{$vessels.count}} vessels, multiple environmental factors*"
+    },
+    {
+      "id": "quickEncounterTable",
+      "name": "Quick Encounter Table",
+      "description": "Generate a table of random encounters",
+      "resultType": "description",
+      "tags": ["table", "capture", "reference"],
+      "pattern": "# Random Encounter Table\n\nRoll d6 for encounter type:\n\n{{6*unique*encounterType >> $types|silent}}\n{{6*encounterLocation >> $locations|silent}}\n{{6*complication >> $twists|silent}}\n\n| d6 | Type | Location | Twist |\n|----|------|----------|-------|\n| 1 | {{$types[0]}} | {{$locations[0]}} | {{$twists[0]}} |\n| 2 | {{$types[1]}} | {{$locations[1]}} | {{$twists[1]}} |\n| 3 | {{$types[2]}} | {{$locations[2]}} | {{$twists[2]}} |\n| 4 | {{$types[3]}} | {{$locations[3]}} | {{$twists[3]}} |\n| 5 | {{$types[4]}} | {{$locations[4]}} | {{$twists[4]}} |\n| 6 | {{$types[5]}} | {{$locations[5]}} | {{$twists[5]}} |\n\n---\n\n**Encounter Natures:** {{collect:$types.@nature|unique}}\n**Resolution Methods:** {{collect:$types.@resolution|unique}}"
+    }
+  ],
+  "conditionals": [
+    {
+      "when": "@encounterType.nature == 'hostile'",
+      "action": "append",
+      "value": "\n\n**COMBAT ADVISORY:** Hostile encounter detected. Recommend raising shields and charging weapons.",
+      "tags": ["combat", "alert"]
+    },
+    {
+      "when": "@urgency.consequences == 'catastrophic'",
+      "action": "prepend",
+      "value": "**PRIORITY ALERT:** This situation has catastrophic failure potential.\n\n",
+      "tags": ["urgency", "alert"]
+    },
+    {
+      "when": "@encounterLocation.environment == 'vacuum'",
+      "action": "append",
+      "value": "\n\n*Environmental Note: Vacuum conditions - EVA suits required for any exterior activity.*",
+      "tags": ["environment", "safety"]
+    },
+    {
+      "when": "@aliens.disposition.tradeWilling == 'no'",
+      "action": "append",
+      "value": "\n\n*Diplomatic Assessment: This species shows no interest in trade relations. Alternative approaches recommended.*",
+      "tags": ["diplomacy", "warning"]
+    },
+    {
+      "when": "@motivation.negotiable == 'no'",
+      "action": "append",
+      "value": "\n\n*Warning: Opposition appears non-negotiable. Prepare for extended conflict.*",
+      "tags": ["tactical", "warning"]
+    },
+    {
+      "when": "@weatherCondition.hazard == 'severe'",
+      "action": "append",
+      "value": "\n\n**HAZARD WARNING:** Severe environmental conditions will affect operations. Additional precautions required.",
+      "tags": ["environment", "hazard"]
+    }
+  ]
+}

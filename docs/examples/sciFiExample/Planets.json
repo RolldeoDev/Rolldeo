@@ -1,0 +1,388 @@
+{
+  "metadata": {
+    "name": "Planet Generator",
+    "namespace": "scifi.planets",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rollify Examples",
+    "description": "A comprehensive planetary system generator for science fiction worldbuilding. Generates planets with diverse environments, civilizations, points of interest, and native species. Imports the Aliens module for native species generation.",
+    "tags": ["sci-fi", "planets", "worldbuilding", "exploration"],
+    "maxRecursionDepth": 40,
+    "maxInheritanceDepth": 4,
+    "uniqueOverflowBehavior": "stop"
+  },
+  "imports": [
+    {
+      "path": "./Aliens.json",
+      "alias": "aliens",
+      "description": "Alien species generator for native inhabitants"
+    }
+  ],
+  "variables": {
+    "sectorPrefix": "NGC",
+    "defaultAtmosphere": "nitrogen-oxygen",
+    "standardGravity": "1.0g"
+  },
+  "shared": {
+    "systemAge": "{{dice:2d6}} billion years",
+    "starType": "{{starClassification}}"
+  },
+  "tables": [
+    {
+      "id": "starClassification",
+      "name": "Star Classification",
+      "type": "simple",
+      "description": "The spectral classification of the primary star",
+      "resultType": "trait",
+      "tags": ["stellar", "basic"],
+      "entries": [
+        { "id": "classO", "value": "Class O blue giant", "weight": 1, "sets": { "temperature": "extremely hot", "habitalZone": "distant", "stellarAge": "young" } },
+        { "id": "classB", "value": "Class B blue-white", "weight": 1, "sets": { "temperature": "very hot", "habitalZone": "far", "stellarAge": "young" } },
+        { "id": "classA", "value": "Class A white", "weight": 2, "sets": { "temperature": "hot", "habitalZone": "moderate", "stellarAge": "moderate" } },
+        { "id": "classF", "value": "Class F yellow-white", "weight": 2, "sets": { "temperature": "warm", "habitalZone": "standard", "stellarAge": "moderate" } },
+        { "id": "classG", "value": "Class G yellow (Sol-type)", "weight": 3, "sets": { "temperature": "temperate", "habitalZone": "ideal", "stellarAge": "stable" } },
+        { "id": "classK", "value": "Class K orange", "weight": 3, "sets": { "temperature": "cool", "habitalZone": "close", "stellarAge": "old" } },
+        { "id": "classM", "value": "Class M red dwarf", "weight": 4, "sets": { "temperature": "cold", "habitalZone": "very close", "stellarAge": "ancient" } },
+        { "id": "binary", "value": "Binary system", "weight": 2, "sets": { "temperature": "variable", "habitalZone": "complex", "stellarAge": "varies" } },
+        { "id": "neutron", "value": "Neutron star remnant", "weight": 1, "sets": { "temperature": "extreme radiation", "habitalZone": "none", "stellarAge": "post-stellar" } }
+      ]
+    },
+    {
+      "id": "planetType",
+      "name": "Planet Type",
+      "type": "simple",
+      "description": "The fundamental classification of the planet",
+      "resultType": "trait",
+      "tags": ["planetary", "basic"],
+      "entries": [
+        { "id": "terrestrial", "value": "terrestrial", "weight": 3, "sets": { "surface": "solid", "atmospherePossible": "yes", "lifePossible": "yes" } },
+        { "id": "oceanic", "value": "oceanic", "weight": 2, "sets": { "surface": "liquid", "atmospherePossible": "yes", "lifePossible": "yes" } },
+        { "id": "desert", "value": "desert", "weight": 2, "sets": { "surface": "solid", "atmospherePossible": "thin", "lifePossible": "limited" } },
+        { "id": "ice", "value": "ice world", "weight": 2, "sets": { "surface": "frozen", "atmospherePossible": "thin", "lifePossible": "limited" } },
+        { "id": "volcanic", "value": "volcanic", "weight": 1, "sets": { "surface": "unstable", "atmospherePossible": "toxic", "lifePossible": "extremophile" } },
+        { "id": "gas_giant", "value": "gas giant", "weight": 2, "sets": { "surface": "none", "atmospherePossible": "crushing", "lifePossible": "exotic" } },
+        { "id": "barren", "value": "barren rock", "weight": 2, "sets": { "surface": "solid", "atmospherePossible": "none", "lifePossible": "no" } },
+        { "id": "toxic", "value": "toxic hellworld", "weight": 1, "sets": { "surface": "corrosive", "atmospherePossible": "deadly", "lifePossible": "no" } },
+        { "id": "artificial", "value": "artificial construct", "weight": 1, "sets": { "surface": "engineered", "atmospherePossible": "controlled", "lifePossible": "designed" } }
+      ]
+    },
+    {
+      "id": "planetSize",
+      "name": "Planet Size",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["planetary", "physical"],
+      "entries": [
+        { "id": "tiny", "value": "tiny", "sets": { "diameter": "1,000-3,000 km", "gravity": "0.1-0.3g", "escapeVelocity": "low" } },
+        { "id": "small", "value": "small", "sets": { "diameter": "4,000-8,000 km", "gravity": "0.4-0.7g", "escapeVelocity": "moderate" } },
+        { "id": "medium", "value": "medium", "sets": { "diameter": "10,000-15,000 km", "gravity": "0.8-1.2g", "escapeVelocity": "standard" } },
+        { "id": "large", "value": "large", "sets": { "diameter": "20,000-40,000 km", "gravity": "1.3-2.0g", "escapeVelocity": "high" } },
+        { "id": "massive", "value": "massive", "sets": { "diameter": "50,000-150,000 km", "gravity": "2.0-5.0g", "escapeVelocity": "extreme" } }
+      ]
+    },
+    {
+      "id": "atmosphereType",
+      "name": "Atmosphere Type",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["planetary", "atmosphere"],
+      "entries": [
+        { "id": "none", "value": "no atmosphere", "sets": { "breathable": "no", "pressure": "vacuum", "protection": "none" } },
+        { "id": "trace", "value": "trace atmosphere", "sets": { "breathable": "no", "pressure": "near-vacuum", "protection": "minimal" } },
+        { "id": "thin", "value": "thin atmosphere", "sets": { "breathable": "assisted", "pressure": "low", "protection": "limited" } },
+        { "id": "standard", "value": "standard atmosphere", "sets": { "breathable": "yes", "pressure": "normal", "protection": "full" } },
+        { "id": "dense", "value": "dense atmosphere", "sets": { "breathable": "filtered", "pressure": "high", "protection": "excessive" } },
+        { "id": "toxic", "value": "toxic atmosphere", "sets": { "breathable": "no", "pressure": "varies", "protection": "hazardous" } },
+        { "id": "corrosive", "value": "corrosive atmosphere", "sets": { "breathable": "no", "pressure": "high", "protection": "deadly" } },
+        { "id": "exotic", "value": "exotic gas mixture", "sets": { "breathable": "species-dependent", "pressure": "varies", "protection": "unknown" } }
+      ]
+    },
+    {
+      "id": "climateZone",
+      "name": "Dominant Climate",
+      "type": "simple",
+      "resultType": "environment",
+      "tags": ["planetary", "climate"],
+      "entries": [
+        { "value": "scorching equatorial heat", "sets": { "tempRange": "40-80°C", "precipitation": "rare" } },
+        { "value": "tropical humidity", "sets": { "tempRange": "25-40°C", "precipitation": "heavy" } },
+        { "value": "temperate seasons", "sets": { "tempRange": "0-30°C", "precipitation": "moderate" } },
+        { "value": "arid continental", "sets": { "tempRange": "-10-45°C", "precipitation": "minimal" } },
+        { "value": "polar extremes", "sets": { "tempRange": "-80--20°C", "precipitation": "snow" } },
+        { "value": "perpetual twilight", "sets": { "tempRange": "-30-10°C", "precipitation": "ice crystals" } },
+        { "value": "storm-wracked", "sets": { "tempRange": "varies wildly", "precipitation": "extreme" } },
+        { "value": "geothermally regulated", "sets": { "tempRange": "15-25°C", "precipitation": "steam vents" } }
+      ]
+    },
+    {
+      "id": "naturalResource",
+      "name": "Natural Resource",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["resources", "economy"],
+      "entries": [
+        { "value": "rare earth minerals", "sets": { "value": "high", "extraction": "mining" } },
+        { "value": "precious metals", "sets": { "value": "very high", "extraction": "mining" } },
+        { "value": "radioactive isotopes", "sets": { "value": "extreme", "extraction": "specialized" } },
+        { "value": "organic compounds", "sets": { "value": "moderate", "extraction": "harvesting" } },
+        { "value": "exotic crystals", "sets": { "value": "high", "extraction": "careful extraction" } },
+        { "value": "atmospheric gases", "sets": { "value": "moderate", "extraction": "processing" } },
+        { "value": "water ice", "sets": { "value": "moderate", "extraction": "melting" } },
+        { "value": "antimatter traces", "sets": { "value": "extreme", "extraction": "collection" } },
+        { "value": "biological specimens", "sets": { "value": "variable", "extraction": "preservation" } },
+        { "value": "ancient artifacts", "sets": { "value": "priceless", "extraction": "archaeology" } }
+      ]
+    },
+    {
+      "id": "geologicalFeature",
+      "name": "Notable Geological Feature",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["geography", "features"],
+      "entries": [
+        { "value": "towering mountain ranges reaching into the upper atmosphere" },
+        { "value": "vast canyon systems cutting across entire continents" },
+        { "value": "active supervolcano clusters" },
+        { "value": "planet-spanning cave networks" },
+        { "value": "crystalline formations of immense scale" },
+        { "value": "floating landmasses held aloft by magnetic anomalies" },
+        { "value": "continent-sized impact craters" },
+        { "value": "geothermal vent fields spanning thousands of kilometers" },
+        { "value": "petrified forests of ancient silicon-based life" },
+        { "value": "labyrinthine ice caverns beneath the frozen surface" }
+      ]
+    },
+    {
+      "id": "pointOfInterest",
+      "name": "Point of Interest",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["locations", "exploration"],
+      "entries": [
+        { "value": "ruins of an ancient alien civilization", "sets": { "dangerLevel": "moderate", "explorationValue": "high" } },
+        { "value": "crashed starship of unknown origin", "sets": { "dangerLevel": "variable", "explorationValue": "high" } },
+        { "value": "abandoned colonial outpost", "sets": { "dangerLevel": "low", "explorationValue": "moderate" } },
+        { "value": "active research station", "sets": { "dangerLevel": "low", "explorationValue": "moderate" } },
+        { "value": "mysterious signal source", "sets": { "dangerLevel": "unknown", "explorationValue": "high" } },
+        { "value": "natural phenomenon defying known physics", "sets": { "dangerLevel": "high", "explorationValue": "extreme" } },
+        { "value": "massive orbital debris field", "sets": { "dangerLevel": "high", "explorationValue": "moderate" } },
+        { "value": "dormant terraforming equipment", "sets": { "dangerLevel": "moderate", "explorationValue": "high" } },
+        { "value": "sacred site of native species", "sets": { "dangerLevel": "diplomatic", "explorationValue": "cultural" } },
+        { "value": "hidden pirate base", "sets": { "dangerLevel": "extreme", "explorationValue": "contraband" } }
+      ]
+    },
+    {
+      "id": "colonizationStatus",
+      "name": "Colonization Status",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["civilization", "status"],
+      "entries": [
+        { "id": "unexplored", "value": "unexplored", "weight": 2, "sets": { "population": "0", "infrastructure": "none", "governance": "none" } },
+        { "id": "surveyed", "value": "surveyed only", "weight": 2, "sets": { "population": "0", "infrastructure": "probes", "governance": "none" } },
+        { "id": "outpost", "value": "small outpost", "weight": 2, "sets": { "population": "dozens", "infrastructure": "minimal", "governance": "corporate" } },
+        { "id": "colony", "value": "growing colony", "weight": 2, "sets": { "population": "thousands", "infrastructure": "developing", "governance": "colonial" } },
+        { "id": "established", "value": "established world", "weight": 2, "sets": { "population": "millions", "infrastructure": "developed", "governance": "local" } },
+        { "id": "core", "value": "core world", "weight": 1, "sets": { "population": "billions", "infrastructure": "advanced", "governance": "federal" } },
+        { "id": "abandoned", "value": "abandoned", "weight": 1, "sets": { "population": "0", "infrastructure": "ruined", "governance": "none" } },
+        { "id": "quarantined", "value": "quarantined", "weight": 1, "sets": { "population": "unknown", "infrastructure": "restricted", "governance": "military" } }
+      ]
+    },
+    {
+      "id": "nativeLifeform",
+      "name": "Native Lifeform Type",
+      "type": "simple",
+      "resultType": "creature",
+      "tags": ["life", "biology"],
+      "entries": [
+        { "value": "microbial only", "sets": { "complexity": "primitive", "threat": "disease" } },
+        { "value": "simple plant analogues", "sets": { "complexity": "basic", "threat": "none" } },
+        { "value": "diverse ecosystem with megafauna", "sets": { "complexity": "advanced", "threat": "predators" } },
+        { "value": "silicon-based crystalline entities", "sets": { "complexity": "unknown", "threat": "unknown" } },
+        { "value": "hive-structured colonial organisms", "sets": { "complexity": "moderate", "threat": "swarms" } },
+        { "value": "energy beings", "sets": { "complexity": "transcendent", "threat": "incomprehensible" } },
+        { "value": "biomechanical constructs", "sets": { "complexity": "artificial", "threat": "programmed" } },
+        { "value": "no native life detected", "sets": { "complexity": "none", "threat": "none" } }
+      ]
+    },
+    {
+      "id": "orbitalBody",
+      "name": "Notable Orbital Body",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["orbital", "moons"],
+      "entries": [
+        { "value": "large habitable moon", "sets": { "moonType": "terrestrial", "strategic": "high" } },
+        { "value": "ring system of ice and rock", "sets": { "moonType": "rings", "strategic": "mining" } },
+        { "value": "captured asteroid serving as station", "sets": { "moonType": "artificial", "strategic": "military" } },
+        { "value": "volcanic moon with exotic materials", "sets": { "moonType": "volcanic", "strategic": "resource" } },
+        { "value": "ice moon with subsurface ocean", "sets": { "moonType": "oceanic", "strategic": "research" } },
+        { "value": "ancient artificial satellite", "sets": { "moonType": "relic", "strategic": "archaeological" } },
+        { "value": "multiple small moons in complex orbits", "sets": { "moonType": "system", "strategic": "navigation hazard" } },
+        { "value": "no significant moons", "sets": { "moonType": "none", "strategic": "none" } }
+      ]
+    },
+    {
+      "id": "hazard",
+      "name": "Environmental Hazard",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["danger", "hazards"],
+      "entries": [
+        { "value": "extreme radiation from stellar activity" },
+        { "value": "frequent seismic instability" },
+        { "value": "toxic spore clouds" },
+        { "value": "predatory megafauna" },
+        { "value": "electrical storms of devastating intensity" },
+        { "value": "corrosive precipitation" },
+        { "value": "unstable orbital mechanics" },
+        { "value": "pockets of temporal distortion" },
+        { "value": "hostile native civilization" },
+        { "value": "remnant automated defenses" },
+        { "value": "parasitic organisms targeting carbon-based life" },
+        { "value": "extreme temperature variations" }
+      ]
+    },
+    {
+      "id": "planetName",
+      "name": "Planet Name",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["naming"],
+      "entries": [
+        { "value": "{{planetNamePrefix}}-{{dice:1d999}}" },
+        { "value": "{{planetNamePrefix}} {{planetNameSuffix}}" },
+        { "value": "New {{planetNameSuffix}}" }
+      ]
+    },
+    {
+      "id": "planetNamePrefix",
+      "name": "Planet Name Prefix",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Kepler" }, { "value": "Gliese" }, { "value": "Proxima" }, { "value": "Tau" },
+        { "value": "Alpha" }, { "value": "Beta" }, { "value": "Sigma" }, { "value": "Epsilon" },
+        { "value": "Vega" }, { "value": "Rigel" }, { "value": "Antares" }, { "value": "Nova" }
+      ]
+    },
+    {
+      "id": "planetNameSuffix",
+      "name": "Planet Name Suffix",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Prime" }, { "value": "Major" }, { "value": "Haven" }, { "value": "Reach" },
+        { "value": "Station" }, { "value": "Colony" }, { "value": "Outpost" }, { "value": "Landing" },
+        { "value": "Hope" }, { "value": "Prospect" }, { "value": "Sanctuary" }, { "value": "Terminus" }
+      ]
+    },
+    {
+      "id": "allPlanetTypes",
+      "name": "All Planet Types",
+      "type": "collection",
+      "description": "Combined planetary classification tables",
+      "collections": ["planetType", "planetSize"]
+    },
+    {
+      "id": "inhabitedPlanetType",
+      "name": "Inhabited Planet Type",
+      "type": "simple",
+      "description": "Planet types suitable for colonization - excludes uninhabitable worlds",
+      "tags": ["planetary", "habitable"],
+      "entries": [
+        { "id": "terrestrial", "value": "terrestrial", "weight": 3, "sets": { "surface": "solid", "atmospherePossible": "yes", "lifePossible": "yes" } },
+        { "id": "oceanic", "value": "oceanic", "weight": 2, "sets": { "surface": "liquid", "atmospherePossible": "yes", "lifePossible": "yes" } },
+        { "id": "desert", "value": "desert", "weight": 2, "sets": { "surface": "solid", "atmospherePossible": "thin", "lifePossible": "limited" } },
+        { "id": "ice", "value": "ice world", "weight": 2, "sets": { "surface": "frozen", "atmospherePossible": "thin", "lifePossible": "limited" } },
+        { "id": "volcanic", "value": "volcanic", "weight": 1, "sets": { "surface": "unstable", "atmospherePossible": "toxic", "lifePossible": "extremophile" } },
+        { "id": "artificial", "value": "artificial construct", "weight": 1, "sets": { "surface": "engineered", "atmospherePossible": "controlled", "lifePossible": "designed" } }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "simplePlanet",
+      "name": "Simple Planet",
+      "description": "Basic planet description",
+      "resultType": "location",
+      "tags": ["simple", "quick"],
+      "pattern": "A {{planetSize}} {{planetType}} world with {{atmosphereType}}."
+    },
+    {
+      "id": "planetarySurvey",
+      "name": "Planetary Survey",
+      "description": "Standard survey data for a planet",
+      "resultType": "description",
+      "tags": ["survey", "standard"],
+      "pattern": "**Planetary Survey Data**\n\n- **Classification:** {{planetSize}} {{planetType}}\n- **Diameter:** {{@planetSize.diameter}}\n- **Surface Gravity:** {{@planetSize.gravity}}\n- **Atmosphere:** {{atmosphereType}} ({{@atmosphereType.pressure}} pressure)\n- **Breathable:** {{@atmosphereType.breathable}}\n- **Climate:** {{climateZone}}\n- **Temperature Range:** {{@climateZone.tempRange}}"
+    },
+    {
+      "id": "fullPlanetProfile",
+      "name": "Full Planet Profile",
+      "description": "Complete planetary profile with all systems",
+      "resultType": "location",
+      "tags": ["complete", "detailed"],
+      "shared": {
+        "worldName": "{{planetName}}",
+        "moonCount": "{{dice:1d4-1}}"
+      },
+      "pattern": "# {{$worldName}}\n\n## Stellar Data\n\n**Primary Star:** {{starClassification}}\n**Habitable Zone Position:** {{@starClassification.habitalZone}}\n**System Age:** {{$systemAge}}\n\n## Planetary Characteristics\n\n**Type:** {{planetSize}} {{planetType}}\n**Diameter:** {{@planetSize.diameter}}\n**Surface Gravity:** {{@planetSize.gravity}}\n**Surface Type:** {{@planetType.surface}}\n\n## Atmosphere\n\n**Composition:** {{atmosphereType}}\n**Pressure:** {{@atmosphereType.pressure}}\n**Breathability:** {{@atmosphereType.breathable}}\n**Radiation Protection:** {{@atmosphereType.protection}}\n\n## Climate\n\n**Dominant Climate:** {{climateZone}}\n**Temperature Range:** {{@climateZone.tempRange}}\n**Precipitation:** {{@climateZone.precipitation}}\n\n## Geography\n\n{{geologicalFeature}}\n\n## Resources\n\n**Primary Resource:** {{naturalResource}}\n**Extraction Method:** {{@naturalResource.extraction}}\n**Economic Value:** {{@naturalResource.value}}\n\n## Native Life\n\n{{nativeLifeform}}\n**Complexity:** {{@nativeLifeform.complexity}}\n**Threat Assessment:** {{@nativeLifeform.threat}}\n\n## Orbital Bodies\n\n{{orbitalBody}}\n**Strategic Value:** {{@orbitalBody.strategic}}\n\n## Colonization\n\n**Status:** {{colonizationStatus}}\n**Population:** {{@colonizationStatus.population}}\n**Infrastructure:** {{@colonizationStatus.infrastructure}}\n**Governance:** {{@colonizationStatus.governance}}\n\n## Hazards\n\n- {{hazard}}\n- {{hazard}}\n\n## Points of Interest\n\n1. {{pointOfInterest}} (Danger: {{@pointOfInterest.dangerLevel}}, Value: {{@pointOfInterest.explorationValue}})\n2. {{pointOfInterest}} (Danger: {{@pointOfInterest.dangerLevel}}, Value: {{@pointOfInterest.explorationValue}})"
+    },
+    {
+      "id": "inhabitedWorld",
+      "name": "Inhabited World with Native Species",
+      "description": "A colonized world with native sentient species - demonstrates imports",
+      "resultType": "location",
+      "tags": ["inhabited", "import-demo", "advanced"],
+      "pattern": "# Inhabited World Report\n\n## Planet Data\n\n**Name:** {{planetName}}\n**Type:** {{inhabitedPlanetType}}\n**Atmosphere:** {{atmosphereType}}\n**Status:** {{colonizationStatus}}\n\n## Native Sentient Species\n\n**Species Name:** {{aliens.speciesName}}\n**Body Type:** {{aliens.bodyType}} ({{@aliens.bodyType.symmetry}} symmetry)\n**Size:** {{aliens.sizeCategory}}\n**Disposition:** {{aliens.disposition}}\n**Technology Level:** {{aliens.techLevel}}\n\n## Diplomatic Assessment\n\n- **Trade Willingness:** {{@aliens.disposition.tradeWilling}}\n- **Communication:** {{aliens.communicationMethod}} ({{@aliens.communicationMethod.humanCompatible}})\n- **Space Capability:** {{@aliens.techLevel.spaceCapable}}\n\n## Hazards\n\n{{hazard}}"
+    },
+    {
+      "id": "systemSurvey",
+      "name": "Star System Survey",
+      "description": "Survey multiple planets in a system using captures",
+      "resultType": "description",
+      "tags": ["system", "capture", "advanced"],
+      "pattern": "# Star System Survey Report\n\n## Primary Star\n\n{{starClassification}}\n**Stellar Age:** {{@starClassification.stellarAge}}\n**Habitable Zone:** {{@starClassification.habitalZone}}\n\n## Planetary Bodies Detected\n\n{{dice:1d4+2*unique*planetType >> $planets}}\n\n### Survey Results\n\nTotal bodies catalogued: {{$planets.count}}\n\n| # | Type | Surface | Life Possible |\n|---|------|---------|---------------|\n| 1 | {{$planets[0]}} | {{$planets[0].@surface}} | {{$planets[0].@lifePossible}} |\n| 2 | {{$planets[1]}} | {{$planets[1].@surface}} | {{$planets[1].@lifePossible}} |\n| 3 | {{$planets[2]}} | {{$planets[2].@surface}} | {{$planets[2].@lifePossible}} |\n\n### Surface Types Observed\n{{collect:$planets.@surface|unique|\" | \"}}\n\n### Life Assessment\n{{collect:$planets.@lifePossible|unique}}"
+    },
+    {
+      "id": "explorationTarget",
+      "name": "Exploration Target Brief",
+      "description": "Quick reference for expedition planning",
+      "resultType": "description",
+      "tags": ["exploration", "brief"],
+      "shared": {
+        "riskFactor": "{{dice:1d10}}"
+      },
+      "pattern": "**EXPLORATION TARGET BRIEF**\n\n**Designation:** {{planetName}}\n**Risk Factor:** {{$riskFactor}}/10\n\n**Quick Stats:**\n- Type: {{planetType}}\n- Size: {{planetSize}} ({{@planetSize.gravity}})\n- Atmosphere: {{atmosphereType}}\n- Status: {{colonizationStatus}}\n\n**Primary Interest:** {{pointOfInterest}}\n**Primary Resource:** {{naturalResource}}\n**Primary Hazard:** {{hazard}}\n\n**Recommended Equipment:**\n{{@atmosphereType.breathable == 'no' ? '- Sealed environment suit' : '- Standard exploration gear'}}\n{{@planetSize.gravity >= '1.5g' ? '- Exoskeleton assist' : ''}}"
+    },
+    {
+      "id": "multiWorldComparison",
+      "name": "Multi-World Comparison",
+      "description": "Compare multiple worlds using advanced capture features",
+      "resultType": "description",
+      "tags": ["comparison", "capture", "advanced"],
+      "pattern": "# Colonization Target Assessment\n\n## Candidate Worlds\n\n{{4*unique*planetName >> $names|silent}}\n{{4*unique*inhabitedPlanetType >> $types|silent}}\n{{4*unique*atmosphereType >> $atmos|silent}}\n{{4*unique*naturalResource >> $resources|silent}}\n\n| World | Type | Atmosphere | Key Resource |\n|-------|------|------------|-------------|\n| {{$names[0]}} | {{$types[0]}} | {{$atmos[0]}} | {{$resources[0]}} |\n| {{$names[1]}} | {{$types[1]}} | {{$atmos[1]}} | {{$resources[1]}} |\n| {{$names[2]}} | {{$types[2]}} | {{$atmos[2]}} | {{$resources[2]}} |\n| {{$names[3]}} | {{$types[3]}} | {{$atmos[3]}} | {{$resources[3]}} |\n\n## Analysis\n\n**Breathable Atmospheres:** {{collect:$atmos.@breathable}}\n**Resource Values:** {{collect:$resources.@value}}\n**Surface Types:** {{collect:$types.@surface|unique}}\n\n## Recommendation\n\nBased on {{$types.count}} surveyed worlds, prioritize targets with:\n- Breathable atmospheres\n- High-value resources\n- Solid surfaces for construction"
+    }
+  ],
+  "conditionals": [
+    {
+      "when": "@planetType.lifePossible == 'no'",
+      "action": "append",
+      "value": "\n\n*Advisory: No native life support possible. Full life support systems required for any surface operations.*",
+      "tags": ["life-support", "warning"]
+    },
+    {
+      "when": "@colonizationStatus.governance == 'military'",
+      "action": "append",
+      "value": "\n\n**RESTRICTED ACCESS:** This world is under military jurisdiction. Civilian access requires special authorization.",
+      "tags": ["access", "military"]
+    },
+    {
+      "when": "@atmosphereType.breathable == 'yes'",
+      "action": "append",
+      "value": "\n\n*Note: Standard atmospheric protocols apply. Local pathogens assessment recommended before unprotected exposure.*",
+      "tags": ["atmosphere", "safety"]
+    }
+  ]
+}

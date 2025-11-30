@@ -1,0 +1,550 @@
+{
+  "metadata": {
+    "name": "High Fantasy Environments",
+    "namespace": "fantasy.environments",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rollify Examples",
+    "description": "Terrain, weather, locations, and dungeon features for fantasy adventures",
+    "tags": ["fantasy", "environments", "locations", "dungeons"]
+  },
+  "tables": [
+    {
+      "id": "terrain",
+      "name": "Terrain Type",
+      "type": "simple",
+      "description": "Basic terrain categories",
+      "resultType": "location",
+      "tags": ["terrain", "basic"],
+      "entries": [
+        { "value": "forest" },
+        { "value": "mountain" },
+        { "value": "plains" },
+        { "value": "swamp" },
+        { "value": "desert" },
+        { "value": "tundra" },
+        { "value": "coast" },
+        { "value": "hills" }
+      ]
+    },
+    {
+      "id": "forestType",
+      "name": "Forest Type",
+      "type": "simple",
+      "description": "Specific forest environments",
+      "resultType": "location",
+      "tags": ["forest", "wilderness"],
+      "defaultSets": {
+        "lightLevel": "dim",
+        "travelDifficulty": "moderate"
+      },
+      "entries": [
+        { "id": "oak", "value": "ancient oak forest", "weight": 3, "sets": { "age": "ancient", "treeType": "oak", "lightLevel": "dark" } },
+        { "id": "pine", "value": "misty pine wood", "weight": 3, "sets": { "age": "old", "treeType": "pine", "visibility": "poor" } },
+        { "id": "thorn", "value": "tangled thornwood", "weight": 2, "sets": { "treeType": "thorn", "travelDifficulty": "difficult", "hazardous": "yes" } },
+        { "id": "fairy", "value": "enchanted fairy grove", "weight": 1, "sets": { "magical": "yes", "treeType": "silver birch", "lightLevel": "bright" } },
+        { "id": "dead", "value": "corrupted deadwood", "weight": 1, "sets": { "corrupted": "yes", "treeType": "dead", "lightLevel": "dark", "hazardous": "yes" } },
+        { "id": "clearing", "value": "sun-dappled clearing", "weight": 2, "sets": { "lightLevel": "bright", "travelDifficulty": "easy" } }
+      ]
+    },
+    {
+      "id": "mountainType",
+      "name": "Mountain Environment",
+      "type": "simple",
+      "description": "Mountain terrain variations",
+      "resultType": "location",
+      "tags": ["mountain", "wilderness"],
+      "defaultSets": {
+        "temperature": "cold",
+        "travelDifficulty": "difficult"
+      },
+      "entries": [
+        { "id": "peak", "value": "snow-capped peak", "sets": { "elevation": "high", "temperature": "freezing" } },
+        { "id": "pass", "value": "rocky mountain pass", "sets": { "elevation": "medium", "feature": "pass" } },
+        { "id": "volcanic", "value": "volcanic highlands", "sets": { "temperature": "hot", "volcanic": "yes", "hazardous": "yes" } },
+        { "id": "cavern", "value": "crystal cavern entrance", "sets": { "feature": "cavern", "magical": "yes" } },
+        { "id": "cliff", "value": "windswept cliff face", "sets": { "elevation": "high", "hazardous": "yes" } },
+        { "id": "meadow", "value": "alpine meadow", "sets": { "elevation": "medium", "travelDifficulty": "moderate" } }
+      ]
+    },
+    {
+      "id": "weather",
+      "name": "Weather Conditions",
+      "type": "simple",
+      "description": "Current weather",
+      "resultType": "trait",
+      "tags": ["weather", "atmosphere"],
+      "entries": [
+        { "id": "clear", "value": "clear skies", "weight": 5 },
+        { "id": "partly", "value": "partly cloudy", "weight": 4 },
+        { "id": "overcast", "value": "overcast", "weight": 3 },
+        { "id": "rain", "value": "light rain", "weight": 2 },
+        { "id": "storm", "value": "heavy storm", "weight": 1 },
+        { "id": "fog", "value": "thick fog", "weight": 1 },
+        { "id": "snow", "value": "light snow", "weight": 1 },
+        { "id": "blizzard", "value": "blizzard", "weight": 1 }
+      ]
+    },
+    {
+      "id": "timeOfDay",
+      "name": "Time of Day",
+      "type": "simple",
+      "description": "Current time",
+      "resultType": "trait",
+      "tags": ["time", "atmosphere"],
+      "entries": [
+        { "id": "dawn", "value": "dawn", "sets": { "lightLevel": "dim", "period": "morning" } },
+        { "id": "morning", "value": "morning", "sets": { "lightLevel": "bright", "period": "morning" } },
+        { "id": "midday", "value": "midday", "sets": { "lightLevel": "bright", "period": "day" } },
+        { "id": "afternoon", "value": "afternoon", "sets": { "lightLevel": "bright", "period": "day" } },
+        { "id": "dusk", "value": "dusk", "sets": { "lightLevel": "dim", "period": "evening" } },
+        { "id": "evening", "value": "evening", "sets": { "lightLevel": "dark", "period": "evening" } },
+        { "id": "midnight", "value": "midnight", "sets": { "lightLevel": "dark", "period": "night" } }
+      ]
+    },
+    {
+      "id": "season",
+      "name": "Season",
+      "type": "simple",
+      "description": "Current season",
+      "resultType": "trait",
+      "tags": ["season", "atmosphere"],
+      "entries": [
+        { "id": "spring", "value": "spring", "sets": { "temperature": "mild", "vegetation": "blooming" } },
+        { "id": "summer", "value": "summer", "sets": { "temperature": "warm", "vegetation": "lush" } },
+        { "id": "autumn", "value": "autumn", "sets": { "temperature": "cool", "vegetation": "falling" } },
+        { "id": "winter", "value": "winter", "sets": { "temperature": "cold", "vegetation": "dormant" } }
+      ]
+    },
+    {
+      "id": "landmark",
+      "name": "Natural Landmark",
+      "type": "simple",
+      "description": "Notable natural features",
+      "resultType": "location",
+      "tags": ["landmark", "exploration"],
+      "entries": [
+        { "value": "a towering ancient tree" },
+        { "value": "a distinctive rock formation" },
+        { "value": "a clear spring-fed pool" },
+        { "value": "a small waterfall" },
+        { "value": "a lightning-struck tree" },
+        { "value": "a moss-covered standing stone" },
+        { "value": "an enormous fallen log" },
+        { "value": "a natural stone arch" },
+        { "value": "a circle of mushrooms" },
+        { "value": "a cliff with an exposed fossil" }
+      ]
+    },
+    {
+      "id": "ruinType",
+      "name": "Ruin Type",
+      "type": "simple",
+      "description": "Remnants of ancient civilizations",
+      "resultType": "location",
+      "tags": ["ruins", "exploration"],
+      "entries": [
+        { "id": "tower", "value": "crumbling stone tower", "sets": { "structure": "tower", "material": "stone" } },
+        { "id": "temple", "value": "overgrown temple", "sets": { "structure": "temple", "sacred": "yes" } },
+        { "id": "fortress", "value": "collapsed fortress wall", "sets": { "structure": "fortress", "military": "yes" } },
+        { "id": "garden", "value": "weathered statue garden", "sets": { "structure": "garden", "artistic": "yes" } },
+        { "id": "amphitheater", "value": "sunken amphitheater", "sets": { "structure": "amphitheater" } },
+        { "id": "aqueduct", "value": "broken aqueduct", "sets": { "structure": "aqueduct", "engineering": "yes" } },
+        { "id": "mausoleum", "value": "vine-covered mausoleum", "sets": { "structure": "mausoleum", "burial": "yes" } }
+      ]
+    },
+    {
+      "id": "ruinCondition",
+      "name": "Ruin Condition",
+      "type": "simple",
+      "description": "State of the ruins",
+      "resultType": "trait",
+      "tags": ["ruins", "description"],
+      "entries": [
+        { "id": "collapsed", "value": "partially collapsed", "weight": 3 },
+        { "id": "intact", "value": "remarkably intact", "weight": 1 },
+        { "id": "overgrown", "value": "heavily overgrown", "weight": 3 },
+        { "id": "fire", "value": "fire-damaged", "weight": 2 },
+        { "id": "excavated", "value": "recently excavated", "weight": 1 },
+        { "id": "preserved", "value": "magically preserved", "weight": 1 }
+      ]
+    },
+    {
+      "id": "dungeonEntrance",
+      "name": "Dungeon Entrance",
+      "type": "simple",
+      "description": "How to enter the dungeon",
+      "resultType": "location",
+      "tags": ["dungeon", "entrance"],
+      "entries": [
+        { "value": "a yawning cave mouth" },
+        { "value": "worn stone steps descending into darkness" },
+        { "value": "a collapsed cellar revealing deeper chambers" },
+        { "value": "an ornate door set into a hillside" },
+        { "value": "a well with a secret passage" },
+        { "value": "a trapdoor hidden under brush" },
+        { "value": "a crack in the earth wide enough to enter" },
+        { "value": "a mausoleum with a broken floor" }
+      ]
+    },
+    {
+      "id": "dungeonCorridor",
+      "name": "Dungeon Corridor",
+      "type": "simple",
+      "description": "Passages within the dungeon",
+      "resultType": "location",
+      "tags": ["dungeon", "corridor"],
+      "entries": [
+        { "value": "a narrow passage carved from raw stone" },
+        { "value": "a wide hallway with collapsed ceiling sections" },
+        { "value": "a sloping tunnel descending deeper" },
+        { "value": "a corridor lined with empty alcoves" },
+        { "value": "a flooded passage ankle-deep in murky water" },
+        { "value": "a passage with ancient murals on the walls" },
+        { "value": "a cramped tunnel requiring crouching" },
+        { "value": "a surprisingly well-preserved tiled hallway" }
+      ]
+    },
+    {
+      "id": "dungeonRoom",
+      "name": "Dungeon Room",
+      "type": "simple",
+      "description": "Chambers within the dungeon",
+      "resultType": "location",
+      "tags": ["dungeon", "room"],
+      "entries": [
+        { "id": "guard", "value": "an empty guard chamber", "sets": { "roomType": "guard", "furniture": "minimal" } },
+        { "id": "storage", "value": "a forgotten storage room", "sets": { "roomType": "storage", "furniture": "shelves" } },
+        { "id": "library", "value": "an ancient library", "sets": { "roomType": "library", "furniture": "bookshelves" } },
+        { "id": "ceremonial", "value": "a ceremonial chamber", "sets": { "roomType": "ceremonial", "sacred": "yes" } },
+        { "id": "torture", "value": "a torture chamber", "sets": { "roomType": "torture", "dark": "yes" } },
+        { "id": "dining", "value": "a collapsed dining hall", "sets": { "roomType": "dining", "furniture": "tables" } },
+        { "id": "natural", "value": "a natural cavern", "sets": { "roomType": "natural", "carved": "no" } },
+        { "id": "crypt", "value": "a flooded crypt", "sets": { "roomType": "crypt", "flooded": "yes", "burial": "yes" } }
+      ]
+    },
+    {
+      "id": "dungeonFeature",
+      "name": "Dungeon Feature",
+      "type": "simple",
+      "description": "Notable features found in dungeon rooms",
+      "resultType": "trait",
+      "tags": ["dungeon", "feature"],
+      "entries": [
+        { "value": "a stone altar stained with old blood" },
+        { "value": "chains hanging from the ceiling" },
+        { "value": "a dried-up fountain" },
+        { "value": "an intact mosaic floor depicting a great battle" },
+        { "value": "collapsed pillars" },
+        { "value": "a statue with missing arms" },
+        { "value": "a firepit with ancient ashes" },
+        { "value": "iron cages, some with skeletal remains" },
+        { "value": "a well that echoes strangely" },
+        { "value": "arcane symbols carved into the floor" }
+      ]
+    },
+    {
+      "id": "trapType",
+      "name": "Trap Type",
+      "type": "simple",
+      "description": "Dangerous traps",
+      "resultType": "hazard",
+      "tags": ["trap", "hazard"],
+      "entries": [
+        { "id": "pressure", "value": "a pressure plate triggering poison darts", "sets": { "trigger": "pressure", "detectDC": "12" } },
+        { "id": "tripwire", "value": "a tripwire connected to a swinging blade", "sets": { "trigger": "tripwire", "detectDC": "10" } },
+        { "id": "glyph", "value": "a magical glyph that explodes when triggered", "sets": { "trigger": "magical", "detectDC": "15" } },
+        { "id": "floor", "value": "a false floor concealing a pit with spikes", "sets": { "trigger": "weight", "detectDC": "14" } },
+        { "id": "door", "value": "a door handle rigged with a flame trap", "sets": { "trigger": "touch", "detectDC": "11" } }
+      ]
+    },
+    {
+      "id": "secretDoor",
+      "name": "Secret Door",
+      "type": "simple",
+      "description": "Hidden passages",
+      "resultType": "location",
+      "tags": ["dungeon", "secret"],
+      "entries": [
+        { "value": "a bookshelf that swings open" },
+        { "value": "a loose stone that reveals a passage" },
+        { "value": "a fireplace with a hidden catch" },
+        { "value": "a portrait with a door behind it" },
+        { "value": "a section of wall that rotates" },
+        { "value": "a trapdoor under a rug" },
+        { "value": "a statue that moves aside" },
+        { "value": "an illusory wall" }
+      ]
+    },
+    {
+      "id": "ambiance",
+      "name": "Ambient Details",
+      "type": "simple",
+      "description": "Sensory details for atmosphere",
+      "resultType": "description",
+      "tags": ["atmosphere", "sensory"],
+      "entries": [
+        { "value": "the distant sound of dripping water" },
+        { "value": "a faint musty smell" },
+        { "value": "cold air flowing from somewhere ahead" },
+        { "value": "the skittering of unseen creatures" },
+        { "value": "an oppressive silence" },
+        { "value": "flickering shadows at the edge of torchlight" },
+        { "value": "the smell of decay" },
+        { "value": "strange echoes that don't match your movements" },
+        { "value": "a faint humming sound" },
+        { "value": "the sensation of being watched" }
+      ]
+    },
+    {
+      "id": "lootLocation",
+      "name": "Loot Location",
+      "type": "simple",
+      "description": "Where treasure might be found",
+      "resultType": "location",
+      "tags": ["loot", "treasure"],
+      "entries": [
+        { "value": "in a locked chest" },
+        { "value": "scattered across the floor" },
+        { "value": "hidden in a secret compartment" },
+        { "value": "clutched in skeletal hands" },
+        { "value": "on a corpse" },
+        { "value": "displayed on a pedestal" },
+        { "value": "buried under rubble" },
+        { "value": "hanging from a hook on the wall" }
+      ]
+    },
+    {
+      "id": "settlementType",
+      "name": "Settlement Type",
+      "type": "simple",
+      "description": "Types of inhabited places",
+      "resultType": "location",
+      "tags": ["settlement", "civilization"],
+      "entries": [
+        { "id": "hamlet", "value": "a tiny hamlet", "sets": { "size": "tiny", "population": "30", "services": "minimal" } },
+        { "id": "village", "value": "a small village", "sets": { "size": "small", "population": "120", "services": "basic" } },
+        { "id": "market", "value": "a market town", "sets": { "size": "medium", "population": "800", "services": "moderate" } },
+        { "id": "fortified", "value": "a fortified town", "sets": { "size": "medium", "population": "600", "services": "moderate", "military": "yes" } },
+        { "id": "city", "value": "a small city", "sets": { "size": "large", "population": "5000", "services": "full" } }
+      ]
+    },
+    {
+      "id": "settlementFeature",
+      "name": "Settlement Feature",
+      "type": "simple",
+      "description": "Notable features of settlements",
+      "resultType": "location",
+      "tags": ["settlement", "landmark"],
+      "entries": [
+        { "value": "a bustling marketplace" },
+        { "value": "an ancient temple" },
+        { "value": "a wizard's tower" },
+        { "value": "a fighting arena" },
+        { "value": "an infamous tavern" },
+        { "value": "a thieves' guild hideout" },
+        { "value": "a grand library" },
+        { "value": "a mysterious well" },
+        { "value": "a legendary smithy" },
+        { "value": "a haunted manor" }
+      ]
+    },
+    {
+      "id": "innName",
+      "name": "Inn Name",
+      "type": "simple",
+      "description": "Names for taverns and inns",
+      "resultType": "name",
+      "tags": ["inn", "naming"],
+      "entries": [
+        { "value": "The {{innAdjective}} {{innNoun}}" }
+      ]
+    },
+    {
+      "id": "innAdjective",
+      "name": "Inn Adjective",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "value": "Golden" },
+        { "value": "Silver" },
+        { "value": "Rusty" },
+        { "value": "Prancing" },
+        { "value": "Sleeping" },
+        { "value": "Dancing" },
+        { "value": "Drunken" },
+        { "value": "Wandering" },
+        { "value": "Lucky" },
+        { "value": "Broken" }
+      ]
+    },
+    {
+      "id": "innNoun",
+      "name": "Inn Noun",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "trait",
+      "entries": [
+        { "value": "Dragon" },
+        { "value": "Griffin" },
+        { "value": "Unicorn" },
+        { "value": "Knight" },
+        { "value": "Wizard" },
+        { "value": "Tankard" },
+        { "value": "Maiden" },
+        { "value": "Goblet" },
+        { "value": "Sword" },
+        { "value": "Shield" }
+      ]
+    },
+    {
+      "id": "roadCondition",
+      "name": "Road Condition",
+      "type": "simple",
+      "description": "State of travel routes",
+      "resultType": "trait",
+      "tags": ["travel", "roads"],
+      "entries": [
+        { "id": "cobble", "value": "well-maintained cobblestone", "weight": 2 },
+        { "id": "dirt", "value": "packed dirt, rutted from wagon wheels", "weight": 3 },
+        { "id": "overgrown", "value": "overgrown and barely visible", "weight": 2 },
+        { "id": "washed", "value": "washed out in places", "weight": 1 },
+        { "id": "repaired", "value": "recently repaired", "weight": 1 },
+        { "id": "ancient", "value": "ancient stone, worn smooth by centuries", "weight": 1 }
+      ]
+    },
+    {
+      "id": "roadEncounter",
+      "name": "Road Encounter",
+      "type": "simple",
+      "description": "What you might find while traveling",
+      "resultType": "encounter",
+      "tags": ["travel", "encounter"],
+      "entries": [
+        { "value": "a merchant caravan heading the opposite direction" },
+        { "value": "a patrol of guards" },
+        { "value": "a broken-down wagon" },
+        { "value": "a wandering minstrel" },
+        { "value": "pilgrims on a religious journey" },
+        { "value": "a noble's entourage" },
+        { "value": "refugees fleeing trouble" },
+        { "value": "a bounty hunter tracking prey" },
+        { "value": "a lost child" },
+        { "value": "a suspicious stranger watching from a distance" }
+      ]
+    },
+    {
+      "id": "wildernessEncounter",
+      "name": "Wilderness Encounter",
+      "type": "simple",
+      "description": "What you might find in the wild",
+      "resultType": "encounter",
+      "tags": ["wilderness", "exploration"],
+      "entries": [
+        { "value": "signs of animal activity" },
+        { "value": "a lair belonging to some creature" },
+        { "value": "the remains of a battle" },
+        { "value": "an abandoned campsite" },
+        { "value": "a hermit's dwelling" },
+        { "value": "a hidden shrine" },
+        { "value": "tracks of something large" },
+        { "value": "a wounded animal" },
+        { "value": "territorial markings" },
+        { "value": "an ancient burial mound" }
+      ]
+    },
+    {
+      "id": "allEnvironments",
+      "name": "All Environments",
+      "type": "collection",
+      "description": "Any environment type",
+      "resultType": "location",
+      "tags": ["combined", "all"],
+      "collections": ["forestType", "mountainType"]
+    },
+    {
+      "id": "dungeonElements",
+      "name": "Dungeon Elements",
+      "type": "collection",
+      "description": "Any dungeon feature",
+      "resultType": "location",
+      "tags": ["dungeon", "combined"],
+      "collections": ["dungeonCorridor", "dungeonRoom", "dungeonFeature", "trapType", "secretDoor"]
+    }
+  ],
+  "templates": [
+    {
+      "id": "simpleWeather",
+      "name": "Simple Weather",
+      "description": "Basic weather report",
+      "resultType": "description",
+      "tags": ["weather", "simple"],
+      "pattern": "The weather is {{weather}}."
+    },
+    {
+      "id": "atmosphericDescription",
+      "name": "Atmospheric Description",
+      "description": "Time, weather, and atmosphere",
+      "resultType": "description",
+      "tags": ["atmosphere", "detailed"],
+      "pattern": "It is {{timeOfDay}} during {{season}}. The weather is {{weather}}. You notice {{ambiance}}."
+    },
+    {
+      "id": "forestDescription",
+      "name": "Forest Description",
+      "description": "Detailed forest environment",
+      "resultType": "description",
+      "tags": ["forest", "detailed"],
+      "pattern": "You find yourself in {{forestType}}. {{landmark}} marks this location. {{ambiance}}."
+    },
+    {
+      "id": "mountainDescription",
+      "name": "Mountain Description",
+      "description": "Mountain environment details",
+      "resultType": "description",
+      "tags": ["mountain", "detailed"],
+      "pattern": "The path leads through {{mountainType}}. The weather is {{weather}}. {{landmark}} is visible nearby."
+    },
+    {
+      "id": "ruinExploration",
+      "name": "Ruin Exploration",
+      "description": "Discovery of ancient ruins",
+      "resultType": "description",
+      "tags": ["ruins", "exploration"],
+      "pattern": "You discover {{ruinType}}, {{ruinCondition}}. Nearby you notice {{landmark}}. {{ambiance}}."
+    },
+    {
+      "id": "dungeonCrawl",
+      "name": "Dungeon Crawl",
+      "description": "Dungeon exploration sequence",
+      "resultType": "description",
+      "tags": ["dungeon", "detailed"],
+      "pattern": "**Entrance:** {{dungeonEntrance}}\n\n**First Passage:** {{dungeonCorridor}}\n\n**First Room:** {{dungeonRoom}}\n\nYou notice {{dungeonFeature}}.\n\n**Atmosphere:** {{ambiance}}."
+    },
+    {
+      "id": "settlementArrival",
+      "name": "Settlement Arrival",
+      "description": "Arriving at a settlement",
+      "resultType": "description",
+      "tags": ["settlement", "arrival"],
+      "pattern": "You arrive at {{settlementType}}. The settlement is known for {{settlementFeature}}. A sign for \"{{innName}}\" catches your eye."
+    },
+    {
+      "id": "travelDay",
+      "name": "Travel Day",
+      "description": "A day of overland travel",
+      "resultType": "description",
+      "tags": ["travel", "journey"],
+      "pattern": "**Day's Travel**\n\nThe road is {{roadCondition}}. During {{timeOfDay}}, you encounter {{roadEncounter}}. The weather is {{weather}}.\n\n**Notable Landmark:** {{landmark}}"
+    },
+    {
+      "id": "wildernessExploration",
+      "name": "Wilderness Exploration",
+      "description": "Exploring the wild",
+      "resultType": "description",
+      "tags": ["wilderness", "exploration"],
+      "pattern": "**Wilderness Exploration**\n\nTerrain: {{allEnvironments}}\nTime: {{timeOfDay}}\nWeather: {{weather}}\n\n**Discovery:** {{wildernessEncounter}}\n\n**Ambient:** {{ambiance}}"
+    }
+  ]
+}
