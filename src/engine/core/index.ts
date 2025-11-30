@@ -125,12 +125,28 @@ export class RandomTableEngine {
    * Load a collection from a parsed document
    */
   loadCollection(document: RandomTableDocument, id: string, isPreloaded = false): void {
+    // Build table index for O(1) lookups
+    const tableIndex = new Map<string, Table>()
+    for (const table of document.tables) {
+      tableIndex.set(table.id, table)
+    }
+
+    // Build template index for O(1) lookups
+    const templateIndex = new Map<string, Template>()
+    if (document.templates) {
+      for (const template of document.templates) {
+        templateIndex.set(template.id, template)
+      }
+    }
+
     const collection: LoadedCollection = {
       id,
       document,
       imports: new Map(), // TODO: Implement import resolution
       isPreloaded,
       source: isPreloaded ? 'preloaded' : id,
+      tableIndex,
+      templateIndex,
     }
 
     this.collections.set(id, collection)
@@ -228,17 +244,17 @@ export class RandomTableEngine {
   // ==========================================================================
 
   /**
-   * Get a table by ID
+   * Get a table by ID (O(1) lookup using index)
    */
   getTable(tableId: string, collectionId?: string): Table | undefined {
     if (collectionId) {
       const collection = this.collections.get(collectionId)
-      return collection?.document.tables.find((t) => t.id === tableId)
+      return collection?.tableIndex.get(tableId)
     }
 
     // Search all collections
     for (const collection of this.collections.values()) {
-      const table = collection.document.tables.find((t) => t.id === tableId)
+      const table = collection.tableIndex.get(tableId)
       if (table) return table
     }
 
@@ -280,11 +296,11 @@ export class RandomTableEngine {
   }
 
   /**
-   * Get a template by ID
+   * Get a template by ID (O(1) lookup using index)
    */
   getTemplate(templateId: string, collectionId: string): Template | undefined {
     const collection = this.collections.get(collectionId)
-    return collection?.document.templates?.find((t) => t.id === templateId)
+    return collection?.templateIndex.get(templateId)
   }
 
   /**
@@ -315,7 +331,7 @@ export class RandomTableEngine {
       throw new Error(`Collection not found: ${collectionId}`)
     }
 
-    const table = collection.document.tables.find((t) => t.id === tableId)
+    const table = collection.tableIndex.get(tableId)
     if (!table) {
       throw new Error(`Table not found: ${tableId} in collection ${collectionId}`)
     }
@@ -378,7 +394,7 @@ export class RandomTableEngine {
       throw new Error(`Collection not found: ${collectionId}`)
     }
 
-    const template = collection.document.templates?.find((t) => t.id === templateId)
+    const template = collection.templateIndex.get(templateId)
     if (!template) {
       throw new Error(`Template not found: ${templateId} in collection ${collectionId}`)
     }
@@ -737,7 +753,7 @@ export class RandomTableEngine {
 
         if (currentCollection?.imports.has(aliasOrNamespace)) {
           const importedCollection = currentCollection.imports.get(aliasOrNamespace)!
-          const table = importedCollection.document.tables.find((t) => t.id === tableId)
+          const table = importedCollection.tableIndex.get(tableId)
           if (table) {
             return { table, collectionId: importedCollection.id }
           }
@@ -747,7 +763,7 @@ export class RandomTableEngine {
         const namespace = parts.slice(0, -1).join('.')
         for (const collection of this.collections.values()) {
           if (collection.document.metadata.namespace === namespace) {
-            const table = collection.document.tables.find((t) => t.id === tableId)
+            const table = collection.tableIndex.get(tableId)
             if (table) return { table, collectionId: collection.id }
           }
         }
@@ -762,7 +778,7 @@ export class RandomTableEngine {
             // Search all other collections for this table.
             for (const collection of this.collections.values()) {
               if (collection.id !== collectionId) {
-                const table = collection.document.tables.find((t) => t.id === tableId)
+                const table = collection.tableIndex.get(tableId)
                 if (table) {
                   return { table, collectionId: collection.id }
                 }
@@ -776,13 +792,13 @@ export class RandomTableEngine {
     // Simple tableId - look in current collection first
     const currentCollection = this.collections.get(collectionId)
     if (currentCollection) {
-      const table = currentCollection.document.tables.find((t) => t.id === ref)
+      const table = currentCollection.tableIndex.get(ref)
       if (table) return { table, collectionId }
     }
 
     // Search all collections as fallback
     for (const collection of this.collections.values()) {
-      const table = collection.document.tables.find((t) => t.id === ref)
+      const table = collection.tableIndex.get(ref)
       if (table) return { table, collectionId: collection.id }
     }
 
@@ -808,7 +824,7 @@ export class RandomTableEngine {
 
         if (currentCollection?.imports.has(aliasOrNamespace)) {
           const importedCollection = currentCollection.imports.get(aliasOrNamespace)!
-          const template = importedCollection.document.templates?.find((t) => t.id === templateId)
+          const template = importedCollection.templateIndex.get(templateId)
           if (template) {
             return { template, collectionId: importedCollection.id }
           }
@@ -818,7 +834,7 @@ export class RandomTableEngine {
         const namespace = parts.slice(0, -1).join('.')
         for (const collection of this.collections.values()) {
           if (collection.document.metadata.namespace === namespace) {
-            const template = collection.document.templates?.find((t) => t.id === templateId)
+            const template = collection.templateIndex.get(templateId)
             if (template) return { template, collectionId: collection.id }
           }
         }
@@ -833,7 +849,7 @@ export class RandomTableEngine {
             // Search all other collections for this template.
             for (const collection of this.collections.values()) {
               if (collection.id !== collectionId) {
-                const template = collection.document.templates?.find((t) => t.id === templateId)
+                const template = collection.templateIndex.get(templateId)
                 if (template) {
                   return { template, collectionId: collection.id }
                 }
@@ -847,13 +863,13 @@ export class RandomTableEngine {
     // Simple templateId - look in current collection first
     const currentCollection = this.collections.get(collectionId)
     if (currentCollection) {
-      const template = currentCollection.document.templates?.find((t) => t.id === ref)
+      const template = currentCollection.templateIndex.get(ref)
       if (template) return { template, collectionId }
     }
 
     // Search all collections as fallback
     for (const collection of this.collections.values()) {
-      const template = collection.document.templates?.find((t) => t.id === ref)
+      const template = collection.templateIndex.get(ref)
       if (template) return { template, collectionId: collection.id }
     }
 
@@ -1150,8 +1166,10 @@ export class RandomTableEngine {
       case 'dice':
         return this.evaluateDice(token.expression, context)
 
-      case 'math':
-        return String(evaluateMath(token.expression, context))
+      case 'math': {
+        const result = evaluateMath(token.expression, context)
+        return result !== null ? String(result) : '[math error]'
+      }
 
       case 'variable':
         return this.evaluateVariable(token, context)

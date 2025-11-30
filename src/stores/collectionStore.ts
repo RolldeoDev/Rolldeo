@@ -103,13 +103,18 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
       // Initialize database
       await db.init()
 
-      // Load pre-loaded collections
-      for (const { id, document } of preloadedCollections) {
-        // Check if already in database
-        const existing = await db.getCollection(id)
-        if (!existing) {
-          // Save to database
-          await db.saveCollection({
+      // Load all existing collections first (single DB call)
+      const storedCollections = await db.getAllCollections()
+      const existingIds = new Set(storedCollections.map((c) => c.id))
+
+      // Find preloaded collections that need to be saved
+      const now = Date.now()
+      const toSave = preloadedCollections.filter(({ id }) => !existingIds.has(id))
+
+      // Save missing preloaded collections in parallel
+      await Promise.all(
+        toSave.map(({ id, document }) =>
+          db.saveCollection({
             id,
             document,
             name: document.metadata.name,
@@ -119,17 +124,18 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
             tags: document.metadata.tags || [],
             isPreloaded: true,
             source: 'preloaded',
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
+            createdAt: now,
+            updatedAt: now,
           })
-        }
+        )
+      )
 
-        // Load into engine
+      // Load all preloaded collections into engine
+      for (const { id, document } of preloadedCollections) {
         get().loadCollection(id, document, true, 'preloaded')
       }
 
-      // Load user collections from database
-      const storedCollections = await db.getAllCollections()
+      // Load user collections from database (already fetched above)
       for (const stored of storedCollections) {
         if (!stored.isPreloaded) {
           get().loadCollection(stored.id, stored.document, false, stored.source)
@@ -262,6 +268,13 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
     const existing = get().collections.get(id)
     const now = Date.now()
 
+    // Get createdAt from existing record if updating, otherwise use now
+    let createdAt = now
+    if (existing) {
+      const stored = await db.getCollection(id)
+      createdAt = stored?.createdAt ?? now
+    }
+
     // Save to database
     await db.saveCollection({
       id,
@@ -273,7 +286,7 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
       tags: document.metadata.tags || [],
       isPreloaded: false,
       source,
-      createdAt: existing ? (await db.getCollection(id))?.createdAt || now : now,
+      createdAt,
       updatedAt: now,
     })
 

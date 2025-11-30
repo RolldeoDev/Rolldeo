@@ -293,19 +293,21 @@ class MathParser {
 /**
  * Evaluate a math expression
  *
+ * @returns The evaluated number, or null if evaluation failed
+ *
  * @example
  * evaluateMath('2 + 3 * 4', context)  // 14
  * evaluateMath('$count + 5', context)  // depends on $count
  * evaluateMath('dice:2d6 * 10', context)  // random
  */
-export function evaluateMath(expr: string, context: GenerationContext): number {
+export function evaluateMath(expr: string, context: GenerationContext): number | null {
   try {
     const tokens = tokenize(expr)
     const parser = new MathParser(tokens, context)
     return parser.parse()
   } catch (error) {
     console.error(`Math evaluation error: ${expr}`, error)
-    return 0
+    return null
   }
 }
 

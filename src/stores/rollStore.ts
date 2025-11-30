@@ -33,6 +33,7 @@ interface RollState {
   // History
   history: StoredRoll[]
   historyLoaded: boolean
+  historyError: string | null
 
   // Actions
   selectCollection: (id: string | null) => void
@@ -69,6 +70,7 @@ export const useRollStore = create<RollState>()(
       traceEnabled: false,
       history: [],
       historyLoaded: false,
+      historyError: null,
 
       // ========================================================================
       // Selection Actions
@@ -242,9 +244,13 @@ export const useRollStore = create<RollState>()(
 
         try {
           const history = await db.getRollHistory(100)
-          set({ history, historyLoaded: true })
+          set({ history, historyLoaded: true, historyError: null })
         } catch (error) {
           console.error('Failed to load history:', error)
+          set({
+            historyLoaded: true,
+            historyError: error instanceof Error ? error.message : 'Failed to load roll history',
+          })
         }
       },
 
@@ -252,20 +258,28 @@ export const useRollStore = create<RollState>()(
        * Pin or unpin a history item.
        */
       pinResult: async (id, pinned) => {
-        await db.pinRoll(id, pinned)
-        set((state) => ({
-          history: state.history.map((r) => (r.id === id ? { ...r, pinned } : r)),
-        }))
+        try {
+          await db.pinRoll(id, pinned)
+          set((state) => ({
+            history: state.history.map((r) => (r.id === id ? { ...r, pinned } : r)),
+          }))
+        } catch (error) {
+          console.error('Failed to pin result:', error)
+        }
       },
 
       /**
        * Delete a specific history item.
        */
       deleteHistoryItem: async (id) => {
-        await db.deleteRoll(id)
-        set((state) => ({
-          history: state.history.filter((r) => r.id !== id),
-        }))
+        try {
+          await db.deleteRoll(id)
+          set((state) => ({
+            history: state.history.filter((r) => r.id !== id),
+          }))
+        } catch (error) {
+          console.error('Failed to delete history item:', error)
+        }
       },
 
       /**

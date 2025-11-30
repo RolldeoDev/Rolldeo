@@ -4,7 +4,7 @@
  * Displays roll history with pin/delete actions and trace viewing.
  */
 
-import { memo, useState, useCallback } from 'react'
+import { memo, useState, useCallback, useEffect, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { History as HistoryIcon, Pin, PinOff, Trash2, Activity } from 'lucide-react'
@@ -28,6 +28,19 @@ export const RollHistoryList = memo(function RollHistoryList({
 }: RollHistoryListProps) {
   // Track which history items have their trace expanded (by item id)
   const [expandedTraces, setExpandedTraces] = useState<Set<number>>(new Set())
+
+  // Pre-slice history for display (limit to 50 items)
+  const displayHistory = useMemo(() => history.slice(0, 50), [history])
+
+  // Clean up expandedTraces when history items are deleted
+  useEffect(() => {
+    const historyIds = new Set(history.map((h) => h.id))
+    setExpandedTraces((prev) => {
+      const cleaned = new Set([...prev].filter((id) => historyIds.has(id)))
+      // Only update if something was removed
+      return cleaned.size !== prev.size ? cleaned : prev
+    })
+  }, [history])
 
   const toggleTrace = useCallback((itemId: number) => {
     setExpandedTraces((prev) => {
@@ -64,8 +77,8 @@ export const RollHistoryList = memo(function RollHistoryList({
 
       {/* History List */}
       <div className="flex-1 overflow-auto p-4 space-y-3">
-        {history.length > 0 ? (
-          history.slice(0, 50).map((item, index) => (
+        {displayHistory.length > 0 ? (
+          displayHistory.map((item, index) => (
             <div
               key={item.id}
               className={cn(
