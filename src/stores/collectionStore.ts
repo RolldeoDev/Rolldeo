@@ -292,6 +292,9 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
 
     // Load into engine (this will replace if already loaded)
     get().loadCollection(id, document, false, source)
+
+    // Re-resolve imports for all collections (handles namespace-based imports)
+    get().engine.resolveImports()
   },
 
   // ============================================================================

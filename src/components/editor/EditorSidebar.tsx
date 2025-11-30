@@ -56,31 +56,30 @@ function Section({ title, icon: Icon, count, isExpanded, onToggle, onAdd, childr
 
   return (
     <div className="border-b border-border/30 last:border-b-0">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium hover:bg-accent/50 transition-colors"
-      >
-        {isExpanded ? (
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-        ) : (
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-        )}
-        <Icon className={cn('h-4 w-4', colorClasses[accentColor])} />
-        <span className="flex-1 text-left">{title}</span>
-        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-          {count}
-        </span>
+      <div className="group w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium hover:bg-accent/50 transition-colors">
         <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onAdd()
-          }}
+          onClick={onToggle}
+          className="flex items-center gap-2 flex-1 text-left"
+        >
+          {isExpanded ? (
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+          )}
+          <Icon className={cn('h-4 w-4', colorClasses[accentColor])} />
+          <span className="flex-1 text-left">{title}</span>
+          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+            {count}
+          </span>
+        </button>
+        <button
+          onClick={onAdd}
           className="p-1 hover:bg-primary/10 rounded transition-colors opacity-0 group-hover:opacity-100 hover:opacity-100"
           title={`Add ${title.toLowerCase().slice(0, -1)}`}
         >
           <Plus className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
         </button>
-      </button>
+      </div>
       {isExpanded && (
         <div className="pb-2 animate-slide-up">
           {children}

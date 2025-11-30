@@ -20,6 +20,9 @@ export interface GenerationContext {
   /** Shared variables (evaluated once per generation) */
   sharedVariables: Map<string, string | number>
 
+  /** Tracks which table/template set each shared variable (for multi-roll re-evaluation) */
+  sharedVariableSources: Map<string, string>
+
   /** Document-level shared variable names (for shadowing prevention) */
   documentSharedNames: Set<string>
 
@@ -77,6 +80,7 @@ export function createContext(
   return {
     staticVariables: staticVariables ?? new Map(),
     sharedVariables: new Map(),
+    sharedVariableSources: new Map(),
     documentSharedNames: new Set(),
     placeholders: new Map(),
     recursionDepth: 0,
@@ -100,6 +104,7 @@ export function cloneContext(ctx: GenerationContext): GenerationContext {
   return {
     staticVariables: ctx.staticVariables, // Shared reference (immutable during generation)
     sharedVariables: ctx.sharedVariables, // Shared reference
+    sharedVariableSources: ctx.sharedVariableSources, // Shared reference
     documentSharedNames: ctx.documentSharedNames, // Shared reference (immutable after init)
     placeholders: new Map(ctx.placeholders), // Shallow clone for isolation
     recursionDepth: ctx.recursionDepth,
@@ -146,13 +151,25 @@ export function resolveVariable(
 
 /**
  * Set a shared variable (during generation)
+ * @param source - The table/template ID that set this variable (for multi-roll re-evaluation tracking)
  */
 export function setSharedVariable(
   ctx: GenerationContext,
   name: string,
-  value: string | number
+  value: string | number,
+  source?: string
 ): void {
   ctx.sharedVariables.set(name, value)
+  if (source) {
+    ctx.sharedVariableSources.set(name, source)
+  }
+}
+
+/**
+ * Get the source (table/template ID) that set a shared variable
+ */
+export function getSharedVariableSource(ctx: GenerationContext, name: string): string | undefined {
+  return ctx.sharedVariableSources.get(name)
 }
 
 /**

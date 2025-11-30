@@ -4,14 +4,18 @@
  * Manages the imports array for external collection references.
  */
 
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link2, Trash2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Import } from '@/engine/types'
+import { useCollectionStore, type CollectionMeta } from '@/stores/collectionStore'
+import { CollectionPathSelector } from './CollectionPathSelector'
 
 interface IncludesEditorProps {
   imports: Import[]
   onChange: (imports: Import[]) => void
+  /** Current collection's namespace, used to filter it from available imports */
+  currentNamespace?: string
 }
 
 interface ImportCardProps {
@@ -19,9 +23,10 @@ interface ImportCardProps {
   index: number
   onChange: (index: number, import_: Import) => void
   onDelete: (index: number) => void
+  availableCollections: CollectionMeta[]
 }
 
-function ImportCard({ import_, index, onChange, onDelete }: ImportCardProps) {
+function ImportCard({ import_, index, onChange, onDelete, availableCollections }: ImportCardProps) {
   const hasError = !import_.path.trim() || !import_.alias.trim()
   const aliasHasDot = import_.alias.includes('.')
 
@@ -86,18 +91,12 @@ function ImportCard({ import_, index, onChange, onDelete }: ImportCardProps) {
             <label className="block text-xs font-medium text-muted-foreground mb-1">
               Path <span className="text-destructive">*</span>
             </label>
-            <input
-              type="text"
+            <CollectionPathSelector
               value={import_.path}
-              onChange={(e) => updateField('path', e.target.value)}
-              placeholder="./other-collection.json or https://..."
-              className={cn(
-                'w-full px-3 py-2 text-sm rounded-lg border bg-background transition-colors font-mono text-xs',
-                'focus:outline-none focus:ring-2 focus:ring-primary/50',
-                !import_.path.trim()
-                  ? 'border-destructive/50 focus:border-destructive'
-                  : 'border-border/50 focus:border-primary'
-              )}
+              onChange={(path) => updateField('path', path)}
+              availableCollections={availableCollections}
+              placeholder="Select collection or enter URL..."
+              hasError={!import_.path.trim()}
             />
           </div>
 
@@ -132,7 +131,7 @@ function ImportCard({ import_, index, onChange, onDelete }: ImportCardProps) {
           <p className="text-xs text-muted-foreground">
             Use as:{' '}
             <code className="px-1.5 py-0.5 bg-muted rounded text-[hsl(var(--amber))]">
-              {`{{${import_.alias}:tableId}}`}
+              {`{{${import_.alias}.tableId}}`}
             </code>
           </p>
         </div>
@@ -141,7 +140,17 @@ function ImportCard({ import_, index, onChange, onDelete }: ImportCardProps) {
   )
 }
 
-export function IncludesEditor({ imports, onChange }: IncludesEditorProps) {
+export function IncludesEditor({ imports, onChange, currentNamespace }: IncludesEditorProps) {
+  // Select the collections Map directly to avoid infinite re-renders
+  const collectionsMap = useCollectionStore((state) => state.collections)
+
+  // Filter out the current collection from available imports
+  const availableCollections = useMemo(() => {
+    const allCollections = Array.from(collectionsMap.values())
+    if (!currentNamespace) return allCollections
+    return allCollections.filter((c) => c.namespace !== currentNamespace)
+  }, [collectionsMap, currentNamespace])
+
   const updateImport = useCallback(
     (index: number, import_: Import) => {
       const updated = [...imports]
@@ -179,6 +188,7 @@ export function IncludesEditor({ imports, onChange }: IncludesEditorProps) {
           index={index}
           onChange={updateImport}
           onDelete={deleteImport}
+          availableCollections={availableCollections}
         />
       ))}
     </div>

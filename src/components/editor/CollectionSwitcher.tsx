@@ -132,7 +132,7 @@ export function CollectionSwitcher({
       setFocusedIndex(-1)
 
       if (collectionId === null) {
-        navigate('/editor')
+        navigate('/editor', { state: { intent: 'new' } })
       } else if (collectionId !== currentCollectionId) {
         navigate(`/editor/${collectionId}`)
       }

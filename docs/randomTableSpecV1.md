@@ -120,7 +120,7 @@ Optional properties for declaring intellectual property rights, usage permission
 | rights.type | string | - | Content classification: `"proprietary"`, `"open-content"`, `"fan-content"`, or `"licensed"` |
 | rights.official | boolean | `false` | Whether this is official publisher content (vs. fan-made) |
 | rights.productIdentity | string[] | `[]` | List of Product Identity elements (names, characters, logos, etc.) |
-| rights.trademarks | string[] | `[]` | Trademark notices (e.g., `"Kobold Press®"`, `"Tome of Beasts™"`) |
+| rights.trademarks | string[] | `[]` | Trademark notices (e.g., `"Rolldeo Press®"`, `"Tome of Rolldeo"`) |
 | rights.compatibilityNotice | string | - | Required compatibility/non-affiliation statement |
 
 **Rights Type Values:**
@@ -211,7 +211,7 @@ These optional properties control engine behavior for this file.
     "namespace": "fantasy.treasure",
     "version": "2.1.0",
     "specVersion": "1.0",
-    "author": "Example Games",
+    "author": "Rolldeo Games",
     "description": "A comprehensive treasure generation system for fantasy RPGs.",
     "tags": ["fantasy", "treasure", "loot", "rewards"],
     "source": {
@@ -222,8 +222,8 @@ These optional properties control engine behavior for this file.
       "url": "https://example-games.com/treasure-guide",
       "copyright": {
         "year": "2024",
-        "holder": "Example Games LLC",
-        "notice": "© 2024 Example Games LLC. All rights reserved."
+        "holder": "Rolldeo Games LLC",
+        "notice": "© 2024 Rolldeo Games LLC. All rights reserved."
       }
     },
     "rights": {
@@ -237,9 +237,9 @@ These optional properties control engine behavior for this file.
         "attributionRequired": true
       },
       "contact": {
-        "licensing": "licensing@example-games.com"
+        "licensing": "licensing@rolldeo-games.com"
       },
-      "termsUrl": "https://example-games.com/license"
+      "termsUrl": "https://rolldeo.com/license"
     },
     "maxRecursionDepth": 25,
     "maxExplodingDice": 50,

@@ -6,6 +6,7 @@
  */
 
 import fantasyRpg from './fantasy-rpg.json'
+import fantasyNames from './fantasy-names.json'
 import sciFi from './sci-fi.json'
 import type { RandomTableDocument } from '../../engine/types'
 
@@ -23,6 +24,10 @@ export const preloadedCollections: PreloadedCollection[] = [
   {
     id: 'fantasy-rpg',
     document: fantasyRpg as unknown as RandomTableDocument,
+  },
+  {
+    id: 'fantasy-names',
+    document: fantasyNames as unknown as RandomTableDocument,
   },
   {
     id: 'sci-fi',

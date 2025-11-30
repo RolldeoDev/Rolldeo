@@ -5,6 +5,8 @@
  */
 
 import type { RandomTableDocument } from '../engine/types'
+import type { RandomTableEngine } from '../engine/core'
+import type { CollectionMeta } from '../stores/collectionStore'
 import JSZip from 'jszip'
 
 export interface ExportOptions {
@@ -121,4 +123,97 @@ export function namespaceToFilename(namespace: string): string {
     .replace(/[^a-z0-9-]/g, '')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '') || 'collection'
+}
+
+// ============================================================================
+// Dependency Resolution
+// ============================================================================
+
+export interface ResolvedExport {
+  /** The main collection being exported */
+  primary: { id: string; document: RandomTableDocument }
+  /** All resolved dependencies */
+  dependencies: Array<{ id: string; document: RandomTableDocument }>
+  /** Paths that could not be resolved */
+  unresolvedPaths: string[]
+}
+
+/**
+ * Resolve all dependencies for a document recursively.
+ * Uses BFS to traverse imports and handles circular dependencies.
+ */
+export function resolveExportDependencies(
+  document: RandomTableDocument,
+  collectionId: string | undefined,
+  engine: RandomTableEngine,
+  collections: Map<string, CollectionMeta>
+): ResolvedExport {
+  const resolved = new Map<string, RandomTableDocument>()
+  const unresolvedPaths: string[] = []
+  const visited = new Set<string>()
+
+  // Use BFS to traverse imports
+  const queue: RandomTableDocument[] = [document]
+
+  while (queue.length > 0) {
+    const current = queue.shift()!
+    const currentNamespace = current.metadata.namespace
+
+    // Skip if already visited (handles circular refs)
+    if (visited.has(currentNamespace)) continue
+    visited.add(currentNamespace)
+
+    // Skip if no imports
+    if (!current.imports || current.imports.length === 0) continue
+
+    for (const imp of current.imports) {
+      // Try to resolve the import path to a loaded collection
+      const targetDoc = resolveImportPath(imp.path, engine, collections)
+
+      if (targetDoc) {
+        const targetNs = targetDoc.metadata.namespace
+        if (!visited.has(targetNs) && !resolved.has(targetNs)) {
+          resolved.set(targetNs, targetDoc)
+          queue.push(targetDoc) // Process its imports too (recursive)
+        }
+      } else {
+        unresolvedPaths.push(imp.path)
+      }
+    }
+  }
+
+  return {
+    primary: {
+      id: collectionId || document.metadata.namespace.replace(/\./g, '-'),
+      document,
+    },
+    dependencies: Array.from(resolved.entries()).map(([ns, doc]) => ({
+      id: ns.replace(/\./g, '-'),
+      document: doc,
+    })),
+    unresolvedPaths: [...new Set(unresolvedPaths)], // Deduplicate
+  }
+}
+
+/**
+ * Resolve an import path to a document.
+ */
+function resolveImportPath(
+  path: string,
+  engine: RandomTableEngine,
+  collections: Map<string, CollectionMeta>
+): RandomTableDocument | undefined {
+  // 1. Try matching by namespace (most common case)
+  for (const [id, meta] of collections) {
+    if (meta.namespace === path) {
+      const loaded = engine.getCollection(id)
+      return loaded?.document
+    }
+  }
+
+  // 2. Try matching by collection ID (fallback)
+  const loaded = engine.getCollection(path)
+  if (loaded) return loaded.document
+
+  return undefined
 }
