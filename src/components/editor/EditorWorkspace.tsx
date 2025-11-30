@@ -283,6 +283,7 @@ export function EditorWorkspace({
                 <IncludesEditor
                   imports={document.imports || []}
                   onChange={updateImports}
+                  currentNamespace={document.metadata.namespace}
                 />
               </section>
             </div>

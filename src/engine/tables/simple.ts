@@ -191,10 +191,12 @@ export function rollSimpleTable(
     markEntryUsed(context, table.id, selected.id)
   }
 
-  // Merge sets: defaultSets → entry.sets
+  // Merge sets: defaultSets → entry.sets, and include entry value
   const mergedSets: Sets = {
     ...(table.defaultSets ?? {}),
     ...(selected.entry.sets ?? {}),
+    // Include the entry's value so @tableName.value works
+    value: selected.entry.value,
   }
 
   // Determine resultType: entry → table

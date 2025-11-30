@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate, useBlocker } from 'react-router-dom'
+import { useParams, useNavigate, useBlocker, useLocation } from 'react-router-dom'
 import {
   Save,
   Download,
@@ -17,7 +17,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { useUIStore } from '@/stores/uiStore'
-import { EditorWorkspace, formatJson, CollectionSwitcher, EditorHelpButton } from '@/components/editor'
+import { EditorWorkspace, formatJson, CollectionSwitcher, EditorHelpButton, ExportDialog } from '@/components/editor'
 import { exportAsJson } from '@/services/export'
 import type { ValidationError } from '@/components/editor'
 import type { RandomTableDocument, SimpleTable } from '@/engine/types'
@@ -28,7 +28,7 @@ const createDefaultDocument = (): RandomTableDocument => ({
     name: '',
     namespace: '',
     version: '1.0.0',
-    specVersion: '1.2',
+    specVersion: '1.0',
   },
   tables: [
     {
@@ -43,6 +43,7 @@ const createDefaultDocument = (): RandomTableDocument => ({
 export function EditorPage() {
   const { collectionId } = useParams<{ collectionId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const { getCollectionDocument, saveCollection, collections, isInitialized } =
     useCollectionStore()
@@ -60,13 +61,21 @@ export function EditorPage() {
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [showExportDialog, setShowExportDialog] = useState(false)
 
   // Track if this is a new collection
   const isNewCollection = !collectionId
 
   // Redirect to last edited collection if none specified
+  // Skip redirect if user explicitly clicked "New Collection" (intent: 'new')
+  const locationState = location.state as { intent?: string } | null
+  const isIntentNew = locationState?.intent === 'new'
+
   useEffect(() => {
     if (!isInitialized) return
+
+    // Don't redirect if user explicitly wants a new collection
+    if (isIntentNew) return
 
     if (!collectionId && lastEditorCollectionId) {
       // Check if the last collection still exists
@@ -74,7 +83,7 @@ export function EditorPage() {
         navigate(`/editor/${lastEditorCollectionId}`, { replace: true })
       }
     }
-  }, [collectionId, lastEditorCollectionId, collections, isInitialized, navigate])
+  }, [collectionId, lastEditorCollectionId, collections, isInitialized, navigate, isIntentNew])
 
   // Load collection data
   useEffect(() => {
@@ -197,6 +206,19 @@ export function EditorPage() {
     }
   }, [document, collectionId, collections, saveCollection, navigate, validationErrors])
 
+  // Export handler - checks for imports before exporting
+  const handleExport = useCallback(() => {
+    if (!document) return
+
+    // Check if document has imports
+    if (document.imports && document.imports.length > 0) {
+      setShowExportDialog(true)
+    } else {
+      // No imports - export directly as before
+      exportAsJson(document)
+    }
+  }, [document])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -297,7 +319,7 @@ export function EditorPage() {
           </button>
 
           <button
-            onClick={() => document && exportAsJson(document)}
+            onClick={handleExport}
             disabled={!document}
             className="flex items-center gap-2 px-4 py-2 border border-border/50 rounded-xl hover:bg-accent transition-colors disabled:opacity-50"
           >
@@ -351,6 +373,16 @@ export function EditorPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Export Dialog */}
+      {showExportDialog && document && (
+        <ExportDialog
+          isOpen={showExportDialog}
+          onClose={() => setShowExportDialog(false)}
+          document={document}
+          collectionId={collectionId}
+        />
       )}
     </div>
   )

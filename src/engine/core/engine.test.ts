@@ -8,7 +8,7 @@ const sampleDocument: RandomTableDocument = {
     name: 'Test Tables',
     namespace: 'test.tables',
     version: '1.0.0',
-    specVersion: '1.2',
+    specVersion: '1.0',
   },
   tables: [
     {
@@ -230,7 +230,7 @@ describe('RandomTableEngine', () => {
           name: '',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2' as const,
+          specVersion: '1.0' as const,
         },
         tables: [],
       }
@@ -264,7 +264,7 @@ describe('RandomTableEngine edge cases', () => {
         name: 'Test',
         namespace: 'test',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       tables: [
         {
@@ -287,7 +287,7 @@ describe('RandomTableEngine edge cases', () => {
         name: 'Test',
         namespace: 'test',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       tables: [
         {
@@ -322,7 +322,7 @@ describe('RandomTableEngine edge cases', () => {
         name: 'Test',
         namespace: 'test',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       tables: [
         {
@@ -351,7 +351,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -388,7 +388,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -418,7 +418,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -452,7 +452,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -482,7 +482,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -515,7 +515,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -547,7 +547,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -586,7 +586,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -621,7 +621,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -656,7 +656,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -692,7 +692,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -723,7 +723,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {
@@ -754,7 +754,7 @@ describe('Roll Capture System', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
-          specVersion: '1.2',
+          specVersion: '1.0',
         },
         tables: [
           {

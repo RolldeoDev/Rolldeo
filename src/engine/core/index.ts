@@ -36,6 +36,7 @@ import {
   setInstance,
   getInstance,
   setSharedVariable,
+  getSharedVariableSource,
   registerDocumentSharedName,
   wouldShadowDocumentShared,
   getCaptureVariable,
@@ -203,8 +204,13 @@ export class RandomTableEngine {
    * Resolve import aliases for collections based on a path-to-ID mapping.
    * This wires up the imports map for each collection that has an imports array.
    * Call this after loading all collections from a ZIP file.
+   *
+   * Resolution order:
+   * 1. Try pathToIdMap lookup (for file path based imports)
+   * 2. Try matching by namespace (for namespace-based imports from editor)
+   * 3. Try matching by collection ID (direct ID reference)
    */
-  resolveImports(pathToIdMap: Map<string, string>): void {
+  resolveImports(pathToIdMap?: Map<string, string>): void {
     for (const collection of this.collections.values()) {
       // Skip collections without imports
       if (!collection.document.imports || collection.document.imports.length === 0) {
@@ -215,15 +221,33 @@ export class RandomTableEngine {
       collection.imports.clear()
 
       for (const imp of collection.document.imports) {
-        // Try to find the target collection ID from the path mapping
-        // The pathToIdMap contains entries for full paths, filenames, and ./prefixed versions
-        const targetId = pathToIdMap.get(imp.path)
+        let targetCollection: LoadedCollection | undefined
 
-        if (targetId) {
-          const targetCollection = this.collections.get(targetId)
-          if (targetCollection) {
-            collection.imports.set(imp.alias, targetCollection)
+        // 1. Try pathToIdMap lookup first (file path based imports)
+        if (pathToIdMap) {
+          const targetId = pathToIdMap.get(imp.path)
+          if (targetId) {
+            targetCollection = this.collections.get(targetId)
           }
+        }
+
+        // 2. Try matching by namespace (for namespace-based imports from editor)
+        if (!targetCollection) {
+          for (const candidate of this.collections.values()) {
+            if (candidate.document.metadata.namespace === imp.path) {
+              targetCollection = candidate
+              break
+            }
+          }
+        }
+
+        // 3. Try matching by collection ID (direct ID reference)
+        if (!targetCollection) {
+          targetCollection = this.collections.get(imp.path)
+        }
+
+        if (targetCollection) {
+          collection.imports.set(imp.alias, targetCollection)
         }
       }
     }
@@ -636,7 +660,7 @@ export class RandomTableEngine {
       const numValue = parseFloat(evaluated)
       const value = !isNaN(numValue) && isFinite(numValue) ? numValue : evaluated
 
-      setSharedVariable(context, name, value)
+      setSharedVariable(context, name, value, sourceId)
     }
   }
 
@@ -782,18 +806,27 @@ export class RandomTableEngine {
         }
 
         // Fallback: If the alias matches a document import alias but imports weren't resolved,
-        // try to find the table by searching all collections for a matching tableId.
-        // This handles the case where import paths couldn't be resolved to collection IDs.
+        // use the import's path to find the correct collection.
         if (currentCollection?.document.imports) {
           const importDef = currentCollection.document.imports.find(imp => imp.alias === aliasOrNamespace)
           if (importDef) {
             // The import alias exists in the document, but wasn't resolved.
-            // Search all other collections for this table.
+            // Use the import's path to find the target collection by namespace or ID.
             for (const collection of this.collections.values()) {
               if (collection.id !== collectionId) {
-                const table = collection.tableIndex.get(tableId)
-                if (table) {
-                  return { table, collectionId: collection.id }
+                // Match by namespace (path is usually the namespace)
+                if (collection.document.metadata.namespace === importDef.path) {
+                  const table = collection.tableIndex.get(tableId)
+                  if (table) {
+                    return { table, collectionId: collection.id }
+                  }
+                }
+                // Match by collection ID
+                if (collection.id === importDef.path) {
+                  const table = collection.tableIndex.get(tableId)
+                  if (table) {
+                    return { table, collectionId: collection.id }
+                  }
                 }
               }
             }
@@ -853,18 +886,27 @@ export class RandomTableEngine {
         }
 
         // Fallback: If the alias matches a document import alias but imports weren't resolved,
-        // try to find the template by searching all collections for a matching templateId.
-        // This handles the case where import paths couldn't be resolved to collection IDs.
+        // use the import's path to find the correct collection.
         if (currentCollection?.document.imports) {
           const importDef = currentCollection.document.imports.find(imp => imp.alias === aliasOrNamespace)
           if (importDef) {
             // The import alias exists in the document, but wasn't resolved.
-            // Search all other collections for this template.
+            // Use the import's path to find the target collection by namespace or ID.
             for (const collection of this.collections.values()) {
               if (collection.id !== collectionId) {
-                const template = collection.templateIndex.get(templateId)
-                if (template) {
-                  return { template, collectionId: collection.id }
+                // Match by namespace (path is usually the namespace)
+                if (collection.document.metadata.namespace === importDef.path) {
+                  const template = collection.templateIndex.get(templateId)
+                  if (template) {
+                    return { template, collectionId: collection.id }
+                  }
+                }
+                // Match by collection ID
+                if (collection.id === importDef.path) {
+                  const template = collection.templateIndex.get(templateId)
+                  if (template) {
+                    return { template, collectionId: collection.id }
+                  }
                 }
               }
             }
@@ -921,7 +963,18 @@ export class RandomTableEngine {
       setCurrentTable(context, table.id)
 
       // Evaluate table-level shared variables (lazy evaluation)
+      // Clear this table's shared variables first so they get re-evaluated on each invocation
+      // BUT only if they were set by this same table (multi-roll case), not by a parent (inheritance case)
       if (table.shared) {
+        for (const name of Object.keys(table.shared)) {
+          const source = getSharedVariableSource(context, name)
+          if (source === table.id) {
+            // Same table set this variable before - clear it for re-evaluation
+            context.sharedVariables.delete(name)
+            context.sharedVariableSources.delete(name)
+          }
+          // If source is different (parent table), keep the value (inheritance)
+        }
         this.evaluateTableLevelShared(table.shared, context, collectionId, table.id)
       }
 
@@ -1224,7 +1277,7 @@ export class RandomTableEngine {
         return this.evaluateVariable(token, context)
 
       case 'placeholder':
-        return this.evaluatePlaceholder(token, context)
+        return this.evaluatePlaceholder(token, context, collectionId)
 
       case 'table':
         return this.evaluateTableRef(token, context, collectionId)
@@ -1314,9 +1367,56 @@ export class RandomTableEngine {
 
   private evaluatePlaceholder(
     token: { name: string; property?: string },
-    context: GenerationContext
+    context: GenerationContext,
+    collectionId?: string
   ): string {
     const value = getPlaceholder(context, token.name, token.property)
+
+    // If the placeholder value is a valid table/template ID, roll on it (dynamic table selection)
+    // This supports patterns like {{@race.firstNameTable}} where firstNameTable = "elfFirstNames"
+    if (value && collectionId) {
+      const tableResult = this.resolveTableRef(value, collectionId)
+      if (tableResult) {
+        // Add placeholder access trace showing it resolved to a table
+        addTraceLeaf(context, 'placeholder_access', `@${token.name}${token.property ? '.' + token.property : ''}`, {
+          raw: token.name,
+          parsed: { property: token.property }
+        }, {
+          value: value,
+        }, {
+          type: 'placeholder',
+          name: token.name,
+          property: token.property,
+          found: true,
+          resolvedToTable: value,
+        } as PlaceholderAccessMetadata)
+
+        // Roll on the resolved table
+        const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
+        return result.text
+      }
+
+      // Also check if it's a template ID
+      const templateResult = this.resolveTemplateRef(value, collectionId)
+      if (templateResult) {
+        // Add placeholder access trace showing it resolved to a template
+        addTraceLeaf(context, 'placeholder_access', `@${token.name}${token.property ? '.' + token.property : ''}`, {
+          raw: token.name,
+          parsed: { property: token.property }
+        }, {
+          value: value,
+        }, {
+          type: 'placeholder',
+          name: token.name,
+          property: token.property,
+          found: true,
+          resolvedToTemplate: value,
+        } as PlaceholderAccessMetadata)
+
+        return this.evaluateTemplateInternal(templateResult.template, templateResult.collectionId, context)
+      }
+    }
+
     const result = value ?? ''
 
     // Add placeholder access trace
@@ -1386,23 +1486,53 @@ export class RandomTableEngine {
         return ''
       }
 
-      // Evaluate template-level shared variables (lazy evaluation)
-      if (template.shared) {
-        this.evaluateTableLevelShared(template.shared, context, collectionId, template.id)
+      // Start trace node for template reference evaluation
+      // This wraps the template's internal evaluations so the full result is captured
+      beginTraceNode(context, 'template_ref', `Template: ${template.name || template.id}`, {
+        raw: template.id,
+        parsed: { collectionId, templateId: template.id, pattern: template.pattern }
+      })
+
+      // CRITICAL: Create isolated context for cross-collection template evaluation.
+      // This prevents placeholders from imported templates leaking into the parent context.
+      // Without isolation, table rolls in the imported collection add placeholder keys
+      // that persist and pollute subsequent evaluations in the parent collection.
+      const isolatedContext: GenerationContext = {
+        ...context,
+        placeholders: new Map(), // Fresh placeholder map - prevents leakage
       }
 
-      // Evaluate the template pattern
-      let text = this.evaluatePattern(template.pattern, context, collectionId)
+      // Evaluate template-level shared variables (lazy evaluation)
+      // Clear this template's shared variables first so they get re-evaluated on each invocation
+      // BUT only if they were set by this same template (multi-roll case), not by a parent (inheritance case)
+      if (template.shared) {
+        for (const name of Object.keys(template.shared)) {
+          const source = getSharedVariableSource(isolatedContext, name)
+          if (source === template.id) {
+            // Same template set this variable before - clear it for re-evaluation
+            isolatedContext.sharedVariables.delete(name)
+            isolatedContext.sharedVariableSources.delete(name)
+          }
+          // If source is different (parent template/table), keep the value (inheritance)
+        }
+        this.evaluateTableLevelShared(template.shared, isolatedContext, collectionId, template.id)
+      }
 
-      // Apply document-level conditionals
+      // Evaluate the template pattern using isolated context
+      let text = this.evaluatePattern(template.pattern, isolatedContext, collectionId)
+
+      // Apply document-level conditionals using isolated context
       if (collection.document.conditionals && collection.document.conditionals.length > 0) {
         text = applyConditionals(
           collection.document.conditionals,
           text,
-          context,
-          (pattern: string) => this.evaluatePattern(pattern, context, collectionId)
+          isolatedContext,
+          (pattern: string) => this.evaluatePattern(pattern, isolatedContext, collectionId)
         )
       }
+
+      // End trace node with full template result
+      endTraceNode(context, { value: text })
 
       return text
     } finally {
@@ -1441,9 +1571,24 @@ export class RandomTableEngine {
       countSource = 'variable'
     }
 
+    // Try to resolve as a table first
     const table = this.getTable(token.tableId, collectionId)
+
+    // If not a table, check if it's a template
     if (!table) {
-      console.warn(`Table not found: ${token.tableId}`)
+      const templateResult = this.resolveTemplateRef(token.tableId, collectionId)
+      if (templateResult) {
+        // Handle template multi-roll
+        return this.evaluateMultiRollTemplate(
+          templateResult.template,
+          templateResult.collectionId,
+          count,
+          countSource,
+          token,
+          context
+        )
+      }
+      console.warn(`Table or template not found: ${token.tableId}`)
       return ''
     }
 
@@ -1479,6 +1624,48 @@ export class RandomTableEngine {
       countSource,
       count,
       unique: token.unique ?? false,
+      separator: token.separator ?? ', ',
+    } as MultiRollMetadata)
+
+    return finalResult
+  }
+
+  /**
+   * Handle multi-roll for templates (e.g., {{4*simpleNpc}})
+   * Note: 'unique' modifier is ignored for templates since they don't have entry IDs
+   */
+  private evaluateMultiRollTemplate(
+    template: Template,
+    templateCollectionId: string,
+    count: number,
+    countSource: 'literal' | 'variable' | 'dice',
+    token: { tableId: string; unique?: boolean; separator?: string; count: number | string },
+    context: GenerationContext
+  ): string {
+    // Start multi_roll trace node for template
+    beginTraceNode(context, 'multi_roll', `${count}x ${token.tableId} (template)`, {
+      raw: `${token.count}*${token.tableId}`,
+      parsed: { count, tableId: token.tableId, unique: token.unique, isTemplate: true }
+    })
+
+    const results: string[] = []
+
+    for (let i = 0; i < count; i++) {
+      const result = this.evaluateTemplateInternal(template, templateCollectionId, context)
+      if (result) {
+        results.push(result)
+      }
+    }
+
+    const finalResult = results.join(token.separator ?? ', ')
+
+    // End multi_roll trace node
+    endTraceNode(context, { value: finalResult }, {
+      type: 'multi_roll',
+      tableId: token.tableId,
+      countSource,
+      count,
+      unique: false, // unique not applicable for templates
       separator: token.separator ?? ', ',
     } as MultiRollMetadata)
 

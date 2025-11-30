@@ -120,7 +120,7 @@ Optional properties for declaring intellectual property rights, usage permission
 | rights.type | string | - | Content classification: `"proprietary"`, `"open-content"`, `"fan-content"`, or `"licensed"` |
 | rights.official | boolean | `false` | Whether this is official publisher content (vs. fan-made) |
 | rights.productIdentity | string[] | `[]` | List of Product Identity elements (names, characters, logos, etc.) |
-| rights.trademarks | string[] | `[]` | Trademark notices (e.g., `"Kobold Press®"`, `"Tome of Beasts™"`) |
+| rights.trademarks | string[] | `[]` | Trademark notices (e.g., `"Rolldeo Press®"`, `"Tome of Rolldeo"`) |
 | rights.compatibilityNotice | string | - | Required compatibility/non-affiliation statement |
 
 **Rights Type Values:**
@@ -166,15 +166,15 @@ Explicit permissions for how the content may be used. All default to `false` if 
   "type": "proprietary",
   "official": true,
   "productIdentity": [
-    "Kobold Press",
-    "Tome of Beasts",
-    "All creature names and descriptions"
+    "Rolldeo",
+    "Rolldeo Tables Collection",
+    "All table names and unique entry descriptions"
   ],
   "trademarks": [
-    "Kobold Press®",
-    "Tome of Beasts™"
+    "Rolldeo®",
+    "Rolldeo Tables™"
   ],
-  "compatibilityNotice": "Compatible with 5th Edition fantasy roleplaying. Not affiliated with or endorsed by Wizards of the Coast.",
+  "compatibilityNotice": "Created for use with the Rolldeo random table roller. Compatible with any system-agnostic tabletop gaming.",
   "permissions": {
     "commercialUse": false,
     "modification": true,
@@ -183,11 +183,11 @@ Explicit permissions for how the content may be used. All default to `false` if 
     "attributionRequired": true
   },
   "contact": {
-    "licensing": "licensing@koboldpress.com",
-    "dmca": "dmca@koboldpress.com"
+    "licensing": "licensing@rolldeo.com",
+    "dmca": "dmca@rolldeo.com"
   },
-  "termsUrl": "https://koboldpress.com/terms",
-  "communityPolicyUrl": "https://koboldpress.com/community-use"
+  "termsUrl": "https://rolldeo.com/terms",
+  "communityPolicyUrl": "https://rolldeo.com/community-use"
 }
 ```
 
@@ -211,7 +211,7 @@ These optional properties control engine behavior for this file.
     "namespace": "fantasy.treasure",
     "version": "2.1.0",
     "specVersion": "1.0",
-    "author": "Example Games",
+    "author": "Rolldeo Games",
     "description": "A comprehensive treasure generation system for fantasy RPGs.",
     "tags": ["fantasy", "treasure", "loot", "rewards"],
     "source": {
@@ -222,8 +222,8 @@ These optional properties control engine behavior for this file.
       "url": "https://example-games.com/treasure-guide",
       "copyright": {
         "year": "2024",
-        "holder": "Example Games LLC",
-        "notice": "© 2024 Example Games LLC. All rights reserved."
+        "holder": "Rolldeo Games LLC",
+        "notice": "© 2024 Rolldeo Games LLC. All rights reserved."
       }
     },
     "rights": {
@@ -237,9 +237,9 @@ These optional properties control engine behavior for this file.
         "attributionRequired": true
       },
       "contact": {
-        "licensing": "licensing@example-games.com"
+        "licensing": "licensing@rolldeo-games.com"
       },
-      "termsUrl": "https://example-games.com/license"
+      "termsUrl": "https://rolldeo.com/license"
     },
     "maxRecursionDepth": 25,
     "maxExplodingDice": 50,

@@ -49,6 +49,7 @@ export type TraceNodeType =
   | 'root' // Top-level roll operation
   | 'table_roll' // Rolling on a table
   | 'template_roll' // Rolling on a template
+  | 'template_ref' // Template reference evaluation
   | 'entry_select' // Entry selection (with weight info)
   | 'expression' // Expression token evaluation
   | 'dice_roll' // Dice roll with breakdown

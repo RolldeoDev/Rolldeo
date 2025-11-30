@@ -178,11 +178,13 @@ export function rollCollectionTable(
   // Find the source table for defaultSets
   const sourceTable = sourceTables.find((t) => t.id === selected.sourceTableId)
 
-  // Merge sets: sourceTable.defaultSets → collection.defaultSets → entry.sets
+  // Merge sets: sourceTable.defaultSets → collection.defaultSets → entry.sets, and include entry value
   const mergedSets = {
     ...(sourceTable?.table.defaultSets ?? {}),
     ...(table.defaultSets ?? {}),
     ...(selected.entry.sets ?? {}),
+    // Include the entry's value so @tableName.value works
+    value: selected.entry.value,
   }
 
   // Determine resultType: entry → source table → collection table

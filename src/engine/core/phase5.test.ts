@@ -25,7 +25,7 @@ const inheritanceDocument: RandomTableDocument = {
     name: 'Inheritance Test',
     namespace: 'test.inheritance',
     version: '1.0.0',
-    specVersion: '1.2',
+    specVersion: '1.0',
   },
   tables: [
     {
@@ -67,7 +67,7 @@ const sharedVarsDocument: RandomTableDocument = {
     name: 'Shared Vars Test',
     namespace: 'test.shared',
     version: '1.0.0',
-    specVersion: '1.2',
+    specVersion: '1.0',
   },
   shared: {
     level: '{{dice:1d10}}',
@@ -91,7 +91,7 @@ const conditionalsDocument: RandomTableDocument = {
     name: 'Conditionals Test',
     namespace: 'test.conditionals',
     version: '1.0.0',
-    specVersion: '1.2',
+    specVersion: '1.0',
   },
   tables: [
     {
@@ -125,7 +125,7 @@ const namespaceDoc1: RandomTableDocument = {
     name: 'Fantasy Core',
     namespace: 'fantasy.core',
     version: '1.0.0',
-    specVersion: '1.2',
+    specVersion: '1.0',
   },
   tables: [
     {
@@ -146,7 +146,7 @@ const namespaceDoc2: RandomTableDocument = {
     name: 'Sci-Fi Core',
     namespace: 'scifi.core',
     version: '1.0.0',
-    specVersion: '1.2',
+    specVersion: '1.0',
   },
   tables: [
     {
@@ -246,7 +246,7 @@ describe('Table Inheritance', () => {
         name: 'Deep Inheritance',
         namespace: 'test.deep',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
         maxInheritanceDepth: 2,
       },
       tables: [
@@ -315,7 +315,7 @@ describe('Table/Template-Level Shared Variables', () => {
         name: 'Table Shared Test',
         namespace: 'test.tableshared',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       tables: [
         {
@@ -351,7 +351,7 @@ describe('Table/Template-Level Shared Variables', () => {
         name: 'Propagation Test',
         namespace: 'test.propagation',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       tables: [
         {
@@ -385,7 +385,7 @@ describe('Table/Template-Level Shared Variables', () => {
         name: 'Inheritance Test',
         namespace: 'test.sharedinherit',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       tables: [
         {
@@ -426,7 +426,7 @@ describe('Table/Template-Level Shared Variables', () => {
         name: 'Shadow Test',
         namespace: 'test.shadow',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       shared: {
         globalVar: '100',
@@ -454,7 +454,7 @@ describe('Table/Template-Level Shared Variables', () => {
         name: 'Static Shadow Test',
         namespace: 'test.staticshadow',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       variables: {
         staticVar: 'static value',
@@ -482,7 +482,7 @@ describe('Table/Template-Level Shared Variables', () => {
         name: 'Template Shared Test',
         namespace: 'test.templateshared',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       tables: [
         {
@@ -526,7 +526,7 @@ describe('Table/Template-Level Shared Variables', () => {
         name: 'Math Shared Test',
         namespace: 'test.mathshared',
         version: '1.0.0',
-        specVersion: '1.2',
+        specVersion: '1.0',
       },
       tables: [
         {

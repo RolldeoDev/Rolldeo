@@ -29,8 +29,8 @@ export interface Metadata {
   namespace: string
   /** Semantic version (e.g., '1.0.0') */
   version: string
-  /** Spec version - must be '1.2' */
-  specVersion: '1.2'
+  /** Spec version - must be '1.0' */
+  specVersion: '1.0'
   /** Author name or organization */
   author?: string
   /** Markdown-formatted description */
