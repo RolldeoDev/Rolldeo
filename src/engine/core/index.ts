@@ -370,9 +370,9 @@ export class RandomTableEngine {
       ? Object.fromEntries(context.captureVariables)
       : undefined
 
-    // Extract descriptions if any were collected
+    // Extract descriptions if any were collected, sorted by depth (lowest first = parent before child)
     const descriptions = context.collectedDescriptions.length > 0
-      ? context.collectedDescriptions
+      ? [...context.collectedDescriptions].sort((a, b) => (a.depth ?? 0) - (b.depth ?? 0))
       : undefined
 
     return {
@@ -443,9 +443,9 @@ export class RandomTableEngine {
       ? Object.fromEntries(context.captureVariables)
       : undefined
 
-    // Extract descriptions if any were collected
+    // Extract descriptions if any were collected, sorted by depth (lowest first = parent before child)
     const descriptions = context.collectedDescriptions.length > 0
-      ? context.collectedDescriptions
+      ? [...context.collectedDescriptions].sort((a, b) => (a.depth ?? 0) - (b.depth ?? 0))
       : undefined
 
     return {

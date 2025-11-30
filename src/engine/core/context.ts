@@ -362,18 +362,22 @@ export function setCurrentCollection(ctx: GenerationContext, collectionId: strin
 /**
  * Add an entry description to the collection.
  * Called when an entry with a description is selected during a roll.
+ * The depth parameter tracks how deep in the recursion this description was captured,
+ * allowing descriptions to be sorted from highest level (parent) to lowest level (child).
  */
 export function addDescription(
   ctx: GenerationContext,
   tableName: string,
   tableId: string,
   rolledValue: string,
-  description: string
+  description: string,
+  depth?: number
 ): void {
   ctx.collectedDescriptions.push({
     tableName,
     tableId,
     rolledValue,
     description,
+    depth: depth ?? ctx.recursionDepth,
   })
 }

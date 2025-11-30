@@ -353,6 +353,8 @@ export interface EntryDescription {
   rolledValue: string
   /** The evaluated description text (markdown format) */
   description: string
+  /** Depth level at which description was captured (for ordering: lower = higher level/parent) */
+  depth?: number
 }
 
 /** Result from rolling on a table or template */
