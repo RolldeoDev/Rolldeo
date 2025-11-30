@@ -4,13 +4,14 @@
  * Displays the current roll result with re-roll option.
  */
 
-import { memo, useState } from 'react'
+import { memo, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Sparkles, RotateCcw, Activity, Grab } from 'lucide-react'
+import { Sparkles, RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen } from 'lucide-react'
 import type { RollResult } from '@/engine/types'
 import { TraceViewer } from './TraceViewer'
 import { CaptureInspector } from './CaptureInspector'
+import { DescriptionsViewer } from './DescriptionsViewer'
 
 interface CurrentRollResultProps {
   result: RollResult | null
@@ -29,9 +30,25 @@ export const CurrentRollResult = memo(function CurrentRollResult({
 }: CurrentRollResultProps) {
   const [showTrace, setShowTrace] = useState(false)
   const [showCaptures, setShowCaptures] = useState(false)
+  const [showDescriptions, setShowDescriptions] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const hasCaptures = result?.captures && Object.keys(result.captures).length > 0
   const captureCount = hasCaptures ? Object.keys(result!.captures!).length : 0
+
+  const hasDescriptions = result?.descriptions && result.descriptions.length > 0
+  const descriptionCount = hasDescriptions ? result!.descriptions!.length : 0
+
+  const handleCopy = useCallback(async () => {
+    if (!result?.text) return
+    try {
+      await navigator.clipboard.writeText(result.text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }, [result?.text])
 
   if (error) {
     return (
@@ -59,21 +76,55 @@ export const CurrentRollResult = memo(function CurrentRollResult({
             )}
           </div>
         </div>
-        <button
-          className="p-2.5 rounded-xl hover:bg-accent transition-colors"
-          title="Re-roll"
-          onClick={onReroll}
-          disabled={isRolling}
-        >
-          <RotateCcw className={`h-5 w-5 ${isRolling ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            className={`p-2.5 rounded-xl transition-colors ${
+              copied ? 'text-green-500' : 'hover:bg-accent'
+            }`}
+            title={copied ? 'Copied!' : 'Copy to clipboard'}
+            onClick={handleCopy}
+          >
+            {copied ? (
+              <Check className="h-5 w-5" />
+            ) : (
+              <ClipboardCopy className="h-5 w-5" />
+            )}
+          </button>
+          <button
+            className="p-2.5 rounded-xl hover:bg-accent transition-colors"
+            title="Re-roll"
+            onClick={onReroll}
+            disabled={isRolling}
+          >
+            <RotateCcw className={`h-5 w-5 ${isRolling ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
       <div className="prose-roll overflow-x-auto">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.text}</ReactMarkdown>
       </div>
 
-      {/* Debug toggle buttons */}
+      {/* Toggle buttons */}
       <div className="mt-4 flex flex-wrap gap-2">
+        {/* Descriptions toggle button - only shown if descriptions exist */}
+        {hasDescriptions && (
+          <button
+            onClick={() => setShowDescriptions(!showDescriptions)}
+            className={`
+              text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all
+              ${showDescriptions
+                ? 'text-amber-400 border-amber-400/40 bg-amber-400/10'
+                : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'}
+            `}
+          >
+            <BookOpen className="w-4 h-4" />
+            {showDescriptions ? 'Hide' : 'Show'} Descriptions
+            <span className="text-muted-foreground/60 text-xs">
+              ({descriptionCount})
+            </span>
+          </button>
+        )}
+
         {/* Trace toggle button - only shown if trace exists */}
         {result.trace && (
           <button
@@ -112,6 +163,16 @@ export const CurrentRollResult = memo(function CurrentRollResult({
           </button>
         )}
       </div>
+
+      {/* Descriptions viewer */}
+      {showDescriptions && hasDescriptions && (
+        <div className="mt-4">
+          <DescriptionsViewer
+            descriptions={result.descriptions!}
+            onClose={() => setShowDescriptions(false)}
+          />
+        </div>
+      )}
 
       {/* Trace viewer */}
       {showTrace && result.trace && (

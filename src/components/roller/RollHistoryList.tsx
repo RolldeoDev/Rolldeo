@@ -7,11 +7,12 @@
 import { memo, useState, useCallback, useEffect, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { History as HistoryIcon, Pin, PinOff, Trash2, Activity } from 'lucide-react'
+import { History as HistoryIcon, Pin, PinOff, Trash2, Activity, BookOpen } from 'lucide-react'
 import type { StoredRoll } from '@/services/db'
 import { formatTimestamp } from '@/stores/rollStore'
 import { cn } from '@/lib/utils'
 import { TraceViewer } from './TraceViewer'
+import { DescriptionsViewer } from './DescriptionsViewer'
 
 interface RollHistoryListProps {
   history: StoredRoll[]
@@ -28,22 +29,39 @@ export const RollHistoryList = memo(function RollHistoryList({
 }: RollHistoryListProps) {
   // Track which history items have their trace expanded (by item id)
   const [expandedTraces, setExpandedTraces] = useState<Set<number>>(new Set())
+  // Track which history items have their descriptions expanded (by item id)
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<number>>(new Set())
 
   // Pre-slice history for display (limit to 50 items)
   const displayHistory = useMemo(() => history.slice(0, 50), [history])
 
-  // Clean up expandedTraces when history items are deleted
+  // Clean up expanded states when history items are deleted
   useEffect(() => {
     const historyIds = new Set(history.map((h) => h.id))
     setExpandedTraces((prev) => {
       const cleaned = new Set([...prev].filter((id) => historyIds.has(id)))
-      // Only update if something was removed
+      return cleaned.size !== prev.size ? cleaned : prev
+    })
+    setExpandedDescriptions((prev) => {
+      const cleaned = new Set([...prev].filter((id) => historyIds.has(id)))
       return cleaned.size !== prev.size ? cleaned : prev
     })
   }, [history])
 
   const toggleTrace = useCallback((itemId: number) => {
     setExpandedTraces((prev) => {
+      const next = new Set(prev)
+      if (next.has(itemId)) {
+        next.delete(itemId)
+      } else {
+        next.add(itemId)
+      }
+      return next
+    })
+  }, [])
+
+  const toggleDescriptions = useCallback((itemId: number) => {
+    setExpandedDescriptions((prev) => {
       const next = new Set(prev)
       if (next.has(itemId)) {
         next.delete(itemId)
@@ -131,35 +149,67 @@ export const RollHistoryList = memo(function RollHistoryList({
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.result.text}</ReactMarkdown>
               </div>
 
-              {/* Trace toggle button - only shown if trace exists */}
-              {item.result.trace && (
-                <>
-                  <button
-                    onClick={() => toggleTrace(item.id!)}
-                    className={cn(
-                      'mt-3 text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all',
-                      expandedTraces.has(item.id!)
-                        ? 'text-primary border-primary/40 bg-primary/10'
-                        : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'
-                    )}
-                  >
-                    <Activity className="w-3.5 h-3.5" />
-                    {expandedTraces.has(item.id!) ? 'Hide' : 'Show'} Trace
-                    <span className="text-muted-foreground/60">
-                      ({item.result.trace.stats.nodeCount} ops)
-                    </span>
-                  </button>
-
-                  {/* Trace viewer */}
-                  {expandedTraces.has(item.id!) && (
-                    <div className="mt-3">
-                      <TraceViewer
-                        trace={item.result.trace}
-                        onClose={() => toggleTrace(item.id!)}
-                      />
-                    </div>
+              {/* Toggle buttons row */}
+              {(item.result.descriptions?.length || item.result.trace) && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {/* Descriptions toggle button - only shown if descriptions exist */}
+                  {item.result.descriptions && item.result.descriptions.length > 0 && (
+                    <button
+                      onClick={() => toggleDescriptions(item.id!)}
+                      className={cn(
+                        'text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all',
+                        expandedDescriptions.has(item.id!)
+                          ? 'text-amber-400 border-amber-400/40 bg-amber-400/10'
+                          : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'
+                      )}
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      {expandedDescriptions.has(item.id!) ? 'Hide' : 'Show'} Descriptions
+                      <span className="text-muted-foreground/60">
+                        ({item.result.descriptions.length})
+                      </span>
+                    </button>
                   )}
-                </>
+
+                  {/* Trace toggle button - only shown if trace exists */}
+                  {item.result.trace && (
+                    <button
+                      onClick={() => toggleTrace(item.id!)}
+                      className={cn(
+                        'text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all',
+                        expandedTraces.has(item.id!)
+                          ? 'text-primary border-primary/40 bg-primary/10'
+                          : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'
+                      )}
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                      {expandedTraces.has(item.id!) ? 'Hide' : 'Show'} Trace
+                      <span className="text-muted-foreground/60">
+                        ({item.result.trace.stats.nodeCount} ops)
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Descriptions viewer */}
+              {expandedDescriptions.has(item.id!) && item.result.descriptions && item.result.descriptions.length > 0 && (
+                <div className="mt-3">
+                  <DescriptionsViewer
+                    descriptions={item.result.descriptions}
+                    onClose={() => toggleDescriptions(item.id!)}
+                  />
+                </div>
+              )}
+
+              {/* Trace viewer */}
+              {expandedTraces.has(item.id!) && item.result.trace && (
+                <div className="mt-3">
+                  <TraceViewer
+                    trace={item.result.trace}
+                    onClose={() => toggleTrace(item.id!)}
+                  />
+                </div>
               )}
             </div>
           ))

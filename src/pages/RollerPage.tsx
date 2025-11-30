@@ -7,7 +7,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useRoller } from '@/hooks/useRoller'
 import { useCollections } from '@/hooks/useCollections'
 import { useCollectionStore } from '@/stores/collectionStore'
@@ -19,9 +19,12 @@ import {
   BrowserPanel,
   ResultsPanel,
 } from '@/components/roller'
+import { RollMultipleModal } from '@/components/roller/RollMultipleModal'
+import { ViewDetailsModal } from '@/components/roller/ViewDetailsModal'
 
 export function RollerPage() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const initialCollectionId = searchParams.get('collection') || undefined
 
   // Ensure collections are loaded
@@ -29,6 +32,9 @@ export function RollerPage() {
 
   // Expand the collection from URL on mount
   const setExpandedCollectionId = useUIStore((state) => state.setExpandedCollectionId)
+  const setEditorActiveTab = useUIStore((state) => state.setEditorActiveTab)
+  const setEditorSelectedItemId = useUIStore((state) => state.setEditorSelectedItemId)
+
   useEffect(() => {
     if (initialCollectionId) {
       setExpandedCollectionId(initialCollectionId)
@@ -37,6 +43,18 @@ export function RollerPage() {
 
   // Track selected item and its collection
   const [selectedItemState, setSelectedItemState] = useState<{
+    item: BrowserItem
+    collectionId: string
+  } | null>(null)
+
+  // Modal state for Roll Multiple
+  const [rollMultipleModal, setRollMultipleModal] = useState<{
+    item: BrowserItem
+    collectionId: string
+  } | null>(null)
+
+  // Modal state for View Details
+  const [viewDetailsModal, setViewDetailsModal] = useState<{
     item: BrowserItem
     collectionId: string
   } | null>(null)
@@ -135,6 +153,60 @@ export function RollerPage() {
     [rollOnTable, rollOnTemplate]
   )
 
+  // Handle Edit - navigate to editor with item selected
+  const handleEditItem = useCallback(
+    (item: BrowserItem, collectionId: string) => {
+      // Set the editor tab and selected item before navigating
+      setEditorActiveTab(item.type === 'template' ? 'templates' : 'tables')
+      setEditorSelectedItemId(item.id)
+      // Navigate to the editor page for this collection
+      navigate(`/editor/${collectionId}`)
+    },
+    [navigate, setEditorActiveTab, setEditorSelectedItemId]
+  )
+
+  // Handle Copy Result - roll and copy to clipboard
+  const handleCopyResult = useCallback(
+    async (item: BrowserItem, collectionId: string) => {
+      // First select the item
+      setSelectedItemState({ item, collectionId })
+
+      // Roll and get result
+      let rollResult
+      if (item.type === 'template') {
+        rollResult = await rollOnTemplate(collectionId, item.id)
+      } else {
+        rollResult = await rollOnTable(collectionId, item.id)
+      }
+
+      // Copy to clipboard if we got a result
+      if (rollResult?.text) {
+        try {
+          await navigator.clipboard.writeText(rollResult.text)
+        } catch (err) {
+          console.error('Failed to copy to clipboard:', err)
+        }
+      }
+    },
+    [rollOnTable, rollOnTemplate]
+  )
+
+  // Handle Roll Multiple - open modal
+  const handleRollMultiple = useCallback(
+    (item: BrowserItem, collectionId: string) => {
+      setRollMultipleModal({ item, collectionId })
+    },
+    []
+  )
+
+  // Handle View Details - open modal
+  const handleViewDetails = useCallback(
+    (item: BrowserItem, collectionId: string) => {
+      setViewDetailsModal({ item, collectionId })
+    },
+    []
+  )
+
   // Keyboard shortcuts
   const shortcuts: KeyboardShortcut[] = useMemo(
     () => [
@@ -165,6 +237,10 @@ export function RollerPage() {
             selectedItemId={selectedItemId}
             onSelectItem={handleSelectItem}
             onRollItem={handleRollItem}
+            onEditItem={handleEditItem}
+            onCopyResult={handleCopyResult}
+            onRollMultiple={handleRollMultiple}
+            onViewDetails={handleViewDetails}
             onMobileClose={onMobileClose}
           />
         )}
@@ -183,6 +259,38 @@ export function RollerPage() {
           />
         }
       />
+
+      {/* Roll Multiple Modal */}
+      {rollMultipleModal && (
+        <RollMultipleModal
+          item={rollMultipleModal.item}
+          collectionId={rollMultipleModal.collectionId}
+          onClose={() => setRollMultipleModal(null)}
+          onRoll={async (count) => {
+            const { item, collectionId } = rollMultipleModal
+            const results: string[] = []
+            for (let i = 0; i < count; i++) {
+              let rollResult
+              if (item.type === 'template') {
+                rollResult = await rollOnTemplate(collectionId, item.id)
+              } else {
+                rollResult = await rollOnTable(collectionId, item.id)
+              }
+              if (rollResult?.text) results.push(rollResult.text)
+            }
+            return results
+          }}
+        />
+      )}
+
+      {/* View Details Modal */}
+      {viewDetailsModal && (
+        <ViewDetailsModal
+          item={viewDetailsModal.item}
+          collectionId={viewDetailsModal.collectionId}
+          onClose={() => setViewDetailsModal(null)}
+        />
+      )}
     </div>
   )
 }

@@ -340,6 +340,21 @@ export interface LoadedCollection {
 // Import trace type (circular import safe since it's just a type)
 import type { RollTrace } from '../core/trace'
 
+/**
+ * Description information for a selected entry during a roll.
+ * Captured when entries with descriptions are selected.
+ */
+export interface EntryDescription {
+  /** Display name of the table this entry came from */
+  tableName: string
+  /** Table ID for reference */
+  tableId: string
+  /** The resolved rolled value (what was selected) */
+  rolledValue: string
+  /** The evaluated description text (markdown format) */
+  description: string
+}
+
 /** Result from rolling on a table or template */
 export interface RollResult {
   /** The generated text */
@@ -365,6 +380,8 @@ export interface RollResult {
   trace?: RollTrace
   /** Capture variables from the roll - only present when captures were used */
   captures?: Record<string, CaptureVariable>
+  /** Entry descriptions collected during roll - only present when descriptions exist */
+  descriptions?: EntryDescription[]
 }
 
 /** Engine configuration */

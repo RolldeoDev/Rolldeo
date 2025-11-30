@@ -76,6 +76,10 @@ export interface PatternPreviewProps {
   minHeight?: number
   /** Template/table-level shared variables to evaluate before the pattern */
   sharedVariables?: Record<string, string>
+  /** Hide the preview section when pattern has no {{...}} expressions */
+  hidePreviewWhenEmpty?: boolean
+  /** Hide the pattern label (use when parent provides its own label) */
+  hideLabel?: boolean
 }
 
 /**

@@ -41,6 +41,7 @@ import {
   getCaptureVariable,
   setCaptureVariable,
   hasVariableConflict,
+  addDescription,
   type GenerationContext,
 } from './context'
 import {
@@ -369,6 +370,11 @@ export class RandomTableEngine {
       ? Object.fromEntries(context.captureVariables)
       : undefined
 
+    // Extract descriptions if any were collected
+    const descriptions = context.collectedDescriptions.length > 0
+      ? context.collectedDescriptions
+      : undefined
+
     return {
       text: finalText,
       resultType: result.resultType,
@@ -382,6 +388,7 @@ export class RandomTableEngine {
       },
       trace: trace ?? undefined,
       captures,
+      descriptions,
     }
   }
 
@@ -436,6 +443,11 @@ export class RandomTableEngine {
       ? Object.fromEntries(context.captureVariables)
       : undefined
 
+    // Extract descriptions if any were collected
+    const descriptions = context.collectedDescriptions.length > 0
+      ? context.collectedDescriptions
+      : undefined
+
     return {
       text,
       resultType: template.resultType,
@@ -446,6 +458,7 @@ export class RandomTableEngine {
       },
       trace: trace ?? undefined,
       captures,
+      descriptions,
     }
   }
 
@@ -1006,6 +1019,22 @@ export class RandomTableEngine {
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
     const text = this.evaluatePattern(selected.entry.value ?? '', context, collectionId)
 
+    // Capture description if present
+    if (selected.entry.description) {
+      const evaluatedDescription = this.evaluatePattern(
+        selected.entry.description,
+        context,
+        collectionId
+      )
+      addDescription(
+        context,
+        resolvedTable.name,
+        resolvedTable.id,
+        text,
+        evaluatedDescription
+      )
+    }
+
     return {
       text,
       resultType: selected.resultType,
@@ -1139,6 +1168,26 @@ export class RandomTableEngine {
     // Evaluate the entry value
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
     const text = this.evaluatePattern(selected.entry.value ?? '', context, collectionId)
+
+    // Capture description if present
+    if (selected.entry.description) {
+      // Get source table name for attribution
+      const sourceTable = this.getTable(selected.sourceTableId, collectionId)
+      const tableName = sourceTable?.name ?? selected.sourceTableId
+
+      const evaluatedDescription = this.evaluatePattern(
+        selected.entry.description,
+        context,
+        collectionId
+      )
+      addDescription(
+        context,
+        tableName,
+        selected.sourceTableId,
+        text,
+        evaluatedDescription
+      )
+    }
 
     return {
       text,
