@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Dices, Library, PenSquare, Sparkles, Wifi, Clock, ArrowRight } from 'lucide-react'
+import { Dices, Library, PenSquare, Sparkles, Wifi, Clock, ArrowRight, Scale, BookOpen } from 'lucide-react'
 import { DropZone, ImportDialog } from '../components/upload'
 import { useCollectionStore } from '../stores/collectionStore'
 import { generateUniqueId } from '../services/import'
@@ -250,6 +250,29 @@ export function HomePage() {
               </div>
             )
           })}
+        </div>
+      </section>
+
+      {/* Open Source Section */}
+      <section className="card-elevated border border-white/5 p-6 md:p-8">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="icon-container icon-lavender shrink-0">
+            <Scale className="h-6 w-6" />
+          </div>
+          <div className="flex-1 text-center md:text-left">
+            <h3 className="text-xl font-bold mb-2">Fully Open Source & CC0 Licensed</h3>
+            <p className="text-muted-foreground">
+              Rolldeo is completely free and open source. The code, documentation, and included table collections
+              are all released under the CC0 license — use them however you like, no attribution required.
+            </p>
+          </div>
+          <Link
+            to="/guide"
+            className="btn-secondary flex items-center gap-2 shrink-0"
+          >
+            <BookOpen className="h-4 w-4" />
+            Learn More
+          </Link>
         </div>
       </section>
 

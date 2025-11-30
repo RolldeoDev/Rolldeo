@@ -4,7 +4,7 @@
  * Visual editor for template patterns with syntax helper buttons.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import {
   Trash2,
   ChevronDown,
@@ -54,6 +54,13 @@ export function TemplateEditor({
 }: TemplateEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const patternEditorRef = useRef<EditablePatternRef>(null)
+
+  // Expand when this item becomes selected (defaultExpanded becomes true)
+  useEffect(() => {
+    if (defaultExpanded) {
+      setIsExpanded(true)
+    }
+  }, [defaultExpanded])
 
   const updateField = useCallback(
     <K extends keyof Template>(field: K, value: Template[K]) => {

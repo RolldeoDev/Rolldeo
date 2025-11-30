@@ -5,7 +5,7 @@
  * When expanded, shows tabs, search, filter controls, and virtualized item list.
  */
 
-import { memo, useMemo, useCallback } from 'react'
+import { memo, useMemo, useCallback, useRef, useEffect } from 'react'
 import { ChevronDown, ChevronRight, Folder, FolderOpen } from 'lucide-react'
 import type { CollectionMeta } from '@/stores/collectionStore'
 import { useCollectionStore } from '@/stores/collectionStore'
@@ -20,6 +20,10 @@ interface CollectionAccordionItemProps {
   collection: CollectionMeta
   isExpanded: boolean
   selectedItemId: string | null
+  /** When true, scroll this accordion header into view */
+  shouldScrollIntoView: boolean
+  /** Called after scrolling completes */
+  onScrollComplete: () => void
   onToggleExpand: () => void
   onSelectItem: (item: BrowserItem) => void
   onRollItem: (item: BrowserItem) => void
@@ -29,12 +33,29 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
   collection,
   isExpanded,
   selectedItemId,
+  shouldScrollIntoView,
+  onScrollComplete,
   onToggleExpand,
   onSelectItem,
   onRollItem,
 }: CollectionAccordionItemProps) {
+  const headerRef = useRef<HTMLDivElement>(null)
   const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
   const FolderIcon = isExpanded ? FolderOpen : Folder
+
+  // Scroll into view when requested
+  useEffect(() => {
+    if (shouldScrollIntoView && headerRef.current) {
+      // Small delay to let expansion animation start
+      requestAnimationFrame(() => {
+        headerRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        })
+        onScrollComplete()
+      })
+    }
+  }, [shouldScrollIntoView, onScrollComplete])
 
   // Store selectors
   const getTableList = useCollectionStore((state) => state.getTableList)
@@ -96,6 +117,7 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
     <div className="border-b border-white/5 relative isolate">
       {/* Accordion Header */}
       <div
+        ref={headerRef}
         className={`
           flex items-center gap-2 px-3 py-3 cursor-pointer
           transition-colors duration-150 relative z-10 bg-background

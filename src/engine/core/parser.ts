@@ -133,7 +133,9 @@ interface ExpressionMatch {
  * Extract all {{...}} expressions from a template string.
  * Handles escaped braces: \{{ and \}}
  */
-export function extractExpressions(text: string): ExpressionMatch[] {
+export function extractExpressions(text: string | undefined | null): ExpressionMatch[] {
+  if (!text) return []
+
   const matches: ExpressionMatch[] = []
   let i = 0
 

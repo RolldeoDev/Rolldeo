@@ -298,7 +298,7 @@ export function EditorWorkspace({
 
               <div className="space-y-4">
                 {document.tables.map((table, index) => (
-                  <div key={table.id} data-item-id={table.id}>
+                  <div key={`table-${index}`} data-item-id={table.id}>
                     <TableEditor
                       table={table}
                       onChange={(updated) => updateTable(index, updated)}
@@ -331,13 +331,14 @@ export function EditorWorkspace({
               {(document.templates?.length || 0) > 0 ? (
                 <div className="space-y-4">
                   {document.templates?.map((template, index) => (
-                    <div key={template.id} data-item-id={template.id}>
+                    <div key={`template-${index}`} data-item-id={template.id}>
                       <TemplateEditor
                         template={template}
                         onChange={(updated) => updateTemplate(index, updated)}
                         onDelete={() => deleteTemplate(index)}
                         availableTableIds={availableTableIds}
                         availableTemplateIds={availableTemplateIds}
+                        defaultExpanded={selectedItemId === template.id || (document.templates?.length || 0) === 1}
                         collectionId={collectionId}
                       />
                     </div>
