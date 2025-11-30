@@ -40,6 +40,9 @@ interface UIState {
   browserGroupBy: BrowserGroupBy
   browserSearchQuery: string
 
+  // Library page state
+  preloadedCollectionsExpanded: boolean
+
   // Actions - Library
   setSearchQuery: (query: string) => void
   toggleTag: (tag: string) => void
@@ -65,6 +68,9 @@ interface UIState {
   setBrowserGroupBy: (groupBy: BrowserGroupBy) => void
   setBrowserSearchQuery: (query: string) => void
   clearBrowserFilters: () => void
+
+  // Actions - Library page
+  togglePreloadedCollections: () => void
 }
 
 // ============================================================================
@@ -90,6 +96,9 @@ export const useUIStore = create<UIState>()(
       browserViewMode: 'flat',
       browserGroupBy: null,
       browserSearchQuery: '',
+
+      // Library page initial state
+      preloadedCollectionsExpanded: false,
 
       // ========================================================================
       // Search and Filter Actions
@@ -161,6 +170,13 @@ export const useUIStore = create<UIState>()(
 
       clearBrowserFilters: () =>
         set({ browserSearchQuery: '', browserGroupBy: null }),
+
+      // ========================================================================
+      // Library Page Actions
+      // ========================================================================
+
+      togglePreloadedCollections: () =>
+        set((state) => ({ preloadedCollectionsExpanded: !state.preloadedCollectionsExpanded })),
     }),
     {
       name: 'ui-store',
@@ -172,6 +188,7 @@ export const useUIStore = create<UIState>()(
         browserPanelWidth: state.browserPanelWidth,
         browserViewMode: state.browserViewMode,
         browserGroupBy: state.browserGroupBy,
+        preloadedCollectionsExpanded: state.preloadedCollectionsExpanded,
       }),
     }
   )

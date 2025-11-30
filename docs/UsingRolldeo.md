@@ -272,6 +272,18 @@ If the editor behaves unexpectedly:
 - **Quickstart Guide**: Learn the basics in 10 minutes
 - **Full Specification**: Complete reference documentation
 - **Schema Reference**: JSON validation schema
-- **Report Issues**: [GitHub Issues](https://github.com/anthropics/claude-code/issues)
+- **Report Issues**: [GitHub Issues](https://github.com/RolldeoDev/rolldeo/issues)
+
+---
+
+## Open Source
+
+Rolldeo is open source software:
+
+- **Source Code**: [GitHub Repository](https://github.com/RolldeoDev/rolldeo)
+- **Application License**: [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+- **Spec & Schema License**: [CC0 Public Domain](https://creativecommons.org/publicdomain/zero/1.0/)
+
+The Random Table Specification and JSON Schema are released under CC0 (Public Domain) — use them freely to build your own tools, engines, or table collections.
 
 Happy rolling! 🎲

@@ -2,7 +2,7 @@
  * Random Table Engine
  *
  * Main orchestrator for loading, validating, and rolling on random tables.
- * Implements the Random Table JSON Spec v1.2.
+ * Implements the Random Table JSON Spec v1.0.
  */
 
 import type {

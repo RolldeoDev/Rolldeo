@@ -5,6 +5,7 @@
  */
 
 import { GuideLayout, DownloadButton } from '@/components/guide'
+import { Github, Scale } from 'lucide-react'
 import specMd from '@/../docs/randomTableSpecV1.md?raw'
 
 export function SpecPage() {
@@ -26,6 +27,39 @@ export function SpecPage() {
             label="Download Markdown"
             variant="primary"
           />
+        </div>
+      </div>
+
+      {/* License & Source */}
+      <div className="mt-8 p-6 rounded-xl bg-primary/5 border border-primary/20">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Scale className="h-5 w-5 text-primary mt-0.5" />
+            <div>
+              <h3 className="font-semibold mb-1">CC0 Public Domain</h3>
+              <p className="text-sm text-muted-foreground">
+                This specification is released under{' '}
+                <a
+                  href="https://creativecommons.org/publicdomain/zero/1.0/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  CC0 1.0 Universal
+                </a>
+                . Use it freely to build your own tools and engines.
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://github.com/RolldeoDev/rolldeo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-secondary flex items-center gap-2 whitespace-nowrap"
+          >
+            <Github className="h-4 w-4" />
+            View Source
+          </a>
         </div>
       </div>
     </GuideLayout>

@@ -6,7 +6,7 @@
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Copy, Check, ExternalLink, FileJson } from 'lucide-react'
+import { Copy, Check, ExternalLink, FileJson, Github, Scale } from 'lucide-react'
 import { GuideLayout, DownloadButton } from '@/components/guide'
 import schemaJson from '@/../docs/randomTableSchemaV1.json?raw'
 
@@ -48,7 +48,7 @@ Add a \`$schema\` property to your JSON files:
 
 \`\`\`json
 {
-  "$schema": "https://rolldeo.app/schemas/randomTableSchemaV1.json",
+  "$schema": "https://rolldeo.com/schemas/randomTableSchemaV1.json",
   "metadata": { ... },
   "tables": [ ... ]
 }
@@ -73,6 +73,10 @@ The schema defines the following top-level properties:
 ## Full Schema
 
 Below is the complete JSON Schema. Click "Copy" to copy it to your clipboard or download for local use.
+
+## License
+
+This schema is released under **CC0 1.0 Universal** (Public Domain). You are free to use, modify, and distribute it without restriction.
 `
 
 export function SchemaPage() {
@@ -134,7 +138,7 @@ export function SchemaPage() {
       {/* Additional Resources */}
       <div className="mt-12 p-6 rounded-xl bg-muted/30 border border-border/30">
         <h3 className="font-semibold mb-4">Related Resources</h3>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             to="/guide/spec"
             className="flex items-center gap-3 p-4 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors"
@@ -149,6 +153,22 @@ export function SchemaPage() {
               </div>
             </div>
           </Link>
+          <a
+            href="https://github.com/RolldeoDev/rolldeo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors"
+          >
+            <div className="p-2 rounded-lg bg-[hsl(var(--mint)/0.1)] text-[hsl(var(--mint))]">
+              <Github className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="font-medium">GitHub Repository</div>
+              <div className="text-sm text-muted-foreground">
+                View source code and contribute
+              </div>
+            </div>
+          </a>
           <a
             href="https://json-schema.org/"
             target="_blank"
@@ -166,6 +186,23 @@ export function SchemaPage() {
             </div>
           </a>
         </div>
+      </div>
+
+      {/* License Notice */}
+      <div className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-3">
+        <Scale className="h-5 w-5 text-primary flex-shrink-0" />
+        <p className="text-sm text-muted-foreground">
+          This schema is released under{' '}
+          <a
+            href="https://creativecommons.org/publicdomain/zero/1.0/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            CC0 1.0 Universal (Public Domain)
+          </a>
+          . Use it freely in your own projects.
+        </p>
       </div>
     </GuideLayout>
   )

@@ -1,7 +1,7 @@
 /**
  * Conditionals Evaluation
  *
- * Implements conditional logic for Random Table Spec v1.2.
+ * Implements conditional logic for Random Table Spec v1.0.
  * Supports comparison operators, logical operators, and actions.
  */
 

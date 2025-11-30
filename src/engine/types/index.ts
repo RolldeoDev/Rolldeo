@@ -1,5 +1,5 @@
 /**
- * Random Table JSON Template Specification v1.2 - TypeScript Types
+ * Random Table JSON Template Specification v1.0 - TypeScript Types
  *
  * These types match the JSON schema defined in docs/randomTableSchemaV1.json
  */

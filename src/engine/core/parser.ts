@@ -2,7 +2,7 @@
  * Template Expression Parser
  *
  * Parses {{...}} syntax into typed tokens for evaluation.
- * Supports all expression types from the Random Table Spec v1.2
+ * Supports all expression types from the Random Table Spec v1.0
  */
 
 // ============================================================================
