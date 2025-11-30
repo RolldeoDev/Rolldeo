@@ -29,3 +29,11 @@ export { RollHistoryList } from './RollHistoryList'
 export { TraceViewer } from './TraceViewer'
 export { TraceToggle } from './TraceToggle'
 export { CaptureInspector } from './CaptureInspector'
+
+// Context Menu & Modals
+export { ContextMenu } from './ContextMenu'
+export { RollMultipleModal } from './RollMultipleModal'
+export { ViewDetailsModal } from './ViewDetailsModal'
+
+// Descriptions
+export { DescriptionsViewer } from './DescriptionsViewer'

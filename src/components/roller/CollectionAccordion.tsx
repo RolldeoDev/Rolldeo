@@ -19,12 +19,24 @@ interface CollectionAccordionProps {
   onSelectItem: (item: BrowserItem, collectionId: string) => void
   /** Callback when an item is rolled */
   onRollItem: (item: BrowserItem, collectionId: string) => void
+  /** Callback when edit is requested */
+  onEditItem?: (item: BrowserItem, collectionId: string) => void
+  /** Callback to copy roll result */
+  onCopyResult?: (item: BrowserItem, collectionId: string) => void
+  /** Callback to roll multiple times */
+  onRollMultiple?: (item: BrowserItem, collectionId: string) => void
+  /** Callback to view item details */
+  onViewDetails?: (item: BrowserItem, collectionId: string) => void
 }
 
 export const CollectionAccordion = memo(function CollectionAccordion({
   selectedItemId,
   onSelectItem,
   onRollItem,
+  onEditItem,
+  onCopyResult,
+  onRollMultiple,
+  onViewDetails,
 }: CollectionAccordionProps) {
   // Select the Map directly to avoid creating new arrays in the selector
   const collectionsMap = useCollectionStore((state) => state.collections)
@@ -115,6 +127,10 @@ export const CollectionAccordion = memo(function CollectionAccordion({
           onToggleExpand={() => handleToggleExpand(collection.id)}
           onSelectItem={(item) => handleSelectItem(item, collection.id)}
           onRollItem={(item) => handleRollItem(item, collection.id)}
+          onEditItem={onEditItem ? (item) => onEditItem(item, collection.id) : undefined}
+          onCopyResult={onCopyResult ? (item) => onCopyResult(item, collection.id) : undefined}
+          onRollMultiple={onRollMultiple ? (item) => onRollMultiple(item, collection.id) : undefined}
+          onViewDetails={onViewDetails ? (item) => onViewDetails(item, collection.id) : undefined}
         />
       ))}
     </div>

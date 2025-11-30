@@ -38,6 +38,8 @@ export const PatternPreview = memo(
       placeholder = 'Enter your pattern using {{...}} syntax',
       minHeight = 120,
       sharedVariables,
+      hidePreviewWhenEmpty = false,
+      hideLabel = false,
     },
     ref
   ) {
@@ -77,13 +79,18 @@ export const PatternPreview = memo(
     setShowCaptures((v) => !v)
   }, [])
 
+  // Determine if we should show the preview section
+  const showPreviewSection = !hidePreviewWhenEmpty || hasExpressions
+
   return (
     <div className="space-y-4">
       {/* Editable Pattern */}
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Pattern <span className="text-destructive">*</span>
-        </label>
+        {!hideLabel && (
+          <label className="block text-sm font-medium mb-1">
+            Pattern <span className="text-destructive">*</span>
+          </label>
+        )}
         <EditablePattern
           ref={editorRef}
           value={pattern}
@@ -91,75 +98,79 @@ export const PatternPreview = memo(
           placeholder={placeholder}
           minHeight={minHeight}
         />
-        <p className="text-xs text-muted-foreground mt-1">
-          Use {'{{tableId}}'} for table references, {'{{dice:XdY}}'} for dice,{' '}
-          {'{{math:expr}}'} for math, {'{{$var}}'} for variables,{' '}
-          {'{{3*table >> $var}}'} for captures
-        </p>
+        {!hideLabel && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Use {'{{tableId}}'} for table references, {'{{dice:XdY}}'} for dice,{' '}
+            {'{{math:expr}}'} for math, {'{{$var}}'} for variables,{' '}
+            {'{{3*table >> $var}}'} for captures
+          </p>
+        )}
       </div>
 
-      {/* Preview Result Section */}
-      <div className="p-4 bg-muted/50 rounded-lg space-y-3 border border-border/50">
-        {/* Header with controls */}
-        <div className="flex items-start justify-between gap-4">
-          <h4 className="text-sm font-medium">Preview Result</h4>
-          <PreviewControls
-            showTrace={showTrace}
-            onToggleTrace={handleToggleTrace}
-            showCaptures={showCaptures}
-            onToggleCaptures={handleToggleCaptures}
-            onReroll={reroll}
-            isEvaluating={isEvaluating}
-            traceNodeCount={traceNodeCount}
-            captureCount={captureCount}
-            hasTrace={hasTrace}
-            hasCaptures={hasCaptures}
-          />
+      {/* Preview Result Section - conditionally shown */}
+      {showPreviewSection && (
+        <div className="p-4 bg-muted/50 rounded-lg space-y-3 border border-border/50">
+          {/* Header with controls */}
+          <div className="flex items-start justify-between gap-4">
+            <h4 className="text-sm font-medium">Preview Result</h4>
+            <PreviewControls
+              showTrace={showTrace}
+              onToggleTrace={handleToggleTrace}
+              showCaptures={showCaptures}
+              onToggleCaptures={handleToggleCaptures}
+              onReroll={reroll}
+              isEvaluating={isEvaluating}
+              traceNodeCount={traceNodeCount}
+              captureCount={captureCount}
+              hasTrace={hasTrace}
+              hasCaptures={hasCaptures}
+            />
+          </div>
+
+          {/* Error display */}
+          {hasError && (
+            <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+              <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-destructive">{result?.error}</div>
+            </div>
+          )}
+
+          {/* Inline result with highlighted expressions */}
+          {!collectionId && hasExpressions ? (
+            <div className="text-sm text-muted-foreground italic p-3 bg-background/50 rounded border border-border/30">
+              Save the collection to enable live preview evaluation.
+            </div>
+          ) : result?.segments && result.segments.length > 0 ? (
+            <div className="p-3 bg-background/50 rounded border border-border/30">
+              <InlineResult segments={result.segments} />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground italic p-3 bg-background/50 rounded border border-border/30">
+              {pattern ? 'Empty result' : 'Enter a pattern to see preview'}
+            </div>
+          )}
+
+          {/* Trace Viewer */}
+          {showTrace && result?.trace && (
+            <div className="mt-4">
+              <TraceViewer
+                trace={result.trace}
+                onClose={() => setShowTrace(false)}
+              />
+            </div>
+          )}
+
+          {/* Capture Inspector */}
+          {showTrace && showCaptures && result?.captures && (
+            <div className="mt-4">
+              <CaptureInspector
+                captures={result.captures}
+                onClose={() => setShowCaptures(false)}
+              />
+            </div>
+          )}
         </div>
-
-        {/* Error display */}
-        {hasError && (
-          <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-md">
-            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-destructive">{result?.error}</div>
-          </div>
-        )}
-
-        {/* Inline result with highlighted expressions */}
-        {!collectionId && hasExpressions ? (
-          <div className="text-sm text-muted-foreground italic p-3 bg-background/50 rounded border border-border/30">
-            Save the collection to enable live preview evaluation.
-          </div>
-        ) : result?.segments && result.segments.length > 0 ? (
-          <div className="p-3 bg-background/50 rounded border border-border/30">
-            <InlineResult segments={result.segments} />
-          </div>
-        ) : (
-          <div className="text-sm text-muted-foreground italic p-3 bg-background/50 rounded border border-border/30">
-            {pattern ? 'Empty result' : 'Enter a pattern to see preview'}
-          </div>
-        )}
-
-        {/* Trace Viewer */}
-        {showTrace && result?.trace && (
-          <div className="mt-4">
-            <TraceViewer
-              trace={result.trace}
-              onClose={() => setShowTrace(false)}
-            />
-          </div>
-        )}
-
-        {/* Capture Inspector */}
-        {showTrace && showCaptures && result?.captures && (
-          <div className="mt-4">
-            <CaptureInspector
-              captures={result.captures}
-              onClose={() => setShowCaptures(false)}
-            />
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
   })

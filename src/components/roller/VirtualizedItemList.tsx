@@ -23,6 +23,14 @@ interface VirtualizedItemListProps {
   onSelectItem: (item: BrowserItem) => void
   /** Callback when an item is rolled */
   onRollItem: (item: BrowserItem) => void
+  /** Callback when edit is requested */
+  onEditItem?: (item: BrowserItem) => void
+  /** Callback to copy roll result */
+  onCopyResult?: (item: BrowserItem) => void
+  /** Callback to roll multiple times */
+  onRollMultiple?: (item: BrowserItem) => void
+  /** Callback to view item details */
+  onViewDetails?: (item: BrowserItem) => void
 }
 
 interface VirtualRow {
@@ -44,6 +52,10 @@ export const VirtualizedItemList = memo(function VirtualizedItemList({
   selectedItemId,
   onSelectItem,
   onRollItem,
+  onEditItem,
+  onCopyResult,
+  onRollMultiple,
+  onViewDetails,
 }: VirtualizedItemListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -146,6 +158,10 @@ export const VirtualizedItemList = memo(function VirtualizedItemList({
                 isSelected={selectedItemId === item.id}
                 onSelect={() => onSelectItem(item)}
                 onRoll={() => onRollItem(item)}
+                onEdit={onEditItem ? () => onEditItem(item) : undefined}
+                onCopyResult={onCopyResult ? () => onCopyResult(item) : undefined}
+                onRollMultiple={onRollMultiple ? () => onRollMultiple(item) : undefined}
+                onViewDetails={onViewDetails ? () => onViewDetails(item) : undefined}
               />
             </div>
           )

@@ -3,18 +3,24 @@
  *
  * A single table or template row in the browser list.
  * Shows icon, name, tags, and provides click/double-click actions.
+ * Supports right-click context menu for additional actions.
  */
 
-import { memo } from 'react'
-import { Dices, EyeOff } from 'lucide-react'
+import { memo, useState, useCallback } from 'react'
+import { Dices, EyeOff, Pencil, ClipboardCopy, Hash, Info } from 'lucide-react'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
 import { TableTypeIcon } from './TableTypeIcon'
+import { ContextMenu, type ContextMenuEntry } from './ContextMenu'
 
 interface BrowserListItemProps {
   item: BrowserItem
   isSelected: boolean
   onSelect: () => void
   onRoll: () => void
+  onEdit?: () => void
+  onCopyResult?: () => void
+  onRollMultiple?: () => void
+  onViewDetails?: () => void
 }
 
 export const BrowserListItem = memo(function BrowserListItem({
@@ -22,7 +28,13 @@ export const BrowserListItem = memo(function BrowserListItem({
   isSelected,
   onSelect,
   onRoll,
+  onEdit,
+  onCopyResult,
+  onRollMultiple,
+  onViewDetails,
 }: BrowserListItemProps) {
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -37,7 +49,58 @@ export const BrowserListItem = memo(function BrowserListItem({
     onRoll()
   }
 
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenu({ x: e.clientX, y: e.clientY })
+  }, [])
+
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null)
+  }, [])
+
+  // Build context menu items
+  const contextMenuItems: ContextMenuEntry[] = [
+    {
+      id: 'roll',
+      label: 'Roll',
+      icon: Dices,
+      onClick: onRoll,
+    },
+    {
+      id: 'edit',
+      label: 'Edit',
+      icon: Pencil,
+      onClick: onEdit || (() => {}),
+      disabled: !onEdit,
+    },
+    { type: 'divider' },
+    {
+      id: 'copy-result',
+      label: 'Copy Result',
+      icon: ClipboardCopy,
+      onClick: onCopyResult || (() => {}),
+      disabled: !onCopyResult,
+    },
+    {
+      id: 'roll-multiple',
+      label: 'Roll Multiple...',
+      icon: Hash,
+      onClick: onRollMultiple || (() => {}),
+      disabled: !onRollMultiple,
+    },
+    { type: 'divider' },
+    {
+      id: 'view-details',
+      label: 'View Details',
+      icon: Info,
+      onClick: onViewDetails || (() => {}),
+      disabled: !onViewDetails,
+    },
+  ]
+
   return (
+    <>
     <div
       className={`
         flex items-center gap-3 px-3 py-2.5 cursor-pointer
@@ -52,6 +115,7 @@ export const BrowserListItem = memo(function BrowserListItem({
       onClick={onSelect}
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
+      onContextMenu={handleContextMenu}
       role="option"
       aria-selected={isSelected}
       tabIndex={0}
@@ -112,6 +176,16 @@ export const BrowserListItem = memo(function BrowserListItem({
         <Dices className="w-4 h-4" />
       </button>
     </div>
+
+    {/* Context Menu */}
+    {contextMenu && (
+      <ContextMenu
+        items={contextMenuItems}
+        position={contextMenu}
+        onClose={closeContextMenu}
+      />
+    )}
+    </>
   )
 })
 

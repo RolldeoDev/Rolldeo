@@ -27,6 +27,10 @@ interface CollectionAccordionItemProps {
   onToggleExpand: () => void
   onSelectItem: (item: BrowserItem) => void
   onRollItem: (item: BrowserItem) => void
+  onEditItem?: (item: BrowserItem) => void
+  onCopyResult?: (item: BrowserItem) => void
+  onRollMultiple?: (item: BrowserItem) => void
+  onViewDetails?: (item: BrowserItem) => void
 }
 
 export const CollectionAccordionItem = memo(function CollectionAccordionItem({
@@ -38,6 +42,10 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
   onToggleExpand,
   onSelectItem,
   onRollItem,
+  onEditItem,
+  onCopyResult,
+  onRollMultiple,
+  onViewDetails,
 }: CollectionAccordionItemProps) {
   const headerRef = useRef<HTMLDivElement>(null)
   const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
@@ -192,6 +200,10 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
               onRollItem={handleRollItem}
+              onEditItem={onEditItem}
+              onCopyResult={onCopyResult}
+              onRollMultiple={onRollMultiple}
+              onViewDetails={onViewDetails}
             />
           </div>
         </div>

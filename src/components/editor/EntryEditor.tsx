@@ -9,6 +9,7 @@ import { ChevronDown, ChevronRight, Trash2, X, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { extractExpressions } from '@/engine/core/parser'
 import { InlineResult } from './PatternPreview/InlineResult'
+import { PatternPreview } from './PatternPreview/PatternPreview'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
 import type { Entry } from '@/engine/types'
 
@@ -311,14 +312,16 @@ export function EntryEditor({
 
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={entry.description || ''}
-              onChange={(e) =>
-                updateField('description', e.target.value || undefined)
+            <PatternPreview
+              pattern={entry.description || ''}
+              onChange={(description) =>
+                updateField('description', description || undefined)
               }
-              placeholder="Optional description (Markdown supported)"
-              rows={2}
-              className="w-full p-2 border rounded-md bg-background text-sm resize-y"
+              collectionId={collectionId}
+              placeholder="Optional description (Markdown and patterns supported)"
+              minHeight={60}
+              hidePreviewWhenEmpty={true}
+              hideLabel={true}
             />
           </div>
 

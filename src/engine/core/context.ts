@@ -5,7 +5,7 @@
  * Tracks variables, placeholders, recursion depth, and unique selections.
  */
 
-import type { EngineConfig, Sets, RollResult, CaptureVariable } from '../types'
+import type { EngineConfig, Sets, RollResult, CaptureVariable, EntryDescription } from '../types'
 import type { TraceContext } from './trace'
 import { createTraceContext } from './trace'
 
@@ -52,6 +52,9 @@ export interface GenerationContext {
 
   /** Optional trace context - only present when tracing is enabled */
   trace?: TraceContext
+
+  /** Collected entry descriptions during generation */
+  collectedDescriptions: EntryDescription[]
 }
 
 // ============================================================================
@@ -85,6 +88,7 @@ export function createContext(
     currentEntryId: undefined,
     currentCollectionId: undefined,
     trace: options?.enableTrace ? createTraceContext() : undefined,
+    collectedDescriptions: [],
   }
 }
 
@@ -107,6 +111,7 @@ export function cloneContext(ctx: GenerationContext): GenerationContext {
     currentEntryId: ctx.currentEntryId,
     currentCollectionId: ctx.currentCollectionId,
     trace: ctx.trace, // Shared reference - trace tree is built across all nested calls
+    collectedDescriptions: ctx.collectedDescriptions, // Shared reference - descriptions persist across nested calls
   }
 }
 
@@ -348,4 +353,31 @@ export function setCurrentTable(
  */
 export function setCurrentCollection(ctx: GenerationContext, collectionId: string): void {
   ctx.currentCollectionId = collectionId
+}
+
+// ============================================================================
+// Description Collection
+// ============================================================================
+
+/**
+ * Add an entry description to the collection.
+ * Called when an entry with a description is selected during a roll.
+ * The depth parameter tracks how deep in the recursion this description was captured,
+ * allowing descriptions to be sorted from highest level (parent) to lowest level (child).
+ */
+export function addDescription(
+  ctx: GenerationContext,
+  tableName: string,
+  tableId: string,
+  rolledValue: string,
+  description: string,
+  depth?: number
+): void {
+  ctx.collectedDescriptions.push({
+    tableName,
+    tableId,
+    rolledValue,
+    description,
+    depth: depth ?? ctx.recursionDepth,
+  })
 }
