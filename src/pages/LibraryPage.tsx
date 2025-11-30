@@ -1,11 +1,15 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, FolderOpen, Trash2, Dices, Loader2, X, BookOpen, Layers } from 'lucide-react'
+import { Search, FolderOpen, Trash2, Dices, Loader2, X, BookOpen, Layers, ChevronDown, ChevronRight } from 'lucide-react'
 import { useCollections } from '../hooks/useCollections'
 import { useKeyboardShortcuts, type KeyboardShortcut } from '../hooks'
 import { useUIStore } from '../stores/uiStore'
+import { useCollectionStore } from '../stores/collectionStore'
 import type { CollectionMeta } from '../stores/collectionStore'
 import { cn } from '../lib/utils'
+import { DropZone, ImportDialog } from '../components/upload'
+import { generateUniqueId } from '../services/import'
+import type { ImportResult, ImportedCollection } from '../services/import'
 
 const tagColors = [
   'pill-mint',
@@ -26,8 +30,77 @@ export function LibraryPage() {
     deleteCollection,
   } = useCollections()
 
-  const { searchQuery, selectedTags, setSearchQuery, toggleTag, clearFilters } =
+  const { importFiles, saveImportedCollections } = useCollectionStore()
+  const collections = useCollectionStore((state) => state.collections)
+
+  const existingIds = useMemo(
+    () => new Set(collections.keys()),
+    [collections]
+  )
+
+  const { searchQuery, selectedTags, setSearchQuery, toggleTag, clearFilters, preloadedCollectionsExpanded, togglePreloadedCollections } =
     useUIStore()
+
+  const [isImporting, setIsImporting] = useState(false)
+  const [importResult, setImportResult] = useState<ImportResult | null>(null)
+  const [showImportDialog, setShowImportDialog] = useState(false)
+
+  const handleFilesSelected = useCallback(async (files: File[]) => {
+    setIsImporting(true)
+    setShowImportDialog(true)
+
+    try {
+      const result = await importFiles(files)
+
+      const processedCollections: ImportedCollection[] = result.collections.map(
+        (c) => ({
+          ...c,
+          id: generateUniqueId(c.id, existingIds),
+        })
+      )
+
+      const updatedPathToIdMap = new Map<string, string>()
+      if (result.pathToIdMap) {
+        for (const [path, oldId] of result.pathToIdMap) {
+          const originalCollection = result.collections.find((c) => c.id === oldId)
+          const processedCollection = processedCollections.find(
+            (c) => c.fileName === originalCollection?.fileName
+          )
+          if (processedCollection) {
+            updatedPathToIdMap.set(path, processedCollection.id)
+          }
+        }
+      }
+
+      if (processedCollections.length > 0) {
+        const source = files.some((f) => f.name.endsWith('.zip')) ? 'zip' : 'file'
+        await saveImportedCollections(processedCollections, source, updatedPathToIdMap)
+      }
+
+      setImportResult({
+        ...result,
+        collections: processedCollections,
+      })
+    } catch (error) {
+      setImportResult({
+        success: false,
+        collections: [],
+        errors: [
+          {
+            fileName: 'Import',
+            error: error instanceof Error ? error.message : 'Import failed',
+          },
+        ],
+      })
+    } finally {
+      setIsImporting(false)
+    }
+  }, [importFiles, saveImportedCollections, existingIds])
+
+  const handleCloseDialog = useCallback(() => {
+    setShowImportDialog(false)
+    setImportResult(null)
+  }, [])
 
   const shortcuts: KeyboardShortcut[] = useMemo(
     () => [
@@ -125,28 +198,6 @@ export function LibraryPage() {
         </div>
       )}
 
-      {/* Pre-loaded Collections */}
-      {preloaded.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="icon-container icon-lavender">
-              <BookOpen className="h-4 w-4" />
-            </div>
-            <h2 className="text-xl font-semibold">Pre-loaded Collections</h2>
-            <span className="text-sm text-muted-foreground">({preloaded.length})</span>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {preloaded.map((collection, index) => (
-              <CollectionCard
-                key={collection.id}
-                collection={collection}
-                index={index}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* User Collections */}
       <section className="space-y-4">
         <div className="flex items-center gap-3">
@@ -167,19 +218,56 @@ export function LibraryPage() {
               />
             ))}
           </div>
-        ) : (
+        ) : searchQuery || selectedTags.length > 0 ? (
           <div className="card-elevated border border-dashed border-white/10 p-8 text-center">
             <div className="icon-container icon-mint mx-auto mb-4 w-fit">
               <FolderOpen className="h-6 w-6" />
             </div>
             <p className="text-muted-foreground">
-              {searchQuery || selectedTags.length > 0
-                ? 'No collections match your filters'
-                : 'No custom collections yet. Upload a JSON or ZIP file to get started.'}
+              No collections match your filters
             </p>
           </div>
+        ) : (
+          <DropZone
+            onFilesSelected={handleFilesSelected}
+            disabled={isImporting}
+          />
         )}
       </section>
+
+      {/* Pre-loaded Collections - Collapsible */}
+      {preloaded.length > 0 && (
+        <section className="space-y-4">
+          <button
+            onClick={togglePreloadedCollections}
+            className="flex items-center gap-3 w-full text-left group"
+          >
+            <div className="icon-container icon-lavender">
+              <BookOpen className="h-4 w-4" />
+            </div>
+            <h2 className="text-xl font-semibold group-hover:text-foreground transition-colors">Pre-loaded Collections</h2>
+            <span className="text-sm text-muted-foreground">({preloaded.length})</span>
+            <div className="ml-auto text-muted-foreground group-hover:text-foreground transition-colors">
+              {preloadedCollectionsExpanded ? (
+                <ChevronDown className="h-5 w-5" />
+              ) : (
+                <ChevronRight className="h-5 w-5" />
+              )}
+            </div>
+          </button>
+          {preloadedCollectionsExpanded && (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-slide-up">
+              {preloaded.map((collection, index) => (
+                <CollectionCard
+                  key={collection.id}
+                  collection={collection}
+                  index={index}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Empty state */}
       {!isLoading && preloaded.length === 0 && userCollections.length === 0 && (
@@ -187,6 +275,14 @@ export function LibraryPage() {
           <p>No collections found. Try clearing your filters.</p>
         </div>
       )}
+
+      {/* Import Dialog */}
+      <ImportDialog
+        isOpen={showImportDialog}
+        onClose={handleCloseDialog}
+        result={importResult}
+        isImporting={isImporting}
+      />
     </div>
   )
 }

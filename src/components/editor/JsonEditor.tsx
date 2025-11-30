@@ -1,7 +1,7 @@
 /**
  * JsonEditor Component
  *
- * A Monaco-based JSON editor with schema validation for Random Table Spec v1.2.
+ * A Monaco-based JSON editor with schema validation for Random Table Spec v1.0.
  * Provides syntax highlighting, error markers, and auto-completion.
  */
 
@@ -65,7 +65,7 @@ export function JsonEditor({
       validate: true,
       schemas: [
         {
-          uri: 'https://rolldeo.app/schemas/random-table-spec-v1.2.json',
+          uri: 'https://rolldeo.app/schemas/random-table-spec-v1.0.json',
           fileMatch: ['*'],
           schema: schema,
         },
@@ -130,7 +130,7 @@ export function JsonEditor({
       <div className="bg-muted px-4 py-2 text-sm font-medium border-b flex items-center justify-between">
         <span>{filename}</span>
         <span className="text-xs text-muted-foreground">
-          Random Table Spec v1.2
+          Random Table Spec v1.0
         </span>
       </div>
       <Editor
