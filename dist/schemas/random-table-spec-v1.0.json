@@ -106,6 +106,9 @@
         "source": {
           "$ref": "#/$defs/metadataSource"
         },
+        "rights": {
+          "$ref": "#/$defs/rights"
+        },
         "maxRecursionDepth": {
           "type": "integer",
           "description": "Maximum depth for nested table/template references. Prevents infinite loops from circular references.",
@@ -164,8 +167,147 @@
           "examples": ["OGL 1.0a", "CC BY 4.0", "Original", "CC BY-NC-SA 4.0"]
         },
         "copyright": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Simple copyright notice string"
+            },
+            {
+              "$ref": "#/$defs/structuredCopyright"
+            }
+          ],
+          "description": "Copyright notice (string or structured object)"
+        }
+      }
+    },
+    "structuredCopyright": {
+      "type": "object",
+      "title": "Structured Copyright",
+      "description": "Detailed copyright information for publishers",
+      "additionalProperties": false,
+      "properties": {
+        "year": {
           "type": "string",
-          "description": "Copyright notice"
+          "description": "Copyright year or range (e.g., '2024' or '2020-2024')",
+          "pattern": "^\\d{4}(-\\d{4})?$",
+          "examples": ["2024", "2020-2024"]
+        },
+        "holder": {
+          "type": "string",
+          "description": "Legal entity name that holds the copyright"
+        },
+        "notice": {
+          "type": "string",
+          "description": "Full copyright notice text",
+          "examples": ["© 2024 Example Games LLC. All rights reserved."]
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "title": "Rights & Permissions",
+      "description": "Intellectual property rights, usage permissions, and legal contact information for content protection.",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Content classification type",
+          "enum": ["proprietary", "open-content", "fan-content", "licensed"]
+        },
+        "official": {
+          "type": "boolean",
+          "description": "Whether this is official publisher content (vs. fan-made)",
+          "default": false
+        },
+        "productIdentity": {
+          "type": "array",
+          "description": "List of Product Identity elements (names, characters, logos, etc.) that are protected",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["Kobold Press", "Tome of Beasts", "All creature names and descriptions"]]
+        },
+        "trademarks": {
+          "type": "array",
+          "description": "Trademark notices for protected marks",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["Kobold Press®", "Tome of Beasts™"]]
+        },
+        "compatibilityNotice": {
+          "type": "string",
+          "description": "Required compatibility/non-affiliation statement",
+          "examples": ["Compatible with 5th Edition fantasy roleplaying. Not affiliated with or endorsed by Wizards of the Coast."]
+        },
+        "permissions": {
+          "$ref": "#/$defs/rightsPermissions"
+        },
+        "contact": {
+          "$ref": "#/$defs/rightsContact"
+        },
+        "termsUrl": {
+          "type": "string",
+          "description": "URL to full terms of use",
+          "format": "uri"
+        },
+        "communityPolicyUrl": {
+          "type": "string",
+          "description": "URL to fan content/community use policy",
+          "format": "uri"
+        }
+      }
+    },
+    "rightsPermissions": {
+      "type": "object",
+      "title": "Usage Permissions",
+      "description": "Explicit permissions for how the content may be used",
+      "additionalProperties": false,
+      "properties": {
+        "commercialUse": {
+          "type": "boolean",
+          "description": "Whether content may be used in commercial products",
+          "default": false
+        },
+        "modification": {
+          "type": "boolean",
+          "description": "Whether content may be modified or adapted",
+          "default": false
+        },
+        "redistribution": {
+          "type": "boolean",
+          "description": "Whether content may be redistributed",
+          "default": false
+        },
+        "derivativeWorks": {
+          "type": "boolean",
+          "description": "Whether derivative works may be created",
+          "default": false
+        },
+        "attributionRequired": {
+          "type": "boolean",
+          "description": "Whether attribution is required when using content",
+          "default": true
+        }
+      }
+    },
+    "rightsContact": {
+      "type": "object",
+      "title": "Legal Contact Information",
+      "description": "Contact information for licensing and legal inquiries",
+      "additionalProperties": false,
+      "properties": {
+        "licensing": {
+          "type": "string",
+          "description": "Email or URL for licensing inquiries"
+        },
+        "dmca": {
+          "type": "string",
+          "description": "DMCA agent contact for takedown requests"
+        },
+        "general": {
+          "type": "string",
+          "description": "General legal contact"
         }
       }
     },

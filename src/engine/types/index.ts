@@ -1,7 +1,7 @@
 /**
  * Random Table JSON Template Specification v1.0 - TypeScript Types
  *
- * These types match the JSON schema defined in docs/randomTableSchemaV1.json
+ * These types match the JSON schema defined in public/schemas/random-table-spec-v1.0.json
  */
 
 // ============================================================================
@@ -45,6 +45,8 @@ export interface Metadata {
   updated?: string
   /** Source attribution */
   source?: MetadataSource
+  /** Rights & permissions */
+  rights?: Rights
   /** Max recursion depth (default: 50) */
   maxRecursionDepth?: number
   /** Max exploding dice re-rolls (default: 100) */
@@ -66,8 +68,64 @@ export interface MetadataSource {
   url?: string
   /** License (e.g., 'OGL 1.0a', 'CC BY 4.0') */
   license?: string
-  /** Copyright notice */
-  copyright?: string
+  /** Copyright notice (string or structured object) */
+  copyright?: string | StructuredCopyright
+}
+
+/** Structured copyright information for publishers */
+export interface StructuredCopyright {
+  /** Copyright year or range (e.g., '2024' or '2020-2024') */
+  year?: string
+  /** Legal entity name that holds the copyright */
+  holder?: string
+  /** Full copyright notice text */
+  notice?: string
+}
+
+/** Intellectual property rights, usage permissions, and legal contact */
+export interface Rights {
+  /** Content classification: 'proprietary', 'open-content', 'fan-content', or 'licensed' */
+  type?: 'proprietary' | 'open-content' | 'fan-content' | 'licensed'
+  /** Whether this is official publisher content (vs. fan-made) */
+  official?: boolean
+  /** List of Product Identity elements (names, characters, logos, etc.) */
+  productIdentity?: string[]
+  /** Trademark notices (e.g., 'Kobold Press®', 'Tome of Beasts™') */
+  trademarks?: string[]
+  /** Required compatibility/non-affiliation statement */
+  compatibilityNotice?: string
+  /** Usage permissions */
+  permissions?: RightsPermissions
+  /** Legal contact information */
+  contact?: RightsContact
+  /** URL to full terms of use */
+  termsUrl?: string
+  /** URL to fan content/community use policy */
+  communityPolicyUrl?: string
+}
+
+/** Explicit permissions for how content may be used */
+export interface RightsPermissions {
+  /** Whether content may be used in commercial products */
+  commercialUse?: boolean
+  /** Whether content may be modified or adapted */
+  modification?: boolean
+  /** Whether content may be redistributed */
+  redistribution?: boolean
+  /** Whether derivative works may be created */
+  derivativeWorks?: boolean
+  /** Whether attribution is required when using content */
+  attributionRequired?: boolean
+}
+
+/** Legal contact information */
+export interface RightsContact {
+  /** Email or URL for licensing inquiries */
+  licensing?: string
+  /** DMCA agent contact for takedown requests */
+  dmca?: string
+  /** General legal contact */
+  general?: string
 }
 
 // ============================================================================

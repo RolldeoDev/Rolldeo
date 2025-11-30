@@ -4,7 +4,7 @@
     "namespace": "scifi.encounters",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify Examples",
+    "author": "Rolldeo Examples",
     "description": "A comprehensive encounter generator for science fiction roleplaying. Combines aliens, ships, and planets to create dynamic scenarios. Demonstrates advanced features including imports, captures, inheritance, conditionals, math expressions, and complex template patterns.",
     "tags": ["sci-fi", "encounters", "adventure", "scenarios"],
     "maxRecursionDepth": 50,

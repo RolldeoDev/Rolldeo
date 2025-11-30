@@ -1,0 +1,758 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://rolldeo.com/schemas/random-table-spec-v1.0.json",
+  "title": "Random Table JSON Template Specification v1.0",
+  "description": "A JSON schema for configurable random table generators supporting weighted tables, composite tables, template-based text generation, mathematical operations, conditional logic, multi-level table inheritance, external file references, and generation-time shared variables.",
+  "type": "object",
+  "required": ["metadata", "tables"],
+  "additionalProperties": false,
+  "properties": {
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "imports": {
+      "type": "array",
+      "description": "Array of external file imports for modular content organization. Imports are resolved before any table or template processing.",
+      "items": {
+        "$ref": "#/$defs/import"
+      }
+    },
+    "tables": {
+      "type": "array",
+      "description": "Array of table definitions. At least one table is required. Tables can be simple (weighted entries), composite (select from source tables), or collection (merge multiple tables).",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/table"
+      }
+    },
+    "templates": {
+      "type": "array",
+      "description": "Array of text generation pattern templates that combine multiple tables and operations using {{...}} syntax.",
+      "items": {
+        "$ref": "#/$defs/template"
+      }
+    },
+    "conditionals": {
+      "type": "array",
+      "description": "Array of conditional logic rules applied after primary generation based on rolled results.",
+      "items": {
+        "$ref": "#/$defs/conditional"
+      }
+    },
+    "variables": {
+      "$ref": "#/$defs/variables"
+    },
+    "shared": {
+      "$ref": "#/$defs/shared"
+    }
+  },
+  "$defs": {
+    "metadata": {
+      "type": "object",
+      "title": "Metadata Object",
+      "description": "Contains information about the file itself and global engine configuration.",
+      "required": ["name", "namespace", "version", "specVersion"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the table collection",
+          "minLength": 1,
+          "examples": ["Fantasy Treasure Generator", "Sci-Fi Name Generator"]
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Unique namespace to prevent collisions. Use dot-separated segments (e.g., 'fantasy.core', 'scifi.names').",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)*$",
+          "minLength": 1,
+          "examples": ["fantasy.core", "publisher.product.module"]
+        },
+        "version": {
+          "type": "string",
+          "description": "Semantic version number for this file (e.g., '1.0.0', '2.1.0-beta').",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?(\\+[a-zA-Z0-9.]+)?$",
+          "examples": ["1.0.0", "2.1.0", "1.0.0-beta.1"]
+        },
+        "specVersion": {
+          "type": "string",
+          "description": "The specification version this file conforms to. Must be '1.0' for this schema.",
+          "const": "1.0"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author name or organization"
+        },
+        "description": {
+          "type": "string",
+          "description": "Markdown-formatted description of the collection"
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Usage instructions in Markdown format"
+        },
+        "tags": {
+          "$ref": "#/$defs/tagsArray"
+        },
+        "created": {
+          "type": "string",
+          "description": "ISO 8601 date-time string for creation date",
+          "format": "date-time"
+        },
+        "updated": {
+          "type": "string",
+          "description": "ISO 8601 date-time string for last update",
+          "format": "date-time"
+        },
+        "source": {
+          "$ref": "#/$defs/metadataSource"
+        },
+        "rights": {
+          "$ref": "#/$defs/rights"
+        },
+        "maxRecursionDepth": {
+          "type": "integer",
+          "description": "Maximum depth for nested table/template references. Prevents infinite loops from circular references.",
+          "default": 50,
+          "minimum": 1,
+          "examples": [25, 50, 100]
+        },
+        "maxExplodingDice": {
+          "type": "integer",
+          "description": "Maximum number of times exploding dice (!) can re-roll.",
+          "default": 100,
+          "minimum": 1,
+          "examples": [50, 100]
+        },
+        "maxInheritanceDepth": {
+          "type": "integer",
+          "description": "Maximum depth for inheritance chains. For example, C extends B extends A has depth 2.",
+          "default": 5,
+          "minimum": 1,
+          "examples": [3, 5, 10]
+        },
+        "uniqueOverflowBehavior": {
+          "type": "string",
+          "description": "Behavior when unique selection requests more entries than available.",
+          "enum": ["stop", "cycle", "error"],
+          "default": "stop"
+        }
+      }
+    },
+    "metadataSource": {
+      "type": "object",
+      "title": "Source Attribution",
+      "description": "Optional properties for tracking content origin and licensing at the file level.",
+      "additionalProperties": false,
+      "properties": {
+        "book": {
+          "type": "string",
+          "description": "Name of the source book or product"
+        },
+        "publisher": {
+          "type": "string",
+          "description": "Publisher name"
+        },
+        "isbn": {
+          "type": "string",
+          "description": "ISBN if applicable"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to product page or official source",
+          "format": "uri"
+        },
+        "license": {
+          "type": "string",
+          "description": "License under which content is used",
+          "examples": ["OGL 1.0a", "CC BY 4.0", "Original", "CC BY-NC-SA 4.0"]
+        },
+        "copyright": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Simple copyright notice string"
+            },
+            {
+              "$ref": "#/$defs/structuredCopyright"
+            }
+          ],
+          "description": "Copyright notice (string or structured object)"
+        }
+      }
+    },
+    "structuredCopyright": {
+      "type": "object",
+      "title": "Structured Copyright",
+      "description": "Detailed copyright information for publishers",
+      "additionalProperties": false,
+      "properties": {
+        "year": {
+          "type": "string",
+          "description": "Copyright year or range (e.g., '2024' or '2020-2024')",
+          "pattern": "^\\d{4}(-\\d{4})?$",
+          "examples": ["2024", "2020-2024"]
+        },
+        "holder": {
+          "type": "string",
+          "description": "Legal entity name that holds the copyright"
+        },
+        "notice": {
+          "type": "string",
+          "description": "Full copyright notice text",
+          "examples": ["© 2024 Example Games LLC. All rights reserved."]
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "title": "Rights & Permissions",
+      "description": "Intellectual property rights, usage permissions, and legal contact information for content protection.",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Content classification type",
+          "enum": ["proprietary", "open-content", "fan-content", "licensed"]
+        },
+        "official": {
+          "type": "boolean",
+          "description": "Whether this is official publisher content (vs. fan-made)",
+          "default": false
+        },
+        "productIdentity": {
+          "type": "array",
+          "description": "List of Product Identity elements (names, characters, logos, etc.) that are protected",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["Kobold Press", "Tome of Beasts", "All creature names and descriptions"]]
+        },
+        "trademarks": {
+          "type": "array",
+          "description": "Trademark notices for protected marks",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["Kobold Press®", "Tome of Beasts™"]]
+        },
+        "compatibilityNotice": {
+          "type": "string",
+          "description": "Required compatibility/non-affiliation statement",
+          "examples": ["Compatible with 5th Edition fantasy roleplaying. Not affiliated with or endorsed by Wizards of the Coast."]
+        },
+        "permissions": {
+          "$ref": "#/$defs/rightsPermissions"
+        },
+        "contact": {
+          "$ref": "#/$defs/rightsContact"
+        },
+        "termsUrl": {
+          "type": "string",
+          "description": "URL to full terms of use",
+          "format": "uri"
+        },
+        "communityPolicyUrl": {
+          "type": "string",
+          "description": "URL to fan content/community use policy",
+          "format": "uri"
+        }
+      }
+    },
+    "rightsPermissions": {
+      "type": "object",
+      "title": "Usage Permissions",
+      "description": "Explicit permissions for how the content may be used",
+      "additionalProperties": false,
+      "properties": {
+        "commercialUse": {
+          "type": "boolean",
+          "description": "Whether content may be used in commercial products",
+          "default": false
+        },
+        "modification": {
+          "type": "boolean",
+          "description": "Whether content may be modified or adapted",
+          "default": false
+        },
+        "redistribution": {
+          "type": "boolean",
+          "description": "Whether content may be redistributed",
+          "default": false
+        },
+        "derivativeWorks": {
+          "type": "boolean",
+          "description": "Whether derivative works may be created",
+          "default": false
+        },
+        "attributionRequired": {
+          "type": "boolean",
+          "description": "Whether attribution is required when using content",
+          "default": true
+        }
+      }
+    },
+    "rightsContact": {
+      "type": "object",
+      "title": "Legal Contact Information",
+      "description": "Contact information for licensing and legal inquiries",
+      "additionalProperties": false,
+      "properties": {
+        "licensing": {
+          "type": "string",
+          "description": "Email or URL for licensing inquiries"
+        },
+        "dmca": {
+          "type": "string",
+          "description": "DMCA agent contact for takedown requests"
+        },
+        "general": {
+          "type": "string",
+          "description": "General legal contact"
+        }
+      }
+    },
+    "tableSource": {
+      "type": "object",
+      "title": "Table Source Attribution",
+      "description": "Source attribution for a specific table, useful when combining content from multiple sources.",
+      "additionalProperties": false,
+      "properties": {
+        "book": {
+          "type": "string",
+          "description": "Source book name"
+        },
+        "page": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "description": "Single page number",
+              "minimum": 1
+            },
+            {
+              "type": "string",
+              "description": "Page range",
+              "pattern": "^\\d+(-\\d+)?$",
+              "examples": ["47", "47-49", "123-125"]
+            }
+          ],
+          "description": "Page number or range (e.g., 47 or '47-49')"
+        },
+        "section": {
+          "type": "string",
+          "description": "Section or chapter name"
+        },
+        "url": {
+          "type": "string",
+          "description": "Direct URL to source if available online",
+          "format": "uri"
+        },
+        "license": {
+          "type": "string",
+          "description": "License for this specific table (overrides file-level license)"
+        }
+      }
+    },
+    "import": {
+      "type": "object",
+      "title": "Import Definition",
+      "description": "References tables, templates, and variables from an external JSON file.",
+      "required": ["path", "alias"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Relative path (e.g., './creatures/undead.json'), parent directory path (e.g., '../shared/core.json'), or absolute URL (e.g., 'https://rolldeo.com/tables.json').",
+          "minLength": 1,
+          "examples": ["./creatures/undead.json", "../shared/core.json", "https://rolldeo.com/tables/v2/core.json"]
+        },
+        "alias": {
+          "type": "string",
+          "description": "Local alias for referencing imported content. Must be unique within the file. Cannot contain periods.",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+          "minLength": 1,
+          "examples": ["undead", "core", "loot"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of what this import provides"
+        }
+      }
+    },
+    "table": {
+      "type": "object",
+      "title": "Table Definition",
+      "description": "A table definition. Can be simple (weighted entries), composite (select from source tables), or collection (merge multiple tables).",
+      "required": ["id", "name", "type"],
+      "allOf": [
+        {
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique identifier for the table within the namespace. Cannot contain periods. Cannot be a reserved word.",
+              "pattern": "^(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "description": "Display name for the table",
+              "minLength": 1
+            },
+            "type": {
+              "type": "string",
+              "description": "Table type: 'simple' for weighted entries, 'composite' for selecting from source tables, 'collection' for merging multiple tables.",
+              "enum": ["simple", "composite", "collection"]
+            },
+            "description": {
+              "type": "string",
+              "description": "Markdown-formatted description"
+            },
+            "tags": {
+              "$ref": "#/$defs/tagsArray"
+            },
+            "hidden": {
+              "type": "boolean",
+              "description": "If true, table won't appear in user-facing lists. Still fully accessible to templates and other tables.",
+              "default": false
+            },
+            "extends": {
+              "type": "string",
+              "description": "ID of table to inherit from. Supports 'alias.tableId' for imported tables and 'namespace.tableId' for namespaced tables.",
+              "minLength": 1,
+              "examples": ["baseTreasure", "loot.baseTreasure", "fantasy.core.weapons"]
+            },
+            "defaultSets": {
+              "$ref": "#/$defs/setsObject"
+            },
+            "resultType": {
+              "$ref": "#/$defs/resultType"
+            },
+            "source": {
+              "$ref": "#/$defs/tableSource"
+            },
+            "shared": {
+              "$ref": "#/$defs/tableShared"
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/simpleTable"
+            },
+            {
+              "$ref": "#/$defs/compositeTable"
+            },
+            {
+              "$ref": "#/$defs/collectionTable"
+            }
+          ]
+        }
+      ]
+    },
+    "simpleTable": {
+      "type": "object",
+      "title": "Simple Table",
+      "description": "A basic table with weighted entries. The most common table type, optimized for ease of data entry.",
+      "properties": {
+        "type": {
+          "const": "simple"
+        },
+        "entries": {
+          "type": "array",
+          "description": "Array of table entries with values and optional weights/ranges",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/entry"
+          }
+        }
+      },
+      "required": ["entries"]
+    },
+    "compositeTable": {
+      "type": "object",
+      "title": "Composite Table",
+      "description": "Selects which source table to roll on using weighted probability, then rolls once on that table. Use when you want weighted selection between different tables.",
+      "properties": {
+        "type": {
+          "const": "composite"
+        },
+        "sources": {
+          "type": "array",
+          "description": "Array of source tables to select from, with optional weights",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/compositeSource"
+          }
+        }
+      },
+      "required": ["sources"]
+    },
+    "collectionTable": {
+      "type": "object",
+      "title": "Collection Table",
+      "description": "Merges all entries from multiple tables into a single unified pool. Use for combining related tables (e.g., 'Swords' + 'Axes' + 'Polearms' = 'All Melee Weapons').",
+      "properties": {
+        "type": {
+          "const": "collection"
+        },
+        "collections": {
+          "type": "array",
+          "description": "Array of table IDs to combine. Supports 'alias.tableId' and 'namespace.tableId' syntax.",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "description": "Table ID reference to include in the collection",
+            "minLength": 1
+          },
+          "examples": [["swords", "axes", "polearms"], ["core.commonItems", "expansion.rareItems"]]
+        }
+      },
+      "required": ["collections"]
+    },
+    "compositeSource": {
+      "type": "object",
+      "title": "Composite Source",
+      "description": "A source table reference for composite tables with optional weight.",
+      "required": ["tableId"],
+      "additionalProperties": false,
+      "properties": {
+        "tableId": {
+          "type": "string",
+          "description": "ID of the table to pull from. Supports 'alias.tableId' and 'namespace.tableId' syntax.",
+          "minLength": 1
+        },
+        "weight": {
+          "type": "number",
+          "description": "Relative weight for selecting this source. Weight of 0 disables this source from random selection.",
+          "minimum": 0,
+          "default": 1
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "title": "Table Entry",
+      "description": "A single entry in a simple table. Normally requires a value. When overriding an inherited entry (via 'id' in an extended table), 'value' becomes optional - only 'id' plus the properties you want to change are needed. Can optionally specify weight OR range (not both). If neither specified, defaults to weight: 1.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ID within this table. Required for inheritance overrides. If omitted, auto-generated as {tableId}{NNN}.",
+          "pattern": "^(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$"
+        },
+        "value": {
+          "type": "string",
+          "description": "The output text. Supports Markdown formatting and {{...}} template syntax for nested evaluation, dice rolls, math expressions, table references, roll captures ({{N*table >> $var}}), capture access ({{$var[0].@prop}}), and property aggregation ({{collect:$var.@prop}})."
+        },
+        "weight": {
+          "type": "number",
+          "description": "Relative probability weight. Must be 0 or greater. Weight of 0 disables the entry from random selection but preserves it for inheritance. Mutually exclusive with 'range'.",
+          "minimum": 0,
+          "default": 1
+        },
+        "range": {
+          "$ref": "#/$defs/rangeArray"
+        },
+        "description": {
+          "type": "string",
+          "description": "Markdown description for documentation/UI purposes"
+        },
+        "tags": {
+          "$ref": "#/$defs/tagsArray"
+        },
+        "sets": {
+          "$ref": "#/$defs/setsObject"
+        },
+        "assets": {
+          "$ref": "#/$defs/assetsObject"
+        },
+        "resultType": {
+          "$ref": "#/$defs/resultType"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "not": {
+            "required": ["weight", "range"]
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "required": ["id"]
+            }
+          },
+          "then": {
+            "required": ["value"]
+          }
+        }
+      ]
+    },
+    "rangeArray": {
+      "type": "array",
+      "title": "Range",
+      "description": "A two-element inclusive range for dice-roll style tables (e.g., [1, 5] means numbers 1-5, weight = 5). Mutually exclusive with 'weight'. Converted to weight as: weight = (range[1] - range[0]) + 1.",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "minItems": 2,
+      "maxItems": 2,
+      "examples": [[1, 50], [51, 75], [76, 100]]
+    },
+    "setsObject": {
+      "type": "object",
+      "title": "Sets (Placeholder Values)",
+      "description": "Key-value pairs that set placeholder values (accessible via @key syntax) when this entry is selected. Merges with and overrides table's defaultSets.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "examples": [{"size": "large", "terrain": "forest"}, {"hp": "{{dice:4d8+12}}", "ac": "16"}]
+    },
+    "assetsObject": {
+      "type": "object",
+      "title": "Assets",
+      "description": "Key-value pairs mapping asset types to file paths or URLs. Common keys: image, token, thumbnail, portrait, sound, music, handout, statblock.",
+      "additionalProperties": {
+        "type": "string",
+        "description": "Asset path: relative path, absolute URL, or data URI"
+      },
+      "examples": [{"image": "images/goblin.png", "token": "tokens/goblin.webp"}, {"portrait": "https://cdn.rolldeo.com/orc.jpg"}]
+    },
+    "template": {
+      "type": "object",
+      "title": "Template Definition",
+      "description": "A text generation pattern that combines multiple tables and operations using {{...}} syntax.",
+      "required": ["id", "name", "pattern"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the template. Cannot be a reserved word.",
+          "pattern": "^(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name for the template",
+          "minLength": 1
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Template pattern string. Use {{tableId}} for table rolls, {{dice:XdY}} for dice, {{$var}} for variables, {{@placeholder}} for placeholders, {{math:expr}} for math, {{N*table >> $var}} for captures, {{$var[0].@prop}} for capture access, {{collect:$var.@prop}} for aggregation. Supports Markdown."
+        },
+        "description": {
+          "type": "string",
+          "description": "Markdown description of the template"
+        },
+        "tags": {
+          "$ref": "#/$defs/tagsArray"
+        },
+        "resultType": {
+          "$ref": "#/$defs/resultType"
+        },
+        "shared": {
+          "$ref": "#/$defs/tableShared"
+        }
+      }
+    },
+    "conditional": {
+      "type": "object",
+      "title": "Conditional Rule",
+      "description": "Applies logic based on rolled results. Evaluated after primary generation.",
+      "required": ["when", "action", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "when": {
+          "type": "string",
+          "description": "Condition expression. Supports comparisons (==, !=, >, <, >=, <=, contains, matches) and logical operators (&&, ||, !). Use @placeholder.property for entry values, $variable for variables.",
+          "minLength": 1,
+          "examples": ["@size.value == 'large'", "@race.value == 'elf' && @class.value == 'mage'", "$setting != 'modern'", "@name.value contains 'the'"]
+        },
+        "action": {
+          "type": "string",
+          "description": "Action to perform when condition is true: append (add to end), prepend (add to start), replace (replace target), setVariable (set a variable).",
+          "enum": ["append", "prepend", "replace", "setVariable"]
+        },
+        "target": {
+          "type": "string",
+          "description": "Required for 'replace' and 'setVariable' actions. For 'append'/'prepend', defaults to current output.",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "description": "Value to apply. May contain template syntax ({{...}}) for dynamic content. Supports Markdown."
+        },
+        "tags": {
+          "$ref": "#/$defs/tagsArray"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": { "enum": ["replace", "setVariable"] }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "required": ["target"]
+          }
+        }
+      ]
+    },
+    "variables": {
+      "type": "object",
+      "title": "Static Variables",
+      "description": "Static global variables loaded at engine initialization. Referenced using {{$variableName}}. Evaluated once at file load time. For generation-time values, use 'shared' instead.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "propertyNames": {
+        "pattern": "^(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$"
+      },
+      "examples": [{"defaultSeparator": ", ", "setting": "fantasy", "campaignYear": "1247"}]
+    },
+    "shared": {
+      "type": "object",
+      "title": "Shared Variables (Generation-Time)",
+      "description": "Generation-time variables evaluated once at the start of each generation and remain constant throughout that run. Referenced using {{$variableName}}. Evaluated in declaration order. Cannot forward-reference other shared variables.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "propertyNames": {
+        "pattern": "^(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$"
+      },
+      "examples": [{"monsterCount": "{{dice:2d4}}", "leaderType": "{{eliteMonsterTable}}", "totalThreat": "{{math:$monsterCount + 5}}"}]
+    },
+    "tableShared": {
+      "type": "object",
+      "title": "Table/Template Shared Variables",
+      "description": "Table or template-level shared variables evaluated lazily when rolled. Cannot shadow document-level shared or static variables. Propagate to nested table references. Referenced using {{$variableName}}.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "propertyNames": {
+        "pattern": "^(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$"
+      },
+      "examples": [{"threatLevel": "{{dice:1d6}}", "monsterCount": "{{math:$threatLevel + 2}}"}]
+    },
+    "resultType": {
+      "type": "string",
+      "title": "Result Type",
+      "description": "Classification of output type. Case-insensitive, user-definable. Common values: creature, npc, faction, item, loot, location, encounter, event, hook, complication, name, trait, effect, environment, ability, description, rumor, dialogue, statistic, number, currency, time, weather. Custom types should use namespace conventions (e.g., 'publisher/category/type').",
+      "examples": ["creature", "item", "location", "encounter", "description", "starships/cruiser", "wh40k/regiment"]
+    },
+    "tagsArray": {
+      "type": "array",
+      "title": "Tags",
+      "description": "Tags for categorization, organization, filtering, and searching",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": [],
+      "examples": [["fantasy", "treasure", "loot"], ["encounters", "combat", "wilderness"]]
+    }
+  }
+}

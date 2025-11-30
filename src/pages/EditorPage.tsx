@@ -16,7 +16,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCollectionStore } from '@/stores/collectionStore'
-import { EditorWorkspace, formatJson, CollectionSwitcher } from '@/components/editor'
+import { useUIStore } from '@/stores/uiStore'
+import { EditorWorkspace, formatJson, CollectionSwitcher, EditorHelpButton } from '@/components/editor'
 import { exportAsJson } from '@/services/export'
 import type { ValidationError } from '@/components/editor'
 import type { RandomTableDocument, SimpleTable } from '@/engine/types'
@@ -46,6 +47,9 @@ export function EditorPage() {
   const { getCollectionDocument, saveCollection, collections, isInitialized } =
     useCollectionStore()
 
+  const lastEditorCollectionId = useUIStore((state) => state.lastEditorCollectionId)
+  const setLastEditorCollectionId = useUIStore((state) => state.setLastEditorCollectionId)
+
   // Editor state
   const [document, setDocument] = useState<RandomTableDocument | null>(null)
   const [jsonContent, setJsonContent] = useState('')
@@ -60,6 +64,18 @@ export function EditorPage() {
   // Track if this is a new collection
   const isNewCollection = !collectionId
 
+  // Redirect to last edited collection if none specified
+  useEffect(() => {
+    if (!isInitialized) return
+
+    if (!collectionId && lastEditorCollectionId) {
+      // Check if the last collection still exists
+      if (collections.has(lastEditorCollectionId)) {
+        navigate(`/editor/${lastEditorCollectionId}`, { replace: true })
+      }
+    }
+  }, [collectionId, lastEditorCollectionId, collections, isInitialized, navigate])
+
   // Load collection data
   useEffect(() => {
     if (!isInitialized) return
@@ -73,6 +89,8 @@ export function EditorPage() {
         const json = formatJson(JSON.stringify(doc))
         setJsonContent(json)
         setOriginalJson(json)
+        // Remember this collection for next time
+        setLastEditorCollectionId(collectionId)
       } else {
         // Collection not found, redirect to new
         navigate('/editor', { replace: true })
@@ -87,7 +105,7 @@ export function EditorPage() {
     }
 
     setIsLoading(false)
-  }, [collectionId, isInitialized, getCollectionDocument, navigate])
+  }, [collectionId, isInitialized, getCollectionDocument, navigate, setLastEditorCollectionId])
 
   // Track dirty state
   useEffect(() => {
@@ -299,6 +317,9 @@ export function EditorPage() {
         syncToJson={syncToJson}
         collectionId={collectionId}
       />
+
+      {/* Help Button */}
+      <EditorHelpButton />
 
       {/* Unsaved Changes Dialog */}
       {blocker.state === 'blocked' && (

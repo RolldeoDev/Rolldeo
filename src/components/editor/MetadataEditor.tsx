@@ -7,7 +7,14 @@
 import { useState, useCallback } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Metadata, MetadataSource } from '@/engine/types'
+import type {
+  Metadata,
+  MetadataSource,
+  Rights,
+  RightsPermissions,
+  RightsContact,
+  StructuredCopyright,
+} from '@/engine/types'
 
 export interface MetadataEditorProps {
   /** The metadata object to edit */
@@ -24,6 +31,10 @@ export function MetadataEditor({
   errors = {},
 }: MetadataEditorProps) {
   const [showSource, setShowSource] = useState(!!value.source)
+  const [showRights, setShowRights] = useState(!!value.rights)
+  const [useStructuredCopyright, setUseStructuredCopyright] = useState(
+    typeof value.source?.copyright === 'object'
+  )
 
   const updateField = useCallback(
     <K extends keyof Metadata>(field: K, fieldValue: Metadata[K]) => {
@@ -41,6 +52,72 @@ export function MetadataEditor({
     },
     [value, onChange]
   )
+
+  const updateStructuredCopyright = useCallback(
+    <K extends keyof StructuredCopyright>(field: K, fieldValue: StructuredCopyright[K]) => {
+      const currentCopyright = typeof value.source?.copyright === 'object'
+        ? value.source.copyright
+        : {}
+      onChange({
+        ...value,
+        source: {
+          ...(value.source || {}),
+          copyright: { ...currentCopyright, [field]: fieldValue },
+        },
+      })
+    },
+    [value, onChange]
+  )
+
+  const updateRights = useCallback(
+    <K extends keyof Rights>(field: K, fieldValue: Rights[K]) => {
+      onChange({
+        ...value,
+        rights: { ...(value.rights || {}), [field]: fieldValue },
+      })
+    },
+    [value, onChange]
+  )
+
+  const updatePermissions = useCallback(
+    <K extends keyof RightsPermissions>(field: K, fieldValue: RightsPermissions[K]) => {
+      onChange({
+        ...value,
+        rights: {
+          ...(value.rights || {}),
+          permissions: { ...(value.rights?.permissions || {}), [field]: fieldValue },
+        },
+      })
+    },
+    [value, onChange]
+  )
+
+  const updateContact = useCallback(
+    <K extends keyof RightsContact>(field: K, fieldValue: RightsContact[K]) => {
+      onChange({
+        ...value,
+        rights: {
+          ...(value.rights || {}),
+          contact: { ...(value.rights?.contact || {}), [field]: fieldValue },
+        },
+      })
+    },
+    [value, onChange]
+  )
+
+  // Helper to get copyright as string (for simple mode)
+  const getCopyrightString = (): string => {
+    if (!value.source?.copyright) return ''
+    if (typeof value.source.copyright === 'string') return value.source.copyright
+    return value.source.copyright.notice || ''
+  }
+
+  // Helper to get structured copyright
+  const getStructuredCopyright = (): StructuredCopyright => {
+    if (!value.source?.copyright) return {}
+    if (typeof value.source.copyright === 'object') return value.source.copyright
+    return { notice: value.source.copyright }
+  }
 
   return (
     <div className="space-y-6">
@@ -298,16 +375,252 @@ export function MetadataEditor({
                 className="w-full p-2 border rounded-md bg-background"
               />
             </FormField>
+          </div>
 
-            <FormField label="Copyright" description="Copyright notice">
-              <input
-                type="text"
-                value={value.source?.copyright || ''}
-                onChange={(e) => updateSource('copyright', e.target.value)}
-                placeholder="(c) 2024 Author Name"
+          {/* Copyright Section */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium">Copyright</span>
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={useStructuredCopyright}
+                  onChange={(e) => {
+                    setUseStructuredCopyright(e.target.checked)
+                    if (!e.target.checked && typeof value.source?.copyright === 'object') {
+                      // Convert structured to simple
+                      updateSource('copyright', value.source.copyright.notice || '')
+                    }
+                  }}
+                  className="rounded"
+                />
+                Structured format
+              </label>
+            </div>
+
+            {useStructuredCopyright ? (
+              <div className="grid gap-4 md:grid-cols-3">
+                <FormField label="Year" description="e.g., 2024 or 2020-2024">
+                  <input
+                    type="text"
+                    value={getStructuredCopyright().year || ''}
+                    onChange={(e) => updateStructuredCopyright('year', e.target.value)}
+                    placeholder="2024"
+                    className="w-full p-2 border rounded-md bg-background"
+                  />
+                </FormField>
+
+                <FormField label="Holder" description="Legal entity name">
+                  <input
+                    type="text"
+                    value={getStructuredCopyright().holder || ''}
+                    onChange={(e) => updateStructuredCopyright('holder', e.target.value)}
+                    placeholder="Example Games LLC"
+                    className="w-full p-2 border rounded-md bg-background"
+                  />
+                </FormField>
+
+                <FormField label="Notice" description="Full copyright text">
+                  <input
+                    type="text"
+                    value={getStructuredCopyright().notice || ''}
+                    onChange={(e) => updateStructuredCopyright('notice', e.target.value)}
+                    placeholder="© 2024 Example Games LLC"
+                    className="w-full p-2 border rounded-md bg-background"
+                  />
+                </FormField>
+              </div>
+            ) : (
+              <FormField label="" description="Simple copyright notice">
+                <input
+                  type="text"
+                  value={getCopyrightString()}
+                  onChange={(e) => updateSource('copyright', e.target.value)}
+                  placeholder="© 2024 Author Name. All rights reserved."
+                  className="w-full p-2 border rounded-md bg-background"
+                />
+              </FormField>
+            )}
+          </div>
+        </div>
+      </details>
+
+      {/* Rights & Permissions */}
+      <details
+        className="border rounded-lg"
+        open={showRights}
+        onToggle={(e) => setShowRights((e.target as HTMLDetailsElement).open)}
+      >
+        <summary className="px-4 py-2 cursor-pointer font-medium hover:bg-accent/50 rounded-lg">
+          Rights & Permissions
+        </summary>
+        <div className="p-4 border-t space-y-6">
+          {/* Rights Declaration */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField label="Content Type" description="How is this content classified?">
+              <select
+                value={value.rights?.type || ''}
+                onChange={(e) => updateRights('type', e.target.value as Rights['type'] || undefined)}
                 className="w-full p-2 border rounded-md bg-background"
+              >
+                <option value="">Not specified</option>
+                <option value="proprietary">Proprietary (all rights reserved)</option>
+                <option value="open-content">Open Content (OGL, CC, etc.)</option>
+                <option value="fan-content">Fan Content (community policy)</option>
+                <option value="licensed">Licensed (third-party license)</option>
+              </select>
+            </FormField>
+
+            <FormField label="Official Content" description="Is this official publisher content?">
+              <div className="flex items-center gap-3 h-10">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={value.rights?.official || false}
+                    onChange={(e) => updateRights('official', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm">This is official publisher content</span>
+                </label>
+              </div>
+            </FormField>
+          </div>
+
+          {/* Product Identity & Trademarks */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              label="Product Identity"
+              description="Protected names, characters, logos (press Enter to add)"
+            >
+              <TagInput
+                value={value.rights?.productIdentity || []}
+                onChange={(tags) => updateRights('productIdentity', tags)}
+                placeholder="Add protected element..."
               />
             </FormField>
+
+            <FormField
+              label="Trademarks"
+              description="Trademark notices (press Enter to add)"
+            >
+              <TagInput
+                value={value.rights?.trademarks || []}
+                onChange={(tags) => updateRights('trademarks', tags)}
+                placeholder="Add trademark..."
+              />
+            </FormField>
+          </div>
+
+          {/* Compatibility Notice */}
+          <FormField
+            label="Compatibility Notice"
+            description="Required non-affiliation statement"
+          >
+            <textarea
+              value={value.rights?.compatibilityNotice || ''}
+              onChange={(e) => updateRights('compatibilityNotice', e.target.value)}
+              placeholder="Compatible with 5th Edition fantasy roleplaying. Not affiliated with or endorsed by..."
+              rows={2}
+              className="w-full p-2 border rounded-md bg-background resize-y"
+            />
+          </FormField>
+
+          {/* Permissions */}
+          <div className="border-t pt-4">
+            <h4 className="text-sm font-medium mb-3">Usage Permissions</h4>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <PermissionCheckbox
+                label="Commercial Use"
+                description="May be used in commercial products"
+                checked={value.rights?.permissions?.commercialUse || false}
+                onChange={(checked) => updatePermissions('commercialUse', checked)}
+              />
+              <PermissionCheckbox
+                label="Modification"
+                description="May be modified or adapted"
+                checked={value.rights?.permissions?.modification || false}
+                onChange={(checked) => updatePermissions('modification', checked)}
+              />
+              <PermissionCheckbox
+                label="Redistribution"
+                description="May be redistributed"
+                checked={value.rights?.permissions?.redistribution || false}
+                onChange={(checked) => updatePermissions('redistribution', checked)}
+              />
+              <PermissionCheckbox
+                label="Derivative Works"
+                description="Derivative works may be created"
+                checked={value.rights?.permissions?.derivativeWorks || false}
+                onChange={(checked) => updatePermissions('derivativeWorks', checked)}
+              />
+              <PermissionCheckbox
+                label="Attribution Required"
+                description="Must credit the copyright holder"
+                checked={value.rights?.permissions?.attributionRequired ?? true}
+                onChange={(checked) => updatePermissions('attributionRequired', checked)}
+              />
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="border-t pt-4">
+            <h4 className="text-sm font-medium mb-3">Legal Contact</h4>
+            <div className="grid gap-4 md:grid-cols-3">
+              <FormField label="Licensing" description="For licensing inquiries">
+                <input
+                  type="text"
+                  value={value.rights?.contact?.licensing || ''}
+                  onChange={(e) => updateContact('licensing', e.target.value)}
+                  placeholder="licensing@example.com"
+                  className="w-full p-2 border rounded-md bg-background"
+                />
+              </FormField>
+
+              <FormField label="DMCA" description="For takedown requests">
+                <input
+                  type="text"
+                  value={value.rights?.contact?.dmca || ''}
+                  onChange={(e) => updateContact('dmca', e.target.value)}
+                  placeholder="dmca@example.com"
+                  className="w-full p-2 border rounded-md bg-background"
+                />
+              </FormField>
+
+              <FormField label="General" description="General legal contact">
+                <input
+                  type="text"
+                  value={value.rights?.contact?.general || ''}
+                  onChange={(e) => updateContact('general', e.target.value)}
+                  placeholder="legal@example.com"
+                  className="w-full p-2 border rounded-md bg-background"
+                />
+              </FormField>
+            </div>
+          </div>
+
+          {/* Terms URLs */}
+          <div className="border-t pt-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField label="Terms URL" description="Link to full terms of use">
+                <input
+                  type="url"
+                  value={value.rights?.termsUrl || ''}
+                  onChange={(e) => updateRights('termsUrl', e.target.value)}
+                  placeholder="https://example.com/terms"
+                  className="w-full p-2 border rounded-md bg-background"
+                />
+              </FormField>
+
+              <FormField label="Community Policy URL" description="Link to fan content policy">
+                <input
+                  type="url"
+                  value={value.rights?.communityPolicyUrl || ''}
+                  onChange={(e) => updateRights('communityPolicyUrl', e.target.value)}
+                  placeholder="https://example.com/community-use"
+                  className="w-full p-2 border rounded-md bg-background"
+                />
+              </FormField>
+            </div>
           </div>
         </div>
       </details>
@@ -413,6 +726,35 @@ function TagInput({ value, onChange, placeholder }: TagInputProps) {
         />
       </div>
     </div>
+  )
+}
+
+interface PermissionCheckboxProps {
+  label: string
+  description: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}
+
+function PermissionCheckbox({
+  label,
+  description,
+  checked,
+  onChange,
+}: PermissionCheckboxProps) {
+  return (
+    <label className="flex items-start gap-3 p-3 rounded-lg border hover:bg-accent/30 cursor-pointer transition-colors">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 rounded"
+      />
+      <div>
+        <div className="text-sm font-medium">{label}</div>
+        <div className="text-xs text-muted-foreground">{description}</div>
+      </div>
+    </label>
   )
 }
 

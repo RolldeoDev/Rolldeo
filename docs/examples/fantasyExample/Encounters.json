@@ -4,7 +4,7 @@
     "namespace": "fantasy.encounters",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify Examples",
+    "author": "Rolldeo Examples",
     "description": "Complete encounter generator combining monsters, treasure, and environments",
     "tags": ["fantasy", "encounters", "adventures"]
   },

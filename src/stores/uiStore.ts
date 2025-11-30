@@ -15,6 +15,7 @@ import { persist } from 'zustand/middleware'
 export type BrowserViewMode = 'flat' | 'grouped'
 export type BrowserGroupBy = 'type' | 'tag' | 'alpha' | null
 export type BrowserTab = 'tables' | 'templates'
+export type EditorTab = 'metadata' | 'tables' | 'templates' | 'variables' | 'json'
 
 interface UIState {
   // Search and filter (library page)
@@ -42,6 +43,12 @@ interface UIState {
 
   // Library page state
   preloadedCollectionsExpanded: boolean
+
+  // Editor page state
+  lastEditorCollectionId: string | null
+  editorActiveTab: EditorTab
+  editorSelectedItemId: string | null
+  editorSidebarCollapsed: boolean
 
   // Actions - Library
   setSearchQuery: (query: string) => void
@@ -71,6 +78,12 @@ interface UIState {
 
   // Actions - Library page
   togglePreloadedCollections: () => void
+
+  // Actions - Editor page
+  setLastEditorCollectionId: (id: string | null) => void
+  setEditorActiveTab: (tab: EditorTab) => void
+  setEditorSelectedItemId: (id: string | null) => void
+  setEditorSidebarCollapsed: (collapsed: boolean) => void
 }
 
 // ============================================================================
@@ -99,6 +112,12 @@ export const useUIStore = create<UIState>()(
 
       // Library page initial state
       preloadedCollectionsExpanded: false,
+
+      // Editor page initial state
+      lastEditorCollectionId: null,
+      editorActiveTab: 'tables',
+      editorSelectedItemId: null,
+      editorSidebarCollapsed: false,
 
       // ========================================================================
       // Search and Filter Actions
@@ -177,6 +196,18 @@ export const useUIStore = create<UIState>()(
 
       togglePreloadedCollections: () =>
         set((state) => ({ preloadedCollectionsExpanded: !state.preloadedCollectionsExpanded })),
+
+      // ========================================================================
+      // Editor Page Actions
+      // ========================================================================
+
+      setLastEditorCollectionId: (id) => set({ lastEditorCollectionId: id }),
+
+      setEditorActiveTab: (tab) => set({ editorActiveTab: tab }),
+
+      setEditorSelectedItemId: (id) => set({ editorSelectedItemId: id }),
+
+      setEditorSidebarCollapsed: (collapsed) => set({ editorSidebarCollapsed: collapsed }),
     }),
     {
       name: 'ui-store',
@@ -189,6 +220,11 @@ export const useUIStore = create<UIState>()(
         browserViewMode: state.browserViewMode,
         browserGroupBy: state.browserGroupBy,
         preloadedCollectionsExpanded: state.preloadedCollectionsExpanded,
+        // Editor state persistence
+        lastEditorCollectionId: state.lastEditorCollectionId,
+        editorActiveTab: state.editorActiveTab,
+        editorSelectedItemId: state.editorSelectedItemId,
+        editorSidebarCollapsed: state.editorSidebarCollapsed,
       }),
     }
   )

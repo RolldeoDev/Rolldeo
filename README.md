@@ -152,7 +152,7 @@ Here's a simple random table collection:
 - [Quickstart Guide](docs/Quickstart.md) — Create your first table in 10 minutes
 - [Full Specification](docs/randomTableSpecV1.md) — Complete reference for all features
 - [Using Rolldeo](docs/UsingRolldeo.md) — Guide to all application features
-- [JSON Schema](docs/randomTableSchemaV1.json) — For editor validation and tooling
+- [JSON Schema](public/schemas/random-table-spec-v1.0.json) — For editor validation and tooling
 
 ---
 
@@ -186,7 +186,7 @@ Please keep PRs focused on a single change and include a clear description of wh
 
 **Application Code**: [Apache License 2.0](LICENSE)
 
-**Specification & Schema** (`docs/randomTableSpecV1.md`, `docs/randomTableSchemaV1.json`): [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) — Public Domain
+**Specification & Schema** (`docs/randomTableSpecV1.md`, `public/schemas/random-table-spec-v1.0.json`): [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) — Public Domain
 
 ---
 

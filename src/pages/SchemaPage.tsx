@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Copy, Check, ExternalLink, FileJson, Github, Scale } from 'lucide-react'
 import { GuideLayout, DownloadButton } from '@/components/guide'
-import schemaJson from '@/../docs/randomTableSchemaV1.json?raw'
+import schemaJson from '@/../public/schemas/random-table-spec-v1.0.json?raw'
 
 // Parse schema for display
 const schema = JSON.parse(schemaJson)
@@ -36,7 +36,7 @@ Add this to your \`.vscode/settings.json\`:
   "json.schemas": [
     {
       "fileMatch": ["*.table.json", "*-tables.json"],
-      "url": "./randomTableSchemaV1.json"
+      "url": "https://rolldeo.com/schemas/random-table-spec-v1.0.json"
     }
   ]
 }
@@ -48,7 +48,7 @@ Add a \`$schema\` property to your JSON files:
 
 \`\`\`json
 {
-  "$schema": "https://rolldeo.com/schemas/randomTableSchemaV1.json",
+  "$schema": "https://rolldeo.com/schemas/random-table-spec-v1.0.json",
   "metadata": { ... },
   "tables": [ ... ]
 }
@@ -96,7 +96,7 @@ export function SchemaPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FileJson className="h-4 w-4" />
-            <span>randomTableSchemaV1.json</span>
+            <span>random-table-spec-v1.0.json</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -116,7 +116,7 @@ export function SchemaPage() {
               )}
             </button>
             <DownloadButton
-              filename="randomTableSchemaV1.json"
+              filename="random-table-spec-v1.0.json"
               content={schemaJson}
               mimeType="application/json"
               label="Download"

@@ -203,11 +203,12 @@ class MathParser {
         left = left * right
       } else {
         // Integer division, handle division by zero
+        // Per spec 14.2.6: "round toward zero" (truncate, not floor)
         if (right === 0) {
           console.warn('Division by zero in math expression, returning 0')
           left = 0
         } else {
-          left = Math.floor(left / right)
+          left = Math.trunc(left / right)
         }
       }
     }
