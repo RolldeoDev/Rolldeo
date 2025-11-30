@@ -74,5 +74,3 @@ export const ThemeSwitcher = memo(function ThemeSwitcher() {
     </button>
   )
 })
-
-export default ThemeSwitcher

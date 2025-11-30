@@ -6,10 +6,12 @@
  */
 
 import { ReactNode, useEffect, useState, useCallback } from 'react'
-import { Menu, X } from 'lucide-react'
+import { Dices, X } from 'lucide-react'
 import { useResizable } from '@/hooks/useResizable'
 import { useUIStore } from '@/stores/uiStore'
 import { ResizeHandle } from './ResizeHandle'
+import { cn } from '@/lib/utils'
+import rollifyLogo from '@/assets/rollifyLogo.png'
 
 interface LeftPanelRenderProps {
   /** Callback to close the mobile drawer (only provided on mobile) */
@@ -81,28 +83,10 @@ export function SplitPanelLayout({
     setIsDrawerOpen(false)
   }, [])
 
-  // Mobile layout with drawer
+  // Mobile layout with drawer and FAB
   if (isMobile) {
     return (
       <div className="relative h-full w-full overflow-hidden">
-        {/* Mobile Header with Menu Button */}
-        <div className="absolute top-0 left-0 right-0 h-14 bg-card border-b border-border/50 flex items-center px-4 z-20">
-          <button
-            onClick={toggleDrawer}
-            className="p-2 -ml-2 rounded-lg hover:bg-accent transition-colors"
-            aria-label={isDrawerOpen ? 'Close browser' : 'Open browser'}
-          >
-            {isDrawerOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </button>
-          <span className="ml-2 font-medium">
-            {isDrawerOpen ? 'Browse Tables' : 'Roll'}
-          </span>
-        </div>
-
         {/* Backdrop */}
         {isDrawerOpen && (
           <div
@@ -114,14 +98,21 @@ export function SplitPanelLayout({
 
         {/* Drawer */}
         <div
-          className={`
-            absolute top-0 left-0 h-full w-[85vw] max-w-[400px] bg-card z-40
-            transform transition-transform duration-300 ease-out
-            ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}
-          `}
+          className={cn(
+            'absolute top-0 left-0 h-full w-[85vw] max-w-[400px] bg-card z-40',
+            'transform transition-transform duration-300 ease-out',
+            isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+          )}
         >
           <div className="h-14 flex items-center justify-between px-4 border-b border-border/50">
-            <span className="font-medium">Browse Tables</span>
+            <div className="flex items-center gap-2">
+              <img
+                src={rollifyLogo}
+                alt="Rolldeo logo"
+                className="h-8 w-8 rounded-lg"
+              />
+              <span className="font-semibold">Browse Tables</span>
+            </div>
             <button
               onClick={closeDrawer}
               className="p-2 -mr-2 rounded-lg hover:bg-accent transition-colors"
@@ -135,10 +126,36 @@ export function SplitPanelLayout({
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="h-full pt-14 overflow-hidden">
+        {/* Main Content - full height, no header offset */}
+        <div className="h-full overflow-hidden">
           {rightPanel}
         </div>
+
+        {/* Floating Action Button */}
+        <button
+          onClick={toggleDrawer}
+          className={cn(
+            'fixed bottom-24 right-4 z-50',
+            'w-14 h-14 rounded-full',
+            'bg-primary text-primary-foreground',
+            'shadow-lg shadow-primary/25',
+            'flex items-center justify-center',
+            'transition-all duration-300 ease-out',
+            'hover:scale-105 active:scale-95',
+            'focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background',
+            !isDrawerOpen && 'animate-fab-float'
+          )}
+          aria-label={isDrawerOpen ? 'Close table browser' : 'Open table browser'}
+        >
+          <div
+            className={cn(
+              'transition-transform duration-300 ease-out',
+              isDrawerOpen && 'rotate-90'
+            )}
+          >
+            {isDrawerOpen ? <X size={24} /> : <Dices size={24} />}
+          </div>
+        </button>
       </div>
     )
   }

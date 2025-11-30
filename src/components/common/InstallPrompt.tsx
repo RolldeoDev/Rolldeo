@@ -125,5 +125,3 @@ export function InstallPrompt() {
     </div>
   )
 }
-
-export default InstallPrompt

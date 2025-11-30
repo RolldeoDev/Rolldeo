@@ -214,5 +214,3 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
     </div>
   )
 }
-
-export default ToastProvider

@@ -273,6 +273,10 @@ export interface LoadedCollection {
   isPreloaded: boolean
   /** Source (file path or 'preloaded') */
   source: string
+  /** Index for O(1) table lookup by ID */
+  tableIndex: Map<string, Table>
+  /** Index for O(1) template lookup by ID */
+  templateIndex: Map<string, Template>
 }
 
 // Import trace type (circular import safe since it's just a type)

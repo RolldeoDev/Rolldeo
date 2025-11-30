@@ -5,6 +5,7 @@ import { DropZone, ImportDialog } from '../components/upload'
 import { useCollectionStore } from '../stores/collectionStore'
 import { generateUniqueId } from '../services/import'
 import type { ImportResult, ImportedCollection } from '../services/import'
+import rollifyLogo from '@/assets/rollifyLogo.png'
 
 const quickActions = [
   {
@@ -164,6 +165,13 @@ export function HomePage() {
     <div className="space-y-12">
       {/* Hero Section */}
       <section className="text-center space-y-6 py-8">
+        <div className="flex justify-center animate-fade-in">
+          <img
+            src={rollifyLogo}
+            alt="Rolldeo logo"
+            className="h-24 w-24 sm:h-32 sm:w-32 rounded-2xl shadow-lg shadow-primary/20"
+          />
+        </div>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium animate-fade-in">
           <Sparkles className="h-4 w-4" />
           Random Table Engine

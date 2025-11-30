@@ -24,3 +24,8 @@ export { ResultsPanel } from './ResultsPanel'
 export { SelectedItemInfo } from './SelectedItemInfo'
 export { CurrentRollResult } from './CurrentRollResult'
 export { RollHistoryList } from './RollHistoryList'
+
+// Trace & Inspection
+export { TraceViewer } from './TraceViewer'
+export { TraceToggle } from './TraceToggle'
+export { CaptureInspector } from './CaptureInspector'
