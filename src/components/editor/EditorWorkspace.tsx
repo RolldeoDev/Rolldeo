@@ -4,7 +4,7 @@
  * Main layout container with sidebar, tabs, and content area.
  */
 
-import { useCallback, useMemo, useRef, useEffect } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { EditorSidebar } from './EditorSidebar'
 import { EditorTabBar } from './EditorTabBar'
 import { useUIStore, type EditorTab } from '@/stores/uiStore'
@@ -14,7 +14,8 @@ import { TemplateEditor } from './TemplateEditor'
 import { VariablesEditor } from './VariablesEditor'
 import { IncludesEditor } from './IncludesEditor'
 import { JsonEditor } from './JsonEditor'
-import { Plus } from 'lucide-react'
+import { Plus, FileUp } from 'lucide-react'
+import { TableImportModal } from './TableImportModal'
 import type { ValidationError } from './JsonEditor'
 import type {
   RandomTableDocument,
@@ -53,6 +54,7 @@ export function EditorWorkspace({
   const selectedItemId = useUIStore((state) => state.editorSelectedItemId)
   const setSelectedItemId = useUIStore((state) => state.setEditorSelectedItemId)
   const contentRef = useRef<HTMLDivElement>(null)
+  const [showImportModal, setShowImportModal] = useState(false)
 
   // Scroll to item when selected from sidebar
   useEffect(() => {
@@ -158,6 +160,24 @@ export function EditorWorkspace({
     setActiveTab('tables')
     setSelectedItemId(newId)
   }, [document.tables, updateTables])
+
+  const handleImportTable = useCallback(
+    (table: SimpleTable) => {
+      // Ensure unique ID (append number if collision)
+      const existingIds = document.tables.map((t) => t.id)
+      let uniqueId = table.id
+      let counter = 1
+      while (existingIds.includes(uniqueId)) {
+        uniqueId = `${table.id}${counter++}`
+      }
+
+      const tableWithUniqueId = { ...table, id: uniqueId }
+      updateTables([...document.tables, tableWithUniqueId])
+      setActiveTab('tables')
+      setSelectedItemId(uniqueId)
+    },
+    [document.tables, updateTables]
+  )
 
   const addTemplate = useCallback(() => {
     const templates = document.templates || []
@@ -293,13 +313,25 @@ export function EditorWorkspace({
             <div className="space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Tables ({document.tables.length})</h2>
-                <button
-                  onClick={addTable}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-accent transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Table
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowImportModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <FileUp className="h-4 w-4" />
+                    Import Table
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 font-medium">
+                      BETA
+                    </span>
+                  </button>
+                  <button
+                    onClick={addTable}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Table
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -389,6 +421,13 @@ export function EditorWorkspace({
           )}
         </div>
       </div>
+
+      {/* Table Import Modal */}
+      <TableImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={handleImportTable}
+      />
     </div>
   )
 }

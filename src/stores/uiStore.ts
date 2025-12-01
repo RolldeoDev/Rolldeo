@@ -105,7 +105,7 @@ export const useUIStore = create<UIState>()(
       // Browser panel initial state
       browserPanelWidth: 380,
       expandedCollectionId: null,
-      browserActiveTab: 'tables',
+      browserActiveTab: 'templates',
       browserViewMode: 'flat',
       browserGroupBy: null,
       browserSearchQuery: '',
