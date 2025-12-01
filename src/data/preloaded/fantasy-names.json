@@ -184,6 +184,7 @@
       "name": "Elf First Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Aelindra", "tags": ["female"] },
         { "value": "Caelynn", "tags": ["female"] },
@@ -212,6 +213,7 @@
       "name": "Elf Surnames",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Starweaver" },
         { "value": "Moonwhisper" },
@@ -235,6 +237,7 @@
       "name": "Dwarf First Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Thorin", "tags": ["male"] },
         { "value": "Balin", "tags": ["male"] },
@@ -263,6 +266,7 @@
       "name": "Dwarf Surnames",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Ironforge" },
         { "value": "Stonehelm" },
@@ -286,6 +290,7 @@
       "name": "Goblin Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Snaggle" },
         { "value": "Grik" },
@@ -314,6 +319,7 @@
       "name": "Goblin Epithets",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "the Sneaky" },
         { "value": "Ratcatcher" },
@@ -337,6 +343,7 @@
       "name": "Giant Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Gromnir" },
         { "value": "Thrym" },
@@ -365,6 +372,7 @@
       "name": "Giant Titles",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Mountainbreaker" },
         { "value": "Earthshaker" },
@@ -388,6 +396,7 @@
       "name": "Orc Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Grok" },
         { "value": "Thrak" },
@@ -416,6 +425,7 @@
       "name": "Orc Clan Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "of the Bloody Hand" },
         { "value": "Skullsplitter" },
@@ -439,6 +449,7 @@
       "name": "Halfling First Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Bilbo", "tags": ["male"] },
         { "value": "Frodo", "tags": ["male"] },
@@ -467,6 +478,7 @@
       "name": "Halfling Surnames",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Underbough" },
         { "value": "Goodbarrel" },
@@ -490,6 +502,7 @@
       "name": "Tiefling Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Morthos" },
         { "value": "Damakos" },
@@ -519,6 +532,7 @@
       "type": "simple",
       "hidden": true,
       "description": "Many tieflings adopt a virtue name that reflects their personal goals or ideals.",
+      "resultType": "name",
       "entries": [
         { "value": "\"Ambition\"" },
         { "value": "\"Carrion\"" },
@@ -547,6 +561,7 @@
       "name": "Dragonborn Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Arjhan" },
         { "value": "Balasar" },
@@ -575,6 +590,7 @@
       "name": "Dragonborn Clan Names",
       "type": "simple",
       "hidden": true,
+      "resultType": "name",
       "entries": [
         { "value": "Clethtinthiallor" },
         { "value": "Daardendrian" },
@@ -618,6 +634,7 @@
       "id": "personalityTrait",
       "name": "Personality Trait",
       "type": "simple",
+      "resultType": "trait",
       "entries": [
         { "value": "cheerful and optimistic" },
         { "value": "gruff but kindhearted" },
@@ -637,6 +654,7 @@
       "id": "physicalTrait",
       "name": "Physical Trait",
       "type": "simple",
+      "resultType": "trait",
       "entries": [
         { "value": "has a prominent scar" },
         { "value": "walks with a slight limp" },
@@ -658,6 +676,7 @@
       "id": "fullName",
       "name": "Generate Full Name",
       "description": "Generates a complete name for a specified race.",
+      "resultType": "name",
       "shared": {
         "_raceInit": "{{race}}"
       },
@@ -667,12 +686,14 @@
       "id": "simpleNpc",
       "name": "Simple NPC",
       "description": "Generates a basic NPC with name, race, and gender.",
+      "resultType": "npc",
       "pattern": "**{{fullName}}** is a {{gender}} {{race}}."
     },
     {
       "id": "detailedNpc",
       "name": "Detailed NPC",
       "description": "Generates a fully detailed NPC with profession, personality, and description.",
+      "resultType": "npc",
       "shared": {
         "_genderInit": "{{gender}}",
         "_raceInit": "{{race}}",
@@ -685,6 +706,7 @@
       "id": "npcWithBackstory",
       "name": "NPC with Backstory",
       "description": "Generates an NPC with a narrative backstory using pronoun placeholders.",
+      "resultType": "npc",
       "shared": {
         "_genderInit": "{{gender}}",
         "_raceInit": "{{race}}",
@@ -697,12 +719,14 @@
       "id": "partyOfAdventurers",
       "name": "Party of Adventurers",
       "description": "Generates a group of 4 unique NPCs for an adventuring party.",
+      "resultType": "npc",
       "pattern": "# The Adventuring Party\n\n{{4*unique*simpleNpc|\"\n\n\"}}"
     },
     {
       "id": "tavernPatrons",
       "name": "Tavern Patrons",
       "description": "Generates several NPCs you might find at a local tavern.",
+      "resultType": "npc",
       "pattern": "# Tonight at the Tavern\n\nThe following patrons are drinking and socializing:\n\n{{dice:1d4+2*detailedNpc|\"\n\n---\n\n\"}}"
     }
   ]
