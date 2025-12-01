@@ -478,83 +478,627 @@
   color: hsl(var(--foreground));
 }
 
-/* Roller Result Prose Styling */
+/* ============================================================================
+   ROLLER RESULT PROSE STYLING - "Enchanted Scroll" Theme
+
+   A refined, readable markdown style that uses the app's full color palette.
+   Headers use warm foreground tones, accents are used sparingly for emphasis,
+   and the overall feel is elegant and easy to read.
+   ============================================================================ */
+
 .prose-roll {
-  @apply text-foreground leading-relaxed;
+  @apply leading-relaxed;
+  font-size: 0.9375rem; /* 15px - slightly larger for readability */
+  line-height: 1.7;
+  color: hsl(25, 25%, 25%); /* Warm charcoal - matches app foreground */
 }
 
+/* === HEADERS - Warm tones with accent flourishes === */
+
 .prose-roll h1 {
-  @apply text-2xl font-bold mt-4 mb-3 first:mt-0;
+  @apply text-2xl font-bold mt-5 mb-3 pb-1 first:mt-0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(25, 30%, 22%); /* Deep warm brown */
+  position: relative;
+}
+
+/* Gradient underline using lavender-to-rose accent */
+.prose-roll h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    hsl(262, 40%, 55%) 0%,
+    hsl(300, 35%, 60%) 50%,
+    hsl(340, 50%, 65%) 100%
+  );
+  border-radius: 1px;
 }
 
 .prose-roll h2 {
-  @apply text-xl font-bold mt-4 mb-2 first:mt-0;
+  @apply text-xl font-bold mt-5 mb-2 first:mt-0;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(25, 28%, 28%); /* Warm brown */
+  position: relative;
+  padding-left: 0.75em;
+}
+
+/* Vertical accent bar - cyan accent */
+.prose-roll h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 3px;
+  background: linear-gradient(180deg,
+    hsl(190, 75%, 40%) 0%,
+    hsl(190, 60%, 55%) 100%
+  );
+  border-radius: 2px;
 }
 
 .prose-roll h3 {
-  @apply text-lg font-semibold mt-3 mb-2 first:mt-0;
+  @apply text-lg font-semibold mt-4 mb-2 first:mt-0;
+  color: hsl(25, 22%, 32%);
+  font-weight: 600;
 }
 
 .prose-roll h4 {
-  @apply text-base font-semibold mt-2 mb-1 first:mt-0;
+  @apply text-base font-semibold mt-3 mb-1 first:mt-0;
+  color: hsl(25, 18%, 38%);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.8125rem;
 }
 
 .prose-roll h5,
 .prose-roll h6 {
-  @apply text-sm font-semibold mt-2 mb-1 first:mt-0;
+  @apply text-sm font-semibold mt-3 mb-1 first:mt-0;
+  color: hsl(25, 15%, 45%);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
 }
+
+/* === PARAGRAPHS & TEXT === */
 
 .prose-roll p {
-  @apply my-2 first:mt-0 last:mb-0;
-}
-
-.prose-roll ul,
-.prose-roll ol {
-  @apply my-2 pl-5;
-}
-
-.prose-roll li {
-  @apply my-1;
+  @apply my-3 first:mt-0 last:mb-0;
 }
 
 .prose-roll strong {
-  @apply font-bold text-foreground;
+  font-weight: 700;
+  color: hsl(25, 35%, 20%); /* Darker warm for emphasis */
 }
 
 .prose-roll em {
-  @apply italic;
+  font-style: italic;
+  color: hsl(262, 30%, 40%); /* Hint of lavender for italics */
 }
+
+/* === LISTS - Elegant markers === */
+
+.prose-roll ul,
+.prose-roll ol {
+  @apply my-3 pl-6;
+}
+
+.prose-roll li {
+  @apply my-1.5;
+  padding-left: 0.25em;
+}
+
+.prose-roll ul li::marker {
+  color: hsl(145, 45%, 42%); /* Mint for bullets */
+}
+
+.prose-roll ol li::marker {
+  color: hsl(40, 70%, 42%); /* Amber for numbers */
+  font-weight: 600;
+}
+
+/* Nested lists */
+.prose-roll li > ul,
+.prose-roll li > ol {
+  @apply mt-1.5;
+}
+
+/* === CODE - Subtle lavender tint === */
 
 .prose-roll code {
-  @apply px-1.5 py-0.5 rounded bg-muted text-sm font-mono;
+  @apply px-1.5 py-0.5 rounded text-sm font-mono;
+  background: linear-gradient(135deg, hsl(262, 25%, 94%) 0%, hsl(262, 20%, 90%) 100%);
+  color: hsl(262, 45%, 40%);
+  border: 1px solid hsl(262, 20%, 82%);
+  font-size: 0.85em;
 }
+
+.prose-roll pre {
+  @apply my-4 p-4 rounded-lg overflow-x-auto;
+  background: linear-gradient(180deg, hsl(260, 15%, 96%) 0%, hsl(260, 12%, 93%) 100%);
+  border: 1px solid hsl(262, 18%, 85%);
+  box-shadow: inset 0 1px 3px hsl(262, 15%, 88%);
+}
+
+.prose-roll pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+}
+
+/* === BLOCKQUOTES - Warm amber accent === */
 
 .prose-roll blockquote {
-  @apply border-l-2 border-primary/50 pl-4 my-2 italic text-muted-foreground;
+  @apply my-4 py-3 px-4 rounded-r-lg;
+  border-left: 3px solid hsl(40, 80%, 50%); /* Amber */
+  background: linear-gradient(90deg,
+    hsl(40, 50%, 95%) 0%,
+    hsl(40, 35%, 97%) 50%,
+    transparent 100%
+  );
+  color: hsl(25, 25%, 30%);
+  font-style: italic;
+  position: relative;
 }
+
+/* Opening quote mark */
+.prose-roll blockquote::before {
+  content: '"';
+  position: absolute;
+  top: -0.1em;
+  left: 0.3em;
+  font-size: 2.5em;
+  font-family: Georgia, serif;
+  color: hsl(40, 60%, 70%);
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.prose-roll blockquote p {
+  position: relative;
+  z-index: 1;
+  margin-left: 1em;
+}
+
+/* === HORIZONTAL RULES - Gradient divider === */
 
 .prose-roll hr {
-  @apply my-4 border-border;
+  @apply my-6;
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(35, 25%, 75%) 20%,
+    hsl(35, 30%, 65%) 50%,
+    hsl(35, 25%, 75%) 80%,
+    transparent 100%
+  );
+  position: relative;
 }
 
+.prose-roll hr::after {
+  content: '◇';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: hsl(40, 40%, 98%);
+  padding: 0 0.5em;
+  color: hsl(35, 25%, 60%);
+  font-size: 0.65rem;
+}
+
+/* === LINKS - Primary mint color === */
+
+.prose-roll a {
+  color: hsl(145, 50%, 35%); /* Mint - app primary */
+  text-decoration: none;
+  border-bottom: 1px dotted hsl(145, 40%, 55%);
+  transition: all 0.2s ease;
+}
+
+.prose-roll a:hover {
+  color: hsl(145, 55%, 28%);
+  border-bottom-style: solid;
+  border-bottom-color: hsl(145, 50%, 40%);
+}
+
+/* === TABLES - Clean with warm accents === */
+
 .prose-roll table {
-  @apply w-full border-collapse text-sm my-3;
+  @apply w-full text-sm my-4;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid hsl(35, 25%, 82%);
+  border-radius: 0.5rem;
+  overflow: hidden;
 }
 
 .prose-roll thead {
-  @apply border-b border-border bg-muted/30;
+  background: linear-gradient(180deg, hsl(35, 30%, 93%) 0%, hsl(35, 25%, 89%) 100%);
 }
 
 .prose-roll th {
-  @apply px-3 py-2 text-left font-semibold text-foreground;
+  @apply px-4 py-2.5 text-left font-semibold;
+  color: hsl(25, 30%, 25%);
+  border-bottom: 2px solid hsl(35, 30%, 75%);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .prose-roll td {
-  @apply px-3 py-2 border-b border-border/30;
+  @apply px-4 py-2.5;
+  border-bottom: 1px solid hsl(35, 20%, 90%);
+  color: hsl(25, 20%, 30%);
+}
+
+.prose-roll tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .prose-roll tbody tr:hover {
-  @apply bg-muted/20;
+  background: hsl(40, 30%, 96%);
+}
+
+/* Alternating row colors for large tables */
+.prose-roll tbody tr:nth-child(even) {
+  background: hsl(40, 20%, 98%);
+}
+
+.prose-roll tbody tr:nth-child(even):hover {
+  background: hsl(40, 30%, 95%);
+}
+
+/* === IMAGES === */
+
+.prose-roll img {
+  @apply my-4 rounded-lg;
+  box-shadow: 0 2px 8px hsl(25, 15%, 75%);
+  border: 1px solid hsl(35, 20%, 85%);
+}
+
+/* ============================================================================
+   DARK MODE - Refined with accent glows
+   ============================================================================ */
+
+:is(.dark .prose-roll) {
+  color: hsl(0, 0%, 88%);
+}
+
+/* Dark mode headers */
+:is(.dark .prose-roll) h1 {
+  color: hsl(0, 0%, 95%);
+}
+
+:is(.dark .prose-roll) h1::after {
+  background: linear-gradient(90deg,
+    hsl(262, 47%, 62%) 0%,
+    hsl(300, 40%, 55%) 50%,
+    hsl(340, 55%, 62%) 100%
+  );
+  box-shadow: 0 0 10px hsl(262, 50%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll) h2 {
+  color: hsl(0, 0%, 92%);
+}
+
+:is(.dark .prose-roll) h2::before {
+  background: linear-gradient(180deg,
+    hsl(187, 85%, 53%) 0%,
+    hsl(187, 70%, 42%) 100%
+  );
+  box-shadow: 0 0 8px hsl(187, 80%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll) h3 {
+  color: hsl(0, 0%, 88%);
+}
+
+:is(.dark .prose-roll) h4 {
+  color: hsl(0, 0%, 75%);
+}
+
+:is(.dark .prose-roll) h5,
+:is(.dark .prose-roll) h6 {
+  color: hsl(0, 0%, 65%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll) strong {
+  color: hsl(45, 90%, 70%); /* Amber highlight */
+}
+
+:is(.dark .prose-roll) em {
+  color: hsl(262, 50%, 75%); /* Lavender */
+}
+
+/* Dark mode list markers */
+:is(.dark .prose-roll) ul li::marker {
+  color: hsl(142, 52%, 54%); /* Mint */
+}
+
+:is(.dark .prose-roll) ol li::marker {
+  color: hsl(45, 93%, 58%); /* Amber */
+}
+
+/* Dark mode code - lavender tint */
+:is(.dark .prose-roll) code {
+  background: linear-gradient(135deg, hsl(262, 25%, 18%) 0%, hsl(262, 20%, 14%) 100%);
+  color: hsl(262, 60%, 75%);
+  border-color: hsl(262, 30%, 28%);
+  box-shadow: 0 0 8px hsl(262, 40%, 30% / 0.3);
+}
+
+:is(.dark .prose-roll) pre {
+  background: linear-gradient(180deg, hsl(260, 10%, 13%) 0%, hsl(260, 8%, 10%) 100%);
+  border-color: hsl(262, 20%, 25%);
+  box-shadow: inset 0 1px 3px hsl(0, 0%, 5%);
+}
+
+/* Dark mode blockquote - amber accent */
+:is(.dark .prose-roll) blockquote {
+  border-left-color: hsl(45, 93%, 58%);
+  background: linear-gradient(90deg,
+    hsl(45, 40%, 12%) 0%,
+    hsl(45, 25%, 10%) 50%,
+    transparent 100%
+  );
+  color: hsl(0, 0%, 82%);
+  box-shadow: 0 0 15px hsl(45, 60%, 40% / 0.1);
+}
+
+:is(.dark .prose-roll) blockquote::before {
+  color: hsl(45, 50%, 35%);
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll) hr {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(0, 0%, 30%) 20%,
+    hsl(0, 0%, 40%) 50%,
+    hsl(0, 0%, 30%) 80%,
+    transparent 100%
+  );
+}
+
+:is(.dark .prose-roll) hr::after {
+  background: hsl(0, 0%, 11%);
+  color: hsl(0, 0%, 50%);
+}
+
+/* Dark mode links - mint */
+:is(.dark .prose-roll) a {
+  color: hsl(142, 52%, 54%);
+  border-bottom-color: hsl(142, 40%, 35%);
+}
+
+:is(.dark .prose-roll) a:hover {
+  color: hsl(142, 55%, 65%);
+  border-bottom-color: hsl(142, 50%, 50%);
+  text-shadow: 0 0 8px hsl(142, 50%, 40% / 0.4);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll) table {
+  border-color: hsl(0, 0%, 22%);
+}
+
+:is(.dark .prose-roll) thead {
+  background: linear-gradient(180deg, hsl(0, 0%, 16%) 0%, hsl(0, 0%, 13%) 100%);
+}
+
+:is(.dark .prose-roll) th {
+  color: hsl(0, 0%, 90%);
+  border-bottom-color: hsl(0, 0%, 28%);
+}
+
+:is(.dark .prose-roll) td {
+  border-bottom-color: hsl(0, 0%, 18%);
+  color: hsl(0, 0%, 82%);
+}
+
+:is(.dark .prose-roll) tbody tr:hover {
+  background: hsl(0, 0%, 14%);
+}
+
+:is(.dark .prose-roll) tbody tr:nth-child(even) {
+  background: hsl(0, 0%, 9%);
+}
+
+:is(.dark .prose-roll) tbody tr:nth-child(even):hover {
+  background: hsl(0, 0%, 13%);
+}
+
+/* Dark mode images */
+:is(.dark .prose-roll) img {
+  box-shadow: 0 2px 12px hsl(0, 0%, 0% / 0.5);
+  border-color: hsl(0, 0%, 25%);
+}
+
+/* Description Drawer Prose Styling - Grimoire/Parchment Theme */
+.prose-description {
+  @apply leading-relaxed;
+  /* Light mode: amber/parchment colors */
+  color: #78350f; /* amber-900 */
+}
+
+.prose-description h1 {
+  @apply text-xl font-bold mt-4 mb-2 pb-1 border-b first:mt-0;
+  border-color: #fde68a; /* amber-200 */
+  color: #78350f; /* amber-900 */
+}
+
+.prose-description h2 {
+  @apply text-lg font-bold mt-3 mb-2 first:mt-0;
+  color: #78350f; /* amber-900 */
+}
+
+.prose-description h3 {
+  @apply text-base font-semibold mt-3 mb-1 first:mt-0;
+  color: #92400e; /* amber-800 */
+}
+
+.prose-description h4 {
+  @apply text-sm font-semibold mt-2 mb-1 uppercase tracking-wide first:mt-0;
+  color: #92400e; /* amber-800 */
+}
+
+.prose-description h5,
+.prose-description h6 {
+  @apply text-xs font-semibold mt-2 mb-1 uppercase tracking-wider first:mt-0;
+  color: #b45309; /* amber-700 */
+}
+
+.prose-description p {
+  @apply my-2 first:mt-0 last:mb-0;
+}
+
+.prose-description ul,
+.prose-description ol {
+  @apply my-2 pl-5;
+}
+
+.prose-description li {
+  @apply my-1;
+}
+
+.prose-description ul li::marker {
+  color: rgba(245, 158, 11, 0.5); /* amber-500/50 */
+}
+
+.prose-description strong {
+  @apply font-semibold;
+  color: #92400e; /* amber-800 */
+}
+
+.prose-description em {
+  @apply italic;
+  color: #92400e; /* amber-800 */
+}
+
+.prose-description code {
+  @apply px-1 py-0.5 rounded text-sm font-mono;
+  background-color: #fef3c7; /* amber-100 */
+  color: #b45309; /* amber-700 */
+}
+
+.prose-description blockquote {
+  @apply border-l-2 pl-4 my-2 py-1 not-italic;
+  border-color: rgba(245, 158, 11, 0.4); /* amber-500/40 */
+  background-color: rgba(254, 243, 199, 0.5); /* amber-100/50 */
+  color: #b45309; /* amber-700 */
+}
+
+.prose-description hr {
+  @apply my-4;
+  border-color: #fde68a; /* amber-200 */
+}
+
+.prose-description a {
+  @apply no-underline hover:underline;
+  color: #d97706; /* amber-600 */
+}
+
+.prose-description table {
+  @apply w-full border-collapse text-sm my-3;
+}
+
+.prose-description thead {
+  @apply border-b;
+  border-color: #fde68a; /* amber-200 */
+  background-color: rgba(254, 243, 199, 0.5); /* amber-100/50 */
+}
+
+.prose-description th {
+  @apply px-3 py-2 text-left font-semibold;
+  color: #78350f; /* amber-900 */
+}
+
+.prose-description td {
+  @apply px-3 py-2 border-b;
+  border-color: rgba(253, 230, 138, 0.5); /* amber-200/50 */
+}
+
+.prose-description tbody tr:hover {
+  background-color: #fffbeb; /* amber-50 */
+}
+
+/* Dark mode overrides for description prose */
+:is(.dark .prose-description) {
+  color: #d6d3d1; /* stone-300 */
+}
+
+:is(.dark .prose-description) h1 {
+  color: #fef3c7; /* amber-100 */
+  border-color: #92400e; /* amber-800 */
+}
+
+:is(.dark .prose-description) h2 {
+  color: #fef3c7; /* amber-100 */
+}
+
+:is(.dark .prose-description) h3 {
+  color: #fde68a; /* amber-200 */
+}
+
+:is(.dark .prose-description) h4,
+:is(.dark .prose-description) h5,
+:is(.dark .prose-description) h6 {
+  color: #fcd34d; /* amber-300 */
+}
+
+:is(.dark .prose-description) strong {
+  color: #fde68a; /* amber-200 */
+}
+
+:is(.dark .prose-description) em {
+  color: #e7e5e4; /* stone-200 */
+}
+
+:is(.dark .prose-description) code {
+  background-color: rgba(41, 37, 36, 0.5); /* stone-800/50 */
+  color: #fcd34d; /* amber-300 */
+}
+
+:is(.dark .prose-description) blockquote {
+  background-color: rgba(41, 37, 36, 0.3); /* stone-800/30 */
+  color: #a8a29e; /* stone-400 */
+}
+
+:is(.dark .prose-description) a {
+  color: #fbbf24; /* amber-400 */
+}
+
+:is(.dark .prose-description) thead {
+  border-color: #44403c; /* stone-700 */
+  background-color: rgba(41, 37, 36, 0.5); /* stone-800/50 */
+}
+
+:is(.dark .prose-description) th {
+  color: #e7e5e4; /* stone-200 */
+}
+
+:is(.dark .prose-description) td {
+  border-color: rgba(68, 64, 60, 0.5); /* stone-700/50 */
+}
+
+:is(.dark .prose-description) tbody tr:hover {
+  background-color: rgba(41, 37, 36, 0.3); /* stone-800/30 */
+}
+
+:is(.dark .prose-description) hr {
+  border-color: #44403c; /* stone-700 */
 }
 
 /* Guide/Documentation Prose Styling */

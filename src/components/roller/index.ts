@@ -37,3 +37,4 @@ export { ViewDetailsModal } from './ViewDetailsModal'
 
 // Descriptions
 export { DescriptionsViewer } from './DescriptionsViewer'
+export { DescriptionsDrawer } from './DescriptionsDrawer'

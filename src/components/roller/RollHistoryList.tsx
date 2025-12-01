@@ -2,6 +2,7 @@
  * RollHistoryList Component
  *
  * Displays roll history with pin/delete actions and trace viewing.
+ * Filters out the current roll and uses a shared drawer for descriptions.
  */
 
 import { memo, useState, useCallback, useEffect, useMemo } from 'react'
@@ -9,31 +10,43 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { History as HistoryIcon, Pin, PinOff, Trash2, Activity, BookOpen } from 'lucide-react'
 import type { StoredRoll } from '@/services/db'
+import type { EntryDescription } from '@/engine/types'
 import { formatTimestamp } from '@/stores/rollStore'
 import { cn } from '@/lib/utils'
 import { TraceViewer } from './TraceViewer'
-import { DescriptionsViewer } from './DescriptionsViewer'
 
 interface RollHistoryListProps {
   history: StoredRoll[]
+  currentRollId: number | null
   onPin: (id: number, pinned: boolean) => void
   onDelete: (id: number) => void
   onClearHistory: (keepPinned: boolean) => void
+  onShowDescriptions: (descriptions: EntryDescription[], sourceLabel?: string) => void
 }
 
 export const RollHistoryList = memo(function RollHistoryList({
   history,
+  currentRollId,
   onPin,
   onDelete,
   onClearHistory,
+  onShowDescriptions,
 }: RollHistoryListProps) {
   // Track which history items have their trace expanded (by item id)
   const [expandedTraces, setExpandedTraces] = useState<Set<number>>(new Set())
-  // Track which history items have their descriptions expanded (by item id)
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<number>>(new Set())
 
-  // Pre-slice history for display (limit to 50 items)
-  const displayHistory = useMemo(() => history.slice(0, 50), [history])
+  // Filter out current roll and limit to 50 items
+  const displayHistory = useMemo(() => {
+    const filtered = currentRollId
+      ? history.filter(item => item.id !== currentRollId)
+      : history
+    return filtered.slice(0, 50)
+  }, [history, currentRollId])
+
+  // Count for display (excluding current roll)
+  const historyCount = currentRollId
+    ? history.filter(item => item.id !== currentRollId).length
+    : history.length
 
   // Clean up expanded states when history items are deleted
   useEffect(() => {
@@ -42,26 +55,10 @@ export const RollHistoryList = memo(function RollHistoryList({
       const cleaned = new Set([...prev].filter((id) => historyIds.has(id)))
       return cleaned.size !== prev.size ? cleaned : prev
     })
-    setExpandedDescriptions((prev) => {
-      const cleaned = new Set([...prev].filter((id) => historyIds.has(id)))
-      return cleaned.size !== prev.size ? cleaned : prev
-    })
   }, [history])
 
   const toggleTrace = useCallback((itemId: number) => {
     setExpandedTraces((prev) => {
-      const next = new Set(prev)
-      if (next.has(itemId)) {
-        next.delete(itemId)
-      } else {
-        next.add(itemId)
-      }
-      return next
-    })
-  }, [])
-
-  const toggleDescriptions = useCallback((itemId: number) => {
-    setExpandedDescriptions((prev) => {
       const next = new Set(prev)
       if (next.has(itemId)) {
         next.delete(itemId)
@@ -81,9 +78,9 @@ export const RollHistoryList = memo(function RollHistoryList({
             <HistoryIcon className="h-4 w-4" />
           </div>
           <h2 className="text-lg font-semibold">History</h2>
-          <span className="text-sm text-muted-foreground">({history.length})</span>
+          <span className="text-sm text-muted-foreground">({historyCount})</span>
         </div>
-        {history.length > 0 && (
+        {historyCount > 0 && (
           <button
             onClick={() => onClearHistory(true)}
             className="text-xs px-2.5 py-1.5 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-foreground transition-colors"
@@ -152,20 +149,18 @@ export const RollHistoryList = memo(function RollHistoryList({
               {/* Toggle buttons row */}
               {(item.result.descriptions?.length || item.result.trace) && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {/* Descriptions toggle button - only shown if descriptions exist */}
+                  {/* Descriptions button - opens drawer */}
                   {item.result.descriptions && item.result.descriptions.length > 0 && (
                     <button
-                      onClick={() => toggleDescriptions(item.id!)}
-                      className={cn(
-                        'text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all',
-                        expandedDescriptions.has(item.id!)
-                          ? 'text-amber-400 border-amber-400/40 bg-amber-400/10'
-                          : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'
+                      onClick={() => onShowDescriptions(
+                        item.result.descriptions!,
+                        item.tableId || item.templateId || undefined
                       )}
+                      className="text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all text-amber-400 border-amber-400/40 bg-amber-400/10 hover:bg-amber-400/20"
                     >
                       <BookOpen className="w-3.5 h-3.5" />
-                      {expandedDescriptions.has(item.id!) ? 'Hide' : 'Show'} Descriptions
-                      <span className="text-muted-foreground/60">
+                      View Descriptions
+                      <span className="text-amber-300/60">
                         ({item.result.descriptions.length})
                       </span>
                     </button>
@@ -189,16 +184,6 @@ export const RollHistoryList = memo(function RollHistoryList({
                       </span>
                     </button>
                   )}
-                </div>
-              )}
-
-              {/* Descriptions viewer */}
-              {expandedDescriptions.has(item.id!) && item.result.descriptions && item.result.descriptions.length > 0 && (
-                <div className="mt-3">
-                  <DescriptionsViewer
-                    descriptions={item.result.descriptions}
-                    onClose={() => toggleDescriptions(item.id!)}
-                  />
                 </div>
               )}
 

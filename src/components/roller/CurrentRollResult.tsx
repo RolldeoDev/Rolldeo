@@ -2,16 +2,16 @@
  * CurrentRollResult Component
  *
  * Displays the current roll result with re-roll option.
+ * Descriptions are shown in a shared drawer managed by ResultsPanel.
  */
 
 import { memo, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Sparkles, RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen } from 'lucide-react'
-import type { RollResult } from '@/engine/types'
+import type { RollResult, EntryDescription } from '@/engine/types'
 import { TraceViewer } from './TraceViewer'
 import { CaptureInspector } from './CaptureInspector'
-import { DescriptionsViewer } from './DescriptionsViewer'
 
 interface CurrentRollResultProps {
   result: RollResult | null
@@ -19,6 +19,7 @@ interface CurrentRollResultProps {
   isRolling: boolean
   error: string | null
   onReroll: () => void
+  onShowDescriptions: (descriptions: EntryDescription[], sourceLabel?: string) => void
 }
 
 export const CurrentRollResult = memo(function CurrentRollResult({
@@ -27,10 +28,10 @@ export const CurrentRollResult = memo(function CurrentRollResult({
   isRolling,
   error,
   onReroll,
+  onShowDescriptions,
 }: CurrentRollResultProps) {
   const [showTrace, setShowTrace] = useState(false)
   const [showCaptures, setShowCaptures] = useState(false)
-  const [showDescriptions, setShowDescriptions] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const hasCaptures = result?.captures && Object.keys(result.captures).length > 0
@@ -106,20 +107,15 @@ export const CurrentRollResult = memo(function CurrentRollResult({
 
       {/* Toggle buttons */}
       <div className="mt-4 flex flex-wrap gap-2">
-        {/* Descriptions toggle button - only shown if descriptions exist */}
+        {/* Descriptions button - opens drawer */}
         {hasDescriptions && (
           <button
-            onClick={() => setShowDescriptions(!showDescriptions)}
-            className={`
-              text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all
-              ${showDescriptions
-                ? 'text-amber-400 border-amber-400/40 bg-amber-400/10'
-                : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'}
-            `}
+            onClick={() => onShowDescriptions(result!.descriptions!, itemName || undefined)}
+            className="text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-amber-400 border-amber-400/40 bg-amber-400/10 hover:bg-amber-400/20"
           >
             <BookOpen className="w-4 h-4" />
-            {showDescriptions ? 'Hide' : 'Show'} Descriptions
-            <span className="text-muted-foreground/60 text-xs">
+            View Descriptions
+            <span className="text-amber-300/60 text-xs">
               ({descriptionCount})
             </span>
           </button>
@@ -163,16 +159,6 @@ export const CurrentRollResult = memo(function CurrentRollResult({
           </button>
         )}
       </div>
-
-      {/* Descriptions viewer */}
-      {showDescriptions && hasDescriptions && (
-        <div className="mt-4">
-          <DescriptionsViewer
-            descriptions={result.descriptions!}
-            onClose={() => setShowDescriptions(false)}
-          />
-        </div>
-      )}
 
       {/* Trace viewer */}
       {showTrace && result.trace && (
