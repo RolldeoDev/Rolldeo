@@ -5,7 +5,7 @@
  * Used for variables, shared variables, and other key-value data.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { Plus, Trash2, RefreshCw } from 'lucide-react'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
 import { cn } from '@/lib/utils'
@@ -39,6 +39,7 @@ export function KeyValueEditor({
   const [newKey, setNewKey] = useState('')
   const [newValue, setNewValue] = useState('')
   const [keyValidationError, setKeyValidationError] = useState<string | null>(null)
+  const newKeyInputRef = useRef<HTMLInputElement>(null)
 
   const validateKey = useCallback(
     (key: string): boolean => {
@@ -67,6 +68,8 @@ export function KeyValueEditor({
     setNewKey('')
     setNewValue('')
     setKeyValidationError(null)
+    // Focus the new key input after adding
+    setTimeout(() => newKeyInputRef.current?.focus(), 0)
   }, [value, onChange, newKey, newValue, validateKey, keyError])
 
   const removeEntry = useCallback(
@@ -182,6 +185,7 @@ export function KeyValueEditor({
               {newKeyIsCaptureAware ? "New Key (capture-aware)" : "New Key"}
             </label>
             <input
+              ref={newKeyInputRef}
               type="text"
               value={newKey}
               onChange={(e) => {
