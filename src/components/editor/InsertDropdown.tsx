@@ -9,11 +9,12 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { Plus, Search, Table2, Sparkles, Dices, Calculator, Variable, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+import { getResultTypeIcon } from '@/lib/resultTypeIcons'
+import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 interface InsertDropdownProps {
-  availableTableIds: string[]
-  availableTemplateIds: string[]
+  localTables: TableInfo[]
+  localTemplates: TemplateInfo[]
   importedTables?: ImportedTableInfo[]
   importedTemplates?: ImportedTemplateInfo[]
   onInsert: (text: string) => void
@@ -28,6 +29,7 @@ interface InsertItem {
   source: string // Collection name (e.g., "Local", "Fantasy Names")
   icon: typeof Table2
   description?: string
+  colorClass: 'mint' | 'lavender' | 'amber'
 }
 
 type TabType = 'tables' | 'templates' | 'syntax'
@@ -44,6 +46,7 @@ const SYNTAX_ITEMS: InsertItem[] = [
     source: SYNTAX_SOURCE,
     icon: Dices,
     description: 'Roll dice (e.g., 2d6, 1d20+5)',
+    colorClass: 'amber',
   },
   {
     id: 'math',
@@ -53,6 +56,7 @@ const SYNTAX_ITEMS: InsertItem[] = [
     source: SYNTAX_SOURCE,
     icon: Calculator,
     description: 'Calculate math expressions',
+    colorClass: 'amber',
   },
   {
     id: 'variable',
@@ -62,6 +66,7 @@ const SYNTAX_ITEMS: InsertItem[] = [
     source: SYNTAX_SOURCE,
     icon: Variable,
     description: 'Reference a shared variable',
+    colorClass: 'amber',
   },
   {
     id: 'again',
@@ -71,12 +76,13 @@ const SYNTAX_ITEMS: InsertItem[] = [
     source: SYNTAX_SOURCE,
     icon: RotateCcw,
     description: 'Re-roll the previous value',
+    colorClass: 'amber',
   },
 ]
 
 export function InsertDropdown({
-  availableTableIds,
-  availableTemplateIds,
+  localTables,
+  localTemplates,
   importedTables = [],
   importedTemplates = [],
   onInsert,
@@ -93,50 +99,56 @@ export function InsertDropdown({
 
   // Build list of all insertable items
   const allItems = useMemo((): InsertItem[] => {
-    // Local tables
-    const tableItems: InsertItem[] = availableTableIds.map((id) => ({
-      id: `table-${id}`,
-      label: id,
-      insertText: `{{${id}}}`,
+    // Local tables - use result type icon if available, otherwise Table2
+    const tableItems: InsertItem[] = localTables.map((table) => ({
+      id: `table-${table.id}`,
+      label: table.id,
+      insertText: `{{${table.id}}}`,
       type: 'table' as const,
       source: LOCAL_SOURCE,
-      icon: Table2,
+      icon: table.resultType ? getResultTypeIcon(table.resultType) : Table2,
+      description: table.name !== table.id ? table.name : undefined,
+      colorClass: 'mint',
     }))
 
-    // Local templates
-    const templateItems: InsertItem[] = availableTemplateIds.map((id) => ({
-      id: `template-${id}`,
-      label: id,
-      insertText: `{{${id}}}`,
+    // Local templates - use result type icon if available, otherwise Sparkles
+    const templateItems: InsertItem[] = localTemplates.map((template) => ({
+      id: `template-${template.id}`,
+      label: template.id,
+      insertText: `{{${template.id}}}`,
       type: 'template' as const,
       source: LOCAL_SOURCE,
-      icon: Sparkles,
+      icon: template.resultType ? getResultTypeIcon(template.resultType) : Sparkles,
+      description: template.name !== template.id ? template.name : undefined,
+      colorClass: 'lavender',
     }))
 
-    // Imported tables
+    // Imported tables - use result type icon if available, otherwise Table2
     const importedTableItems: InsertItem[] = importedTables.map((table) => ({
       id: `imported-table-${table.alias}-${table.id}`,
       label: `${table.alias}.${table.id}`,
       insertText: `{{${table.alias}.${table.id}}}`,
       type: 'table' as const,
       source: table.sourceCollectionName,
-      icon: Table2,
+      icon: table.resultType ? getResultTypeIcon(table.resultType) : Table2,
       description: table.name !== table.id ? table.name : undefined,
+      colorClass: 'mint',
     }))
 
-    // Imported templates
+    // Imported templates - use result type icon if available, otherwise Sparkles
     const importedTemplateItems: InsertItem[] = importedTemplates.map((template) => ({
       id: `imported-template-${template.alias}-${template.id}`,
       label: `${template.alias}.${template.id}`,
       insertText: `{{${template.alias}.${template.id}}}`,
       type: 'template' as const,
       source: template.sourceCollectionName,
-      icon: Sparkles,
+      icon: template.resultType ? getResultTypeIcon(template.resultType) : Sparkles,
       description: template.name !== template.id ? template.name : undefined,
+      colorClass: 'lavender',
     }))
 
     return [...tableItems, ...templateItems, ...importedTableItems, ...importedTemplateItems, ...SYNTAX_ITEMS]
-  }, [availableTableIds, availableTemplateIds, importedTables, importedTemplates])
+  }, [localTables, localTemplates, importedTables, importedTemplates])
 
   // Filter items by tab and search
   const filteredItems = useMemo(() => {
@@ -284,6 +296,27 @@ export function InsertDropdown({
     [onInsert]
   )
 
+  // Get highlight classes based on item color
+  const getHighlightClasses = (colorClass: InsertItem['colorClass'], isHighlighted: boolean) => {
+    if (!isHighlighted) return 'hover:bg-accent/50'
+    switch (colorClass) {
+      case 'mint': return 'bg-mint/10 text-mint'
+      case 'lavender': return 'bg-lavender/10 text-lavender'
+      case 'amber': return 'bg-amber/10 text-amber'
+      default: return 'bg-primary/10 text-primary'
+    }
+  }
+
+  // Get icon color class
+  const getIconColorClass = (colorClass: InsertItem['colorClass']) => {
+    switch (colorClass) {
+      case 'mint': return 'text-mint'
+      case 'lavender': return 'text-lavender'
+      case 'amber': return 'text-amber'
+      default: return 'text-muted-foreground'
+    }
+  }
+
   // Render grouped items with proper highlighting
   const renderGroups = () => {
     let currentIndex = 0
@@ -296,20 +329,19 @@ export function InsertDropdown({
         {items.map((item) => {
           const Icon = item.icon
           const globalIndex = currentIndex++
+          const isHighlighted = globalIndex === highlightedIndex
 
           return (
             <button
               key={item.id}
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors',
-                globalIndex === highlightedIndex
-                  ? 'bg-primary/10 text-primary'
-                  : 'hover:bg-accent/50'
+                getHighlightClasses(item.colorClass, isHighlighted)
               )}
               onClick={() => handleItemClick(item)}
               onMouseEnter={() => setHighlightedIndex(globalIndex)}
             >
-              <Icon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+              <Icon className={cn('h-4 w-4 flex-shrink-0', getIconColorClass(item.colorClass))} />
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">{item.label}</div>
                 {item.description && (
@@ -365,7 +397,7 @@ export function InsertDropdown({
                 className={cn(
                   'flex-1 min-w-0 px-2 py-2 text-sm font-medium transition-colors relative',
                   activeTab === 'tables'
-                    ? 'text-primary'
+                    ? 'text-mint'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -375,7 +407,7 @@ export function InsertDropdown({
                   <span className="text-xs text-muted-foreground flex-shrink-0">({tabCounts.tables})</span>
                 </span>
                 {activeTab === 'tables' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-mint" />
                 )}
               </button>
               <button
@@ -384,7 +416,7 @@ export function InsertDropdown({
                 className={cn(
                   'flex-1 min-w-0 px-2 py-2 text-sm font-medium transition-colors relative',
                   activeTab === 'templates'
-                    ? 'text-primary'
+                    ? 'text-lavender'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -394,7 +426,7 @@ export function InsertDropdown({
                   <span className="text-xs text-muted-foreground flex-shrink-0">({tabCounts.templates})</span>
                 </span>
                 {activeTab === 'templates' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-lavender" />
                 )}
               </button>
               <button
@@ -403,7 +435,7 @@ export function InsertDropdown({
                 className={cn(
                   'flex-1 min-w-0 px-2 py-2 text-sm font-medium transition-colors relative',
                   activeTab === 'syntax'
-                    ? 'text-primary'
+                    ? 'text-amber'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
@@ -412,7 +444,7 @@ export function InsertDropdown({
                   <span className="truncate">Syntax</span>
                 </span>
                 {activeTab === 'syntax' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber" />
                 )}
               </button>
             </div>

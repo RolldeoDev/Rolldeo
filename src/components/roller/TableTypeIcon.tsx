@@ -26,7 +26,7 @@ export const TableTypeIcon = memo(function TableTypeIcon({
     case 'collection':
       return <FolderTree className={`${className} text-amber-400`} aria-label="Collection table" />
     case 'template':
-      return <FileText className={`${className} text-rose-400`} aria-label="Template" />
+      return <FileText className={`${className} text-lavender`} aria-label="Template" />
     default:
       return <Table2 className={`${className} text-muted-foreground`} />
   }

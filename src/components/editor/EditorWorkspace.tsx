@@ -27,7 +27,7 @@ import type {
   SimpleTable,
 } from '@/engine/types'
 import { useCollectionStore } from '@/stores/collectionStore'
-import type { ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 interface EditorWorkspaceProps {
   document: RandomTableDocument
@@ -216,15 +216,35 @@ export function EditorWorkspace({
     }
   }, [collectionId, document.imports, document.metadata.namespace])
 
-  // Available table IDs for references
+  // Available local tables for references (with full info for InsertDropdown)
+  const localTables = useMemo((): TableInfo[] => {
+    return document.tables.map((t) => ({
+      id: t.id,
+      name: t.name,
+      type: t.type,
+      description: t.description,
+      tags: t.tags,
+      hidden: t.hidden,
+      entryCount: t.type === 'simple' ? t.entries?.length : undefined,
+      resultType: t.resultType,
+    }))
+  }, [document.tables])
+
+  // Available local templates for references (with full info for InsertDropdown)
+  const localTemplates = useMemo((): TemplateInfo[] => {
+    return (document.templates || []).map((t) => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      tags: t.tags,
+      resultType: t.resultType,
+    }))
+  }, [document.templates])
+
+  // Available table IDs for references (simple string array for other components)
   const availableTableIds = useMemo(() => {
     return document.tables.map((t) => t.id)
   }, [document.tables])
-
-  // Available template IDs
-  const availableTemplateIds = useMemo(() => {
-    return (document.templates || []).map((t) => t.id)
-  }, [document.templates])
 
   // Imported tables from resolved imports
   // Note: importsVersion triggers re-evaluation after engine update
@@ -553,8 +573,8 @@ export function EditorWorkspace({
                         template={template}
                         onChange={(updated) => updateTemplate(index, updated)}
                         onDelete={() => deleteTemplate(index)}
-                        availableTableIds={availableTableIds}
-                        availableTemplateIds={availableTemplateIds}
+                        localTables={localTables}
+                        localTemplates={localTemplates}
                         importedTables={importedTables}
                         importedTemplates={importedTemplates}
                         defaultExpanded={lastExplicitItemId === template.id || (document.templates?.length || 0) === 1}
