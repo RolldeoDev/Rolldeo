@@ -456,13 +456,18 @@ export function EntryEditor({
             <label className="block text-sm font-medium mb-1">
               Sets (Placeholder Values)
             </label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Use {'{{pattern}}'} syntax for dynamic values (e.g., {'{{dice:1d6}}'}, {'{{tableName}}'})
+            </p>
             <KeyValueEditor
               value={entry.sets || {}}
               onChange={(sets) =>
                 updateField('sets', Object.keys(sets).length > 0 ? sets : undefined)
               }
               keyPlaceholder="Key (@key)"
-              valuePlaceholder="Value"
+              valuePlaceholder="Value or {{pattern}}"
+              valueSupportsExpressions={true}
+              collectionId={collectionId}
             />
           </div>
 

@@ -23,8 +23,8 @@
           "description": "Elves are graceful, long-lived beings with a deep connection to nature and magic. They value art, music, and the preservation of ancient knowledge.",
           "sets": {
             "raceId": "elf",
-            "firstNameTable": "elfFirstNames",
-            "surnameTable": "elfSurnames",
+            "firstName": "{{elfFirstNames}}",
+            "surname": "{{elfSurnames}}",
             "lifespan": "750 years",
             "size": "Medium"
           }
@@ -36,8 +36,8 @@
           "description": "Dwarves are stout, hardy folk known for their craftsmanship, mining expertise, and fierce loyalty to clan and kin. They hold grudges for generations.",
           "sets": {
             "raceId": "dwarf",
-            "firstNameTable": "dwarfFirstNames",
-            "surnameTable": "dwarfSurnames",
+            "firstName": "{{dwarfFirstNames}}",
+            "surname": "{{dwarfSurnames}}",
             "lifespan": "350 years",
             "size": "Medium"
           }
@@ -49,8 +49,8 @@
           "description": "Goblins are small, cunning creatures who thrive in the shadows. Despite their reputation, many goblins possess remarkable ingenuity and survival instincts.",
           "sets": {
             "raceId": "goblin",
-            "firstNameTable": "goblinNames",
-            "surnameTable": "goblinEpithets",
+            "firstName": "{{goblinNames}}",
+            "surname": "{{goblinEpithets}}",
             "lifespan": "60 years",
             "size": "Small"
           }
@@ -62,8 +62,8 @@
           "description": "Giants are massive humanoids of tremendous strength. They range from brutish hill giants to wise storm giants, each with their own culture and traditions.",
           "sets": {
             "raceId": "giant",
-            "firstNameTable": "giantNames",
-            "surnameTable": "giantTitles",
+            "firstName": "{{giantNames}}",
+            "surname": "{{giantTitles}}",
             "lifespan": "500 years",
             "size": "Huge"
           }
@@ -75,8 +75,8 @@
           "description": "Orcs are powerful warriors with a strong tribal culture. They value strength, honor in battle, and loyalty to their clan above all else.",
           "sets": {
             "raceId": "orc",
-            "firstNameTable": "orcNames",
-            "surnameTable": "orcClanNames",
+            "firstName": "{{orcNames}}",
+            "surname": "{{orcClanNames}}",
             "lifespan": "80 years",
             "size": "Medium"
           }
@@ -88,8 +88,8 @@
           "description": "Halflings are small, cheerful folk who value comfort, good food, and close-knit communities. Their bravery often surprises those who underestimate them.",
           "sets": {
             "raceId": "halfling",
-            "firstNameTable": "halflingFirstNames",
-            "surnameTable": "halflingSurnames",
+            "firstName": "{{halflingFirstNames}}",
+            "surname": "{{halflingSurnames}}",
             "lifespan": "150 years",
             "size": "Small"
           }
@@ -101,8 +101,8 @@
           "description": "Tieflings bear the mark of infernal heritage, with horns, tails, and unusual skin tones. Many struggle against prejudice while forging their own destiny.",
           "sets": {
             "raceId": "tiefling",
-            "firstNameTable": "tieflingNames",
-            "surnameTable": "tieflingVirtueNames",
+            "firstName": "{{tieflingNames}}",
+            "surname": "{{tieflingVirtueNames}}",
             "lifespan": "100 years",
             "size": "Medium"
           }
@@ -114,8 +114,8 @@
           "description": "Dragonborn are proud, draconic humanoids who honor their dragon ancestry. They value clan honor, personal excellence, and self-improvement.",
           "sets": {
             "raceId": "dragonborn",
-            "firstNameTable": "dragonbornNames",
-            "surnameTable": "dragonbornClanNames",
+            "firstName": "{{dragonbornNames}}",
+            "surname": "{{dragonbornClanNames}}",
             "lifespan": "80 years",
             "size": "Medium"
           }
@@ -661,7 +661,7 @@
       "shared": {
         "_raceInit": "{{race}}"
       },
-      "pattern": "{{@race.firstNameTable}} {{@race.surnameTable}}"
+      "pattern": "{{@race.firstName}} {{@race.surname}}"
     },
     {
       "id": "simpleNpc",
@@ -676,8 +676,8 @@
       "shared": {
         "_genderInit": "{{gender}}",
         "_raceInit": "{{race}}",
-        "_firstName": "{{@race.firstNameTable}}",
-        "_surname": "{{@race.surnameTable}}"
+        "_firstName": "{{@race.firstName}}",
+        "_surname": "{{@race.surname}}"
       },
       "pattern": "## {{$_firstName}} {{$_surname}}\n\n**{{@gender.honorific}} {{$_firstName}} {{$_surname}}** is a {{@gender.value}} {{@race.value}} {{profession}}.\n\n{{@gender.Subject}} {{@gender.is}} {{personalityTrait}} and {{physicalTrait}}.\n\n*{{@gender.Subject}} has a lifespan of approximately {{@race.lifespan}}.*"
     },
@@ -688,8 +688,8 @@
       "shared": {
         "_genderInit": "{{gender}}",
         "_raceInit": "{{race}}",
-        "_firstName": "{{@race.firstNameTable}}",
-        "_surname": "{{@race.surnameTable}}"
+        "_firstName": "{{@race.firstName}}",
+        "_surname": "{{@race.surname}}"
       },
       "pattern": "### {{$_firstName}} {{$_surname}}\n\n{{@gender.Subject}} {{@gender.is}} a {{@race.value}} {{profession}} known throughout the region.\n\nThose who know {{@gender.object}} describe {{@gender.object}} as {{personalityTrait}}. {{@gender.Subject}} {{physicalTrait}}, a reminder of {{@gender.possessive}} past adventures.\n\nAs a {{@race.value}}, {{@gender.subject}} carries the traditions of {{@gender.possessive}} people. The burden of {{@gender.possessive}} heritage weighs on {{@gender.object}}, but {{@gender.subject}} faces each day with determination.\n\n> \"I've learned to rely on {{@gender.reflexive}},\" {{@gender.subject}} often says."
     },
@@ -716,7 +716,7 @@
         "$rival": "{{race}}",
         "$rivalGender": "{{gender}}"
       },
-      "pattern": "## The Hero and The Rival\n\n### The Hero: {{$hero.@firstNameTable}} {{$hero.@surnameTable}}\n\n**{{$hero.@firstNameTable}}** is a {{$heroGender}} {{$hero}} ({{$hero.@size}}, ~{{$hero.@lifespan}} lifespan).\n\n{{$heroGender.@Subject}} {{$heroGender.@is}} {{personalityTrait}}.\n\n---\n\n### The Rival: {{$rival.@firstNameTable}} {{$rival.@surnameTable}}\n\n**{{$rival.@firstNameTable}}** is a {{$rivalGender}} {{$rival}} ({{$rival.@size}}, ~{{$rival.@lifespan}} lifespan).\n\n{{$rivalGender.@Subject}} {{$rivalGender.@is}} {{personalityTrait}}.\n\n---\n\n*These two have been locked in competition for years...*"
+      "pattern": "## The Hero and The Rival\n\n### The Hero: {{$hero.@firstName}} {{$hero.@surname}}\n\n**{{$hero.@firstName}}** is a {{$heroGender}} {{$hero}} ({{$hero.@size}}, ~{{$hero.@lifespan}} lifespan).\n\n{{$heroGender.@Subject}} {{$heroGender.@is}} {{personalityTrait}}.\n\n---\n\n### The Rival: {{$rival.@firstName}} {{$rival.@surname}}\n\n**{{$rival.@firstName}}** is a {{$rivalGender}} {{$rival}} ({{$rival.@size}}, ~{{$rival.@lifespan}} lifespan).\n\n{{$rivalGender.@Subject}} {{$rivalGender.@is}} {{personalityTrait}}.\n\n---\n\n*These two have been locked in competition for years...*"
     },
     {
       "id": "battleScene",
@@ -729,7 +729,7 @@
         "$warrior2": "{{race}}",
         "$warrior2Gender": "{{gender}}"
       },
-      "pattern": "## Clash of Warriors\n\n**{{$warrior1.@firstNameTable}} {{$warrior1.@surnameTable}}**, a {{$warrior1}} {{profession}}, faces off against **{{$warrior2.@firstNameTable}} {{$warrior2.@surnameTable}}**, a {{$warrior2}} {{profession}}.\n\n{{$warrior1Gender.@Subject}} raises {{$warrior1Gender.@possessive}} weapon as {{$warrior2Gender.@subject}} circles cautiously. The {{$warrior1.@size}} {{$warrior1}} and the {{$warrior2.@size}} {{$warrior2}} lock eyes.\n\n> \"You'll regret crossing me,\" {{$warrior1Gender.@subject}} growls.\n\n> \"We'll see about that,\" {{$warrior2Gender.@subject}} replies."
+      "pattern": "## Clash of Warriors\n\n**{{$warrior1.@firstName}} {{$warrior1.@surname}}**, a {{$warrior1}} {{profession}}, faces off against **{{$warrior2.@firstName}} {{$warrior2.@surname}}**, a {{$warrior2}} {{profession}}.\n\n{{$warrior1Gender.@Subject}} raises {{$warrior1Gender.@possessive}} weapon as {{$warrior2Gender.@subject}} circles cautiously. The {{$warrior1.@size}} {{$warrior1}} and the {{$warrior2.@size}} {{$warrior2}} lock eyes.\n\n> \"You'll regret crossing me,\" {{$warrior1Gender.@subject}} growls.\n\n> \"We'll see about that,\" {{$warrior2Gender.@subject}} replies."
     },
     {
       "id": "familyDuo",
@@ -741,7 +741,7 @@
         "$parentGender": "{{gender}}",
         "$childGender": "{{gender}}"
       },
-      "pattern": "## A {{$race}} Family\n\n### The Parent: {{$race.@firstNameTable}} {{$race.@surnameTable}}\n\n{{$parentGender.@honorific}} **{{$race.@firstNameTable}}** is a proud {{$race}} {{profession}}.\n\n{{$parentGender.@Subject}} {{$parentGender.@is}} {{personalityTrait}} and {{physicalTrait}}.\n\n### The {{$childGender.@child}}: {{$race.@firstNameTable}}\n\nTheir {{$childGender.@child}} **{{$race.@firstNameTable}}** takes after {{$parentGender.@object}}.\n\nThe young {{$race}} {{$childGender.@is}} {{personalityTrait}}, though {{$childGender.@subject}} still has much to learn.\n\n*The {{$race.@surnameTable}} family has lived in these lands for generations.*"
+      "pattern": "## A {{$race}} Family\n\n### The Parent: {{$race.@firstName}} {{$race.@surname}}\n\n{{$parentGender.@honorific}} **{{$race.@firstName}}** is a proud {{$race}} {{profession}}.\n\n{{$parentGender.@Subject}} {{$parentGender.@is}} {{personalityTrait}} and {{physicalTrait}}.\n\n### The {{$childGender.@child}}: {{$race.@firstName}}\n\nTheir {{$childGender.@child}} **{{$race.@firstName}}** takes after {{$parentGender.@object}}.\n\nThe young {{$race}} {{$childGender.@is}} {{personalityTrait}}, though {{$childGender.@subject}} still has much to learn.\n\n*The {{$race.@surname}} family has lived in these lands for generations.*"
     },
     {
       "id": "mercenaryBand",
@@ -756,7 +756,7 @@
         "$lieutenant2": "{{race}}",
         "$lt2Gender": "{{gender}}"
       },
-      "pattern": "# The {{$leader.@surnameTable}} Company\n\n## Commander: {{$leader.@firstNameTable}} {{$leader.@surnameTable}}\n\n**{{$leaderGender.@honorific}} {{$leader.@firstNameTable}}** is a battle-hardened {{$leader}} who founded this mercenary band {{dice:2d6+5}} years ago.\n\n{{$leaderGender.@Subject}} {{$leaderGender.@is}} {{personalityTrait}}. Veterans speak of how {{$leaderGender.@subject}} {{physicalTrait}}.\n\n---\n\n## First Lieutenant: {{$lieutenant1.@firstNameTable}} {{$lieutenant1.@surnameTable}}\n\nThe {{$lieutenant1}} serves as {{$leader.@firstNameTable}}'s right hand. {{$lt1Gender.@Subject}} {{$lt1Gender.@is}} {{personalityTrait}}.\n\n## Second Lieutenant: {{$lieutenant2.@firstNameTable}} {{$lieutenant2.@surnameTable}}\n\nThis {{$lieutenant2}} handles logistics and scouting. {{$lt2Gender.@Subject}} {{$lt2Gender.@is}} {{personalityTrait}}.\n\n---\n\n*The company's reputation precedes them wherever they go.*"
+      "pattern": "# The {{$leader.@surname}} Company\n\n## Commander: {{$leader.@firstName}} {{$leader.@surname}}\n\n**{{$leaderGender.@honorific}} {{$leader.@firstName}}** is a battle-hardened {{$leader}} who founded this mercenary band {{dice:2d6+5}} years ago.\n\n{{$leaderGender.@Subject}} {{$leaderGender.@is}} {{personalityTrait}}. Veterans speak of how {{$leaderGender.@subject}} {{physicalTrait}}.\n\n---\n\n## First Lieutenant: {{$lieutenant1.@firstName}} {{$lieutenant1.@surname}}\n\nThe {{$lieutenant1}} serves as {{$leader.@firstName}}'s right hand. {{$lt1Gender.@Subject}} {{$lt1Gender.@is}} {{personalityTrait}}.\n\n## Second Lieutenant: {{$lieutenant2.@firstName}} {{$lieutenant2.@surname}}\n\nThis {{$lieutenant2}} handles logistics and scouting. {{$lt2Gender.@Subject}} {{$lt2Gender.@is}} {{personalityTrait}}.\n\n---\n\n*The company's reputation precedes them wherever they go.*"
     }
   ]
 }

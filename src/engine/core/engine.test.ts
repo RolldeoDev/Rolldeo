@@ -809,6 +809,7 @@ describe('Capture-Aware Shared Variables', () => {
 
   describe('basic capture-aware shared variables', () => {
     it('should capture table roll with sets using $ prefix in shared key', () => {
+      // With explicit {{}} syntax, patterns in sets are evaluated at merge time
       const doc = createTestDoc(
         [
           {
@@ -816,8 +817,9 @@ describe('Capture-Aware Shared Variables', () => {
             name: 'Race',
             type: 'simple',
             entries: [
-              { id: 'elf', value: 'Elf', sets: { nameTable: 'elfNames', size: 'Medium' } },
-              { id: 'dwarf', value: 'Dwarf', sets: { nameTable: 'dwarfNames', size: 'Medium' } },
+              // Use explicit {{}} syntax to roll name table at merge time
+              { id: 'elf', value: 'Elf', sets: { name: '{{elfNames}}', size: 'Medium' } },
+              { id: 'dwarf', value: 'Dwarf', sets: { name: '{{dwarfNames}}', size: 'Medium' } },
             ],
           },
           {
@@ -840,7 +842,8 @@ describe('Capture-Aware Shared Variables', () => {
             shared: {
               '$hero': '{{race}}',
             },
-            pattern: '{{$hero.@nameTable}} the {{$hero}}',
+            // Access pre-evaluated name from sets
+            pattern: '{{$hero.@name}} the {{$hero}}',
           },
         ]
       )
@@ -854,6 +857,7 @@ describe('Capture-Aware Shared Variables', () => {
     })
 
     it('should support multiple independent capture-aware shared variables', () => {
+      // With explicit {{}} syntax, patterns in sets are evaluated at merge time
       const doc = createTestDoc(
         [
           {
@@ -861,8 +865,9 @@ describe('Capture-Aware Shared Variables', () => {
             name: 'Race',
             type: 'simple',
             entries: [
-              { id: 'elf', value: 'Elf', sets: { nameTable: 'elfNames' } },
-              { id: 'dwarf', value: 'Dwarf', sets: { nameTable: 'dwarfNames' } },
+              // Use explicit {{}} syntax to roll name table at merge time
+              { id: 'elf', value: 'Elf', sets: { name: '{{elfNames}}' } },
+              { id: 'dwarf', value: 'Dwarf', sets: { name: '{{dwarfNames}}' } },
             ],
           },
           {
@@ -886,7 +891,8 @@ describe('Capture-Aware Shared Variables', () => {
               '$hero': '{{race}}',
               '$enemy': '{{race}}',
             },
-            pattern: '{{$hero.@nameTable}} the {{$hero}} vs {{$enemy.@nameTable}} the {{$enemy}}',
+            // Access pre-evaluated name from sets
+            pattern: '{{$hero.@name}} the {{$hero}} vs {{$enemy.@name}} the {{$enemy}}',
           },
         ]
       )
@@ -955,7 +961,8 @@ describe('Capture-Aware Shared Variables', () => {
   })
 
   describe('dynamic table resolution', () => {
-    it('should roll on table when property value is a table ID', () => {
+    it('should evaluate pattern in set value at merge time', () => {
+      // With explicit {{}} syntax, table rolls happen at merge time
       const doc = createTestDoc(
         [
           {
@@ -963,8 +970,9 @@ describe('Capture-Aware Shared Variables', () => {
             name: 'Character Type',
             type: 'simple',
             entries: [
-              { value: 'Warrior', sets: { weaponTable: 'warriorWeapons' } },
-              { value: 'Mage', sets: { weaponTable: 'mageWeapons' } },
+              // Use explicit {{}} syntax to roll weapon table at merge time
+              { value: 'Warrior', sets: { weapon: '{{warriorWeapons}}' } },
+              { value: 'Mage', sets: { weapon: '{{mageWeapons}}' } },
             ],
           },
           {
@@ -987,7 +995,8 @@ describe('Capture-Aware Shared Variables', () => {
             shared: {
               '$char': '{{characterType}}',
             },
-            pattern: '{{$char}} with {{$char.@weaponTable}}',
+            // Access pre-evaluated weapon from sets
+            pattern: '{{$char}} with {{$char.@weapon}}',
           },
         ]
       )
@@ -1029,8 +1038,9 @@ describe('Capture-Aware Shared Variables', () => {
     })
   })
 
-  describe('dynamic table resolution in regular captures', () => {
-    it('should apply dynamic table resolution to capture access with index', () => {
+  describe('pattern evaluation in captured sets', () => {
+    it('should evaluate patterns in set values for captured items', () => {
+      // With explicit {{}} syntax, patterns are evaluated at merge time
       const doc = createTestDoc(
         [
           {
@@ -1038,8 +1048,9 @@ describe('Capture-Aware Shared Variables', () => {
             name: 'Enemy',
             type: 'simple',
             entries: [
-              { value: 'Orc', sets: { lootTable: 'orcLoot' } },
-              { value: 'Goblin', sets: { lootTable: 'goblinLoot' } },
+              // Use explicit {{}} syntax to roll loot table at merge time
+              { value: 'Orc', sets: { loot: '{{orcLoot}}' } },
+              { value: 'Goblin', sets: { loot: '{{goblinLoot}}' } },
             ],
           },
           {
@@ -1059,7 +1070,8 @@ describe('Capture-Aware Shared Variables', () => {
           {
             id: 'test',
             name: 'Test',
-            pattern: '{{1*enemy >> $foe|silent}}Defeated {{$foe[0]}}, found {{$foe[0].@lootTable}}',
+            // Access pre-evaluated loot from sets
+            pattern: '{{1*enemy >> $foe|silent}}Defeated {{$foe[0]}}, found {{$foe[0].@loot}}',
           },
         ]
       )
@@ -1072,7 +1084,8 @@ describe('Capture-Aware Shared Variables', () => {
       expect(isOrcCombo || isGoblinCombo).toBe(true)
     })
 
-    it('should apply dynamic table resolution to collect', () => {
+    it('should evaluate patterns in set values for collect', () => {
+      // With explicit {{}} syntax, patterns are evaluated at merge time
       const doc = createTestDoc(
         [
           {
@@ -1080,8 +1093,9 @@ describe('Capture-Aware Shared Variables', () => {
             name: 'Character',
             type: 'simple',
             entries: [
-              { value: 'Fighter', sets: { greetingTable: 'fighterGreeting' } },
-              { value: 'Wizard', sets: { greetingTable: 'wizardGreeting' } },
+              // Use explicit {{}} syntax to roll greeting table at merge time
+              { value: 'Fighter', sets: { greeting: '{{fighterGreeting}}' } },
+              { value: 'Wizard', sets: { greeting: '{{wizardGreeting}}' } },
             ],
           },
           {
@@ -1101,7 +1115,8 @@ describe('Capture-Aware Shared Variables', () => {
           {
             id: 'test',
             name: 'Test',
-            pattern: '{{2*unique*character >> $party|silent}}Greetings: {{collect:$party.@greetingTable}}',
+            // Access pre-evaluated greeting from sets via collect
+            pattern: '{{2*unique*character >> $party|silent}}Greetings: {{collect:$party.@greeting}}',
           },
         ]
       )
@@ -1109,7 +1124,7 @@ describe('Capture-Aware Shared Variables', () => {
       engine.loadCollection(doc, 'test')
       const result = engine.rollTemplate('test', 'test')
 
-      // Both Fighter and Wizard should have their greetings resolved (order varies)
+      // Both Fighter and Wizard should have their greetings evaluated (order varies)
       expect(result.text).toMatch(/^Greetings: (Hail!, Greetings!|Greetings!, Hail!)$/)
     })
   })
@@ -1142,6 +1157,411 @@ describe('Capture-Aware Shared Variables', () => {
 
       // Complex expression (dice + table) should evaluate but sets will be empty
       expect(result.text).toMatch(/^Found: [1-6] Gold$/)
+    })
+  })
+})
+
+describe('Explicit Pattern Syntax in Sets', () => {
+  let engine: RandomTableEngine
+
+  const createTestDoc = (
+    tables: import('../types').Table[],
+    templates: import('../types').Template[]
+  ): import('../types').RandomTableDocument => ({
+    metadata: {
+      name: 'Test',
+      namespace: 'test.sets.explicit',
+      version: '1.0.0',
+      specVersion: '1.0',
+    },
+    tables,
+    templates,
+  })
+
+  beforeEach(() => {
+    engine = new RandomTableEngine()
+  })
+
+  describe('pattern evaluation in sets', () => {
+    it('should evaluate {{tableName}} patterns in sets at merge time', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'character',
+            name: 'Character',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Warrior',
+                sets: {
+                  // Explicit pattern - evaluated at merge time
+                  weapon: '{{weapons}}',
+                },
+              },
+            ],
+          },
+          {
+            id: 'weapons',
+            name: 'Weapons',
+            type: 'simple',
+            entries: [{ value: 'Sword' }, { value: 'Axe' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{character}}' },
+            pattern: '{{@character}} with {{@character.weapon}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toMatch(/^Warrior with (Sword|Axe)$/)
+    })
+
+    it('should evaluate {{dice:}} patterns in sets at merge time', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'monster',
+            name: 'Monster',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Dragon',
+                sets: {
+                  hp: '{{dice:4d10+20}}',
+                  ac: '18',
+                },
+              },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{monster}}' },
+            pattern: '{{@monster}}: HP={{@monster.hp}}, AC={{@monster.ac}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      // HP should be a number between 24-60, AC should be literal "18"
+      expect(result.text).toMatch(/^Dragon: HP=\d+, AC=18$/)
+      const hpMatch = result.text.match(/HP=(\d+)/)
+      expect(hpMatch).not.toBeNull()
+      const hp = parseInt(hpMatch![1], 10)
+      expect(hp).toBeGreaterThanOrEqual(24)
+      expect(hp).toBeLessThanOrEqual(60)
+    })
+
+    it('should support mixed content in set values', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'item',
+            name: 'Item',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Potion',
+                sets: {
+                  // Mixed literal and pattern content
+                  description: 'A {{adjective}} potion worth {{dice:1d6*10}} gold',
+                },
+              },
+            ],
+          },
+          {
+            id: 'adjective',
+            name: 'Adjective',
+            type: 'simple',
+            entries: [{ value: 'glowing' }, { value: 'bubbling' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{item}}' },
+            pattern: '{{@item.description}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toMatch(/^A (glowing|bubbling) potion worth \d+ gold$/)
+    })
+
+    it('should keep literal strings as literals even if they match table IDs', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'creature',
+            name: 'Creature',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Dragon',
+                sets: {
+                  // This is a literal string, not a table reference
+                  type: 'weapons', // "weapons" table exists but shouldn't be rolled
+                },
+              },
+            ],
+          },
+          {
+            id: 'weapons',
+            name: 'Weapons',
+            type: 'simple',
+            entries: [{ value: 'Sword' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{creature}}' },
+            pattern: 'Type: {{@creature.type}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      // Should return "weapons" as literal, NOT "Sword"
+      expect(result.text).toBe('Type: weapons')
+    })
+  })
+
+  describe('cycle detection', () => {
+    it('should handle self-referential table rolls gracefully', () => {
+      // A set value that references the same table should work (recursion tracking)
+      // The table recursion limit (default 50) will catch truly infinite cases
+      const doc = createTestDoc(
+        [
+          {
+            id: 'items',
+            name: 'Items',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Chest',
+                sets: {
+                  // Contains another roll of the same table
+                  // This creates a chain but is not truly self-referential
+                  contents: '{{items}}',
+                },
+              },
+              {
+                value: 'Gold',
+                sets: {
+                  contents: 'nothing',
+                },
+              },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{items}}' },
+            pattern: 'Found: {{@items}}, Contains: {{@items.contents}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      // Should get either "Chest" with nested roll, or "Gold" with "nothing"
+      expect(result.text).toMatch(/^Found: (Chest|Gold), Contains: (Chest|Gold|nothing)$/)
+    })
+
+    it('should not re-evaluate set key during same evaluation', () => {
+      // If a set value pattern is being evaluated, another attempt to evaluate
+      // the same key should return the raw pattern (cycle detection)
+      const doc = createTestDoc(
+        [
+          {
+            id: 'table1',
+            name: 'Table 1',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Value1',
+                sets: {
+                  // This pattern will try to roll table2
+                  prop1: '{{table2}}',
+                },
+              },
+            ],
+          },
+          {
+            id: 'table2',
+            name: 'Table 2',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Value2',
+                sets: {
+                  // During evaluation of table1.prop1, this would try to evaluate
+                  // table1.prop1 again, triggering cycle detection
+                  prop2: '{{@table1.prop1}}',
+                },
+              },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{table1}}' },
+            // Access the nested property
+            pattern: 'Result: {{@table1.prop1}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      // The inner set evaluation of table1.prop1 happens at merge time,
+      // which rolls table2, which stores its sets including prop2.
+      // At the template level, @table1.prop1 returns "Value2" (the evaluated result)
+      expect(result.text).toBe('Result: Value2')
+    })
+
+    it('should handle nested table rolls in sets without cycles', () => {
+      // Nested patterns should work fine when there are no cycles
+      const doc = createTestDoc(
+        [
+          {
+            id: 'outer',
+            name: 'Outer',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Outer',
+                sets: {
+                  nested: '{{inner}}',
+                },
+              },
+            ],
+          },
+          {
+            id: 'inner',
+            name: 'Inner',
+            type: 'simple',
+            entries: [{ value: 'InnerValue' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{outer}}' },
+            pattern: 'Nested: {{@outer.nested}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toBe('Nested: InnerValue')
+    })
+  })
+
+  describe('defaultSets with patterns', () => {
+    it('should evaluate patterns in defaultSets', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'character',
+            name: 'Character',
+            type: 'simple',
+            defaultSets: {
+              // Default set with pattern
+              baseHp: '{{dice:2d6}}',
+            },
+            entries: [
+              { value: 'Warrior' },
+              { value: 'Mage' },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{character}}' },
+            pattern: '{{@character}} has {{@character.baseHp}} HP',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toMatch(/^(Warrior|Mage) has \d+ HP$/)
+    })
+
+    it('should allow entry sets to override defaultSets patterns', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'character',
+            name: 'Character',
+            type: 'simple',
+            defaultSets: {
+              weapon: '{{commonWeapons}}', // Default pattern
+            },
+            entries: [
+              { value: 'Warrior' }, // Uses default
+              { value: 'Mage', sets: { weapon: '{{mageWeapons}}' } }, // Override
+            ],
+          },
+          {
+            id: 'commonWeapons',
+            name: 'Common Weapons',
+            type: 'simple',
+            entries: [{ value: 'Sword' }],
+          },
+          {
+            id: 'mageWeapons',
+            name: 'Mage Weapons',
+            type: 'simple',
+            entries: [{ value: 'Staff' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { _init: '{{character}}' },
+            pattern: '{{@character}} with {{@character.weapon}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      // Roll multiple times to verify both paths work
+      let foundWarrior = false
+      let foundMage = false
+      for (let i = 0; i < 20; i++) {
+        const result = engine.rollTemplate('test', 'test')
+        if (result.text === 'Warrior with Sword') foundWarrior = true
+        if (result.text === 'Mage with Staff') foundMage = true
+        expect(result.text).toMatch(/^(Warrior with Sword|Mage with Staff)$/)
+      }
+      // With enough rolls, we should have seen both
+      expect(foundWarrior || foundMage).toBe(true)
     })
   })
 })

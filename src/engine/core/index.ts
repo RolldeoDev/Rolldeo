@@ -45,6 +45,8 @@ import {
   setCaptureSharedVariable,
   hasVariableConflict,
   addDescription,
+  beginSetEvaluation,
+  endSetEvaluation,
   type GenerationContext,
 } from './context'
 import {
@@ -829,25 +831,11 @@ export class RandomTableEngine {
         if (tableResult) {
           const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
 
-          // Build the CaptureItem with resolved sets
-          // Pre-resolve table/template IDs so they're consistent across accesses
-          const resolvedSets: Record<string, string> = {}
-          if (result.placeholders) {
-            for (const [key, value] of Object.entries(result.placeholders)) {
-              // Resolve any template expressions in set values
-              if (value.includes('{{')) {
-                resolvedSets[key] = this.evaluatePattern(value, context, collectionId)
-              } else {
-                // Pre-resolve table/template IDs to actual values
-                // This ensures consistent values across multiple accesses
-                resolvedSets[key] = this.resolveDynamicTableValue(value, context, collectionId)
-              }
-            }
-          }
-
+          // Sets are already evaluated at merge time in evaluateSetValues()
+          // Just use the placeholders directly
           setCaptureSharedVariable(context, varName, {
             value: result.text,
-            sets: resolvedSets,
+            sets: result.placeholders ?? {},
           })
           return
         }
@@ -1334,9 +1322,12 @@ export class RandomTableEngine {
     // Update context with entry info
     setCurrentTable(context, table.id, selected.id)
 
-    // Merge placeholders
+    // Evaluate and merge placeholders
+    // Set values containing {{patterns}} are evaluated at merge time for consistency
+    let evaluatedSets = selected.mergedSets
     if (Object.keys(selected.mergedSets).length > 0) {
-      mergePlaceholderSets(context, table.id, selected.mergedSets)
+      evaluatedSets = this.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
+      mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
     // Evaluate the entry value (may contain expressions)
@@ -1363,7 +1354,7 @@ export class RandomTableEngine {
       text,
       resultType: selected.resultType,
       assets: selected.assets,
-      placeholders: selected.mergedSets,
+      placeholders: evaluatedSets,
       entryId: selected.id,
     }
   }
@@ -1484,9 +1475,12 @@ export class RandomTableEngine {
     // Update context
     setCurrentTable(context, table.id, selected.id)
 
-    // Merge placeholders
+    // Evaluate and merge placeholders
+    // Set values containing {{patterns}} are evaluated at merge time for consistency
+    let evaluatedSets = selected.mergedSets
     if (Object.keys(selected.mergedSets).length > 0) {
-      mergePlaceholderSets(context, table.id, selected.mergedSets)
+      evaluatedSets = this.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
+      mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
     // Evaluate the entry value
@@ -1517,7 +1511,7 @@ export class RandomTableEngine {
       text,
       resultType: selected.resultType,
       assets: selected.assets,
-      placeholders: selected.mergedSets,
+      placeholders: evaluatedSets,
       entryId: selected.id,
     }
   }
@@ -1529,6 +1523,51 @@ export class RandomTableEngine {
   private evaluatePattern(pattern: string, context: GenerationContext, collectionId: string): string {
     const tokens = parseTemplate(pattern)
     return tokens.map((token) => this.evaluateToken(token, context, collectionId)).join('')
+  }
+
+  /**
+   * Evaluate set values that contain patterns.
+   * Set values are evaluated at merge time (when entry is selected) to ensure consistency.
+   * Only values containing {{}} are evaluated; plain strings are returned as-is.
+   * Uses cycle detection to prevent infinite loops from self-referential sets.
+   *
+   * @param sets - The merged sets from the selected entry
+   * @param context - The generation context
+   * @param collectionId - The collection ID for table resolution
+   * @param tableId - The table ID (used for cycle detection key)
+   * @returns Evaluated sets with patterns resolved
+   */
+  private evaluateSetValues(
+    sets: Sets,
+    context: GenerationContext,
+    collectionId: string,
+    tableId: string
+  ): Sets {
+    const evaluated: Sets = {}
+
+    for (const [key, value] of Object.entries(sets)) {
+      if (value.includes('{{')) {
+        // This value contains a pattern - evaluate it
+        const setKey = `${tableId}.${key}`
+
+        if (!beginSetEvaluation(context, setKey)) {
+          // Cycle detected - return raw value to prevent infinite loop
+          evaluated[key] = value
+          continue
+        }
+
+        try {
+          evaluated[key] = this.evaluatePattern(value, context, collectionId)
+        } finally {
+          endSetEvaluation(context, setKey)
+        }
+      } else {
+        // Plain string value - use as-is
+        evaluated[key] = value
+      }
+    }
+
+    return evaluated
   }
 
   /**
@@ -1694,55 +1733,12 @@ export class RandomTableEngine {
   private evaluatePlaceholder(
     token: { name: string; property?: string },
     context: GenerationContext,
-    collectionId?: string
+    _collectionId?: string
   ): string {
+    // Get the placeholder value directly - no implicit table/template resolution
+    // Set values containing {{patterns}} are evaluated at merge time in evaluateSetValues()
+    // If you want a set value to roll a table, use explicit syntax: "nameTable": "{{elfNames}}"
     const value = getPlaceholder(context, token.name, token.property)
-
-    // If the placeholder value is a valid table/template ID, roll on it (dynamic table selection)
-    // This supports patterns like {{@race.firstNameTable}} where firstNameTable = "elfFirstNames"
-    if (value && collectionId) {
-      const tableResult = this.resolveTableRef(value, collectionId)
-      if (tableResult) {
-        // Add placeholder access trace showing it resolved to a table
-        addTraceLeaf(context, 'placeholder_access', `@${token.name}${token.property ? '.' + token.property : ''}`, {
-          raw: token.name,
-          parsed: { property: token.property }
-        }, {
-          value: value,
-        }, {
-          type: 'placeholder',
-          name: token.name,
-          property: token.property,
-          found: true,
-          resolvedToTable: value,
-        } as PlaceholderAccessMetadata)
-
-        // Roll on the resolved table
-        const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
-        return result.text
-      }
-
-      // Also check if it's a template ID
-      const templateResult = this.resolveTemplateRef(value, collectionId)
-      if (templateResult) {
-        // Add placeholder access trace showing it resolved to a template
-        addTraceLeaf(context, 'placeholder_access', `@${token.name}${token.property ? '.' + token.property : ''}`, {
-          raw: token.name,
-          parsed: { property: token.property }
-        }, {
-          value: value,
-        }, {
-          type: 'placeholder',
-          name: token.name,
-          property: token.property,
-          found: true,
-          resolvedToTemplate: value,
-        } as PlaceholderAccessMetadata)
-
-        return this.evaluateTemplateInternal(templateResult.template, templateResult.collectionId, context)
-      }
-    }
-
     const result = value ?? ''
 
     // Add placeholder access trace
@@ -2203,23 +2199,11 @@ export class RandomTableEngine {
       if (result.text) {
         results.push(result.text)
 
-        // Capture the item with resolved sets
-        // The sets from result.placeholders are already the merged sets
-        const resolvedSets: Record<string, string> = {}
-        if (result.placeholders) {
-          for (const [key, value] of Object.entries(result.placeholders)) {
-            // Resolve any template expressions in set values
-            if (value.includes('{{')) {
-              resolvedSets[key] = this.evaluatePattern(value, context, resolvedCollectionId)
-            } else {
-              resolvedSets[key] = value
-            }
-          }
-        }
-
+        // Sets are already evaluated at merge time in evaluateSetValues()
+        // Just use the placeholders directly
         captureItems.push({
           value: result.text,
-          sets: resolvedSets,
+          sets: result.placeholders ?? {},
         })
 
         if (result.entryId) {
@@ -2377,14 +2361,14 @@ export class RandomTableEngine {
           result = item.value
         } else {
           // @property access (property stored without @)
+          // Sets are already evaluated at merge time, so just return the value
           const propValue = item.sets[token.property]
           if (propValue === undefined) {
             console.warn(
               `Capture property not found: $${token.varName}[${token.index}].@${token.property}`
             )
           }
-          // Apply dynamic table resolution
-          result = this.resolveDynamicTableValue(propValue ?? '', context, collectionId)
+          result = propValue ?? ''
         }
       } else {
         // Just indexed access - return value
@@ -2411,11 +2395,9 @@ export class RandomTableEngine {
 
     // Handle property access without index (on all items)
     if (token.property && token.property !== 'value' && token.property !== 'count') {
-      // Collect this property from all items, applying dynamic table resolution
-      const values = capture.items.map((item) => {
-        const propValue = item.sets[token.property!] ?? ''
-        return this.resolveDynamicTableValue(propValue, context, collectionId)
-      })
+      // Collect this property from all items
+      // Sets are already evaluated at merge time, so just return the values
+      const values = capture.items.map((item) => item.sets[token.property!] ?? '')
       result = values.filter((v) => v !== '').join(token.separator ?? ', ')
     } else {
       // Handle all values (no index, property is 'value' or undefined)
@@ -2503,35 +2485,6 @@ export class RandomTableEngine {
   }
 
   /**
-   * Apply dynamic table resolution to a property value.
-   * If the value is a valid table/template ID, roll on it and return the result.
-   * Otherwise, return the value as-is.
-   */
-  private resolveDynamicTableValue(
-    value: string,
-    context: GenerationContext,
-    collectionId: string
-  ): string {
-    if (!value) return value
-
-    // Check if value is a valid table ID
-    const tableResult = this.resolveTableRef(value, collectionId)
-    if (tableResult) {
-      const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
-      return result.text
-    }
-
-    // Check if value is a valid template ID
-    const templateResult = this.resolveTemplateRef(value, collectionId)
-    if (templateResult) {
-      return this.evaluateTemplateInternal(templateResult.template, templateResult.collectionId, context)
-    }
-
-    // Not a table/template - return as-is
-    return value
-  }
-
-  /**
    * Evaluate collect expression: {{collect:$var.@prop}}
    * Aggregates a property across all captured items.
    * Also supports capture-aware shared variables (though collect typically makes more sense for multi-roll captures).
@@ -2551,16 +2504,14 @@ export class RandomTableEngine {
     const captureShared = getCaptureSharedVariable(context, token.varName)
 
     // Handle capture-aware shared variables (single item)
+    // Sets are already evaluated at merge time, so just return the value
     if (!capture && captureShared) {
-      let rawValue: string
+      let result: string
       if (token.property === 'value') {
-        rawValue = captureShared.value
+        result = captureShared.value
       } else {
-        rawValue = captureShared.sets[token.property] ?? ''
+        result = captureShared.sets[token.property] ?? ''
       }
-
-      // Apply dynamic table resolution
-      const result = rawValue ? this.resolveDynamicTableValue(rawValue, context, collectionId) : ''
 
       addTraceLeaf(
         context,
@@ -2603,17 +2554,15 @@ export class RandomTableEngine {
       return ''
     }
 
-    // Collect values with dynamic table resolution
+    // Collect values from captured items
+    // Sets are already evaluated at merge time, so just return the values
     let allValues: string[]
 
     if (token.property === 'value') {
       allValues = capture.items.map((item) => item.value)
     } else {
-      // @property access (property stored without @), apply dynamic table resolution
-      allValues = capture.items.map((item) => {
-        const propValue = item.sets[token.property] ?? ''
-        return this.resolveDynamicTableValue(propValue, context, collectionId)
-      })
+      // @property access (property stored without @)
+      allValues = capture.items.map((item) => item.sets[token.property] ?? '')
     }
 
     // Filter empty strings (as per design decision)

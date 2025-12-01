@@ -21,8 +21,26 @@ const tabUnderlineColors: Record<EditorTab, string> = {
   metadata: 'bg-amber',
   tables: 'bg-mint',
   templates: 'bg-lavender',
-  variables: 'bg-copper',
+  variables: 'bg-rose',
   json: 'bg-gray-400 dark:bg-white',
+}
+
+// Tab-specific icon colors to match underlines
+const tabIconColors: Record<EditorTab, string> = {
+  metadata: 'text-amber',
+  tables: 'text-mint',
+  templates: 'text-lavender',
+  variables: 'text-rose',
+  json: 'text-gray-400 dark:text-white',
+}
+
+// Tab-specific badge colors (background with matching text)
+const tabBadgeColors: Record<EditorTab, { active: string; hover: string }> = {
+  metadata: { active: 'bg-amber/15 text-amber', hover: 'group-hover:bg-amber/10 group-hover:text-amber' },
+  tables: { active: 'bg-mint/15 text-mint', hover: 'group-hover:bg-mint/10 group-hover:text-mint' },
+  templates: { active: 'bg-lavender/15 text-lavender', hover: 'group-hover:bg-lavender/10 group-hover:text-lavender' },
+  variables: { active: 'bg-rose/15 text-rose', hover: 'group-hover:bg-rose/10 group-hover:text-rose' },
+  json: { active: 'bg-gray-400/15 text-gray-500', hover: 'group-hover:bg-gray-400/10 group-hover:text-gray-500' },
 }
 
 interface EditorTabBarProps {
@@ -66,15 +84,15 @@ export function EditorTabBar({ activeTab, onTabChange, tableCounts }: EditorTabB
             >
               <Icon className={cn(
                 'h-4 w-4 transition-colors',
-                isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                isActive ? tabIconColors[tab.id] : 'text-muted-foreground group-hover:text-foreground'
               )} />
               <span>{tab.label}</span>
               {tab.count !== undefined && tab.count > 0 && (
                 <span className={cn(
                   'px-1.5 py-0.5 text-xs rounded-full transition-colors',
                   isActive
-                    ? 'bg-primary/15 text-primary'
-                    : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
+                    ? tabBadgeColors[tab.id].active
+                    : `bg-muted text-muted-foreground ${tabBadgeColors[tab.id].hover}`
                 )}>
                   {tab.count}
                 </span>
@@ -124,14 +142,14 @@ export function EditorTabBar({ activeTab, onTabChange, tableCounts }: EditorTabB
             >
               <Icon className={cn(
                 'h-4 w-4 transition-colors',
-                isActive ? 'text-primary' : 'text-muted-foreground'
+                isActive ? tabIconColors[tab.id] : 'text-muted-foreground'
               )} />
               <span className="whitespace-nowrap">{tab.label}</span>
               {tab.count !== undefined && tab.count > 0 && (
                 <span className={cn(
                   'px-1.5 py-0.5 text-xs rounded-full transition-colors',
                   isActive
-                    ? 'bg-primary/20 text-primary'
+                    ? tabBadgeColors[tab.id].active
                     : 'bg-muted text-muted-foreground'
                 )}>
                   {tab.count}
