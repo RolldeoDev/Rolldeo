@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Dices,
   Calculator,
-  Table2,
   RefreshCw,
   Variable,
   X,
@@ -25,6 +24,7 @@ import { KeyValueEditor } from './KeyValueEditor'
 import { InsertDropdown } from './InsertDropdown'
 import { PatternPreview, type EditablePatternRef } from './PatternPreview'
 import type { Template, SharedVariables } from '@/engine/types'
+import type { ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 export interface TemplateEditorProps {
   /** The template to edit */
@@ -37,6 +37,10 @@ export interface TemplateEditorProps {
   availableTableIds: string[]
   /** Available template IDs for references */
   availableTemplateIds?: string[]
+  /** Tables from imported collections */
+  importedTables?: ImportedTableInfo[]
+  /** Templates from imported collections */
+  importedTemplates?: ImportedTemplateInfo[]
   /** Whether the template card is expanded */
   defaultExpanded?: boolean
   /** Collection ID for live preview evaluation */
@@ -49,6 +53,8 @@ export function TemplateEditor({
   onDelete,
   availableTableIds,
   availableTemplateIds = [],
+  importedTables = [],
+  importedTemplates = [],
   defaultExpanded = false,
   collectionId,
 }: TemplateEditorProps) {
@@ -217,30 +223,22 @@ export function TemplateEditor({
 
           {/* Pattern Editor with Syntax Helpers */}
           <div>
-            <div className="flex items-center justify-between mb-2 md:mb-2 mb-3">
+            <div className="flex items-center mb-2 md:mb-2 mb-3">
               <span className="text-base md:text-sm font-medium">
                 Pattern & Preview
               </span>
-              <InsertDropdown
-                availableTableIds={availableTableIds}
-                availableTemplateIds={availableTemplateIds.filter(id => id !== template.id)}
-                onInsert={insertAtCursor}
-              />
             </div>
 
             {/* Quick Syntax Buttons - scrollable on mobile */}
             <div className="flex flex-wrap md:flex-wrap flex-nowrap gap-2 md:gap-1.5 mb-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-none"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              <SyntaxHelperButton
-                icon={<Table2 className="h-3.5 w-3.5" />}
-                label="Table"
-                title="Insert table reference"
-                onClick={() => {
-                  const tableId =
-                    availableTableIds.length > 0 ? availableTableIds[0] : 'tableId'
-                  insertAtCursor(`{{${tableId}}}`)
-                }}
+              <InsertDropdown
+                availableTableIds={availableTableIds}
+                availableTemplateIds={availableTemplateIds.filter(id => id !== template.id)}
+                importedTables={importedTables}
+                importedTemplates={importedTemplates.filter(t => t.id !== template.id)}
+                onInsert={insertAtCursor}
               />
               <SyntaxHelperButton
                 icon={<Dices className="h-3.5 w-3.5" />}

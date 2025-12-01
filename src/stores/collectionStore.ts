@@ -6,7 +6,7 @@
  */
 
 import { create } from 'zustand'
-import { RandomTableEngine, type TableInfo, type TemplateInfo } from '../engine/core'
+import { RandomTableEngine, type TableInfo, type TemplateInfo, type ImportedTableInfo, type ImportedTemplateInfo } from '../engine/core'
 import type { RandomTableDocument } from '../engine/types'
 import * as db from '../services/db'
 import * as importService from '../services/import'
@@ -68,6 +68,9 @@ interface CollectionState {
     pathToIdMap?: Map<string, string>
   ) => Promise<void>
 
+  // Update a collection's document in the engine (for live editing)
+  updateCollectionDocument: (id: string, document: RandomTableDocument) => void
+
   // Selectors
   getCollection: (id: string) => CollectionMeta | undefined
   getCollectionDocument: (id: string) => RandomTableDocument | undefined
@@ -76,6 +79,8 @@ interface CollectionState {
   getAllCollections: () => CollectionMeta[]
   getTableList: (collectionId: string) => TableInfo[]
   getTemplateList: (collectionId: string) => TemplateInfo[]
+  getImportedTableList: (collectionId: string, includeHidden?: boolean) => ImportedTableInfo[]
+  getImportedTemplateList: (collectionId: string) => ImportedTemplateInfo[]
   getAllTags: () => string[]
 }
 
@@ -297,6 +302,14 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
     get().engine.resolveImports()
   },
 
+  /**
+   * Update a collection's document in the engine (for live editing).
+   * This keeps the engine in sync with editor changes without persisting to DB.
+   */
+  updateCollectionDocument: (id, document) => {
+    get().engine.updateDocument(id, document)
+  },
+
   // ============================================================================
   // Selectors
   // ============================================================================
@@ -328,6 +341,22 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
   getTemplateList: (collectionId) => {
     try {
       return get().engine.listTemplates(collectionId)
+    } catch {
+      return []
+    }
+  },
+
+  getImportedTableList: (collectionId, includeHidden = true) => {
+    try {
+      return get().engine.listImportedTables(collectionId, includeHidden)
+    } catch {
+      return []
+    }
+  },
+
+  getImportedTemplateList: (collectionId) => {
+    try {
+      return get().engine.listImportedTemplates(collectionId)
     } catch {
       return []
     }
