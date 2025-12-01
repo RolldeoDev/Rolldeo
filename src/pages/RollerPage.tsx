@@ -34,6 +34,7 @@ export function RollerPage() {
   const setExpandedCollectionId = useUIStore((state) => state.setExpandedCollectionId)
   const setEditorActiveTab = useUIStore((state) => state.setEditorActiveTab)
   const setEditorSelectedItemId = useUIStore((state) => state.setEditorSelectedItemId)
+  const setEditorLastExplicitItemId = useUIStore((state) => state.setEditorLastExplicitItemId)
 
   useEffect(() => {
     if (initialCollectionId) {
@@ -159,10 +160,12 @@ export function RollerPage() {
       // Set the editor tab and selected item before navigating
       setEditorActiveTab(item.type === 'template' ? 'templates' : 'tables')
       setEditorSelectedItemId(item.id)
+      // Also set the "last explicit" item ID which controls expansion and scroll-to behavior
+      setEditorLastExplicitItemId(item.id)
       // Navigate to the editor page for this collection
       navigate(`/editor/${collectionId}`)
     },
-    [navigate, setEditorActiveTab, setEditorSelectedItemId]
+    [navigate, setEditorActiveTab, setEditorSelectedItemId, setEditorLastExplicitItemId]
   )
 
   // Handle Copy Result - roll and copy to clipboard

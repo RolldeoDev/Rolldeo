@@ -25,7 +25,7 @@ export const TraceToggle = memo(function TraceToggle({
         px-3 py-1.5 rounded-lg border transition-all
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent'}
         ${enabled
-          ? 'text-primary border-primary/40 bg-primary/10'
+          ? 'text-copper border-copper/40 bg-copper/10'
           : 'text-muted-foreground border-border/50 hover:border-border'}
       `}
     >
@@ -37,15 +37,14 @@ export const TraceToggle = memo(function TraceToggle({
         className="sr-only peer"
       />
       <div
-        className={`
-          relative w-8 h-4 rounded-full transition-colors
-          ${enabled ? 'bg-primary' : 'bg-muted-foreground/30'}
-          after:content-[''] after:absolute
-          after:w-3 after:h-3 after:rounded-full after:bg-white
-          after:top-0.5 after:left-0.5 after:transition-transform after:shadow-sm
-          ${enabled ? 'after:translate-x-4' : ''}
-        `}
-      />
+        className="relative w-8 h-4 rounded-full transition-colors"
+        style={{ backgroundColor: enabled ? 'hsl(var(--copper))' : 'hsl(var(--muted-foreground) / 0.3)' }}
+      >
+        <span
+          className="absolute w-3 h-3 rounded-full bg-white top-0.5 left-0.5 transition-transform shadow-sm"
+          style={{ transform: enabled ? 'translateX(1rem)' : 'translateX(0)' }}
+        />
+      </div>
       <Activity className="w-4 h-4" />
       <span className="font-medium">Trace</span>
     </label>

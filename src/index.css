@@ -338,6 +338,21 @@
     @apply text-muted-foreground hover:text-foreground hover:bg-accent;
   }
 
+  .btn-copper {
+    @apply px-6 py-3 font-semibold rounded-xl transition-all duration-200;
+    background-color: hsl(var(--copper));
+    color: white;
+    @apply hover:brightness-110 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-copper:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .btn-copper:disabled:hover {
+    @apply brightness-100 scale-100;
+  }
+
   /* Input styles - theme-aware */
   .input-field {
     @apply w-full px-4 py-3 rounded-xl transition-all duration-200;
@@ -541,7 +556,7 @@
   position: relative;
 }
 
-/* Gradient underline using lavender-to-rose accent */
+/* Gradient underline using copper-to-gold accent */
 .prose-roll h1::after {
   content: '';
   position: absolute;
@@ -550,9 +565,9 @@
   right: 0;
   height: 2px;
   background: linear-gradient(90deg,
-    hsl(262, 40%, 55%) 0%,
-    hsl(300, 35%, 60%) 50%,
-    hsl(340, 50%, 65%) 100%
+    hsl(25, 75%, 45%) 0%,
+    hsl(35, 80%, 55%) 50%,
+    hsl(25, 75%, 45%) 100%
   );
   border-radius: 1px;
 }
@@ -566,7 +581,7 @@
   padding-left: 0.75em;
 }
 
-/* Vertical accent bar - cyan accent */
+/* Vertical accent bar - copper accent */
 .prose-roll h2::before {
   content: '';
   position: absolute;
@@ -575,8 +590,8 @@
   bottom: 0.15em;
   width: 3px;
   background: linear-gradient(180deg,
-    hsl(190, 75%, 40%) 0%,
-    hsl(190, 60%, 55%) 100%
+    hsl(25, 75%, 45%) 0%,
+    hsl(30, 80%, 58%) 100%
   );
   border-radius: 2px;
 }
@@ -618,7 +633,7 @@
 
 .prose-roll em {
   font-style: italic;
-  color: hsl(262, 30%, 40%); /* Hint of lavender for italics */
+  color: hsl(25, 35%, 35%); /* Warm copper for italics */
 }
 
 /* === LISTS - Elegant markers === */
@@ -819,11 +834,11 @@
 
 :is(.dark .prose-roll) h1::after {
   background: linear-gradient(90deg,
-    hsl(262, 47%, 62%) 0%,
-    hsl(300, 40%, 55%) 50%,
-    hsl(340, 55%, 62%) 100%
+    hsl(30, 80%, 58%) 0%,
+    hsl(38, 85%, 65%) 50%,
+    hsl(30, 80%, 58%) 100%
   );
-  box-shadow: 0 0 10px hsl(262, 50%, 50% / 0.3);
+  box-shadow: 0 0 10px hsl(30, 70%, 50% / 0.3);
 }
 
 :is(.dark .prose-roll) h2 {
@@ -832,10 +847,10 @@
 
 :is(.dark .prose-roll) h2::before {
   background: linear-gradient(180deg,
-    hsl(187, 85%, 53%) 0%,
-    hsl(187, 70%, 42%) 100%
+    hsl(30, 80%, 58%) 0%,
+    hsl(25, 75%, 48%) 100%
   );
-  box-shadow: 0 0 8px hsl(187, 80%, 50% / 0.4);
+  box-shadow: 0 0 8px hsl(30, 70%, 50% / 0.4);
 }
 
 :is(.dark .prose-roll) h3 {
@@ -857,7 +872,7 @@
 }
 
 :is(.dark .prose-roll) em {
-  color: hsl(262, 50%, 75%); /* Lavender */
+  color: hsl(30, 50%, 72%); /* Warm copper */
 }
 
 /* Dark mode list markers */
