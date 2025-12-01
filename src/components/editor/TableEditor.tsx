@@ -4,7 +4,7 @@
  * Visual editor for tables (simple, composite, collection).
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import {
   Plus,
   Trash2,
@@ -66,6 +66,19 @@ export function TableEditor({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const prevDefaultExpandedRef = useRef(defaultExpanded)
 
+  // Shared Variables / Default Sets tab state
+  type SharedSetsTab = 'shared' | 'defaultSets'
+  const [sharedSetsTab, setSharedSetsTab] = useState<SharedSetsTab>(() => {
+    const sharedCount = Object.keys(table.shared || {}).length
+    const defaultSetsCount = Object.keys(table.defaultSets || {}).length
+    if (sharedCount === 0 && defaultSetsCount > 0) return 'defaultSets'
+    return 'shared'
+  })
+
+  // Memoized counts for tab badges
+  const sharedCount = useMemo(() => Object.keys(table.shared || {}).length, [table.shared])
+  const defaultSetsCount = useMemo(() => Object.keys(table.defaultSets || {}).length, [table.defaultSets])
+
   // Expand when defaultExpanded transitions from false to true (explicit selection)
   // Don't force open just because defaultExpanded is true - allow user to collapse
   useEffect(() => {
@@ -75,6 +88,14 @@ export function TableEditor({
     }
     prevDefaultExpandedRef.current = defaultExpanded
   }, [defaultExpanded, onExpandChange])
+
+  // Auto-select non-empty tab when switching tables
+  useEffect(() => {
+    const sc = Object.keys(table.shared || {}).length
+    const dc = Object.keys(table.defaultSets || {}).length
+    if (sc === 0 && dc > 0) setSharedSetsTab('defaultSets')
+    else if (dc === 0 && sc > 0) setSharedSetsTab('shared')
+  }, [table.id])
 
   // Handle manual expand/collapse toggle
   const handleToggleExpand = useCallback(() => {
@@ -310,39 +331,123 @@ export function TableEditor({
             )}
           </div>
 
-          {/* Shared Variables (collapsible) */}
+          {/* Shared Variables / Default Sets (collapsible with tabs) */}
           <details className="editor-collapsible">
             <summary>
               <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">Shared Variables</span>
-                <span className="text-xs text-muted-foreground">(optional)</span>
+                <span className="font-medium text-sm">Shared Variables / Default Sets</span>
+                {sharedCount > 0 && (
+                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-rose/15 text-rose">
+                    {sharedCount}
+                  </span>
+                )}
+                {defaultSetsCount > 0 && (
+                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-mint/15 text-mint">
+                    {defaultSetsCount}
+                  </span>
+                )}
+                {sharedCount === 0 && defaultSetsCount === 0 && (
+                  <span className="text-xs text-muted-foreground">(optional)</span>
+                )}
                 <div className="group relative">
                   <Info className="h-4 w-4 text-muted-foreground cursor-help" />
                   <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 text-xs bg-popover border rounded-md shadow-lg">
-                    Table-level shared variables are evaluated lazily when this
-                    table is rolled, not when the document loads. They propagate
-                    to any nested table references. Cannot shadow document-level
-                    variables.
+                    Shared Variables are evaluated lazily when rolled and propagate to nested tables.
+                    Default Sets provide default placeholder values for all entries in this table.
                   </div>
                 </div>
               </div>
             </summary>
             <div className="editor-collapsible-content space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Variables evaluated when this table is rolled. Available to nested table references.
-              </p>
-              <KeyValueEditor
-                value={(table.shared as SharedVariables) || {}}
-                onChange={(shared) =>
-                  updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
-                }
-                keyPlaceholder="Variable name"
-                valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
-                keyPattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
-                keyError="Must start with letter/underscore, alphanumeric only"
-                valueSupportsExpressions
-                collectionId={collectionId}
-              />
+              {/* Mini Tab Bar */}
+              <div className="flex border-b border-border/50" role="tablist">
+                <button
+                  type="button"
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors',
+                    'border-b-2 -mb-px',
+                    sharedSetsTab === 'shared'
+                      ? 'text-rose border-rose'
+                      : 'text-muted-foreground border-transparent hover:text-foreground/80'
+                  )}
+                  onClick={() => setSharedSetsTab('shared')}
+                  role="tab"
+                  aria-selected={sharedSetsTab === 'shared'}
+                >
+                  <span>Shared Variables</span>
+                  {sharedCount > 0 && (
+                    <span className={cn(
+                      'px-1.5 py-0.5 text-xs rounded-full',
+                      sharedSetsTab === 'shared' ? 'bg-rose/15 text-rose' : 'bg-muted text-muted-foreground'
+                    )}>
+                      {sharedCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors',
+                    'border-b-2 -mb-px',
+                    sharedSetsTab === 'defaultSets'
+                      ? 'text-mint border-mint'
+                      : 'text-muted-foreground border-transparent hover:text-foreground/80'
+                  )}
+                  onClick={() => setSharedSetsTab('defaultSets')}
+                  role="tab"
+                  aria-selected={sharedSetsTab === 'defaultSets'}
+                >
+                  <span>Default Sets</span>
+                  {defaultSetsCount > 0 && (
+                    <span className={cn(
+                      'px-1.5 py-0.5 text-xs rounded-full',
+                      sharedSetsTab === 'defaultSets' ? 'bg-mint/15 text-mint' : 'bg-muted text-muted-foreground'
+                    )}>
+                      {defaultSetsCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Tab Content: Shared Variables */}
+              {sharedSetsTab === 'shared' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Variables evaluated when this table is rolled. Available to nested table references.
+                  </p>
+                  <KeyValueEditor
+                    value={(table.shared as SharedVariables) || {}}
+                    onChange={(shared) =>
+                      updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
+                    }
+                    keyPlaceholder="Variable name"
+                    valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
+                    keyPattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
+                    keyError="Must start with letter/underscore, alphanumeric only"
+                    valueSupportsExpressions
+                    collectionId={collectionId}
+                  />
+                </div>
+              )}
+
+              {/* Tab Content: Default Sets */}
+              {sharedSetsTab === 'defaultSets' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Default placeholder values applied to all entries. Can be overridden by entry-specific sets.
+                  </p>
+                  <KeyValueEditor
+                    value={table.defaultSets || {}}
+                    onChange={(defaultSets) =>
+                      updateField('defaultSets', Object.keys(defaultSets).length > 0 ? defaultSets : undefined)
+                    }
+                    keyPlaceholder="Key (@key)"
+                    valuePlaceholder="Value or {{pattern}}"
+                    valueSupportsExpressions={true}
+                    collectionId={collectionId}
+                  />
+                </div>
+              )}
             </div>
           </details>
 
