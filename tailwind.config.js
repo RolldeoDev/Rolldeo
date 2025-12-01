@@ -58,6 +58,8 @@ export default {
         amber: "hsl(var(--amber))",
         rose: "hsl(var(--rose))",
         cyan: "hsl(var(--cyan))",
+        copper: "hsl(var(--copper))",
+        'copper-glow': "hsl(var(--copper-glow))",
       },
       borderRadius: {
         lg: "var(--radius)",
