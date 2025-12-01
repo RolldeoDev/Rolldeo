@@ -52,12 +52,22 @@ export function EntryEditor({
   const [weightMode, setWeightMode] = useState<'weight' | 'range'>(
     entry.range ? 'range' : 'weight'
   )
-  const valueInputRef = useRef<HTMLInputElement>(null)
+  const desktopInputRef = useRef<HTMLInputElement>(null)
+  const mobileInputRef = useRef<HTMLInputElement>(null)
 
   // Auto-focus the value input when requested
+  // Use setTimeout to ensure the element is fully rendered and visible
   useEffect(() => {
-    if (autoFocus && valueInputRef.current) {
-      valueInputRef.current.focus()
+    if (autoFocus) {
+      // Small delay to ensure DOM is ready after React re-render
+      const timer = setTimeout(() => {
+        // Check which input is visible and focus it
+        // Desktop input is visible when md:flex is active (≥768px)
+        const isMobile = window.innerWidth < 768
+        const inputToFocus = isMobile ? mobileInputRef.current : desktopInputRef.current
+        inputToFocus?.focus()
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [autoFocus])
 
@@ -147,7 +157,7 @@ export function EntryEditor({
         <span className="text-sm text-muted-foreground w-8">#{index + 1}</span>
 
         <input
-          ref={valueInputRef}
+          ref={desktopInputRef}
           type="text"
           value={entry.value}
           onChange={(e) => updateField('value', e.target.value)}
@@ -264,7 +274,7 @@ export function EntryEditor({
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Value</label>
             <input
-              ref={valueInputRef}
+              ref={mobileInputRef}
               type="text"
               value={entry.value}
               onChange={(e) => updateField('value', e.target.value)}
