@@ -52,6 +52,7 @@
 
     /* Accent colors - optimized for light backgrounds */
     --mint: 145 50% 35%;
+    --mint-dark: 145 50% 28%;
     --lavender: 262 40% 55%;
     --amber: 40 90% 45%;
     --rose: 340 70% 50%;
@@ -103,6 +104,7 @@
 
     /* Accent colors for cards */
     --mint: 142 52% 54%;
+    --mint-dark: 142 52% 45%;
     --lavender: 262 47% 72%;
     --amber: 45 93% 58%;
     --rose: 340 75% 72%;
@@ -132,6 +134,7 @@
     --input: 35 20% 88%;
     --ring: 145 45% 38%;
     --mint: 145 50% 35%;
+    --mint-dark: 145 50% 28%;
     --lavender: 262 40% 55%;
     --amber: 40 90% 45%;
     --rose: 340 70% 50%;

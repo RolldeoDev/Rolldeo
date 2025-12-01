@@ -5,7 +5,7 @@
  * Only one collection can be expanded at a time.
  */
 
-import { memo, useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { useUIStore } from '@/stores/uiStore'
 import { CollectionAccordionItem } from './CollectionAccordionItem'
@@ -58,6 +58,26 @@ export const CollectionAccordion = memo(function CollectionAccordion({
       return a.name.localeCompare(b.name)
     })
   }, [collectionsMap])
+
+  // Track if we've already auto-expanded to prevent re-triggering
+  const hasAutoExpanded = useRef(false)
+
+  // Auto-expand first preloaded collection if user has no imported collections
+  useEffect(() => {
+    // Skip if we've already auto-expanded or if something is already expanded
+    if (hasAutoExpanded.current || expandedCollectionId !== null) {
+      return
+    }
+
+    const userCollections = sortedCollections.filter((c) => !c.isPreloaded)
+    const preloadedCollections = sortedCollections.filter((c) => c.isPreloaded)
+
+    // If user has no imported collections and there are preloaded collections available
+    if (userCollections.length === 0 && preloadedCollections.length > 0) {
+      hasAutoExpanded.current = true
+      setExpandedCollectionId(preloadedCollections[0].id)
+    }
+  }, [sortedCollections, expandedCollectionId, setExpandedCollectionId])
 
   const handleToggleExpand = useCallback(
     (id: string) => {
