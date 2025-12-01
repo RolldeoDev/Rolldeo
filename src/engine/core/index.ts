@@ -41,12 +41,16 @@ import {
   wouldShadowDocumentShared,
   getCaptureVariable,
   setCaptureVariable,
+  getCaptureSharedVariable,
+  setCaptureSharedVariable,
   hasVariableConflict,
   addDescription,
   type GenerationContext,
 } from './context'
 import {
   parseTemplate,
+  parseExpression,
+  extractExpressions,
   type ExpressionToken,
 } from './parser'
 import { evaluateMath } from './math'
@@ -692,8 +696,10 @@ export class RandomTableEngine {
       parsed: { collectionId, pattern }
     })
 
-    // Evaluate the pattern
-    let text = this.evaluatePattern(pattern, context, collectionId)
+    // Evaluate the pattern and capture individual expression outputs
+    const { text: evaluatedText, expressionOutputs } =
+      this.evaluatePatternWithOutputs(pattern, context, collectionId)
+    let text = evaluatedText
 
     // Apply document-level conditionals
     if (collection.document.conditionals && collection.document.conditionals.length > 0) {
@@ -723,6 +729,7 @@ export class RandomTableEngine {
       },
       trace: trace ?? undefined,
       captures,
+      expressionOutputs,
     }
   }
 
@@ -771,6 +778,9 @@ export class RandomTableEngine {
   /**
    * Evaluate shared variables at generation start.
    * Processed in order - later variables can reference earlier ones.
+   *
+   * Capture-aware shared variables: Keys starting with $ (e.g., "$hero") capture
+   * the full roll result including sets, enabling {{$hero.@prop}} access syntax.
    */
   private evaluateSharedVariables(
     shared: Record<string, string>,
@@ -778,7 +788,14 @@ export class RandomTableEngine {
     collectionId: string
   ): void {
     for (const [name, expression] of Object.entries(shared)) {
-      // Evaluate the expression (may contain dice, math, table refs)
+      // Check if this is a capture-aware shared variable (starts with $)
+      if (name.startsWith('$')) {
+        const varName = name.slice(1) // Remove $ prefix
+        this.evaluateCaptureAwareShared(varName, expression, context, collectionId)
+        continue
+      }
+
+      // Regular shared variable evaluation
       const evaluated = this.evaluatePattern(expression, context, collectionId)
 
       // Try to parse as number, otherwise keep as string
@@ -790,9 +807,69 @@ export class RandomTableEngine {
   }
 
   /**
+   * Evaluate a capture-aware shared variable.
+   * Captures the full roll result including sets for {{$varName.@prop}} access.
+   */
+  private evaluateCaptureAwareShared(
+    varName: string,
+    expression: string,
+    context: GenerationContext,
+    collectionId: string
+  ): void {
+    // Parse the expression to check if it's a simple table reference
+    const expressions = extractExpressions(expression)
+
+    // If it's a single expression that's a table reference, capture the full result
+    if (expressions.length === 1) {
+      const token = parseExpression(expressions[0].expression)
+
+      if (token.type === 'table') {
+        // Resolve and roll the table, capturing the result with sets
+        const tableResult = this.resolveTableRef(token.tableId, collectionId)
+        if (tableResult) {
+          const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
+
+          // Build the CaptureItem with resolved sets
+          // Pre-resolve table/template IDs so they're consistent across accesses
+          const resolvedSets: Record<string, string> = {}
+          if (result.placeholders) {
+            for (const [key, value] of Object.entries(result.placeholders)) {
+              // Resolve any template expressions in set values
+              if (value.includes('{{')) {
+                resolvedSets[key] = this.evaluatePattern(value, context, collectionId)
+              } else {
+                // Pre-resolve table/template IDs to actual values
+                // This ensures consistent values across multiple accesses
+                resolvedSets[key] = this.resolveDynamicTableValue(value, context, collectionId)
+              }
+            }
+          }
+
+          setCaptureSharedVariable(context, varName, {
+            value: result.text,
+            sets: resolvedSets,
+          })
+          return
+        }
+      }
+    }
+
+    // Fallback: For complex expressions, evaluate and capture with empty sets
+    // This supports patterns like "$result": "{{dice:1d6}} {{table}}"
+    const evaluated = this.evaluatePattern(expression, context, collectionId)
+    setCaptureSharedVariable(context, varName, {
+      value: evaluated,
+      sets: {},
+    })
+  }
+
+  /**
    * Evaluate table/template-level shared variables at roll time.
    * Validates that names don't shadow document-level shared variables.
    * Processed in order - later variables can reference earlier ones.
+   *
+   * Capture-aware shared variables: Keys starting with $ (e.g., "$hero") capture
+   * the full roll result including sets, enabling {{$hero.@prop}} access syntax.
    */
   private evaluateTableLevelShared(
     shared: Record<string, string>,
@@ -801,6 +878,29 @@ export class RandomTableEngine {
     sourceId: string
   ): void {
     for (const [name, expression] of Object.entries(shared)) {
+      // Handle capture-aware shared variables (keys starting with $)
+      if (name.startsWith('$')) {
+        const varName = name.slice(1) // Remove $ prefix
+
+        // Check for shadowing document-level shared (check with $ prefix)
+        if (wouldShadowDocumentShared(context, name)) {
+          throw new Error(
+            `SHARED_SHADOW in ${sourceId}: Table/template-level capture-aware shared variable '${name}' ` +
+              `would shadow document-level shared variable. ` +
+              `Document-level shared variables take precedence.`
+          )
+        }
+
+        // If already set by a parent table, skip
+        if (context.captureSharedVariables.has(varName)) {
+          continue
+        }
+
+        this.evaluateCaptureAwareShared(varName, expression, context, collectionId)
+        continue
+      }
+
+      // Regular shared variable handling
       // Check for shadowing document-level shared
       if (wouldShadowDocumentShared(context, name)) {
         throw new Error(
@@ -1431,6 +1531,43 @@ export class RandomTableEngine {
     return tokens.map((token) => this.evaluateToken(token, context, collectionId)).join('')
   }
 
+  /**
+   * Evaluate pattern and capture individual expression outputs for segment mapping.
+   * Uses extractExpressions to identify expression positions and captures each output.
+   */
+  private evaluatePatternWithOutputs(
+    pattern: string,
+    context: GenerationContext,
+    collectionId: string
+  ): { text: string; expressionOutputs: string[] } {
+    const expressions = extractExpressions(pattern)
+    const expressionOutputs: string[] = []
+    let result = ''
+    let lastIndex = 0
+
+    for (const expr of expressions) {
+      // Add literal text before this expression
+      if (expr.start > lastIndex) {
+        result += pattern.slice(lastIndex, expr.start)
+      }
+
+      // Parse and evaluate the expression
+      const token = parseExpression(expr.expression)
+      const output = this.evaluateToken(token, context, collectionId)
+
+      result += output
+      expressionOutputs.push(output)
+      lastIndex = expr.end
+    }
+
+    // Add remaining literal text
+    if (lastIndex < pattern.length) {
+      result += pattern.slice(lastIndex)
+    }
+
+    return { text: result, expressionOutputs }
+  }
+
   private evaluateToken(token: ExpressionToken, context: GenerationContext, collectionId: string): string {
     switch (token.type) {
       case 'literal':
@@ -1466,10 +1603,10 @@ export class RandomTableEngine {
         return this.evaluateCaptureMultiRoll(token, context, collectionId)
 
       case 'captureAccess':
-        return this.evaluateCaptureAccess(token, context)
+        return this.evaluateCaptureAccess(token, context, collectionId)
 
       case 'collect':
-        return this.evaluateCollect(token, context)
+        return this.evaluateCollect(token, context, collectionId)
 
       default:
         return ''
@@ -1510,6 +1647,24 @@ export class RandomTableEngine {
     token: { name: string; alias?: string },
     context: GenerationContext
   ): string {
+    // Check capture-aware shared variables first
+    const captureShared = getCaptureSharedVariable(context, token.name)
+    if (captureShared) {
+      // Add variable access trace
+      addTraceLeaf(context, 'variable_access', `$${token.alias ? token.alias + '.' : ''}${token.name}`, {
+        raw: token.name,
+        parsed: { alias: token.alias }
+      }, {
+        value: captureShared.value,
+      }, {
+        type: 'variable',
+        name: token.name,
+        source: 'captureShared',
+      } as VariableAccessMetadata)
+
+      return captureShared.value
+    }
+
     const value = resolveVariable(context, token.name, token.alias)
     const result = value !== undefined ? String(value) : ''
 
@@ -2112,6 +2267,10 @@ export class RandomTableEngine {
 
   /**
    * Evaluate capture access: {{$var}}, {{$var[0]}}, {{$var.count}}, {{$var[0].@prop}}
+   * Also handles capture-aware shared variables: {{$hero}}, {{$hero.@prop}}
+   *
+   * Dynamic table resolution: When accessing a property that contains a table ID,
+   * the engine will roll on that table and return the result.
    */
   private evaluateCaptureAccess(
     token: {
@@ -2120,14 +2279,22 @@ export class RandomTableEngine {
       property?: string
       separator?: string
     },
-    context: GenerationContext
+    context: GenerationContext,
+    collectionId: string
   ): string {
+    // Try to get from capture variables first, then fall back to capture-aware shared variables
     const capture = getCaptureVariable(context, token.varName)
+    const captureShared = getCaptureSharedVariable(context, token.varName)
 
     // Build label for trace
     let label = `$${token.varName}`
     if (token.index !== undefined) label += `[${token.index}]`
     if (token.property) label += `.${token.property.startsWith('@') ? token.property : token.property}`
+
+    // Handle capture-aware shared variables (single item, no index needed)
+    if (!capture && captureShared) {
+      return this.evaluateCaptureSharedAccess(token, captureShared, context, collectionId, label)
+    }
 
     if (!capture) {
       console.warn(`Capture variable not found: $${token.varName} (forward reference?)`)
@@ -2216,7 +2383,8 @@ export class RandomTableEngine {
               `Capture property not found: $${token.varName}[${token.index}].@${token.property}`
             )
           }
-          result = propValue ?? ''
+          // Apply dynamic table resolution
+          result = this.resolveDynamicTableValue(propValue ?? '', context, collectionId)
         }
       } else {
         // Just indexed access - return value
@@ -2243,8 +2411,11 @@ export class RandomTableEngine {
 
     // Handle property access without index (on all items)
     if (token.property && token.property !== 'value' && token.property !== 'count') {
-      // Collect this property from all items
-      const values = capture.items.map((item) => item.sets[token.property!] ?? '')
+      // Collect this property from all items, applying dynamic table resolution
+      const values = capture.items.map((item) => {
+        const propValue = item.sets[token.property!] ?? ''
+        return this.resolveDynamicTableValue(propValue, context, collectionId)
+      })
       result = values.filter((v) => v !== '').join(token.separator ?? ', ')
     } else {
       // Handle all values (no index, property is 'value' or undefined)
@@ -2271,8 +2442,99 @@ export class RandomTableEngine {
   }
 
   /**
+   * Handle access to capture-aware shared variables.
+   * These are single items (not arrays), so no index is needed.
+   */
+  private evaluateCaptureSharedAccess(
+    token: {
+      varName: string
+      index?: number
+      property?: string
+      separator?: string
+    },
+    item: CaptureItem,
+    context: GenerationContext,
+    _collectionId: string,
+    label: string
+  ): string {
+    let result: string
+
+    // Handle property access
+    if (token.property) {
+      if (token.property === 'value') {
+        result = item.value
+      } else if (token.property === 'count') {
+        // Capture-aware shared is always 1 item
+        result = '1'
+      } else {
+        // @property access (property stored without @)
+        const propValue = item.sets[token.property]
+        if (propValue === undefined) {
+          console.warn(
+            `Capture-aware shared property not found: $${token.varName}.@${token.property}`
+          )
+        }
+        // Values are already pre-resolved during capture-aware shared evaluation
+        // No need to resolve again - just return the cached value
+        result = propValue ?? ''
+      }
+    } else {
+      // No property - return the value
+      result = item.value
+    }
+
+    addTraceLeaf(
+      context,
+      'capture_access',
+      label,
+      { raw: label },
+      { value: result },
+      {
+        type: 'capture_access',
+        varName: token.varName,
+        property: token.property ?? 'value',
+        found: true,
+        totalItems: 1,
+        isCaptureShared: true,
+      } as CaptureAccessMetadata
+    )
+
+    return result
+  }
+
+  /**
+   * Apply dynamic table resolution to a property value.
+   * If the value is a valid table/template ID, roll on it and return the result.
+   * Otherwise, return the value as-is.
+   */
+  private resolveDynamicTableValue(
+    value: string,
+    context: GenerationContext,
+    collectionId: string
+  ): string {
+    if (!value) return value
+
+    // Check if value is a valid table ID
+    const tableResult = this.resolveTableRef(value, collectionId)
+    if (tableResult) {
+      const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
+      return result.text
+    }
+
+    // Check if value is a valid template ID
+    const templateResult = this.resolveTemplateRef(value, collectionId)
+    if (templateResult) {
+      return this.evaluateTemplateInternal(templateResult.template, templateResult.collectionId, context)
+    }
+
+    // Not a table/template - return as-is
+    return value
+  }
+
+  /**
    * Evaluate collect expression: {{collect:$var.@prop}}
-   * Aggregates a property across all captured items
+   * Aggregates a property across all captured items.
+   * Also supports capture-aware shared variables (though collect typically makes more sense for multi-roll captures).
    */
   private evaluateCollect(
     token: {
@@ -2281,10 +2543,44 @@ export class RandomTableEngine {
       unique?: boolean
       separator?: string
     },
-    context: GenerationContext
+    context: GenerationContext,
+    collectionId: string
   ): string {
     const label = `collect:$${token.varName}.${token.property}${token.unique ? '|unique' : ''}`
     const capture = getCaptureVariable(context, token.varName)
+    const captureShared = getCaptureSharedVariable(context, token.varName)
+
+    // Handle capture-aware shared variables (single item)
+    if (!capture && captureShared) {
+      let rawValue: string
+      if (token.property === 'value') {
+        rawValue = captureShared.value
+      } else {
+        rawValue = captureShared.sets[token.property] ?? ''
+      }
+
+      // Apply dynamic table resolution
+      const result = rawValue ? this.resolveDynamicTableValue(rawValue, context, collectionId) : ''
+
+      addTraceLeaf(
+        context,
+        'collect',
+        label,
+        { raw: label },
+        { value: result },
+        {
+          type: 'collect',
+          varName: token.varName,
+          property: token.property,
+          unique: token.unique ?? false,
+          separator: token.separator ?? ', ',
+          allValues: [result].filter((v) => v !== ''),
+          resultValues: [result].filter((v) => v !== ''),
+        } as CollectMetadata
+      )
+
+      return result
+    }
 
     if (!capture) {
       console.warn(`Capture variable not found: $${token.varName} (forward reference?)`)
@@ -2307,14 +2603,17 @@ export class RandomTableEngine {
       return ''
     }
 
-    // Collect values
+    // Collect values with dynamic table resolution
     let allValues: string[]
 
     if (token.property === 'value') {
       allValues = capture.items.map((item) => item.value)
     } else {
-      // @property access (property stored without @)
-      allValues = capture.items.map((item) => item.sets[token.property] ?? '')
+      // @property access (property stored without @), apply dynamic table resolution
+      allValues = capture.items.map((item) => {
+        const propValue = item.sets[token.property] ?? ''
+        return this.resolveDynamicTableValue(propValue, context, collectionId)
+      })
     }
 
     // Filter empty strings (as per design decision)

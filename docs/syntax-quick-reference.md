@@ -97,6 +97,28 @@
 }
 ```
 
+## Capture-Aware Shared Variables
+
+Keys starting with `$` capture sets for property access:
+
+```json
+"shared": {
+  "$hero": "{{race}}",
+  "$enemy": "{{race}}"
+}
+```
+
+| Syntax | Description |
+|--------|-------------|
+| `"$varName": "{{table}}"` | Define capture-aware variable |
+| `{{$varName}}` | Access captured value |
+| `{{$varName.@property}}` | Access captured set property |
+
+Property access with dynamic table resolution:
+- If property value is a table ID, it's rolled automatically
+- If property value is a template ID, it's evaluated automatically
+- Otherwise, the raw string value is returned
+
 ## Imports
 
 ```json

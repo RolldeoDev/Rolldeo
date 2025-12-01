@@ -36,6 +36,7 @@ export type ExpressionType =
   | 'again'
   | 'unique'
   | 'capture'
+  | 'capture-shared'
   | 'collect'
   | 'template'
   | 'unknown'

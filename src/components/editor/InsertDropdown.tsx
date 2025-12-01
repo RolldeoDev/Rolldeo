@@ -7,7 +7,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Search, Table2, Sparkles, Dices, Calculator, Variable, RotateCcw } from 'lucide-react'
+import { Plus, Search, Table2, Sparkles, Dices, Calculator, Variable, RotateCcw, CircleDot } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getResultTypeIcon } from '@/lib/resultTypeIcons'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
@@ -66,6 +66,16 @@ const SYNTAX_ITEMS: InsertItem[] = [
     source: SYNTAX_SOURCE,
     icon: Variable,
     description: 'Reference a shared variable',
+    colorClass: 'amber',
+  },
+  {
+    id: 'capture-shared',
+    label: 'Capture Property',
+    insertText: '{{$varName.@property}}',
+    type: 'syntax',
+    source: SYNTAX_SOURCE,
+    icon: CircleDot,
+    description: 'Access property from capture-aware variable',
     colorClass: 'amber',
   },
   {

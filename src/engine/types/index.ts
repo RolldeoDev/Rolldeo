@@ -384,6 +384,8 @@ export interface RollResult {
   captures?: Record<string, CaptureVariable>
   /** Entry descriptions collected during roll - only present when descriptions exist */
   descriptions?: EntryDescription[]
+  /** Expression outputs in pattern order - for editor preview segment mapping */
+  expressionOutputs?: string[]
 }
 
 /** Engine configuration */

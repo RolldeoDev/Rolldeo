@@ -142,8 +142,8 @@ export interface VariableAccessMetadata {
   type: 'variable'
   /** Variable name */
   name: string
-  /** Variable source: static, shared, or undefined */
-  source: 'static' | 'shared' | 'undefined'
+  /** Variable source: static, shared, captureShared, or undefined */
+  source: 'static' | 'shared' | 'captureShared' | 'undefined'
 }
 
 export interface PlaceholderAccessMetadata {
@@ -247,6 +247,8 @@ export interface CaptureAccessMetadata {
   found: boolean
   /** Total items in capture variable */
   totalItems?: number
+  /** Whether this is a capture-aware shared variable (not from >> syntax) */
+  isCaptureShared?: boolean
 }
 
 export interface CollectMetadata {

@@ -23,48 +23,6 @@ function countTraceNodes(trace: RollTrace | null): number {
 }
 
 /**
- * Extract expression outputs from trace in order.
- * The root node's direct children correspond to the top-level expression evaluations.
- * Non-expression operations (like literal text) don't generate trace nodes.
- *
- * When a placeholder resolves to a table/template ID and rolls on it, the trace
- * contains both a placeholder_access node (with the table ID as output) AND a
- * table_roll node (with the actual result). We need to consolidate these so that
- * each expression maps to its final result, not intermediate values.
- */
-function extractExpressionOutputsFromTrace(trace: RollTrace | null): string[] {
-  if (!trace) return []
-
-  const outputs: string[] = []
-  const children = trace.root.children
-
-  let i = 0
-  while (i < children.length) {
-    const child = children[i]
-
-    // Check if this is a placeholder that resolved to a table/template
-    // In that case, the next sibling is the table/template roll with the actual result
-    if (child.type === 'placeholder_access' && child.metadata) {
-      // The engine adds resolvedToTable/resolvedToTemplate fields that aren't in the base type
-      const meta = child.metadata as unknown as Record<string, unknown>
-      if (meta.resolvedToTable || meta.resolvedToTemplate) {
-        // The next child should be the table/template roll - use its output
-        if (i + 1 < children.length) {
-          outputs.push(String(children[i + 1].output.value))
-          i += 2 // Skip both the placeholder_access and the table/template roll
-          continue
-        }
-      }
-    }
-
-    outputs.push(String(child.output.value))
-    i++
-  }
-
-  return outputs
-}
-
-/**
  * Determine the expression type from a parsed token
  */
 function getExpressionType(token: ExpressionToken): ExpressionType {
@@ -155,13 +113,14 @@ export function usePatternEvaluation(
   const versionRef = useRef(0)
 
   /**
-   * Build segments from pattern and evaluation result
+   * Build segments from pattern and evaluation result.
+   * Uses expressionOutputs from the engine for accurate mapping.
    */
   const buildSegments = useCallback(
     (
       patternStr: string,
       expressions: ReturnType<typeof extractExpressions>,
-      trace: RollTrace | null,
+      expressionOutputs: string[],
       fullText: string
     ): EvaluatedSegment[] => {
       const segments: EvaluatedSegment[] = []
@@ -179,12 +138,9 @@ export function usePatternEvaluation(
         return segments
       }
 
-      // Extract expression outputs from trace (in order)
-      const traceOutputs = extractExpressionOutputsFromTrace(trace)
-
-      // If we don't have trace outputs but have fullText, we can't reliably
+      // If we don't have expression outputs but have fullText, we can't reliably
       // map outputs back to expressions, so show the full text as result
-      const useFullTextFallback = traceOutputs.length === 0 && fullText
+      const useFullTextFallback = expressionOutputs.length === 0 && fullText
 
       let lastEnd = 0
 
@@ -202,7 +158,7 @@ export function usePatternEvaluation(
           })
         }
 
-        // Get expression output from trace if available
+        // Get expression output
         let exprOutput = ''
         let exprType: ExpressionType = 'unknown'
 
@@ -215,21 +171,21 @@ export function usePatternEvaluation(
           exprType = getExpressionTypeFromString(match.expression)
         }
 
-        // Use trace output if available
-        if (i < traceOutputs.length) {
-          exprOutput = traceOutputs[i]
+        // Use engine-provided expression output if available
+        if (i < expressionOutputs.length) {
+          exprOutput = expressionOutputs[i]
           // If the output is empty, show a placeholder to indicate it was evaluated
           if (exprOutput === '') {
             exprOutput = `[empty]`
           }
         } else if (useFullTextFallback && i === 0 && expressions.length === 1) {
-          // Single expression with no trace - use full text as the output
+          // Single expression with no output - use full text as the output
           exprOutput = fullText || '[empty]'
-        } else if (traceOutputs.length > 0 && i >= traceOutputs.length) {
-          // We have some trace outputs but not enough - something went wrong
+        } else if (expressionOutputs.length > 0 && i >= expressionOutputs.length) {
+          // We have some outputs but not enough - something went wrong
           exprOutput = `[?]`
         } else {
-          // No trace output available - show placeholder
+          // No output available - show placeholder
           exprOutput = `[${match.expression}]`
         }
 
@@ -282,7 +238,7 @@ export function usePatternEvaluation(
     if (!collectionId || !engine.hasCollection(collectionId)) {
       // Can't evaluate without collection - build segments with placeholders
       const expressions = extractExpressions(pattern)
-      const segments = buildSegments(pattern, expressions, null, '')
+      const segments = buildSegments(pattern, expressions, [], '')
 
       setResult({
         segments,
@@ -307,15 +263,19 @@ export function usePatternEvaluation(
       // Check if we're still the current version
       if (currentVersion !== versionRef.current) return
 
-      // Extract expressions and build segments using trace outputs
+      // Extract expressions and build segments using engine-provided expression outputs
       const expressions = extractExpressions(pattern)
-      const trace = evalResult.trace ?? null
-      const segments = buildSegments(pattern, expressions, trace, evalResult.text)
+      const segments = buildSegments(
+        pattern,
+        expressions,
+        evalResult.expressionOutputs ?? [],
+        evalResult.text
+      )
 
       setResult({
         segments,
         fullText: evalResult.text,
-        trace,
+        trace: evalResult.trace ?? null,
         captures: evalResult.captures ?? null,
         error: null,
       })

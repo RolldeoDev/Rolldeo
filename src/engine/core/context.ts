@@ -5,7 +5,7 @@
  * Tracks variables, placeholders, recursion depth, and unique selections.
  */
 
-import type { EngineConfig, Sets, RollResult, CaptureVariable, EntryDescription } from '../types'
+import type { EngineConfig, Sets, RollResult, CaptureVariable, CaptureItem, EntryDescription } from '../types'
 import type { TraceContext } from './trace'
 import { createTraceContext } from './trace'
 
@@ -40,6 +40,9 @@ export interface GenerationContext {
 
   /** Capture variables for roll capture system: {{N*table >> $var}} */
   captureVariables: Map<string, CaptureVariable>
+
+  /** Capture-aware shared variables: keys starting with $ capture full roll with sets */
+  captureSharedVariables: Map<string, CaptureItem>
 
   /** Engine configuration */
   config: EngineConfig
@@ -87,6 +90,7 @@ export function createContext(
     usedEntries: new Map(),
     instanceResults: new Map(),
     captureVariables: new Map(),
+    captureSharedVariables: new Map(),
     config,
     currentTableId: undefined,
     currentEntryId: undefined,
@@ -111,6 +115,7 @@ export function cloneContext(ctx: GenerationContext): GenerationContext {
     usedEntries: ctx.usedEntries, // Shared reference for unique tracking
     instanceResults: ctx.instanceResults, // Shared reference
     captureVariables: ctx.captureVariables, // Shared reference - captures persist across nested calls
+    captureSharedVariables: ctx.captureSharedVariables, // Shared reference - capture-aware shared vars persist
     config: ctx.config,
     currentTableId: ctx.currentTableId,
     currentEntryId: ctx.currentEntryId,
@@ -342,11 +347,49 @@ export function setCaptureVariable(
 export function hasVariableConflict(
   ctx: GenerationContext,
   name: string
-): 'capture' | 'shared' | 'static' | null {
+): 'capture' | 'captureShared' | 'shared' | 'static' | null {
   if (ctx.captureVariables.has(name)) return 'capture'
+  if (ctx.captureSharedVariables.has(name)) return 'captureShared'
   if (ctx.sharedVariables.has(name)) return 'shared'
   if (ctx.staticVariables.has(name)) return 'static'
   return null
+}
+
+// ============================================================================
+// Capture-Aware Shared Variables
+// ============================================================================
+
+/**
+ * Get a capture-aware shared variable by name.
+ * These are shared variables with keys starting with $ that capture full roll results with sets.
+ */
+export function getCaptureSharedVariable(
+  ctx: GenerationContext,
+  name: string
+): CaptureItem | undefined {
+  return ctx.captureSharedVariables.get(name)
+}
+
+/**
+ * Set a capture-aware shared variable.
+ * The name should NOT include the $ prefix (stripped during evaluation).
+ */
+export function setCaptureSharedVariable(
+  ctx: GenerationContext,
+  name: string,
+  item: CaptureItem
+): void {
+  ctx.captureSharedVariables.set(name, item)
+}
+
+/**
+ * Check if a capture-aware shared variable exists
+ */
+export function hasCaptureSharedVariable(
+  ctx: GenerationContext,
+  name: string
+): boolean {
+  return ctx.captureSharedVariables.has(name)
 }
 
 // ============================================================================
