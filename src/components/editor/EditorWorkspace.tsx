@@ -66,7 +66,7 @@ export function EditorWorkspace({
   const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set())
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
   const [isScrollingToExplicit, setIsScrollingToExplicit] = useState(false)
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Handle expansion state changes from TableEditor/TemplateEditor
   const handleExpandChange = useCallback(
