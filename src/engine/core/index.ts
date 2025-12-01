@@ -2497,7 +2497,7 @@ export class RandomTableEngine {
       separator?: string
     },
     context: GenerationContext,
-    collectionId: string
+    _collectionId: string
   ): string {
     const label = `collect:$${token.varName}.${token.property}${token.unique ? '|unique' : ''}`
     const capture = getCaptureVariable(context, token.varName)

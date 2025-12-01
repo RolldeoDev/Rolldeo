@@ -8,6 +8,9 @@
 # =============================================================================
 decision_guide:
 
+  # ---------------------------------------------------------------------------
+  # TABLE TYPE SELECTION
+  # ---------------------------------------------------------------------------
   table_type_selection:
     simple:
       use_when: "You have a flat list of items to pick from randomly"
@@ -16,85 +19,423 @@ decision_guide:
         - "Random treasure items"
         - "NPC personality traits"
         - "Weather conditions"
-      input_pattern: "Any bulleted list, numbered list, or comma-separated items"
+        - "Rumors, plot hooks, events"
+        - "Any d20/d100 table from a book"
+      input_pattern: "Any bulleted list, numbered list, comma-separated items, or traditional dice-range table"
 
     composite:
       use_when: "You need WEIGHTED SELECTION between different CATEGORIES, then pick one item from chosen category"
       examples:
-        - "70% common monsters, 25% uncommon, 5% rare - then pick ONE from that tier"
-        - "Different loot tables by dungeon level"
-        - "Encounter tables that favor certain creature types"
+        - "70% common monsters, 25% uncommon, 5% rare - pick ONE from that tier"
+        - "Encounter by region: 60% local creatures, 30% travelers, 10% monsters"
+        - "Loot quality: mostly mundane, sometimes magical, rarely legendary"
+        - "Shop inventory: common goods weighted higher than rare goods"
       input_pattern: "Text describes probabilities/frequencies for GROUPS of things"
-      key_difference: "Composite picks WHICH TABLE first, then rolls once. Use when source describes relative frequency of categories."
+      key_difference: "Composite picks WHICH TABLE first, then rolls once on that table"
+      decision_test: "Are there distinct TIERS or CATEGORIES with different frequencies?"
 
     collection:
-      use_when: "You want to MERGE multiple tables into ONE UNIFIED POOL with equal access to all entries"
+      use_when: "You want to MERGE multiple tables into ONE UNIFIED POOL"
       examples:
         - "Combine 'Swords' + 'Axes' + 'Polearms' into 'All Melee Weapons'"
-        - "Merge regional creature lists into 'All Wilderness Creatures'"
-        - "Combine NPC trait tables for broader variety"
+        - "Merge all regional creature lists into 'World Bestiary'"
+        - "Combine male + female + neutral name tables into 'All Names'"
+        - "Unite multiple source book tables into master table"
       input_pattern: "Text lists multiple related categories that should be treated as one pool"
-      key_difference: "Collection FLATTENS tables together. All entries compete equally. Use when you want 'any of these' without category weighting."
+      key_difference: "Collection FLATTENS tables. All entries compete equally by their weights."
+      decision_test: "Do you want ANY item from multiple sources with no category preference?"
 
-  composite_vs_collection:
-    composite: "Pick a CATEGORY first (weighted), then pick from that category. Categories stay separate."
-    collection: "Merge everything into one pool. No category distinction at roll time."
-    decision_question: "Does the source text imply different frequencies for GROUPS? → Composite. Does it just list related things to combine? → Collection."
+  composite_vs_collection_decision:
+    question: "When source mentions multiple sub-tables..."
+    composite_signals:
+      - "Text gives percentages or frequencies for categories"
+      - "'Usually X, sometimes Y, rarely Z'"
+      - "'Roll for type first, then roll on that type's table'"
+      - "Distinct rarity tiers (common/uncommon/rare)"
+    collection_signals:
+      - "Just lists related tables to combine"
+      - "'Any of these weapons' or 'all creatures from regions A, B, C'"
+      - "No frequency/probability language"
+      - "Master list aggregating smaller lists"
 
-  captures_and_capture_aware:
-    regular_roll:
-      syntax: "{{tableId}}"
-      use_when: "You just need the text output, nothing else"
-      example: "You find a {{treasure}}."
-
-    roll_capture:
-      syntax: "{{N*table >> $var}}"
-      use_when: "You need to roll MULTIPLE times and later ACCESS individual results or their properties"
+  # ---------------------------------------------------------------------------
+  # WEIGHT VS RANGE
+  # ---------------------------------------------------------------------------
+  weight_vs_range:
+    weight:
+      use_when: "Source uses relative probability, not dice ranges"
       examples:
-        - "Roll 3 items, then list each item's weight property"
-        - "Generate multiple NPCs, then reference each one's traits separately"
-        - "Collect values from multiple rolls to aggregate them"
-      key_signal: "Text implies needing to reference individual rolled results AFTER rolling them"
+        - "Goblin (common), Orc (uncommon), Dragon (rare)"
+        - "Sword appears 3x as often as axe"
+        - "No specific dice mentioned, just frequency words"
+      syntax: '"weight": 3'
+      note: "Weights are relative. weight:6 vs weight:2 = 75%/25%"
 
-    capture_aware_shared:
-      syntax: '"$hero": "{{raceTable}}"'
-      use_when: "You need INDEPENDENT INSTANCES of the same table with their OWN placeholder values"
+    range:
+      use_when: "Source explicitly uses dice ranges like d100 tables"
       examples:
-        - "Generate two characters: hero and villain, each with their own race-appropriate name"
-        - "Create rival factions where each has distinct properties"
-        - "Multiple NPCs who each need their own rolled attributes"
-      key_signal: "Text describes MULTIPLE INDEPENDENT things from same source, each needing own identity"
-      key_difference: "Without capture-aware, rolling same table twice shares placeholders. With capture-aware ($prefix), each roll gets isolated placeholder context."
+        - "1-50: Nothing, 51-75: Encounter, 76-100: Treasure"
+        - "Classic d100 random encounter tables"
+        - "Any 'roll d20, 1-5 = X, 6-10 = Y' format"
+      syntax: '"range": [1, 50]'
+      conversion: "Automatically becomes weight = (max - min + 1)"
+      note: "Use range when preserving original dice-table format matters"
 
-  shared_vs_variables:
-    variables:
-      use_when: "Value is STATIC and same every time (setting name, default separator)"
-      evaluated: "Once at file load"
-
-    shared:
-      use_when: "Value should be ROLLED/CALCULATED fresh each generation but CONSISTENT within that generation"
+  # ---------------------------------------------------------------------------
+  # TEMPLATES VS TABLES
+  # ---------------------------------------------------------------------------
+  template_vs_table:
+    use_table_alone:
+      when: "Output is just picking one item from a list"
       examples:
-        - "Roll encounter size once, use same number throughout"
-        - "Roll a leader type, reference it multiple times"
-        - "Calculate derived values from rolled numbers"
-      key_signal: "Text implies 'roll X, then use that X value multiple times'"
+        - "Random monster name"
+        - "Random weather"
+        - "Single treasure item"
 
-  sets_and_placeholders:
-    use_when: "Entries have ASSOCIATED PROPERTIES beyond just the display text"
+    use_template:
+      when: "Output combines multiple rolls into formatted text"
+      examples:
+        - "NPC: {{race}} {{occupation}} named {{name}} who {{quirk}}"
+        - "Encounter: {{dice:1d4+1}} {{creatures}} in a {{location}}"
+        - "Treasure: {{dice:3d6*10}}gp, {{dice:1d4}} gems, and {{magicItem}}"
+        - "Room description with multiple random elements"
+      signals:
+        - "Multiple tables combined in one output"
+        - "Narrative/sentence structure needed"
+        - "Dice expressions mixed with table rolls"
+        - "Calculations or formatting required"
+
+  # ---------------------------------------------------------------------------
+  # INHERITANCE (extends)
+  # ---------------------------------------------------------------------------
+  inheritance:
+    use_when:
+      - "Creating a VARIANT of an existing table"
+      - "Overriding specific entries while keeping others"
+      - "Adding entries to an existing table"
+      - "Disabling certain entries from a parent table"
     examples:
-      - "Creatures with HP, AC, terrain"
-      - "Items with price, weight, rarity"
-      - "NPCs with occupation, quirk, secret"
-    input_pattern: "Table entries are described with multiple attributes"
-    access_syntax: "{{@placeholder.property}}"
+      - "Rich treasure extends base treasure (upgrades coin amounts)"
+      - "Elite monsters extends common monsters (adds boss variants)"
+      - "Regional bestiary extends base bestiary (disables some, adds local)"
+      - "Cursed items extends magic items (same items, different properties)"
+    how_it_works:
+      - "Child inherits ALL parent entries"
+      - "Child entries with same ID override parent entries"
+      - "New IDs in child are added to pool"
+      - 'Set weight:0 to disable inherited entry'
+    requirement: "Entries being overridden MUST have explicit IDs in parent"
 
+  # ---------------------------------------------------------------------------
+  # HIDDEN TABLES
+  # ---------------------------------------------------------------------------
+  hidden_tables:
+    use_when:
+      - "Table is a HELPER used by other tables/templates, not rolled directly"
+      - "Building blocks that shouldn't appear in user-facing lists"
+      - "Lookup tables for name components, adjectives, etc."
+    examples:
+      - "elfFirstNames, dwarfFirstNames (used by race table's sets)"
+      - "weaponAdjectives (used in '{{weaponAdjectives}} sword')"
+      - "Internal formatting helpers"
+    syntax: '"hidden": true'
+    note: "Hidden tables are still fully functional, just not shown in UI"
+
+  # ---------------------------------------------------------------------------
+  # AGAIN KEYWORD (self-reference)
+  # ---------------------------------------------------------------------------
+  again_keyword:
+    use_when: "An entry should trigger additional rolls on the SAME table"
+    examples:
+      - "Wild magic: 'Roll twice more!' → {{2*unique*again}}"
+      - "Treasure: 'Double loot! Roll again and add 100gp'"
+      - "Critical hit: 'Maximum damage AND {{again}}'"
+      - "Encounter: 'Mixed group: {{again}} and {{again}}'"
+    safety: "The triggering entry is automatically excluded from re-rolls"
+    variants:
+      once: "{{again}}"
+      multiple: "{{3*again}}"
+      unique: "{{2*unique*again}}"
+      dice_count: "{{dice:1d4*again}}"
+
+  # ---------------------------------------------------------------------------
+  # MULTIPLE ROLL PATTERNS
+  # ---------------------------------------------------------------------------
+  multiple_rolls:
+    fixed_count:
+      syntax: "{{3*tableId}}"
+      use_when: "Always roll exactly N times"
+      example: "Generate 3 traits: {{3*traits}}"
+
+    dice_count:
+      syntax: "{{dice:1d4*tableId}}"
+      use_when: "Random number of rolls"
+      example: "Find {{dice:1d4*treasureItems}}"
+
+    variable_count:
+      syntax: "{{$count*tableId}}"
+      use_when: "Count determined by earlier shared variable"
+      example: "shared: encounterSize={{dice:2d4}}, then {{$encounterSize*monsters}}"
+
+    unique_modifier:
+      syntax: "{{3*unique*tableId}}"
+      use_when: "No duplicate results allowed"
+      example: "3 unique skills: {{3*unique*skills}}"
+
+    custom_separator:
+      syntax: '{{3*tableId|", "}}'
+      default: '", "'
+      examples:
+        - '{{3*items|" and "}}'
+        - '{{2*names|" vs "}}'
+
+  # ---------------------------------------------------------------------------
+  # SETS AND PLACEHOLDERS
+  # ---------------------------------------------------------------------------
+  sets_and_placeholders:
+    use_when: "Entries have ASSOCIATED PROPERTIES beyond display text"
+    common_patterns:
+      creatures: "hp, ac, speed, size, type, abilities, cr"
+      items: "price, weight, rarity, magical, cursed, attunement"
+      npcs: "occupation, personality, secret, motivation, appearance"
+      locations: "size, population, government, danger, resources"
+      spells: "level, school, components, duration, range"
+
+    defaultSets_vs_entry_sets:
+      defaultSets:
+        use_when: "Property applies to ALL or MOST entries in table"
+        example: '"defaultSets": {"terrain": "forest"} on forestCreatures table'
+      entry_sets:
+        use_when: "Property is specific to that entry"
+        example: '"sets": {"hp": "{{dice:2d6}}", "flies": "true"} on specific creature'
+      merge_behavior: "Entry sets override defaultSets for same key"
+
+    dynamic_sets:
+      use_when: "Property value should be rolled, not static"
+      syntax: '"hp": "{{dice:2d8+4}}"'
+      examples:
+        - '"price": "{{dice:3d6*10}}"'
+        - '"name": "{{elfFirstNames}}"'
+      note: "Evaluated once when entry selected, consistent thereafter"
+
+  # ---------------------------------------------------------------------------
+  # CAPTURES (roll capture system)
+  # ---------------------------------------------------------------------------
+  captures:
+    use_when: "Need to ACCESS individual results or their properties from multiple rolls"
+
+    basic_capture:
+      syntax: "{{3*items >> $loot}}"
+      result: "Rolls 3 items, stores all in $loot, outputs joined text"
+      access:
+        all_values: "{{$loot}}"
+        by_index: "{{$loot[0]}}, {{$loot[1]}}"
+        property: "{{$loot[0].@price}}"
+        count: "{{$loot.count}}"
+
+    silent_capture:
+      syntax: "{{3*items >> $loot|silent}}"
+      use_when: "Capture without outputting the values inline"
+      example: "Roll items silently, then format them specially later"
+
+    collect_aggregation:
+      syntax: "{{collect:$loot.@price}}"
+      use_when: "Aggregate a property across all captured items"
+      examples:
+        - "List all enemies: {{collect:$encounters.@enemy}}"
+        - "Unique only: {{collect:$rolls.@type|unique}}"
+
+    decision_test: "Do you need to reference INDIVIDUAL rolled items or their properties AFTER rolling?"
+
+  # ---------------------------------------------------------------------------
+  # CAPTURE-AWARE SHARED VARIABLES
+  # ---------------------------------------------------------------------------
+  capture_aware_shared:
+    syntax: '"$hero": "{{raceTable}}"'
+    key_feature: "The $ prefix in the shared KEY captures the full result INCLUDING its sets"
+
+    use_when:
+      - "Multiple INDEPENDENT instances from same table"
+      - "Each instance needs its OWN placeholder values"
+      - "Generating paired/rival entities"
+
+    examples:
+      rivals: |
+        shared: { "$hero": "{{race}}", "$villain": "{{race}}" }
+        pattern: "{{$hero.@name}} the {{$hero}} fights {{$villain.@name}} the {{$villain}}"
+        # Each gets their own race-appropriate name!
+
+      party: |
+        shared: { "$fighter": "{{class}}", "$mage": "{{class}}", "$rogue": "{{class}}" }
+        # Each has independent class-specific properties
+
+    without_capture_aware:
+      problem: "Rolling {{race}} twice shares placeholders - both use same @name"
+      symptom: "Two elves with identical names, two orcs with identical traits"
+
+    with_capture_aware:
+      solution: "Each $prefixed variable gets isolated placeholder context"
+      result: "Each character has independent name, traits, etc."
+
+  # ---------------------------------------------------------------------------
+  # SHARED VARIABLES
+  # ---------------------------------------------------------------------------
+  shared_variables:
+    document_level:
+      use_when: "Value rolled/calculated ONCE, used MULTIPLE times throughout"
+      examples:
+        - "encounterSize: roll once, use for monster count AND treasure count"
+        - "weather: roll once, reference in multiple descriptions"
+        - "partyLevel: calculate once, scale multiple encounters"
+
+    table_template_level:
+      use_when: "Value only relevant when that specific table/template is used"
+      syntax: '"shared": {...} inside a table or template object'
+      behavior: "Evaluated lazily only when that table/template rolls"
+
+    math_expressions:
+      use_when: "Need to calculate derived values"
+      examples:
+        - '"modifier": "{{math:($score - 10) / 2}}"'
+        - '"totalGold": "{{math:$baseGold + dice:2d6*10}}"'
+        - '"scaledDifficulty": "{{math:$partyLevel * 2 + $dangerMod}}"'
+
+  # ---------------------------------------------------------------------------
+  # CONDITIONALS
+  # ---------------------------------------------------------------------------
   conditionals:
     use_when: "Output should CHANGE based on what was rolled"
-    examples:
-      - "Add 'has defensive walls' if settlement size is large"
-      - "Append different text based on creature type"
-      - "Set a variable flag based on rolled result"
-    input_pattern: "Text describes 'if X then Y' relationships"
+
+    actions:
+      append: "Add text to end of output"
+      prepend: "Add text to beginning of output"
+      replace: "Replace specific target text"
+      setVariable: "Set a variable for later use"
+
+    common_patterns:
+      size_based: "@size.value == 'large' → append fortification description"
+      type_based: "@creatureType.value == 'undead' → append holy vulnerability"
+      threshold: "$dangerLevel >= 5 → setVariable 'highDanger' = 'true'"
+      contains: "@name.value contains 'the' → prepend title formatting"
+
+    operators:
+      comparison: ["==", "!=", ">", "<", ">=", "<=", "contains", "matches"]
+      logical: ["&&", "||", "!", "(grouping)"]
+
+  # ---------------------------------------------------------------------------
+  # COMMON TTRPG TABLE PATTERNS
+  # ---------------------------------------------------------------------------
+  ttrpg_patterns:
+
+    random_encounter_table:
+      structure: "simple table with entries, optionally with range for d100 style"
+      example_entries:
+        - '{"value": "{{dice:2d6}} Goblins", "range": [1, 40]}'
+        - '{"value": "{{dice:1d4}} Wolves", "range": [41, 70]}'
+      sets_to_include: "cr, terrain, time_of_day"
+
+    name_generator:
+      structure: "Simple tables for components, template to combine"
+      pattern: |
+        tables: [firstNames, lastNames, titles]
+        template: "{{titles}} {{firstNames}} {{lastNames}}"
+      race_specific: "Use sets with {{raceFirstNames}} pattern, or capture-aware for race→name chain"
+
+    npc_generator:
+      structure: "Multiple trait tables + template"
+      tables: [race, occupation, personality, secret, appearance, motivation]
+      template: "A {{race}} {{occupation}} who is {{personality}}. They {{motivation}}. Secret: {{secret}}"
+      sets: "Each entry can have related properties (race→typical names, occupation→income)"
+
+    treasure_hoard:
+      structure: "Template with dice expressions and multiple table rolls"
+      example: "{{dice:3d6*100}}gp, {{dice:2d4*unique*gems}}, {{dice:1d4*magicItems}}"
+      tiered: "Use composite for 'common/uncommon/rare loot' selection"
+
+    dungeon_room:
+      structure: "Template combining multiple elements"
+      tables: [roomShape, roomFeature, monster, treasure, trap, lighting]
+      template: "A {{roomShape}} room with {{lighting}}. {{roomFeature}}. Contains: {{monster}}. {{trap}}"
+
+    wild_magic_table:
+      structure: "Simple table with self-referential entries"
+      key_entry: '{"value": "Roll twice! {{2*unique*again|\" AND \"}}", "weight": 1}'
+
+    reaction_roll:
+      structure: "Range-based for 2d6 or similar"
+      note: "Use ranges like [2,2], [3,5], [6,8], [9,11], [12,12] for 2d6 distribution"
+
+    monster_stat_block:
+      structure: "Table with extensive sets"
+      sets: "name, hp, ac, speed, str, dex, con, int, wis, cha, cr, abilities, actions"
+      access: "Template uses {{@monster.hp}}, {{@monster.abilities}}, etc."
+
+    shop_inventory:
+      structure: "Template with variable-count unique rolls"
+      shared: '"stockSize": "{{dice:2d6+3}}"'
+      pattern: "This shop has: {{$stockSize*unique*merchandise}}"
+
+    quest_hook_generator:
+      structure: "Template combining problem + location + reward + complication"
+      tables: [questType, questGiver, location, target, reward, complication, timeline]
+      template: "{{questGiver}} needs help with {{questType}} at {{location}}. Reward: {{reward}}. But: {{complication}}"
+
+    settlement_generator:
+      structure: "Size determines other properties via conditionals"
+      tables: [settlementSize, government, mainIndustry, problem, landmark]
+      conditionals:
+        - "@size.value == 'city' → append 'Has defensive walls and multiple districts.'"
+        - "@size.value == 'village' → append 'Everyone knows each other.'"
+
+    weather_table:
+      structure: "Simple or composite by season"
+      composite_example: "sources: [{tableId: springWeather, weight:1}, {tableId: summerWeather, weight:1}]"
+      note: "Caller can pick seasonal table or use composite for random season"
+
+  # ---------------------------------------------------------------------------
+  # ORGANIZATION PATTERNS
+  # ---------------------------------------------------------------------------
+  organization:
+    when_to_use_imports:
+      - "Shared content across multiple files (common names, core tables)"
+      - "Modular content packs"
+      - "Separating large collections into manageable files"
+
+    namespace_conventions:
+      format: "publisher.product.category"
+      examples: ["fantasy.core", "scifi.starships", "horror.creatures"]
+
+    file_organization:
+      small_project: "Single file with all tables"
+      medium_project: "Core file + imports for categories (creatures, items, npcs)"
+      large_project: "Namespace hierarchy with multiple import levels"
+
+  # ---------------------------------------------------------------------------
+  # DECISION FLOWCHART
+  # ---------------------------------------------------------------------------
+  quick_decision_flow:
+    step1_what_output:
+      single_item: "Use simple table"
+      formatted_text: "Use template"
+
+    step2_multiple_sources:
+      weighted_categories: "Composite table"
+      merged_pool: "Collection table"
+      no: "Simple table"
+
+    step3_need_properties:
+      yes: "Add sets to entries"
+      shared_properties: "Use defaultSets"
+
+    step4_reuse_value:
+      multiple_times: "Put in shared block"
+      independent_instances: "Use capture-aware ($prefix)"
+
+    step5_conditional_output:
+      yes: "Add conditionals"
+
+    step6_variant_table:
+      yes: "Use extends inheritance"
 
 # =============================================================================
 # FILE STRUCTURE
