@@ -2,7 +2,7 @@
  * useBrowserFilter Hook
  *
  * Memoized filtering and grouping logic for the browser panel.
- * Handles search filtering and grouping by type, tag, or alphabetically.
+ * Handles search filtering and grouping by result type, tag, or alphabetically.
  */
 
 import { useMemo } from 'react'
@@ -19,6 +19,7 @@ export interface BrowserItem {
   tags?: string[]
   hidden?: boolean
   entryCount?: number
+  resultType?: string
 }
 
 export interface GroupedItems {
@@ -73,6 +74,7 @@ export function useBrowserFilter({
         tags: table.tags,
         hidden: table.hidden,
         entryCount: table.entryCount,
+        resultType: table.resultType,
       }))
     } else {
       return templates.map((template) => ({
@@ -81,6 +83,7 @@ export function useBrowserFilter({
         type: 'template' as const,
         description: template.description,
         tags: template.tags,
+        resultType: template.resultType,
       }))
     }
   }, [tables, templates, activeTab])
@@ -121,18 +124,14 @@ export function useBrowserFilter({
       let groupKeys: string[]
 
       switch (groupBy) {
-        case 'type':
-          // Group by table type (simple/composite/collection) or template
-          if (item.type === 'template') {
-            groupKeys = ['Templates']
+        case 'resultType':
+          // Group by result type (creature, npc, location, etc.)
+          if (item.resultType) {
+            // Capitalize first letter for display
+            const label = item.resultType.charAt(0).toUpperCase() + item.resultType.slice(1)
+            groupKeys = [label]
           } else {
-            const typeLabel =
-              item.tableType === 'simple'
-                ? 'Simple Tables'
-                : item.tableType === 'composite'
-                  ? 'Composite Tables'
-                  : 'Collection Tables'
-            groupKeys = [typeLabel]
+            groupKeys = ['Untyped']
           }
           break
 
@@ -171,9 +170,13 @@ export function useBrowserFilter({
         if (b.groupName === '#') return -1
         return a.groupName.localeCompare(b.groupName)
       })
-    } else if (groupBy === 'type') {
-      const typeOrder = ['Simple Tables', 'Composite Tables', 'Collection Tables', 'Templates']
-      result.sort((a, b) => typeOrder.indexOf(a.groupName) - typeOrder.indexOf(b.groupName))
+    } else if (groupBy === 'resultType') {
+      // Result type grouping: sort alphabetically, but "Untyped" last
+      result.sort((a, b) => {
+        if (a.groupName === 'Untyped') return 1
+        if (b.groupName === 'Untyped') return -1
+        return a.groupName.localeCompare(b.groupName)
+      })
     } else {
       // Tag grouping: sort alphabetically, but "Untagged" last
       result.sort((a, b) => {

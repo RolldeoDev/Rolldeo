@@ -84,6 +84,7 @@ export interface TableInfo {
   tags?: string[]
   hidden?: boolean
   entryCount?: number
+  resultType?: string
 }
 
 export interface TemplateInfo {
@@ -91,6 +92,7 @@ export interface TemplateInfo {
   name: string
   description?: string
   tags?: string[]
+  resultType?: string
 }
 
 export interface ImportedTableInfo extends TableInfo {
@@ -353,6 +355,7 @@ export class RandomTableEngine {
           tags: table.tags,
           hidden: table.hidden,
           entryCount: table.type === 'simple' ? (table as SimpleTable).entries.length : undefined,
+          resultType: table.resultType,
         })
       }
     }
@@ -389,6 +392,7 @@ export class RandomTableEngine {
       name: t.name,
       description: t.description,
       tags: t.tags,
+      resultType: t.resultType,
     }))
   }
 

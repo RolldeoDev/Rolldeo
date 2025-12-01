@@ -54,21 +54,152 @@ export function EditorWorkspace({
   const setActiveTab = useUIStore((state) => state.setEditorActiveTab)
   const sidebarCollapsed = useUIStore((state) => state.editorSidebarCollapsed)
   const setSidebarCollapsed = useUIStore((state) => state.setEditorSidebarCollapsed)
-  const selectedItemId = useUIStore((state) => state.editorSelectedItemId)
   const setSelectedItemId = useUIStore((state) => state.setEditorSelectedItemId)
+  const focusedItemId = useUIStore((state) => state.editorFocusedItemId)
+  const setFocusedItemId = useUIStore((state) => state.setEditorFocusedItemId)
+  const lastExplicitItemId = useUIStore((state) => state.editorLastExplicitItemId)
+  const setLastExplicitItemId = useUIStore((state) => state.setEditorLastExplicitItemId)
   const contentRef = useRef<HTMLDivElement>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
   const [showImportModal, setShowImportModal] = useState(false)
   const [importsVersion, setImportsVersion] = useState(0)
+  const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set())
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+  const [isScrollingToExplicit, setIsScrollingToExplicit] = useState(false)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Scroll to item when selected from sidebar
+  // Handle expansion state changes from TableEditor/TemplateEditor
+  const handleExpandChange = useCallback(
+    (itemId: string, isExpanded: boolean) => {
+      setExpandedItems((prev) => {
+        const next = new Set(prev)
+        if (isExpanded) {
+          next.add(itemId)
+          // When manually expanding, also set as explicit selection
+          setLastExplicitItemId(itemId)
+        } else {
+          next.delete(itemId)
+        }
+        return next
+      })
+    },
+    [setLastExplicitItemId]
+  )
+
+  // Compute the currently selected item based on priority:
+  // 1. Explicit navigation in progress (scrolling to clicked item)
+  // 2. Focused item (highest priority during normal use)
+  // 3. First visible AND expanded item in viewport (by document order)
+  // 4. Last explicitly selected item (fallback)
+  const computedSelectedItemId = useMemo(() => {
+    // Only compute for tables/templates tabs
+    if (activeTab !== 'tables' && activeTab !== 'templates') {
+      return lastExplicitItemId
+    }
+
+    // Priority 1: If we're scrolling to an explicit selection, always use it
+    // This prevents viewport changes during scroll animation from hijacking selection
+    if (isScrollingToExplicit && lastExplicitItemId) {
+      return lastExplicitItemId
+    }
+
+    // Priority 2: Focused item
+    if (focusedItemId) return focusedItemId
+
+    // Priority 3: First visible AND expanded item (by document order)
+    // Only consider expanded items for viewport-based selection
+    const items =
+      activeTab === 'tables'
+        ? document.tables.map((t) => t.id)
+        : (document.templates || []).map((t) => t.id)
+
+    const firstVisibleExpanded = items.find(
+      (id) => visibleItems.has(id) && expandedItems.has(id)
+    )
+    if (firstVisibleExpanded) return firstVisibleExpanded
+
+    // Priority 4: Last explicitly selected
+    return lastExplicitItemId
+  }, [focusedItemId, visibleItems, expandedItems, activeTab, document.tables, document.templates, lastExplicitItemId, isScrollingToExplicit])
+
+  // Update the UIStore selectedItemId whenever computed value changes
   useEffect(() => {
-    if (selectedItemId && contentRef.current) {
-      const element = contentRef.current.querySelector(`[data-item-id="${selectedItemId}"]`)
+    setSelectedItemId(computedSelectedItemId)
+  }, [computedSelectedItemId, setSelectedItemId])
+
+  // Scroll to item when explicitly selected from sidebar
+  useEffect(() => {
+    if (lastExplicitItemId && contentRef.current) {
+      const element = contentRef.current.querySelector(`[data-item-id="${lastExplicitItemId}"]`)
       if (element) {
+        // Set scrolling flag to prevent viewport changes from hijacking selection
+        setIsScrollingToExplicit(true)
+
+        // Clear any existing timeout
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current)
+        }
+
         element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+        // Clear the flag after scroll animation completes (generous timeout for smooth scroll)
+        scrollTimeoutRef.current = setTimeout(() => {
+          setIsScrollingToExplicit(false)
+        }, 800)
       }
     }
-  }, [selectedItemId])
+
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [lastExplicitItemId])
+
+  // Track visible items with IntersectionObserver
+  useEffect(() => {
+    if (activeTab !== 'tables' && activeTab !== 'templates') {
+      return
+    }
+
+    // Reset visible items when tab or document changes
+    setVisibleItems(new Set())
+
+    // Small delay to allow DOM to render
+    const timeoutId = setTimeout(() => {
+      if (!contentRef.current) return
+
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          setVisibleItems((prev) => {
+            const next = new Set(prev)
+            entries.forEach((entry) => {
+              const id = entry.target.getAttribute('data-item-id')
+              if (id) {
+                if (entry.isIntersecting) {
+                  next.add(id)
+                } else {
+                  next.delete(id)
+                }
+              }
+            })
+            return next
+          })
+        },
+        { root: contentRef.current, threshold: 0.1 }
+      )
+
+      // Observe all item containers
+      contentRef.current.querySelectorAll('[data-item-id]').forEach((el) => {
+        observerRef.current?.observe(el)
+      })
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      observerRef.current?.disconnect()
+    }
+  }, [activeTab, document.tables, document.templates])
 
   // Sync document imports to engine when they change (for live import resolution)
   // We need to ensure the document matches the collectionId to avoid corrupting
@@ -190,8 +321,8 @@ export function EditorWorkspace({
     }
     updateTables([...document.tables, newTable])
     setActiveTab('tables')
-    setSelectedItemId(newId)
-  }, [document.tables, updateTables])
+    setLastExplicitItemId(newId)
+  }, [document.tables, updateTables, setActiveTab, setLastExplicitItemId])
 
   const handleImportTable = useCallback(
     (table: SimpleTable) => {
@@ -206,9 +337,9 @@ export function EditorWorkspace({
       const tableWithUniqueId = { ...table, id: uniqueId }
       updateTables([...document.tables, tableWithUniqueId])
       setActiveTab('tables')
-      setSelectedItemId(uniqueId)
+      setLastExplicitItemId(uniqueId)
     },
-    [document.tables, updateTables]
+    [document.tables, updateTables, setActiveTab, setLastExplicitItemId]
   )
 
   const addTemplate = useCallback(() => {
@@ -221,8 +352,8 @@ export function EditorWorkspace({
     }
     updateTemplates([...templates, newTemplate])
     setActiveTab('templates')
-    setSelectedItemId(newId)
-  }, [document.templates, updateTemplates])
+    setLastExplicitItemId(newId)
+  }, [document.templates, updateTemplates, setActiveTab, setLastExplicitItemId])
 
   // Delete handlers
   const deleteImport = useCallback(
@@ -275,9 +406,9 @@ export function EditorWorkspace({
   const handleNavigate = useCallback((tab: EditorTab, itemId?: string) => {
     setActiveTab(tab)
     if (itemId) {
-      setSelectedItemId(itemId)
+      setLastExplicitItemId(itemId)
     }
-  }, [])
+  }, [setActiveTab, setLastExplicitItemId])
 
   const tableCounts = {
     tables: document.tables.length,
@@ -299,7 +430,7 @@ export function EditorWorkspace({
           onDeleteImport={deleteImport}
           onDeleteTable={deleteTable}
           onDeleteTemplate={deleteTemplate}
-          selectedItemId={selectedItemId ?? undefined}
+          selectedItemId={computedSelectedItemId ?? undefined}
         />
       </div>
 
@@ -311,7 +442,7 @@ export function EditorWorkspace({
         onAddTable={addTable}
         onAddTemplate={addTemplate}
         onAddImport={addImport}
-        selectedItemId={selectedItemId ?? undefined}
+        selectedItemId={computedSelectedItemId ?? undefined}
       />
 
       {/* Main Content */}
@@ -387,8 +518,11 @@ export function EditorWorkspace({
                       onChange={(updated) => updateTable(index, updated)}
                       onDelete={() => deleteTable(index)}
                       availableTableIds={availableTableIds}
-                      defaultExpanded={selectedItemId === table.id || document.tables.length === 1}
+                      defaultExpanded={lastExplicitItemId === table.id || document.tables.length === 1}
                       collectionId={collectionId}
+                      onFocus={() => setFocusedItemId(table.id)}
+                      onBlur={() => setFocusedItemId(null)}
+                      onExpandChange={(isExpanded) => handleExpandChange(table.id, isExpanded)}
                     />
                   </div>
                 ))}
@@ -423,8 +557,11 @@ export function EditorWorkspace({
                         availableTemplateIds={availableTemplateIds}
                         importedTables={importedTables}
                         importedTemplates={importedTemplates}
-                        defaultExpanded={selectedItemId === template.id || (document.templates?.length || 0) === 1}
+                        defaultExpanded={lastExplicitItemId === template.id || (document.templates?.length || 0) === 1}
                         collectionId={collectionId}
+                        onFocus={() => setFocusedItemId(template.id)}
+                        onBlur={() => setFocusedItemId(null)}
+                        onExpandChange={(isExpanded) => handleExpandChange(template.id, isExpanded)}
                       />
                     </div>
                   ))}

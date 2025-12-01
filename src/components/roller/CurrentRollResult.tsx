@@ -8,51 +8,11 @@
 import { memo, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import {
-  Sparkles, RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen,
-  // ResultType icons
-  Bug, User, Users, Gavel, MapPin, Swords, Calendar, Anchor, 
-  AlertTriangle, Tag, Fingerprint, Zap, Mountain, Star, FileText,
-  MessageCircle, Quote, BarChart3, Hash, Coins, Clock, Cloud, Gem
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen } from 'lucide-react'
 import type { RollResult, EntryDescription } from '@/engine/types'
 import { TraceViewer } from './TraceViewer'
 import { CaptureInspector } from './CaptureInspector'
-
-/** Maps resultType strings to their corresponding Lucide icons */
-const RESULT_TYPE_ICONS: Record<string, LucideIcon> = {
-  creature: Bug,
-  npc: User,
-  faction: Users,
-  item: Gavel,
-  loot: Gem,
-  treasure: Gem,
-  location: MapPin,
-  encounter: Swords,
-  event: Calendar,
-  hook: Anchor,
-  complication: AlertTriangle,
-  name: Tag,
-  trait: Fingerprint,
-  effect: Zap,
-  environment: Mountain,
-  ability: Star,
-  description: FileText,
-  rumor: MessageCircle,
-  dialogue: Quote,
-  statistic: BarChart3,
-  number: Hash,
-  currency: Coins,
-  time: Clock,
-  weather: Cloud,
-}
-
-/** Returns the appropriate icon for a resultType, falling back to Sparkles */
-function getResultTypeIcon(resultType?: string): LucideIcon {
-  if (!resultType) return Sparkles
-  return RESULT_TYPE_ICONS[resultType.toLowerCase()] ?? Sparkles
-}
+import { getResultTypeIcon } from '@/lib/resultTypeIcons'
 
 interface CurrentRollResultProps {
   result: RollResult | null
