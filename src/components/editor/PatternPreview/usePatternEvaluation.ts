@@ -26,17 +26,39 @@ function countTraceNodes(trace: RollTrace | null): number {
  * Extract expression outputs from trace in order.
  * The root node's direct children correspond to the top-level expression evaluations.
  * Non-expression operations (like literal text) don't generate trace nodes.
+ *
+ * When a placeholder resolves to a table/template ID and rolls on it, the trace
+ * contains both a placeholder_access node (with the table ID as output) AND a
+ * table_roll node (with the actual result). We need to consolidate these so that
+ * each expression maps to its final result, not intermediate values.
  */
 function extractExpressionOutputsFromTrace(trace: RollTrace | null): string[] {
   if (!trace) return []
 
-  // The root node's direct children are the top-level operations
-  // Each {{...}} expression generates one or more trace nodes
-  // We collect outputs from immediate children of the root
   const outputs: string[] = []
+  const children = trace.root.children
 
-  for (const child of trace.root.children) {
+  let i = 0
+  while (i < children.length) {
+    const child = children[i]
+
+    // Check if this is a placeholder that resolved to a table/template
+    // In that case, the next sibling is the table/template roll with the actual result
+    if (child.type === 'placeholder_access' && child.metadata) {
+      // The engine adds resolvedToTable/resolvedToTemplate fields that aren't in the base type
+      const meta = child.metadata as unknown as Record<string, unknown>
+      if (meta.resolvedToTable || meta.resolvedToTemplate) {
+        // The next child should be the table/template roll - use its output
+        if (i + 1 < children.length) {
+          outputs.push(String(children[i + 1].output.value))
+          i += 2 // Skip both the placeholder_access and the table/template roll
+          continue
+        }
+      }
+    }
+
     outputs.push(String(child.output.value))
+    i++
   }
 
   return outputs
