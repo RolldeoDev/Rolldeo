@@ -4,7 +4,7 @@
  * Visual editor for tables (simple, composite, collection).
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   Plus,
   Trash2,
@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils'
 import { EntryEditor } from './EntryEditor'
 import { KeyValueEditor } from './KeyValueEditor'
+import { ResultTypeSelector } from './ResultTypeSelector'
 import { SortableList } from './SortableList'
 import { SortableItem } from './SortableItem'
 import type {
@@ -27,6 +28,7 @@ import type {
   Entry,
   CompositeSource,
   SharedVariables,
+  TableSource,
 } from '@/engine/types'
 
 export interface TableEditorProps {
@@ -42,6 +44,12 @@ export interface TableEditorProps {
   defaultExpanded?: boolean
   /** Collection ID for live preview evaluation */
   collectionId?: string
+  /** Called when any field in the editor gains focus */
+  onFocus?: () => void
+  /** Called when focus leaves the editor entirely */
+  onBlur?: () => void
+  /** Called when expansion state changes (isExpanded) */
+  onExpandChange?: (isExpanded: boolean) => void
 }
 
 export function TableEditor({
@@ -51,19 +59,63 @@ export function TableEditor({
   availableTableIds,
   defaultExpanded = false,
   collectionId,
+  onFocus,
+  onBlur,
+  onExpandChange,
 }: TableEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
+  const prevDefaultExpandedRef = useRef(defaultExpanded)
 
-  // Expand when this item becomes selected (defaultExpanded becomes true)
+  // Expand when defaultExpanded transitions from false to true (explicit selection)
+  // Don't force open just because defaultExpanded is true - allow user to collapse
   useEffect(() => {
-    if (defaultExpanded) {
+    if (defaultExpanded && !prevDefaultExpandedRef.current) {
       setIsExpanded(true)
+      onExpandChange?.(true)
     }
-  }, [defaultExpanded])
+    prevDefaultExpandedRef.current = defaultExpanded
+  }, [defaultExpanded, onExpandChange])
+
+  // Handle manual expand/collapse toggle
+  const handleToggleExpand = useCallback(() => {
+    const newExpanded = !isExpanded
+    setIsExpanded(newExpanded)
+    onExpandChange?.(newExpanded)
+  }, [isExpanded, onExpandChange])
+
+  // Focus tracking for dynamic selection
+  const handleFocus = useCallback(() => {
+    onFocus?.()
+  }, [onFocus])
+
+  const handleBlur = useCallback(
+    (e: React.FocusEvent) => {
+      // Only trigger if focus is leaving the entire editor
+      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+        onBlur?.()
+      }
+    },
+    [onBlur]
+  )
 
   const updateField = useCallback(
     <K extends keyof Table>(field: K, value: Table[K]) => {
       onChange({ ...table, [field]: value } as Table)
+    },
+    [table, onChange]
+  )
+
+  const updateSource = useCallback(
+    <K extends keyof TableSource>(field: K, value: TableSource[K]) => {
+      const newSource = { ...(table.source || {}), [field]: value }
+      // Remove empty fields
+      Object.keys(newSource).forEach((k) => {
+        if (!newSource[k as keyof TableSource]) delete newSource[k as keyof TableSource]
+      })
+      onChange({
+        ...table,
+        source: Object.keys(newSource).length > 0 ? newSource : undefined,
+      } as Table)
     },
     [table, onChange]
   )
@@ -110,7 +162,7 @@ export function TableEditor({
   )
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden" onFocus={handleFocus} onBlur={handleBlur}>
       {/* Table Header */}
       <div
         className={cn(
@@ -118,7 +170,7 @@ export function TableEditor({
           'min-h-[56px] md:min-h-0',
           isExpanded && 'border-b'
         )}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleToggleExpand}
       >
         {isExpanded ? (
           <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -204,12 +256,10 @@ export function TableEditor({
 
             <div>
               <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Result Type</label>
-              <input
-                type="text"
-                value={table.resultType || ''}
-                onChange={(e) => updateField('resultType', e.target.value || undefined)}
-                placeholder="creature, item, etc."
-                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+              <ResultTypeSelector
+                value={table.resultType}
+                onChange={(value) => updateField('resultType', value)}
+                placeholder="Select or enter type..."
               />
             </div>
           </div>
@@ -322,6 +372,76 @@ export function TableEditor({
               availableTableIds={availableTableIds}
             />
           )}
+
+          {/* Source Attribution (collapsible) */}
+          <details className="border rounded-lg">
+            <summary className="px-4 py-3 cursor-pointer hover:bg-accent/50 transition-colors list-none">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm">Source Attribution</span>
+                <span className="text-xs text-muted-foreground">(optional)</span>
+                <div className="group relative">
+                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                  <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 text-xs bg-popover border rounded-md shadow-lg">
+                    Track where this table originated. Useful when combining content from multiple sources.
+                  </div>
+                </div>
+              </div>
+            </summary>
+            <div className="p-4 border-t space-y-4">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                <div>
+                  <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Book</label>
+                  <input
+                    type="text"
+                    value={table.source?.book || ''}
+                    onChange={(e) => updateSource('book', e.target.value || undefined)}
+                    placeholder="Source book name"
+                    className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Page</label>
+                  <input
+                    type="text"
+                    value={table.source?.page?.toString() || ''}
+                    onChange={(e) => updateSource('page', e.target.value || undefined)}
+                    placeholder="47 or 47-49"
+                    className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Section</label>
+                  <input
+                    type="text"
+                    value={table.source?.section || ''}
+                    onChange={(e) => updateSource('section', e.target.value || undefined)}
+                    placeholder="Chapter or section name"
+                    className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">License</label>
+                  <input
+                    type="text"
+                    value={table.source?.license || ''}
+                    onChange={(e) => updateSource('license', e.target.value || undefined)}
+                    placeholder="OGL 1.0a, CC BY 4.0, etc."
+                    className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">URL</label>
+                <input
+                  type="url"
+                  value={table.source?.url || ''}
+                  onChange={(e) => updateSource('url', e.target.value || undefined)}
+                  placeholder="https://..."
+                  className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                />
+              </div>
+            </div>
+          </details>
         </div>
       )}
     </div>

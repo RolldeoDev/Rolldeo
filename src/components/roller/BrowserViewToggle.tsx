@@ -16,7 +16,7 @@ interface BrowserViewToggleProps {
 }
 
 const GROUP_BY_OPTIONS: { value: BrowserGroupBy; label: string }[] = [
-  { value: 'type', label: 'Type' },
+  { value: 'resultType', label: 'Result Type' },
   { value: 'tag', label: 'Tag' },
   { value: 'alpha', label: 'Alphabetical' },
 ]
@@ -44,9 +44,9 @@ export const BrowserViewToggle = memo(function BrowserViewToggle({
   const handleViewModeToggle = () => {
     if (viewMode === 'flat') {
       onViewModeChange('grouped')
-      // Default to 'type' grouping when switching to grouped mode
+      // Default to 'resultType' grouping when switching to grouped mode
       if (!groupBy) {
-        onGroupByChange('type')
+        onGroupByChange('resultType')
       }
     } else {
       onViewModeChange('flat')

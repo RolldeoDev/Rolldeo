@@ -11,6 +11,7 @@ import { extractExpressions } from '@/engine/core/parser'
 import { InlineResult } from './PatternPreview/InlineResult'
 import { PatternPreview } from './PatternPreview/PatternPreview'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
+import { ResultTypeSelector } from './ResultTypeSelector'
 import type { Entry } from '@/engine/types'
 
 export interface EntryEditorProps {
@@ -444,14 +445,10 @@ export function EntryEditor({
 
           <div>
             <label className="block text-sm font-medium mb-1">Result Type</label>
-            <input
-              type="text"
-              value={entry.resultType || ''}
-              onChange={(e) =>
-                updateField('resultType', e.target.value || undefined)
-              }
-              placeholder="creature, item, location, etc."
-              className="w-full p-2 border rounded-md bg-background text-sm"
+            <ResultTypeSelector
+              value={entry.resultType}
+              onChange={(value) => updateField('resultType', value)}
+              placeholder="Override table type..."
             />
           </div>
 

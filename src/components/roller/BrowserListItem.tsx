@@ -9,7 +9,7 @@
 import { memo, useState, useCallback } from 'react'
 import { Dices, EyeOff, Pencil, ClipboardCopy, Hash, Info } from 'lucide-react'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
-import { TableTypeIcon } from './TableTypeIcon'
+import { getResultTypeIcon } from '@/lib/resultTypeIcons'
 import { ContextMenu, type ContextMenuEntry } from './ContextMenu'
 
 interface BrowserListItemProps {
@@ -120,11 +120,17 @@ export const BrowserListItem = memo(function BrowserListItem({
       aria-selected={isSelected}
       tabIndex={0}
     >
-      {/* Type Icon */}
-      <TableTypeIcon
-        type={item.type === 'template' ? 'template' : (item.tableType || 'simple')}
-        className="w-4 h-4 flex-shrink-0"
-      />
+      {/* Result Type Icon */}
+      {(() => {
+        const Icon = getResultTypeIcon(item.resultType)
+        return (
+          <Icon
+            className={`w-4 h-4 flex-shrink-0 ${
+              item.type === 'template' ? 'text-orange-500' : 'text-green-500'
+            }`}
+          />
+        )
+      })()}
 
       {/* Name and Description */}
       <div className="flex-1 min-w-0">

@@ -13,7 +13,7 @@ import { persist } from 'zustand/middleware'
 // ============================================================================
 
 export type BrowserViewMode = 'flat' | 'grouped'
-export type BrowserGroupBy = 'type' | 'tag' | 'alpha' | null
+export type BrowserGroupBy = 'resultType' | 'tag' | 'alpha' | null
 export type BrowserTab = 'tables' | 'templates'
 export type EditorTab = 'metadata' | 'tables' | 'templates' | 'variables' | 'json'
 
@@ -49,6 +49,8 @@ interface UIState {
   editorActiveTab: EditorTab
   editorSelectedItemId: string | null
   editorSidebarCollapsed: boolean
+  editorFocusedItemId: string | null      // Item with focused field (highest priority)
+  editorLastExplicitItemId: string | null // Last explicitly clicked item (fallback)
 
   // Actions - Library
   setSearchQuery: (query: string) => void
@@ -84,6 +86,8 @@ interface UIState {
   setEditorActiveTab: (tab: EditorTab) => void
   setEditorSelectedItemId: (id: string | null) => void
   setEditorSidebarCollapsed: (collapsed: boolean) => void
+  setEditorFocusedItemId: (id: string | null) => void
+  setEditorLastExplicitItemId: (id: string | null) => void
 }
 
 // ============================================================================
@@ -118,6 +122,8 @@ export const useUIStore = create<UIState>()(
       editorActiveTab: 'tables',
       editorSelectedItemId: null,
       editorSidebarCollapsed: false,
+      editorFocusedItemId: null,
+      editorLastExplicitItemId: null,
 
       // ========================================================================
       // Search and Filter Actions
@@ -208,6 +214,10 @@ export const useUIStore = create<UIState>()(
       setEditorSelectedItemId: (id) => set({ editorSelectedItemId: id }),
 
       setEditorSidebarCollapsed: (collapsed) => set({ editorSidebarCollapsed: collapsed }),
+
+      setEditorFocusedItemId: (id) => set({ editorFocusedItemId: id }),
+
+      setEditorLastExplicitItemId: (id) => set({ editorLastExplicitItemId: id }),
     }),
     {
       name: 'ui-store',

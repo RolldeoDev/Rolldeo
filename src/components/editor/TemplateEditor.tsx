@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils'
 import { KeyValueEditor } from './KeyValueEditor'
 import { InsertDropdown } from './InsertDropdown'
 import { PatternPreview, type EditablePatternRef } from './PatternPreview'
+import { ResultTypeSelector } from './ResultTypeSelector'
 import type { Template, SharedVariables } from '@/engine/types'
 import type { ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
@@ -45,6 +46,12 @@ export interface TemplateEditorProps {
   defaultExpanded?: boolean
   /** Collection ID for live preview evaluation */
   collectionId?: string
+  /** Called when any field in the editor gains focus */
+  onFocus?: () => void
+  /** Called when focus leaves the editor entirely */
+  onBlur?: () => void
+  /** Called when expansion state changes (isExpanded) */
+  onExpandChange?: (isExpanded: boolean) => void
 }
 
 export function TemplateEditor({
@@ -57,16 +64,45 @@ export function TemplateEditor({
   importedTemplates = [],
   defaultExpanded = false,
   collectionId,
+  onFocus,
+  onBlur,
+  onExpandChange,
 }: TemplateEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const patternEditorRef = useRef<EditablePatternRef>(null)
+  const prevDefaultExpandedRef = useRef(defaultExpanded)
 
-  // Expand when this item becomes selected (defaultExpanded becomes true)
+  // Expand when defaultExpanded transitions from false to true (explicit selection)
+  // Don't force open just because defaultExpanded is true - allow user to collapse
   useEffect(() => {
-    if (defaultExpanded) {
+    if (defaultExpanded && !prevDefaultExpandedRef.current) {
       setIsExpanded(true)
+      onExpandChange?.(true)
     }
-  }, [defaultExpanded])
+    prevDefaultExpandedRef.current = defaultExpanded
+  }, [defaultExpanded, onExpandChange])
+
+  // Handle manual expand/collapse toggle
+  const handleToggleExpand = useCallback(() => {
+    const newExpanded = !isExpanded
+    setIsExpanded(newExpanded)
+    onExpandChange?.(newExpanded)
+  }, [isExpanded, onExpandChange])
+
+  // Focus tracking for dynamic selection
+  const handleFocus = useCallback(() => {
+    onFocus?.()
+  }, [onFocus])
+
+  const handleBlur = useCallback(
+    (e: React.FocusEvent) => {
+      // Only trigger if focus is leaving the entire editor
+      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+        onBlur?.()
+      }
+    },
+    [onBlur]
+  )
 
   const updateField = useCallback(
     <K extends keyof Template>(field: K, value: Template[K]) => {
@@ -88,7 +124,7 @@ export function TemplateEditor({
   )
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden" onFocus={handleFocus} onBlur={handleBlur}>
       {/* Template Header */}
       <div
         className={cn(
@@ -96,7 +132,7 @@ export function TemplateEditor({
           'min-h-[56px] md:min-h-0',
           isExpanded && 'border-b'
         )}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleToggleExpand}
       >
         {isExpanded ? (
           <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -159,14 +195,10 @@ export function TemplateEditor({
               <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">
                 Result Type
               </label>
-              <input
-                type="text"
-                value={template.resultType || ''}
-                onChange={(e) =>
-                  updateField('resultType', e.target.value || undefined)
-                }
-                placeholder="encounter, description, etc."
-                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+              <ResultTypeSelector
+                value={template.resultType}
+                onChange={(value) => updateField('resultType', value)}
+                placeholder="Select or enter type..."
               />
             </div>
           </div>
