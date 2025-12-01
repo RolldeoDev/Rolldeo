@@ -126,7 +126,7 @@ export const BrowserListItem = memo(function BrowserListItem({
         return (
           <Icon
             className={`w-4 h-4 flex-shrink-0 ${
-              item.type === 'template' ? 'text-orange-500' : 'text-green-500'
+              item.type === 'template' ? 'text-purple-500' : 'text-green-500'
             }`}
           />
         )

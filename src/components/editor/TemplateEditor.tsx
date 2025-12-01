@@ -124,7 +124,7 @@ export function TemplateEditor({
   )
 
   return (
-    <div className={cn("editor-card", isExpanded && "editor-card-expanded")} onFocus={handleFocus} onBlur={handleBlur}>
+    <div className={cn("editor-card", isExpanded && "editor-card-expanded-lavender")} onFocus={handleFocus} onBlur={handleBlur}>
       {/* Template Header */}
       <div
         className={cn(

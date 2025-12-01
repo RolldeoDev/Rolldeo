@@ -1,12 +1,16 @@
 {
   "metadata": {
     "name": "Fantasy Name Generator",
-    "namespace": "examples.fantasyNames",
+    "namespace": "rolldeo.fantasyNames",
     "version": "1.0.0",
     "specVersion": "1.0",
     "author": "Rolldeo Examples",
     "description": "A comprehensive fantasy name generator demonstrating race-specific names, gender pronouns, and NPC generation templates.",
-    "tags": ["fantasy", "names", "npc", "generator"]
+    "tags": ["fantasy", "names", "npc", "generator"],
+    "source": {
+      "license": "CC0-1.0",
+      "attribution": "Rolldeo - Free for any use"
+    }
   },
   "tables": [
     {

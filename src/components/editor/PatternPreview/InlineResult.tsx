@@ -282,6 +282,25 @@ export const InlineResult = memo(function InlineResult({
             p: ({ children }) => (
               <p>{processChildren(children, expressions, 'p')}</p>
             ),
+            // Override heading elements
+            h1: ({ children }) => (
+              <h1>{processChildren(children, expressions, 'h1')}</h1>
+            ),
+            h2: ({ children }) => (
+              <h2>{processChildren(children, expressions, 'h2')}</h2>
+            ),
+            h3: ({ children }) => (
+              <h3>{processChildren(children, expressions, 'h3')}</h3>
+            ),
+            h4: ({ children }) => (
+              <h4>{processChildren(children, expressions, 'h4')}</h4>
+            ),
+            h5: ({ children }) => (
+              <h5>{processChildren(children, expressions, 'h5')}</h5>
+            ),
+            h6: ({ children }) => (
+              <h6>{processChildren(children, expressions, 'h6')}</h6>
+            ),
             // Override other text-containing elements
             li: ({ children }) => (
               <li>{processChildren(children, expressions, 'li')}</li>

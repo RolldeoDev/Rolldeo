@@ -1416,6 +1416,20 @@
   border-color: hsl(var(--primary) / 0.3);
 }
 
+/* Lavender/purple variant for templates */
+.editor-card-expanded-lavender {
+  box-shadow:
+    0 4px 12px -2px hsl(var(--lavender) / 0.12),
+    0 0 0 1px hsl(var(--lavender) / 0.15);
+}
+
+.dark .editor-card-expanded-lavender {
+  box-shadow:
+    0 4px 16px -2px hsl(0, 0%, 0% / 0.4),
+    0 0 0 1px hsl(var(--lavender) / 0.3);
+  border-color: hsl(var(--lavender) / 0.4);
+}
+
 /* Form section header */
 .editor-section-header {
   @apply flex items-center justify-between mb-3;
