@@ -182,8 +182,8 @@ export function HomePage() {
           <span className="gradient-text">Random Roll</span>
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up stagger-1">
-          Your digital companion for random tables. Roll on pre-built tables,
-          upload your own, and never be without inspiration at your game table.
+          An offline first, open source, CC0 application built with the intent to share your tables with fellow GMs. 
+          Download once, use forever!
         </p>
       </section>
 

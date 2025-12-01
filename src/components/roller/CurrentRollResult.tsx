@@ -8,10 +8,51 @@
 import { memo, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Sparkles, RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen } from 'lucide-react'
+import {
+  Sparkles, RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen,
+  // ResultType icons
+  Bug, User, Users, Gavel, MapPin, Swords, Calendar, Anchor, 
+  AlertTriangle, Tag, Fingerprint, Zap, Mountain, Star, FileText,
+  MessageCircle, Quote, BarChart3, Hash, Coins, Clock, Cloud, Gem
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { RollResult, EntryDescription } from '@/engine/types'
 import { TraceViewer } from './TraceViewer'
 import { CaptureInspector } from './CaptureInspector'
+
+/** Maps resultType strings to their corresponding Lucide icons */
+const RESULT_TYPE_ICONS: Record<string, LucideIcon> = {
+  creature: Bug,
+  npc: User,
+  faction: Users,
+  item: Gavel,
+  loot: Gem,
+  treasure: Gem,
+  location: MapPin,
+  encounter: Swords,
+  event: Calendar,
+  hook: Anchor,
+  complication: AlertTriangle,
+  name: Tag,
+  trait: Fingerprint,
+  effect: Zap,
+  environment: Mountain,
+  ability: Star,
+  description: FileText,
+  rumor: MessageCircle,
+  dialogue: Quote,
+  statistic: BarChart3,
+  number: Hash,
+  currency: Coins,
+  time: Clock,
+  weather: Cloud,
+}
+
+/** Returns the appropriate icon for a resultType, falling back to Sparkles */
+function getResultTypeIcon(resultType?: string): LucideIcon {
+  if (!resultType) return Sparkles
+  return RESULT_TYPE_ICONS[resultType.toLowerCase()] ?? Sparkles
+}
 
 interface CurrentRollResultProps {
   result: RollResult | null
@@ -63,12 +104,17 @@ export const CurrentRollResult = memo(function CurrentRollResult({
     return null
   }
 
+  const ResultIcon = getResultTypeIcon(result.resultType)
+
   return (
     <div className="mx-4 mt-4 p-5 rounded-xl card-elevated card-mint border animate-slide-up">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="icon-container icon-mint">
-            <Sparkles className="h-5 w-5" />
+          <div
+            className="icon-container icon-mint"
+            title={result.resultType ? `Type: ${result.resultType}` : undefined}
+          >
+            <ResultIcon className="h-5 w-5" />
           </div>
           <div>
             <h3 className="font-semibold text-lg">Result</h3>
