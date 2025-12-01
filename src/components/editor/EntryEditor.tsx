@@ -12,6 +12,7 @@ import { InlineResult } from './PatternPreview/InlineResult'
 import { PatternPreview } from './PatternPreview/PatternPreview'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
 import { ResultTypeSelector } from './ResultTypeSelector'
+import { KeyValueEditor } from './KeyValueEditor'
 import type { Entry } from '@/engine/types'
 
 export interface EntryEditorProps {
@@ -497,114 +498,6 @@ export function EntryEditor({
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-interface KeyValueEditorProps {
-  value: Record<string, string>
-  onChange: (value: Record<string, string>) => void
-  keyPlaceholder?: string
-  valuePlaceholder?: string
-}
-
-function KeyValueEditor({
-  value,
-  onChange,
-  keyPlaceholder = 'Key',
-  valuePlaceholder = 'Value',
-}: KeyValueEditorProps) {
-  const entries = Object.entries(value)
-  const [newKey, setNewKey] = useState('')
-  const [newValue, setNewValue] = useState('')
-
-  const addEntry = useCallback(() => {
-    if (newKey.trim() && newValue.trim()) {
-      onChange({ ...value, [newKey.trim()]: newValue.trim() })
-      setNewKey('')
-      setNewValue('')
-    }
-  }, [value, onChange, newKey, newValue])
-
-  const removeEntry = useCallback(
-    (key: string) => {
-      const updated = { ...value }
-      delete updated[key]
-      onChange(updated)
-    },
-    [value, onChange]
-  )
-
-  const updateEntry = useCallback(
-    (oldKey: string, newKey: string, newValue: string) => {
-      const updated: Record<string, string> = {}
-      for (const [k, v] of Object.entries(value)) {
-        if (k === oldKey) {
-          if (newKey.trim()) {
-            updated[newKey.trim()] = newValue
-          }
-        } else {
-          updated[k] = v
-        }
-      }
-      onChange(updated)
-    },
-    [value, onChange]
-  )
-
-  return (
-    <div className="space-y-2">
-      {entries.map(([key, val]) => (
-        <div key={key} className="flex gap-2">
-          <input
-            type="text"
-            value={key}
-            onChange={(e) => updateEntry(key, e.target.value, val)}
-            className="flex-1 p-2 border rounded-md bg-background text-sm"
-            placeholder={keyPlaceholder}
-          />
-          <input
-            type="text"
-            value={val}
-            onChange={(e) => updateEntry(key, key, e.target.value)}
-            className="flex-1 p-2 border rounded-md bg-background text-sm"
-            placeholder={valuePlaceholder}
-          />
-          <button
-            type="button"
-            onClick={() => removeEntry(key)}
-            className="p-2 hover:bg-destructive/10 hover:text-destructive rounded"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      ))}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={newKey}
-          onChange={(e) => setNewKey(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addEntry()}
-          className="flex-1 p-2 border rounded-md bg-background text-sm"
-          placeholder={keyPlaceholder}
-        />
-        <input
-          type="text"
-          value={newValue}
-          onChange={(e) => setNewValue(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addEntry()}
-          className="flex-1 p-2 border rounded-md bg-background text-sm"
-          placeholder={valuePlaceholder}
-        />
-        <button
-          type="button"
-          onClick={addEntry}
-          disabled={!newKey.trim() || !newValue.trim()}
-          className="px-3 py-2 text-sm border rounded-md hover:bg-accent disabled:opacity-50"
-        >
-          Add
-        </button>
-      </div>
     </div>
   )
 }

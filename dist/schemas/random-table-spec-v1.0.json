@@ -603,15 +603,11 @@
     "setsObject": {
       "type": "object",
       "title": "Sets (Placeholder Values)",
-      "description": "Key-value pairs for placeholder values. Values are literal strings unless they contain {{patterns}}, which are evaluated when the entry is selected. Use {{tableName}} to roll a table, {{dice:1d6}} for dice, etc. Access via @tableName.propertyName syntax.",
+      "description": "Key-value pairs that set placeholder values (accessible via @key syntax) when this entry is selected. Merges with and overrides table's defaultSets.",
       "additionalProperties": {
         "type": "string"
       },
-      "examples": [
-        {"size": "large", "terrain": "forest"},
-        {"hp": "{{dice:4d8+12}}", "weapon": "{{weaponTable}}"},
-        {"desc": "A {{adjective}} creature"}
-      ]
+      "examples": [{"size": "large", "terrain": "forest"}, {"hp": "{{dice:4d8+12}}", "ac": "16"}]
     },
     "assetsObject": {
       "type": "object",
