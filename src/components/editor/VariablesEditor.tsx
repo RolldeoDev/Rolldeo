@@ -17,6 +17,8 @@ export interface VariablesEditorProps {
   onVariablesChange: (variables: Variables) => void
   /** Called when shared variables change */
   onSharedChange: (shared: SharedVariables) => void
+  /** Collection ID for expression preview */
+  collectionId?: string
 }
 
 export function VariablesEditor({
@@ -24,6 +26,7 @@ export function VariablesEditor({
   shared,
   onVariablesChange,
   onSharedChange,
+  collectionId,
 }: VariablesEditorProps) {
   return (
     <div className="space-y-6">
@@ -85,6 +88,7 @@ export function VariablesEditor({
             keyPattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
             keyError="Must start with letter/underscore, alphanumeric only"
             valueSupportsExpressions
+            collectionId={collectionId}
           />
         </div>
       </section>
