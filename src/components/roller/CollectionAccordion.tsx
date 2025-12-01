@@ -95,11 +95,11 @@ export const CollectionAccordion = memo(function CollectionAccordion({
       // Expand the collection if not already expanded
       if (expandedCollectionId !== collectionId) {
         setExpandedCollectionId(collectionId)
+        // Only scroll when switching to a different collection
+        setScrollTargetCollectionId(collectionId)
       }
       // Switch to the correct tab based on item type
       setBrowserActiveTab(item.type === 'template' ? 'templates' : 'tables')
-      // Trigger scroll to this collection
-      setScrollTargetCollectionId(collectionId)
       // Call the parent handler
       onSelectItem(item, collectionId)
     },
@@ -111,11 +111,11 @@ export const CollectionAccordion = memo(function CollectionAccordion({
       // Expand the collection if not already expanded
       if (expandedCollectionId !== collectionId) {
         setExpandedCollectionId(collectionId)
+        // Only scroll when switching to a different collection
+        setScrollTargetCollectionId(collectionId)
       }
       // Switch to the correct tab based on item type
       setBrowserActiveTab(item.type === 'template' ? 'templates' : 'tables')
-      // Trigger scroll to this collection
-      setScrollTargetCollectionId(collectionId)
       // Call the parent handler
       onRollItem(item, collectionId)
     },
