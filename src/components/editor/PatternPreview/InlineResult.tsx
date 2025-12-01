@@ -10,6 +10,7 @@ import { memo, useMemo, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { cn } from '@/lib/utils'
+import { EXPRESSION_COLORS } from './expressionColors'
 import type { EvaluatedSegment, ExpressionType } from './types'
 
 interface InlineResultProps {
@@ -22,36 +23,14 @@ interface InlineResultProps {
 }
 
 /**
- * Get CSS classes for expression type
+ * Get CSS classes for expression type.
+ * Uses centralized color map for consistency with pattern input.
  */
 function getExpressionClasses(type: ExpressionType): string {
   const baseClasses =
     'inline-result-expression px-1 py-0.5 rounded cursor-help transition-colors'
 
-  const colorClasses: Record<ExpressionType, string> = {
-    dice: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 hover:bg-purple-500/25',
-    math: 'bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25',
-    table:
-      'bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25',
-    template:
-      'bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25',
-    variable:
-      'bg-orange-500/15 text-orange-600 dark:text-orange-400 hover:bg-orange-500/25',
-    placeholder:
-      'bg-pink-500/15 text-pink-600 dark:text-pink-400 hover:bg-pink-500/25',
-    again:
-      'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/25',
-    unique:
-      'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500/25',
-    capture:
-      'bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25',
-    collect:
-      'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25',
-    unknown:
-      'bg-gray-500/15 text-gray-600 dark:text-gray-400 hover:bg-gray-500/25',
-  }
-
-  return cn(baseClasses, colorClasses[type])
+  return cn(baseClasses, EXPRESSION_COLORS[type].badge)
 }
 
 /**
@@ -68,6 +47,7 @@ function getExpressionLabel(type: ExpressionType): string {
     again: 'Re-roll',
     unique: 'Unique',
     capture: 'Capture',
+    'capture-shared': 'Capture Shared',
     collect: 'Collect',
     unknown: 'Expression',
   }

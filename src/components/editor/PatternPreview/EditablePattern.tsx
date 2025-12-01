@@ -17,70 +17,50 @@ import {
   useImperativeHandle,
 } from 'react'
 import { cn } from '@/lib/utils'
+import { extractExpressions } from '@/engine/core/parser'
+import {
+  EXPRESSION_COLORS,
+  getExpressionTypeFromContent,
+} from './expressionColors'
 import type { EditablePatternProps } from './types'
 
 /**
- * Get expression class name based on content
+ * Get expression class name based on content for syntax highlighting.
+ * Uses centralized color map for consistency with preview.
  */
 function getExpressionClassName(content: string): string {
-  if (content.startsWith('dice:')) {
-    return 'text-purple-600 dark:text-purple-400'
-  }
-  if (content.startsWith('math:')) {
-    return 'text-green-600 dark:text-green-400'
-  }
-  if (content.startsWith('collect:')) {
-    return 'text-emerald-600 dark:text-emerald-400'
-  }
-  if (content.includes(' >> $') || content.includes('>>$')) {
-    return 'text-rose-600 dark:text-rose-400'
-  }
-  if (content.startsWith('$')) {
-    return 'text-orange-600 dark:text-orange-400'
-  }
-  if (content.startsWith('@')) {
-    return 'text-pink-600 dark:text-pink-400'
-  }
-  if (content === 'again' || content.endsWith('*again')) {
-    return 'text-cyan-600 dark:text-cyan-400'
-  }
-  if (content.startsWith('unique:')) {
-    return 'text-yellow-600 dark:text-yellow-400'
-  }
-  // Default for table references
-  return 'text-blue-600 dark:text-blue-400'
+  const type = getExpressionTypeFromContent(content)
+  return EXPRESSION_COLORS[type].text
 }
 
 /**
  * Render syntax-highlighted pattern for overlay
+ * Uses extractExpressions from parser for robust expression detection
  */
 function renderHighlightedPattern(pattern: string): React.ReactNode {
+  const expressions = extractExpressions(pattern)
   const parts: React.ReactNode[] = []
   let lastIndex = 0
-  const regex = /\{\{([^}]+)\}\}/g
-  let match
 
-  while ((match = regex.exec(pattern)) !== null) {
+  for (const match of expressions) {
     // Add text before the match
-    if (match.index > lastIndex) {
+    if (match.start > lastIndex) {
       parts.push(
         <span key={`text-${lastIndex}`} className="whitespace-pre-wrap">
-          {pattern.slice(lastIndex, match.index)}
+          {pattern.slice(lastIndex, match.start)}
         </span>
       )
     }
 
-    // Add the highlighted match
-    const content = match[1]
-    const className = getExpressionClassName(content)
-
+    // Add the highlighted expression
+    const className = getExpressionClassName(match.expression)
     parts.push(
-      <span key={`expr-${match.index}`} className={className}>
-        {match[0]}
+      <span key={`expr-${match.start}`} className={className}>
+        {match.raw}
       </span>
     )
 
-    lastIndex = match.index + match[0].length
+    lastIndex = match.end
   }
 
   // Add remaining text
@@ -228,7 +208,8 @@ export const EditablePattern = memo(
             'absolute top-0 left-0 right-0 whitespace-pre-wrap break-words',
             'p-3 border border-transparent rounded-md',
             'pointer-events-none overflow-hidden',
-            'leading-normal'
+            'leading-normal',
+            'text-foreground'
           )}
           style={{ height: `${textareaHeight}px` }}
           aria-hidden="true"

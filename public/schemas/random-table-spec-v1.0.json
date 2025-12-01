@@ -716,26 +716,32 @@
     "shared": {
       "type": "object",
       "title": "Shared Variables (Generation-Time)",
-      "description": "Generation-time variables evaluated once at the start of each generation and remain constant throughout that run. Referenced using {{$variableName}}. Evaluated in declaration order. Cannot forward-reference other shared variables.",
+      "description": "Generation-time variables evaluated once at the start of each generation and remain constant throughout that run. Referenced using {{$variableName}}. Evaluated in declaration order. Cannot forward-reference other shared variables. Keys starting with $ are capture-aware: they capture the full roll result including sets, enabling {{$varName.@property}} syntax with dynamic table resolution.",
       "additionalProperties": {
         "type": "string"
       },
       "propertyNames": {
-        "pattern": "^(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$"
+        "pattern": "^\\$?(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$"
       },
-      "examples": [{"monsterCount": "{{dice:2d4}}", "leaderType": "{{eliteMonsterTable}}", "totalThreat": "{{math:$monsterCount + 5}}"}]
+      "examples": [
+        {"monsterCount": "{{dice:2d4}}", "leaderType": "{{eliteMonsterTable}}", "totalThreat": "{{math:$monsterCount + 5}}"},
+        {"$hero": "{{race}}", "$enemy": "{{race}}"}
+      ]
     },
     "tableShared": {
       "type": "object",
       "title": "Table/Template Shared Variables",
-      "description": "Table or template-level shared variables evaluated lazily when rolled. Cannot shadow document-level shared or static variables. Propagate to nested table references. Referenced using {{$variableName}}.",
+      "description": "Table or template-level shared variables evaluated lazily when rolled. Cannot shadow document-level shared or static variables. Propagate to nested table references. Referenced using {{$variableName}}. Keys starting with $ are capture-aware: they capture the full roll result including sets, enabling {{$varName.@property}} syntax with dynamic table resolution.",
       "additionalProperties": {
         "type": "string"
       },
       "propertyNames": {
-        "pattern": "^(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$"
+        "pattern": "^\\$?(?!dice$|unique$|again$|true$|false$|null$|and$|or$|not$|contains$|matches$|shared$|math$)[a-zA-Z_][a-zA-Z0-9_]*$"
       },
-      "examples": [{"threatLevel": "{{dice:1d6}}", "monsterCount": "{{math:$threatLevel + 2}}"}]
+      "examples": [
+        {"threatLevel": "{{dice:1d6}}", "monsterCount": "{{math:$threatLevel + 2}}"},
+        {"$character": "{{race}}"}
+      ]
     },
     "resultType": {
       "type": "string",

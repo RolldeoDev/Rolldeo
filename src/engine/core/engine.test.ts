@@ -784,3 +784,364 @@ describe('Roll Capture System', () => {
     })
   })
 })
+
+describe('Capture-Aware Shared Variables', () => {
+  let engine: RandomTableEngine
+
+  // Helper to create minimal test document with required metadata
+  const createTestDoc = (
+    tables: RandomTableDocument['tables'],
+    templates: RandomTableDocument['templates']
+  ): RandomTableDocument => ({
+    metadata: {
+      name: 'Test',
+      namespace: 'test.capture',
+      version: '1.0.0',
+      specVersion: '1.0',
+    },
+    tables,
+    templates,
+  })
+
+  beforeEach(() => {
+    engine = new RandomTableEngine()
+  })
+
+  describe('basic capture-aware shared variables', () => {
+    it('should capture table roll with sets using $ prefix in shared key', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'race',
+            name: 'Race',
+            type: 'simple',
+            entries: [
+              { id: 'elf', value: 'Elf', sets: { nameTable: 'elfNames', size: 'Medium' } },
+              { id: 'dwarf', value: 'Dwarf', sets: { nameTable: 'dwarfNames', size: 'Medium' } },
+            ],
+          },
+          {
+            id: 'elfNames',
+            name: 'Elf Names',
+            type: 'simple',
+            entries: [{ value: 'Legolas' }, { value: 'Arwen' }, { value: 'Thranduil' }],
+          },
+          {
+            id: 'dwarfNames',
+            name: 'Dwarf Names',
+            type: 'simple',
+            entries: [{ value: 'Gimli' }, { value: 'Thorin' }, { value: 'Balin' }],
+          },
+        ],
+        [
+          {
+            id: 'character',
+            name: 'Character',
+            shared: {
+              '$hero': '{{race}}',
+            },
+            pattern: '{{$hero.@nameTable}} the {{$hero}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('character', 'test')
+
+      // The result should be a name from the appropriate name table followed by the race
+      // e.g., "Legolas the Elf" or "Gimli the Dwarf"
+      expect(result.text).toMatch(/^(Legolas|Arwen|Thranduil|Gimli|Thorin|Balin) the (Elf|Dwarf)$/)
+    })
+
+    it('should support multiple independent capture-aware shared variables', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'race',
+            name: 'Race',
+            type: 'simple',
+            entries: [
+              { id: 'elf', value: 'Elf', sets: { nameTable: 'elfNames' } },
+              { id: 'dwarf', value: 'Dwarf', sets: { nameTable: 'dwarfNames' } },
+            ],
+          },
+          {
+            id: 'elfNames',
+            name: 'Elf Names',
+            type: 'simple',
+            entries: [{ value: 'Legolas' }],
+          },
+          {
+            id: 'dwarfNames',
+            name: 'Dwarf Names',
+            type: 'simple',
+            entries: [{ value: 'Gimli' }],
+          },
+        ],
+        [
+          {
+            id: 'rivals',
+            name: 'Rivals',
+            shared: {
+              '$hero': '{{race}}',
+              '$enemy': '{{race}}',
+            },
+            pattern: '{{$hero.@nameTable}} the {{$hero}} vs {{$enemy.@nameTable}} the {{$enemy}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('rivals', 'test')
+
+      // Both characters should have names appropriate to their race
+      // The result could be "Legolas the Elf vs Gimli the Dwarf" or any combination
+      expect(result.text).toMatch(/^(Legolas|Gimli) the (Elf|Dwarf) vs (Legolas|Gimli) the (Elf|Dwarf)$/)
+    })
+
+    it('should access captured value without property', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'color',
+            name: 'Color',
+            type: 'simple',
+            entries: [{ value: 'Red', sets: { hex: '#FF0000' } }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$chosen': '{{color}}',
+            },
+            pattern: 'Color: {{$chosen}}, Hex: {{$chosen.@hex}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toBe('Color: Red, Hex: #FF0000')
+    })
+
+    it('should return empty string for missing property', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'item',
+            name: 'Item',
+            type: 'simple',
+            entries: [{ value: 'Sword', sets: { type: 'weapon' } }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$item': '{{item}}',
+            },
+            pattern: 'Item: {{$item}}, Missing: [{{$item.@nonexistent}}]',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toBe('Item: Sword, Missing: []')
+    })
+  })
+
+  describe('dynamic table resolution', () => {
+    it('should roll on table when property value is a table ID', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'characterType',
+            name: 'Character Type',
+            type: 'simple',
+            entries: [
+              { value: 'Warrior', sets: { weaponTable: 'warriorWeapons' } },
+              { value: 'Mage', sets: { weaponTable: 'mageWeapons' } },
+            ],
+          },
+          {
+            id: 'warriorWeapons',
+            name: 'Warrior Weapons',
+            type: 'simple',
+            entries: [{ value: 'Sword' }, { value: 'Axe' }],
+          },
+          {
+            id: 'mageWeapons',
+            name: 'Mage Weapons',
+            type: 'simple',
+            entries: [{ value: 'Staff' }, { value: 'Wand' }],
+          },
+        ],
+        [
+          {
+            id: 'character',
+            name: 'Character',
+            shared: {
+              '$char': '{{characterType}}',
+            },
+            pattern: '{{$char}} with {{$char.@weaponTable}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('character', 'test')
+
+      // Warriors should get warrior weapons, mages should get mage weapons
+      const isWarriorCombo = /^Warrior with (Sword|Axe)$/.test(result.text)
+      const isMageCombo = /^Mage with (Staff|Wand)$/.test(result.text)
+      expect(isWarriorCombo || isMageCombo).toBe(true)
+    })
+
+    it('should return value as-is when property is not a table ID', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'item',
+            name: 'Item',
+            type: 'simple',
+            entries: [{ value: 'Potion', sets: { effect: 'Healing', power: '50' } }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$potion': '{{item}}',
+            },
+            pattern: '{{$potion}} of {{$potion.@effect}} (power: {{$potion.@power}})',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toBe('Potion of Healing (power: 50)')
+    })
+  })
+
+  describe('dynamic table resolution in regular captures', () => {
+    it('should apply dynamic table resolution to capture access with index', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'enemy',
+            name: 'Enemy',
+            type: 'simple',
+            entries: [
+              { value: 'Orc', sets: { lootTable: 'orcLoot' } },
+              { value: 'Goblin', sets: { lootTable: 'goblinLoot' } },
+            ],
+          },
+          {
+            id: 'orcLoot',
+            name: 'Orc Loot',
+            type: 'simple',
+            entries: [{ value: 'Orcish Blade' }],
+          },
+          {
+            id: 'goblinLoot',
+            name: 'Goblin Loot',
+            type: 'simple',
+            entries: [{ value: 'Rusty Dagger' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            pattern: '{{1*enemy >> $foe|silent}}Defeated {{$foe[0]}}, found {{$foe[0].@lootTable}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      const isOrcCombo = result.text === 'Defeated Orc, found Orcish Blade'
+      const isGoblinCombo = result.text === 'Defeated Goblin, found Rusty Dagger'
+      expect(isOrcCombo || isGoblinCombo).toBe(true)
+    })
+
+    it('should apply dynamic table resolution to collect', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'character',
+            name: 'Character',
+            type: 'simple',
+            entries: [
+              { value: 'Fighter', sets: { greetingTable: 'fighterGreeting' } },
+              { value: 'Wizard', sets: { greetingTable: 'wizardGreeting' } },
+            ],
+          },
+          {
+            id: 'fighterGreeting',
+            name: 'Fighter Greeting',
+            type: 'simple',
+            entries: [{ value: 'Hail!' }],
+          },
+          {
+            id: 'wizardGreeting',
+            name: 'Wizard Greeting',
+            type: 'simple',
+            entries: [{ value: 'Greetings!' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            pattern: '{{2*unique*character >> $party|silent}}Greetings: {{collect:$party.@greetingTable}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      // Both Fighter and Wizard should have their greetings resolved (order varies)
+      expect(result.text).toMatch(/^Greetings: (Hail!, Greetings!|Greetings!, Hail!)$/)
+    })
+  })
+
+  describe('fallback for complex expressions', () => {
+    it('should handle complex expressions with empty sets', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'item',
+            name: 'Item',
+            type: 'simple',
+            entries: [{ value: 'Gold' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$result': '{{dice:1d6}} {{item}}',
+            },
+            pattern: 'Found: {{$result}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      // Complex expression (dice + table) should evaluate but sets will be empty
+      expect(result.text).toMatch(/^Found: [1-6] Gold$/)
+    })
+  })
+})

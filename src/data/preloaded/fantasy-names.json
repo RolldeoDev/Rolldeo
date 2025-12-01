@@ -732,6 +732,59 @@
       "description": "Generates several NPCs you might find at a local tavern.",
       "resultType": "npc",
       "pattern": "# Tonight at the Tavern\n\nThe following patrons are drinking and socializing:\n\n{{dice:1d4+2*detailedNpc|\"\n\n---\n\n\"}}"
+    },
+    {
+      "id": "rivals",
+      "name": "Rival Characters",
+      "description": "Generates two independent characters - a hero and their rival. Demonstrates capture-aware shared variables ($prefix) for independent race/name resolution.",
+      "resultType": "npc",
+      "shared": {
+        "$hero": "{{race}}",
+        "$heroGender": "{{gender}}",
+        "$rival": "{{race}}",
+        "$rivalGender": "{{gender}}"
+      },
+      "pattern": "## The Hero and The Rival\n\n### The Hero: {{$hero.@firstNameTable}} {{$hero.@surnameTable}}\n\n**{{$hero.@firstNameTable}}** is a {{$heroGender}} {{$hero}} ({{$hero.@size}}, ~{{$hero.@lifespan}} lifespan).\n\n{{$heroGender.@Subject}} {{$heroGender.@is}} {{personalityTrait}}.\n\n---\n\n### The Rival: {{$rival.@firstNameTable}} {{$rival.@surnameTable}}\n\n**{{$rival.@firstNameTable}}** is a {{$rivalGender}} {{$rival}} ({{$rival.@size}}, ~{{$rival.@lifespan}} lifespan).\n\n{{$rivalGender.@Subject}} {{$rivalGender.@is}} {{personalityTrait}}.\n\n---\n\n*These two have been locked in competition for years...*"
+    },
+    {
+      "id": "battleScene",
+      "name": "Battle Scene",
+      "description": "Generates a dramatic confrontation between two warriors with fully independent identities.",
+      "resultType": "encounter",
+      "shared": {
+        "$warrior1": "{{race}}",
+        "$warrior1Gender": "{{gender}}",
+        "$warrior2": "{{race}}",
+        "$warrior2Gender": "{{gender}}"
+      },
+      "pattern": "## Clash of Warriors\n\n**{{$warrior1.@firstNameTable}} {{$warrior1.@surnameTable}}**, a {{$warrior1}} {{profession}}, faces off against **{{$warrior2.@firstNameTable}} {{$warrior2.@surnameTable}}**, a {{$warrior2}} {{profession}}.\n\n{{$warrior1Gender.@Subject}} raises {{$warrior1Gender.@possessive}} weapon as {{$warrior2Gender.@subject}} circles cautiously. The {{$warrior1.@size}} {{$warrior1}} and the {{$warrior2.@size}} {{$warrior2}} lock eyes.\n\n> \"You'll regret crossing me,\" {{$warrior1Gender.@subject}} growls.\n\n> \"We'll see about that,\" {{$warrior2Gender.@subject}} replies."
+    },
+    {
+      "id": "familyDuo",
+      "name": "Parent and Child",
+      "description": "Generates a parent and child of the same race, demonstrating how capture-aware variables maintain independent identities while sharing racial traits.",
+      "resultType": "npc",
+      "shared": {
+        "$race": "{{race}}",
+        "$parentGender": "{{gender}}",
+        "$childGender": "{{gender}}"
+      },
+      "pattern": "## A {{$race}} Family\n\n### The Parent: {{$race.@firstNameTable}} {{$race.@surnameTable}}\n\n{{$parentGender.@honorific}} **{{$race.@firstNameTable}}** is a proud {{$race}} {{profession}}.\n\n{{$parentGender.@Subject}} {{$parentGender.@is}} {{personalityTrait}} and {{physicalTrait}}.\n\n### The {{$childGender.@child}}: {{$race.@firstNameTable}}\n\nTheir {{$childGender.@child}} **{{$race.@firstNameTable}}** takes after {{$parentGender.@object}}.\n\nThe young {{$race}} {{$childGender.@is}} {{personalityTrait}}, though {{$childGender.@subject}} still has much to learn.\n\n*The {{$race.@surnameTable}} family has lived in these lands for generations.*"
+    },
+    {
+      "id": "mercenaryBand",
+      "name": "Mercenary Band",
+      "description": "Generates a small mercenary company with a leader and two lieutenants, each with fully independent characteristics.",
+      "resultType": "npc",
+      "shared": {
+        "$leader": "{{race}}",
+        "$leaderGender": "{{gender}}",
+        "$lieutenant1": "{{race}}",
+        "$lt1Gender": "{{gender}}",
+        "$lieutenant2": "{{race}}",
+        "$lt2Gender": "{{gender}}"
+      },
+      "pattern": "# The {{$leader.@surnameTable}} Company\n\n## Commander: {{$leader.@firstNameTable}} {{$leader.@surnameTable}}\n\n**{{$leaderGender.@honorific}} {{$leader.@firstNameTable}}** is a battle-hardened {{$leader}} who founded this mercenary band {{dice:2d6+5}} years ago.\n\n{{$leaderGender.@Subject}} {{$leaderGender.@is}} {{personalityTrait}}. Veterans speak of how {{$leaderGender.@subject}} {{physicalTrait}}.\n\n---\n\n## First Lieutenant: {{$lieutenant1.@firstNameTable}} {{$lieutenant1.@surnameTable}}\n\nThe {{$lieutenant1}} serves as {{$leader.@firstNameTable}}'s right hand. {{$lt1Gender.@Subject}} {{$lt1Gender.@is}} {{personalityTrait}}.\n\n## Second Lieutenant: {{$lieutenant2.@firstNameTable}} {{$lieutenant2.@surnameTable}}\n\nThis {{$lieutenant2}} handles logistics and scouting. {{$lt2Gender.@Subject}} {{$lt2Gender.@is}} {{personalityTrait}}.\n\n---\n\n*The company's reputation precedes them wherever they go.*"
     }
   ]
 }

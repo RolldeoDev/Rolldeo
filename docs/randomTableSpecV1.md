@@ -1405,6 +1405,109 @@ When rolling `childTable` directly:
 1. `$count` is set to 1d6 result (e.g., 5)
 2. Entry uses 5
 
+### 8.9 Capture-Aware Shared Variables
+
+Shared variable keys starting with `$` are **capture-aware**: they capture the full roll result including its `sets` (placeholder values), enabling property access syntax with dynamic table resolution.
+
+#### 8.9.1 Purpose
+
+Capture-aware shared variables solve the problem of needing multiple independent "instances" from the same table. For example, when generating two NPCs (a hero and an enemy), each needs their own race and corresponding race-specific name table:
+
+```json
+{
+  "shared": {
+    "$hero": "{{race}}",
+    "$enemy": "{{race}}"
+  },
+  "pattern": "{{$hero.@firstNameTable}} the {{$hero}} battles {{$enemy.@firstNameTable}} the {{$enemy}}"
+}
+```
+
+Without capture-aware variables, both characters would share the same placeholder values, causing both to use the same name table.
+
+#### 8.9.2 Syntax
+
+| Syntax | Description | Example |
+|--------|-------------|---------|
+| `"$varName": "{{table}}"` | Define capture-aware variable in shared block | `"$hero": "{{race}}"` |
+| `{{$varName}}` | Access the captured value | `{{$hero}}` → `"Elf"` |
+| `{{$varName.@property}}` | Access captured set property | `{{$hero.@nameTable}}` |
+
+#### 8.9.3 How It Works
+
+1. **Definition**: Keys in the `shared` block starting with `$` are capture-aware
+2. **Capture**: When evaluated, the full roll result (value + sets) is captured
+3. **Value Access**: `{{$varName}}` returns the string value
+4. **Property Access**: `{{$varName.@prop}}` returns the specified set property
+5. **Dynamic Resolution**: If the property value is a valid table/template ID, it is rolled automatically
+
+#### 8.9.4 Example: Multi-Character Generation
+
+```json
+{
+  "tables": [
+    {
+      "id": "race",
+      "type": "simple",
+      "entries": [
+        { "value": "Elf", "sets": { "nameTable": "elfNames", "homeland": "Forest" } },
+        { "value": "Dwarf", "sets": { "nameTable": "dwarfNames", "homeland": "Mountain" } }
+      ]
+    },
+    {
+      "id": "elfNames",
+      "type": "simple",
+      "entries": [{ "value": "Legolas" }, { "value": "Arwen" }]
+    },
+    {
+      "id": "dwarfNames",
+      "type": "simple",
+      "entries": [{ "value": "Gimli" }, { "value": "Thorin" }]
+    }
+  ],
+  "templates": [
+    {
+      "id": "rivals",
+      "name": "Rival Characters",
+      "shared": {
+        "$hero": "{{race}}",
+        "$enemy": "{{race}}"
+      },
+      "pattern": "**{{$hero.@nameTable}}** the {{$hero}} from the {{$hero.@homeland}} vs **{{$enemy.@nameTable}}** the {{$enemy}} from the {{$enemy.@homeland}}"
+    }
+  ]
+}
+```
+
+**Possible Output:**
+> **Legolas** the Elf from the Forest vs **Thorin** the Dwarf from the Mountain
+
+Each character has independent:
+- Race value (`Elf` vs `Dwarf`)
+- Name table resolution (`elfNames` vs `dwarfNames`)
+- Homeland property (`Forest` vs `Mountain`)
+
+#### 8.9.5 Key Differences from Regular Shared Variables
+
+| Feature | Regular Shared | Capture-Aware (`$` prefix) |
+|---------|----------------|---------------------------|
+| Key syntax | `"varName"` | `"$varName"` |
+| Captures sets | No | Yes |
+| Property access | No | Yes (`{{$var.@prop}}`) |
+| Dynamic resolution | No | Yes (table/template IDs) |
+| Value access | `{{$varName}}` | `{{$varName}}` |
+
+#### 8.9.6 Dynamic Table Resolution
+
+When accessing a property like `{{$hero.@nameTable}}`:
+
+1. The property value is retrieved from the captured sets
+2. If the value is a valid table ID in scope, that table is rolled
+3. If the value is a valid template ID in scope, that template is evaluated
+4. If neither, the raw string value is returned
+
+This enables powerful patterns where entry sets define which sub-tables to use, and the pattern uses those dynamically.
+
 ---
 
 ## 9. Placeholder System

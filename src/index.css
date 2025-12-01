@@ -55,7 +55,9 @@
     --mint-dark: 145 50% 28%;
     --lavender: 262 40% 55%;
     --amber: 40 90% 45%;
+    --orange: 25 85% 40%;
     --rose: 340 70% 50%;
+    --pink: 340 70% 65%;
     --cyan: 190 75% 40%;
     --copper: 25 75% 45%;
     --copper-glow: 35 80% 55%;
@@ -109,7 +111,9 @@
     --mint-dark: 142 52% 45%;
     --lavender: 262 47% 72%;
     --amber: 45 93% 58%;
+    --orange: 30 90% 55%;
     --rose: 340 75% 72%;
+    --pink: 340 75% 78%;
     --cyan: 187 85% 53%;
     --copper: 30 80% 58%;
     --copper-glow: 38 85% 65%;
@@ -141,7 +145,9 @@
     --mint-dark: 145 50% 28%;
     --lavender: 262 40% 55%;
     --amber: 40 90% 45%;
+    --orange: 25 85% 40%;
     --rose: 340 70% 50%;
+    --pink: 340 70% 65%;
     --cyan: 190 75% 40%;
     --copper: 25 75% 45%;
     --copper-glow: 35 80% 55%;
@@ -245,8 +251,16 @@
     background-color: hsl(var(--amber));
   }
 
+  .bg-orange {
+    background-color: hsl(var(--orange));
+  }
+
   .bg-rose {
     background-color: hsl(var(--rose));
+  }
+
+  .bg-pink {
+    background-color: hsl(var(--pink));
   }
 
   .bg-cyan {
@@ -266,8 +280,16 @@
     color: hsl(var(--amber));
   }
 
+  .text-orange {
+    color: hsl(var(--orange));
+  }
+
   .text-rose {
     color: hsl(var(--rose));
+  }
+
+  .text-pink {
+    color: hsl(var(--pink));
   }
 
   .text-copper {
