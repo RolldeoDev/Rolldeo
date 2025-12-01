@@ -162,13 +162,13 @@ export function TableEditor({
   )
 
   return (
-    <div className="border rounded-lg overflow-hidden" onFocus={handleFocus} onBlur={handleBlur}>
+    <div className={cn("editor-card", isExpanded && "editor-card-expanded")} onFocus={handleFocus} onBlur={handleBlur}>
       {/* Table Header */}
       <div
         className={cn(
-          'flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50 transition-colors',
+          'editor-accordion-header',
           'min-h-[56px] md:min-h-0',
-          isExpanded && 'border-b'
+          isExpanded && 'border-b border-border/50'
         )}
         onClick={handleToggleExpand}
       >
@@ -208,82 +208,80 @@ export function TableEditor({
 
       {/* Table Content */}
       {isExpanded && (
-        <div className="p-4 space-y-6 mobile-form-container">
+        <div className="p-4 space-y-5 mobile-form-container">
           {/* Basic Info */}
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">
-                Table ID <span className="text-destructive">*</span>
-              </label>
-              <input
-                type="text"
-                value={table.id}
-                onChange={(e) => updateField('id', e.target.value)}
-                placeholder="uniqueTableId"
-                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+          <div className="editor-field-group">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <label className="editor-label editor-label-required">Table ID</label>
+                <input
+                  type="text"
+                  value={table.id}
+                  onChange={(e) => updateField('id', e.target.value)}
+                  placeholder="uniqueTableId"
+                  className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
+                />
+              </div>
+
+              <div>
+                <label className="editor-label editor-label-required">Name</label>
+                <input
+                  type="text"
+                  value={table.name}
+                  onChange={(e) => updateField('name', e.target.value)}
+                  placeholder="Table Name"
+                  className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
+                />
+              </div>
+
+              <div>
+                <label className="editor-label">Type</label>
+                <select
+                  value={table.type}
+                  onChange={(e) =>
+                    changeTableType(
+                      e.target.value as 'simple' | 'composite' | 'collection'
+                    )
+                  }
+                  className="editor-select text-base md:text-sm min-h-[48px] md:min-h-0"
+                >
+                  <option value="simple">Simple (Weighted Entries)</option>
+                  <option value="composite">Composite (Select Table)</option>
+                  <option value="collection">Collection (Merge Tables)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="editor-label">Result Type</label>
+                <ResultTypeSelector
+                  value={table.resultType}
+                  onChange={(value) => updateField('resultType', value)}
+                  placeholder="Select or enter type..."
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mt-4">
+              <label className="editor-label">Description</label>
+              <textarea
+                value={table.description || ''}
+                onChange={(e) => updateField('description', e.target.value || undefined)}
+                placeholder="Table description (Markdown supported)"
+                rows={2}
+                className="editor-input text-base md:text-sm resize-y"
               />
             </div>
-
-            <div>
-              <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">
-                Name <span className="text-destructive">*</span>
-              </label>
-              <input
-                type="text"
-                value={table.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                placeholder="Table Name"
-                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
-              />
-            </div>
-
-            <div>
-              <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Type</label>
-              <select
-                value={table.type}
-                onChange={(e) =>
-                  changeTableType(
-                    e.target.value as 'simple' | 'composite' | 'collection'
-                  )
-                }
-                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
-              >
-                <option value="simple">Simple (Weighted Entries)</option>
-                <option value="composite">Composite (Select Table)</option>
-                <option value="collection">Collection (Merge Tables)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Result Type</label>
-              <ResultTypeSelector
-                value={table.resultType}
-                onChange={(value) => updateField('resultType', value)}
-                placeholder="Select or enter type..."
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Description</label>
-            <textarea
-              value={table.description || ''}
-              onChange={(e) => updateField('description', e.target.value || undefined)}
-              placeholder="Table description (Markdown supported)"
-              rows={2}
-              className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm resize-y"
-            />
           </div>
 
           {/* Options Row */}
           <div className="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center">
-            <label className="flex items-center gap-3 md:gap-2 text-base md:text-sm p-3 md:p-0 bg-muted/30 md:bg-transparent rounded-xl md:rounded-none w-full md:w-auto">
+            <label className="flex items-center gap-3 md:gap-2 text-base md:text-sm p-3 md:p-2 editor-entry-row md:border-0 md:bg-transparent w-full md:w-auto cursor-pointer">
               <input
                 type="checkbox"
                 checked={table.hidden || false}
                 onChange={(e) => updateField('hidden', e.target.checked || undefined)}
-                className="rounded border-gray-300 w-5 h-5 md:w-4 md:h-4"
+                className="rounded border-border w-5 h-5 md:w-4 md:h-4 accent-primary"
               />
               <span className="flex items-center gap-2 md:gap-1">
                 {table.hidden ? <EyeOff className="h-5 w-5 md:h-4 md:w-4" /> : <Eye className="h-5 w-5 md:h-4 md:w-4" />}
@@ -293,11 +291,11 @@ export function TableEditor({
 
             {table.type === 'simple' && (
               <div className="flex flex-col md:flex-row items-start md:items-center gap-2 w-full md:w-auto">
-                <label className="text-base md:text-sm font-medium md:font-normal">Extends:</label>
+                <label className="editor-label md:mb-0">Extends:</label>
                 <select
                   value={table.extends || ''}
                   onChange={(e) => updateField('extends', e.target.value || undefined)}
-                  className="w-full md:w-auto p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                  className="editor-select w-full md:w-auto text-base md:text-sm min-h-[48px] md:min-h-0"
                 >
                   <option value="">None</option>
                   {availableTableIds
@@ -313,8 +311,8 @@ export function TableEditor({
           </div>
 
           {/* Shared Variables (collapsible) */}
-          <details className="border rounded-lg">
-            <summary className="px-4 py-3 cursor-pointer hover:bg-accent/50 transition-colors list-none">
+          <details className="editor-collapsible">
+            <summary>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Shared Variables</span>
                 <span className="text-xs text-muted-foreground">(optional)</span>
@@ -329,7 +327,7 @@ export function TableEditor({
                 </div>
               </div>
             </summary>
-            <div className="p-4 border-t space-y-3">
+            <div className="editor-collapsible-content space-y-3">
               <p className="text-sm text-muted-foreground">
                 Variables evaluated when this table is rolled. Available to nested table references.
               </p>
@@ -374,8 +372,8 @@ export function TableEditor({
           )}
 
           {/* Source Attribution (collapsible) */}
-          <details className="border rounded-lg">
-            <summary className="px-4 py-3 cursor-pointer hover:bg-accent/50 transition-colors list-none">
+          <details className="editor-collapsible">
+            <summary>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Source Attribution</span>
                 <span className="text-xs text-muted-foreground">(optional)</span>
@@ -387,57 +385,57 @@ export function TableEditor({
                 </div>
               </div>
             </summary>
-            <div className="p-4 border-t space-y-4">
+            <div className="editor-collapsible-content space-y-4">
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
-                  <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Book</label>
+                  <label className="editor-label">Book</label>
                   <input
                     type="text"
                     value={table.source?.book || ''}
                     onChange={(e) => updateSource('book', e.target.value || undefined)}
                     placeholder="Source book name"
-                    className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                    className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
                   />
                 </div>
                 <div>
-                  <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Page</label>
+                  <label className="editor-label">Page</label>
                   <input
                     type="text"
                     value={table.source?.page?.toString() || ''}
                     onChange={(e) => updateSource('page', e.target.value || undefined)}
                     placeholder="47 or 47-49"
-                    className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                    className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
                   />
                 </div>
                 <div>
-                  <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Section</label>
+                  <label className="editor-label">Section</label>
                   <input
                     type="text"
                     value={table.source?.section || ''}
                     onChange={(e) => updateSource('section', e.target.value || undefined)}
                     placeholder="Chapter or section name"
-                    className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                    className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
                   />
                 </div>
                 <div>
-                  <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">License</label>
+                  <label className="editor-label">License</label>
                   <input
                     type="text"
                     value={table.source?.license || ''}
                     onChange={(e) => updateSource('license', e.target.value || undefined)}
                     placeholder="OGL 1.0a, CC BY 4.0, etc."
-                    className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                    className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">URL</label>
+                <label className="editor-label">URL</label>
                 <input
                   type="url"
                   value={table.source?.url || ''}
                   onChange={(e) => updateSource('url', e.target.value || undefined)}
                   placeholder="https://..."
-                  className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                  className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
                 />
               </div>
             </div>

@@ -1193,6 +1193,254 @@
 }
 
 /* ============================================================================
+   EDITOR FORM STYLING
+   Refined form inputs with depth and visual separation
+   Inspired by modern form design with inset/elevated input fields
+   ============================================================================ */
+
+/* Form field container - subtle inset background for grouping */
+.editor-field-group {
+  @apply p-4 rounded-xl;
+  background: linear-gradient(180deg,
+    hsl(var(--muted) / 0.4) 0%,
+    hsl(var(--muted) / 0.2) 100%
+  );
+}
+
+.dark .editor-field-group {
+  background: linear-gradient(180deg,
+    hsl(0, 0%, 8%) 0%,
+    hsl(0, 0%, 6%) 100%
+  );
+  box-shadow: inset 0 1px 2px hsl(0, 0%, 0% / 0.3);
+}
+
+/* Editor input - elevated look with subtle shadow */
+.editor-input {
+  @apply w-full px-3 py-2 rounded-lg transition-all duration-200;
+  @apply border border-border/60;
+  @apply placeholder:text-muted-foreground/60;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50;
+  background: hsl(var(--card));
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04);
+}
+
+.dark .editor-input {
+  background: hsl(0, 0%, 14%);
+  border-color: hsl(0, 0%, 22%);
+  box-shadow:
+    0 1px 2px hsl(0, 0%, 0% / 0.2),
+    inset 0 1px 0 hsl(0, 0%, 20% / 0.5);
+}
+
+.dark .editor-input:focus {
+  background: hsl(0, 0%, 16%);
+  border-color: hsl(var(--primary) / 0.5);
+}
+
+/* Editor input - compact variant for inline/row items */
+.editor-input-compact {
+  @apply editor-input;
+  @apply px-2.5 py-1.5 text-sm;
+}
+
+/* Editor select styling */
+.editor-select {
+  @apply editor-input cursor-pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.25em 1.25em;
+  padding-right: 2rem;
+}
+
+/* Collapsible section - refined details/summary styling */
+.editor-collapsible {
+  @apply rounded-xl overflow-hidden transition-all duration-200;
+  border: 1px solid hsl(var(--border) / 0.6);
+  background: linear-gradient(180deg,
+    hsl(var(--card)) 0%,
+    hsl(var(--muted) / 0.3) 100%
+  );
+}
+
+.dark .editor-collapsible {
+  border-color: hsl(0, 0%, 18%);
+  background: linear-gradient(180deg,
+    hsl(0, 0%, 10%) 0%,
+    hsl(0, 0%, 8%) 100%
+  );
+}
+
+.editor-collapsible summary {
+  @apply px-4 py-3 cursor-pointer select-none;
+  @apply transition-colors duration-150;
+  @apply list-none;
+}
+
+.editor-collapsible summary:hover {
+  background: hsl(var(--accent) / 0.5);
+}
+
+.dark .editor-collapsible summary:hover {
+  background: hsl(0, 0%, 14%);
+}
+
+.editor-collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-collapsible[open] summary {
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+.dark .editor-collapsible[open] summary {
+  border-bottom-color: hsl(0, 0%, 18%);
+}
+
+.editor-collapsible-content {
+  @apply p-4;
+  background: hsl(var(--background) / 0.5);
+}
+
+.dark .editor-collapsible-content {
+  background: hsl(0, 0%, 6%);
+}
+
+/* Entry row styling - for table entries, key-value pairs */
+.editor-entry-row {
+  @apply flex items-start gap-2 p-3 rounded-lg;
+  @apply transition-all duration-150;
+  background: hsl(var(--card) / 0.8);
+  border: 1px solid hsl(var(--border) / 0.4);
+}
+
+.dark .editor-entry-row {
+  background: hsl(0, 0%, 11%);
+  border-color: hsl(0, 0%, 16%);
+}
+
+.editor-entry-row:hover {
+  border-color: hsl(var(--border) / 0.8);
+}
+
+.dark .editor-entry-row:hover {
+  border-color: hsl(0, 0%, 22%);
+  background: hsl(0, 0%, 12%);
+}
+
+/* Section divider with label */
+.editor-section-divider {
+  @apply flex items-center gap-3 my-4;
+}
+
+.editor-section-divider::before,
+.editor-section-divider::after {
+  content: '';
+  @apply flex-1 h-px;
+  background: linear-gradient(90deg,
+    transparent,
+    hsl(var(--border) / 0.6) 20%,
+    hsl(var(--border) / 0.6) 80%,
+    transparent
+  );
+}
+
+.editor-section-divider span {
+  @apply text-xs font-medium uppercase tracking-wider text-muted-foreground/70;
+}
+
+/* Form label styling */
+.editor-label {
+  @apply block text-sm font-medium mb-1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.editor-label-required::after {
+  content: ' *';
+  @apply text-destructive;
+}
+
+/* Inline button inside input field */
+.editor-input-btn {
+  @apply px-3 py-1.5 text-xs font-medium rounded-md;
+  @apply border border-border/60;
+  @apply bg-muted/50 hover:bg-muted;
+  @apply transition-colors duration-150;
+}
+
+.dark .editor-input-btn {
+  @apply bg-white/5 hover:bg-white/10;
+  border-color: hsl(0, 0%, 25%);
+}
+
+/* Accordion header card styling */
+.editor-accordion-header {
+  @apply flex items-center gap-3 p-4 cursor-pointer;
+  @apply transition-colors duration-150;
+  @apply rounded-t-xl;
+}
+
+.editor-accordion-header:hover {
+  background: hsl(var(--accent) / 0.4);
+}
+
+.dark .editor-accordion-header:hover {
+  background: hsl(0, 0%, 14%);
+}
+
+/* Card with subtle gradient border glow on expansion */
+.editor-card {
+  @apply rounded-xl overflow-hidden;
+  @apply transition-all duration-200;
+  border: 1px solid hsl(var(--border) / 0.6);
+  background: hsl(var(--card));
+}
+
+.dark .editor-card {
+  border-color: hsl(0, 0%, 18%);
+  background: hsl(0, 0%, 10%);
+}
+
+.editor-card-expanded {
+  box-shadow:
+    0 4px 12px -2px hsl(var(--primary) / 0.08),
+    0 0 0 1px hsl(var(--primary) / 0.1);
+}
+
+.dark .editor-card-expanded {
+  box-shadow:
+    0 4px 16px -2px hsl(0, 0%, 0% / 0.4),
+    0 0 0 1px hsl(var(--primary) / 0.2);
+  border-color: hsl(var(--primary) / 0.3);
+}
+
+/* Lavender/purple variant for templates */
+.editor-card-expanded-lavender {
+  box-shadow:
+    0 4px 12px -2px hsl(var(--lavender) / 0.12),
+    0 0 0 1px hsl(var(--lavender) / 0.15);
+}
+
+.dark .editor-card-expanded-lavender {
+  box-shadow:
+    0 4px 16px -2px hsl(0, 0%, 0% / 0.4),
+    0 0 0 1px hsl(var(--lavender) / 0.3);
+  border-color: hsl(var(--lavender) / 0.4);
+}
+
+/* Form section header */
+.editor-section-header {
+  @apply flex items-center justify-between mb-3;
+}
+
+.editor-section-title {
+  @apply text-sm font-semibold uppercase tracking-wide;
+  color: hsl(var(--muted-foreground) / 0.8);
+}
+
+/* ============================================================================
    Pattern Preview - Inline Result Highlighting
    ============================================================================ */
 

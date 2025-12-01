@@ -1,12 +1,16 @@
 {
   "metadata": {
     "name": "Sci-Fi Quickstart",
-    "namespace": "rollify.scifi",
+    "namespace": "rolldeo.scifi",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify",
+    "author": "Rolldeo",
     "description": "A sci-fi starter demonstrating all core features: basic tables, weights, dice, table references, multiple rolls, unique selections, custom separators, ranges, templates, and shared variables.",
-    "tags": ["sci-fi", "space", "quickstart", "tutorial"]
+    "tags": ["sci-fi", "space", "quickstart", "tutorial"],
+    "source": {
+      "license": "CC0-1.0",
+      "attribution": "Rolldeo - Free for any use"
+    }
   },
   "shared": {
     "sectorNumber": "{{dice:1d20}}",

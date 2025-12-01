@@ -1,12 +1,16 @@
 {
   "metadata": {
     "name": "Fantasy RPG Quickstart",
-    "namespace": "rollify.fantasy",
+    "namespace": "rolldeo.fantasy",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Rollify",
+    "author": "Rolldeo",
     "description": "A fantasy RPG starter demonstrating all core features: basic tables, weights, dice, table references, multiple rolls, unique selections, custom separators, ranges, templates, and shared variables.",
-    "tags": ["fantasy", "rpg", "quickstart", "tutorial"]
+    "tags": ["fantasy", "rpg", "quickstart", "tutorial"],
+    "source": {
+      "license": "CC0-1.0",
+      "attribution": "Rolldeo - Free for any use"
+    }
   },
   "shared": {
     "dungeonLevel": "{{dice:1d4}}",

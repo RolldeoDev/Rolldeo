@@ -157,11 +157,7 @@ export function ResultTypeSelector({
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={cn(
-            'w-full px-3 py-2 pr-16 text-sm rounded-lg border bg-background transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-primary/50 border-border/50 focus:border-primary',
-            'md:rounded-md md:text-sm'
-          )}
+          className="editor-input pr-16 text-base md:text-sm min-h-[48px] md:min-h-0"
         />
         {/* Result type icon - right side, inside input */}
         <div
