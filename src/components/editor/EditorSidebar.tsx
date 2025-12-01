@@ -183,8 +183,8 @@ export function EditorSidebar({
 
     return {
       imports: filterType === 'all' || filterType === 'includes' ? filteredImports : [],
-      tables: filterType === 'all' || filterType === 'tables' ? filteredTables : [],
       templates: filterType === 'all' || filterType === 'templates' ? filteredTemplates : [],
+      tables: filterType === 'all' || filterType === 'tables' ? filteredTables : [],
     }
   }, [imports, tables, templates, searchQuery, filterType])
 
@@ -208,12 +208,13 @@ export function EditorSidebar({
         </button>
         <div className="w-6 h-px bg-border/50 my-1" />
         <button
-          onClick={() => onNavigate('tables')}
+          onClick={() => onNavigate('metadata')}
           className="p-2 hover:bg-accent rounded-lg transition-colors"
-          title={`Tables (${tables.length})`}
+          title="Includes"
         >
-          <Table2 className="h-4 w-4 text-[hsl(var(--mint))]" />
+          <Link2 className="h-4 w-4 text-[hsl(var(--amber))]" />
         </button>
+        
         <button
           onClick={() => onNavigate('templates')}
           className="p-2 hover:bg-accent rounded-lg transition-colors"
@@ -222,11 +223,11 @@ export function EditorSidebar({
           <Sparkles className="h-4 w-4 text-[hsl(var(--lavender))]" />
         </button>
         <button
-          onClick={() => onNavigate('metadata')}
+          onClick={() => onNavigate('tables')}
           className="p-2 hover:bg-accent rounded-lg transition-colors"
-          title="Includes"
+          title={`Tables (${tables.length})`}
         >
-          <Link2 className="h-4 w-4 text-[hsl(var(--amber))]" />
+          <Table2 className="h-4 w-4 text-[hsl(var(--mint))]" />
         </button>
       </div>
     )
@@ -369,6 +370,38 @@ export function EditorSidebar({
           </Section>
         )}
 
+        {/* Templates Section - hidden when filtered to other types */}
+        {(filterType === 'all' || filterType === 'templates') && (
+          <Section
+            title="Templates"
+            icon={Sparkles}
+            count={filteredItems.templates.length}
+            isExpanded={expandedSections.templates}
+            onToggle={() => toggleSection('templates')}
+            onAdd={onAddTemplate}
+            accentColor="lavender"
+          >
+            {filteredItems.templates.length === 0 ? (
+              <p className="px-5 py-2 text-xs text-muted-foreground/70 italic">
+                {hasActiveFilter ? 'No matches' : 'No templates yet'}
+              </p>
+            ) : (
+              filteredItems.templates.map((template: Template) => {
+                const originalIndex = templates.indexOf(template)
+                return (
+                  <SidebarItem
+                    key={template.id}
+                    label={template.name}
+                    id={template.id}
+                    isSelected={selectedItemId === template.id}
+                    onClick={() => onNavigate('templates', template.id)}
+                    onDelete={onDeleteTemplate ? () => onDeleteTemplate(originalIndex) : undefined}
+                  />
+                )
+              })
+            )}
+          </Section>
+        )}
         {/* Tables Section - hidden when filtered to other types */}
         {(filterType === 'all' || filterType === 'tables') && (
           <Section
@@ -396,39 +429,6 @@ export function EditorSidebar({
                     onClick={() => onNavigate('tables', table.id)}
                     onDelete={onDeleteTable ? () => onDeleteTable(originalIndex) : undefined}
                     canDelete={tables.length > 1}
-                  />
-                )
-              })
-            )}
-          </Section>
-        )}
-
-        {/* Templates Section - hidden when filtered to other types */}
-        {(filterType === 'all' || filterType === 'templates') && (
-          <Section
-            title="Templates"
-            icon={Sparkles}
-            count={filteredItems.templates.length}
-            isExpanded={expandedSections.templates}
-            onToggle={() => toggleSection('templates')}
-            onAdd={onAddTemplate}
-            accentColor="lavender"
-          >
-            {filteredItems.templates.length === 0 ? (
-              <p className="px-5 py-2 text-xs text-muted-foreground/70 italic">
-                {hasActiveFilter ? 'No matches' : 'No templates yet'}
-              </p>
-            ) : (
-              filteredItems.templates.map((template: Template) => {
-                const originalIndex = templates.indexOf(template)
-                return (
-                  <SidebarItem
-                    key={template.id}
-                    label={template.name}
-                    id={template.id}
-                    isSelected={selectedItemId === template.id}
-                    onClick={() => onNavigate('templates', template.id)}
-                    onDelete={onDeleteTemplate ? () => onDeleteTemplate(originalIndex) : undefined}
                   />
                 )
               })

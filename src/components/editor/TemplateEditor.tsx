@@ -25,7 +25,7 @@ import { InsertDropdown } from './InsertDropdown'
 import { PatternPreview, type EditablePatternRef } from './PatternPreview'
 import { ResultTypeSelector } from './ResultTypeSelector'
 import type { Template, SharedVariables } from '@/engine/types'
-import type { ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 export interface TemplateEditorProps {
   /** The template to edit */
@@ -34,10 +34,10 @@ export interface TemplateEditorProps {
   onChange: (template: Template) => void
   /** Called when template should be deleted */
   onDelete: () => void
-  /** Available table IDs for references */
-  availableTableIds: string[]
-  /** Available template IDs for references */
-  availableTemplateIds?: string[]
+  /** Available local tables for references */
+  localTables: TableInfo[]
+  /** Available local templates for references */
+  localTemplates?: TemplateInfo[]
   /** Tables from imported collections */
   importedTables?: ImportedTableInfo[]
   /** Templates from imported collections */
@@ -58,8 +58,8 @@ export function TemplateEditor({
   template,
   onChange,
   onDelete,
-  availableTableIds,
-  availableTemplateIds = [],
+  localTables,
+  localTemplates = [],
   importedTables = [],
   importedTemplates = [],
   defaultExpanded = false,
@@ -262,8 +262,8 @@ export function TemplateEditor({
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <InsertDropdown
-                availableTableIds={availableTableIds}
-                availableTemplateIds={availableTemplateIds.filter(id => id !== template.id)}
+                localTables={localTables}
+                localTemplates={localTemplates.filter(t => t.id !== template.id)}
                 importedTables={importedTables}
                 importedTemplates={importedTemplates.filter(t => t.id !== template.id)}
                 onInsert={insertAtCursor}
@@ -302,7 +302,7 @@ export function TemplateEditor({
                 title="Insert unique selection"
                 onClick={() => {
                   const tableId =
-                    availableTableIds.length > 0 ? availableTableIds[0] : 'tableId'
+                    localTables.length > 0 ? localTables[0].id : 'tableId'
                   insertAtCursor(`{{unique:3:${tableId}}}`)
                 }}
               />
@@ -313,7 +313,7 @@ export function TemplateEditor({
                 title="Insert capture multi-roll (stores results in variable)"
                 onClick={() => {
                   const tableId =
-                    availableTableIds.length > 0 ? availableTableIds[0] : 'tableId'
+                    localTables.length > 0 ? localTables[0].id : 'tableId'
                   insertAtCursor(`{{3*${tableId} >> $items}}`)
                 }}
               />
@@ -337,8 +337,8 @@ export function TemplateEditor({
               pattern={template.pattern || ''}
               onChange={(pattern) => updateField('pattern', pattern)}
               collectionId={collectionId}
-              availableTableIds={availableTableIds}
-              availableTemplateIds={availableTemplateIds.filter(id => id !== template.id)}
+              availableTableIds={localTables.map(t => t.id)}
+              availableTemplateIds={localTemplates.filter(t => t.id !== template.id).map(t => t.id)}
               sharedVariables={template.shared as Record<string, string> | undefined}
             />
           </div>

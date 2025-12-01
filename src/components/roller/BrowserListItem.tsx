@@ -107,7 +107,9 @@ export const BrowserListItem = memo(function BrowserListItem({
         border-l-2 transition-colors duration-150
         ${
           isSelected
-            ? 'bg-primary/10 border-l-primary'
+            ? item.type === 'template'
+              ? 'bg-[hsl(var(--lavender)/0.12)] border-l-lavender'
+              : 'bg-primary/10 border-l-primary'
             : 'border-l-transparent hover:bg-white/5'
         }
         ${item.hidden ? 'opacity-50' : ''}
@@ -126,7 +128,7 @@ export const BrowserListItem = memo(function BrowserListItem({
         return (
           <Icon
             className={`w-4 h-4 flex-shrink-0 ${
-              item.type === 'template' ? 'text-purple-500' : 'text-green-500'
+              item.type === 'template' ? 'text-lavender' : 'text-green-500'
             }`}
           />
         )
@@ -170,7 +172,11 @@ export const BrowserListItem = memo(function BrowserListItem({
       <button
         className={`
           p-1.5 rounded-md transition-colors duration-150
-          ${isSelected ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground'}
+          ${isSelected
+            ? item.type === 'template'
+              ? 'bg-lavender/20 text-lavender hover:bg-lavender/30'
+              : 'bg-primary/20 text-primary hover:bg-primary/30'
+            : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground'}
         `}
         onClick={(e) => {
           e.stopPropagation()
