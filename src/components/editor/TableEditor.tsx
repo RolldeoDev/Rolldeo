@@ -420,12 +420,13 @@ export function TableEditor({
                     onChange={(shared) =>
                       updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
                     }
-                    keyPlaceholder="Variable name"
+                    keyPlaceholder="Variable name ($ prefix to capture sets)"
                     valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
-                    keyPattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
-                    keyError="Must start with letter/underscore, alphanumeric only"
+                    keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
+                    keyError="Must start with optional $, then letter/underscore, alphanumeric only"
                     valueSupportsExpressions
                     collectionId={collectionId}
+                    highlightCaptureAware
                   />
                 </div>
               )}

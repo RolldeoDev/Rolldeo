@@ -20,6 +20,8 @@ export interface KeyValueEditorProps {
   valueSupportsExpressions?: boolean
   /** Collection ID for evaluating expressions */
   collectionId?: string
+  /** Highlight keys starting with $ as capture-aware (content-aware) variables */
+  highlightCaptureAware?: boolean
 }
 
 export function KeyValueEditor({
@@ -31,6 +33,7 @@ export function KeyValueEditor({
   keyError,
   valueSupportsExpressions,
   collectionId,
+  highlightCaptureAware,
 }: KeyValueEditorProps) {
   const entries = Object.entries(value)
   const [newKey, setNewKey] = useState('')
@@ -112,17 +115,33 @@ export function KeyValueEditor({
       )}
 
       {/* Existing entries */}
-      {entries.map(([key, val]) => (
+      {entries.map(([key, val]) => {
+        const isCaptureAware = highlightCaptureAware && key.startsWith('$')
+        return (
         <div key={key} className="editor-entry-row flex-col md:flex-row items-stretch md:items-start">
           <div className="flex-1">
-            <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">Key</label>
+            <label className={cn(
+              "block md:hidden text-sm font-medium mb-1.5",
+              isCaptureAware ? "text-violet-600 dark:text-violet-400" : "text-muted-foreground"
+            )}>
+              {isCaptureAware ? "Key (capture-aware)" : "Key"}
+            </label>
             <input
               type="text"
               value={key}
               onChange={(e) => updateEntryKey(key, e.target.value)}
-              className="editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0"
+              className={cn(
+                "editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0",
+                isCaptureAware && "text-violet-600 dark:text-violet-400 border-violet-400 dark:border-violet-600"
+              )}
               placeholder={keyPlaceholder}
+              title={isCaptureAware ? "Capture-aware: use {{$" + key.slice(1) + ".@property}} to access sets" : undefined}
             />
+            {isCaptureAware && (
+              <p className="text-xs text-violet-600 dark:text-violet-400 mt-1">
+                Captures sets. Access with: <code className="px-1 bg-violet-100 dark:bg-violet-900/30 rounded">{`{{${key}.@property}}`}</code>
+              </p>
+            )}
           </div>
           <div className="flex-1">
             <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">Value</label>
@@ -146,13 +165,22 @@ export function KeyValueEditor({
             <Trash2 className="h-5 w-5 md:h-4 md:w-4" />
           </button>
         </div>
-      ))}
+        )
+      })}
 
       {/* Add new entry */}
       <div className="pt-3 md:pt-2 border-t border-border/50 space-y-3 md:space-y-2">
+        {(() => {
+          const newKeyIsCaptureAware = highlightCaptureAware && newKey.startsWith('$')
+          return (
         <div className="flex flex-col md:flex-row gap-3 md:gap-2 items-stretch md:items-start">
           <div className="flex-1">
-            <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">New Key</label>
+            <label className={cn(
+              "block md:hidden text-sm font-medium mb-1.5",
+              newKeyIsCaptureAware ? "text-violet-600 dark:text-violet-400" : "text-muted-foreground"
+            )}>
+              {newKeyIsCaptureAware ? "New Key (capture-aware)" : "New Key"}
+            </label>
             <input
               type="text"
               value={newKey}
@@ -161,7 +189,10 @@ export function KeyValueEditor({
                 setKeyValidationError(null)
               }}
               onKeyDown={(e) => e.key === 'Enter' && addEntry()}
-              className="editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0"
+              className={cn(
+                "editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0",
+                newKeyIsCaptureAware && "text-violet-600 dark:text-violet-400 border-violet-400 dark:border-violet-600"
+              )}
               placeholder={keyPlaceholder}
             />
           </div>
@@ -186,18 +217,31 @@ export function KeyValueEditor({
             Add
           </button>
         </div>
+          )
+        })()}
         {keyValidationError && (
           <p className="text-sm md:text-xs text-destructive">{keyValidationError}</p>
         )}
       </div>
 
       {valueSupportsExpressions && (
-        <div className="text-sm md:text-xs text-muted-foreground p-4 md:p-3 bg-muted/30 rounded-xl md:rounded-lg">
-          <strong>Tip:</strong> Shared variables support expressions like{' '}
-          <code className="px-1.5 md:px-1 py-0.5 bg-muted rounded">{'{{dice:2d6}}'}</code>,{' '}
-          <code className="px-1.5 md:px-1 py-0.5 bg-muted rounded">{'{{math:$var + 5}}'}</code>,
-          or table references. They're evaluated in order, so later variables can
-          reference earlier ones.
+        <div className="text-sm md:text-xs text-muted-foreground p-4 md:p-3 bg-muted/30 rounded-xl md:rounded-lg space-y-2">
+          <p>
+            <strong>Tip:</strong> Shared variables support expressions like{' '}
+            <code className="px-1.5 md:px-1 py-0.5 bg-muted rounded">{'{{dice:2d6}}'}</code>,{' '}
+            <code className="px-1.5 md:px-1 py-0.5 bg-muted rounded">{'{{math:$var + 5}}'}</code>,
+            or table references. They're evaluated in order, so later variables can
+            reference earlier ones.
+          </p>
+          {highlightCaptureAware && (
+            <p className="text-violet-600 dark:text-violet-400">
+              <strong>Capture-aware:</strong> Name starting with{' '}
+              <code className="px-1.5 md:px-1 py-0.5 bg-violet-100 dark:bg-violet-900/30 rounded">$</code>{' '}
+              (e.g., <code className="px-1.5 md:px-1 py-0.5 bg-violet-100 dark:bg-violet-900/30 rounded">$hero</code>){' '}
+              captures the full roll including sets. Access properties with{' '}
+              <code className="px-1.5 md:px-1 py-0.5 bg-violet-100 dark:bg-violet-900/30 rounded">{'{{$hero.@property}}'}</code>.
+            </p>
+          )}
         </div>
       )}
     </div>
