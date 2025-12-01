@@ -87,21 +87,22 @@ export function TemplateEditor({
       <div
         className={cn(
           'flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50 transition-colors',
+          'min-h-[56px] md:min-h-0',
           isExpanded && 'border-b'
         )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {isExpanded ? (
-          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
         ) : (
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
         )}
 
         <div className="flex-1 min-w-0">
-          <div className="font-medium truncate">
+          <div className="font-medium truncate text-base md:text-sm">
             {template.name || 'Untitled Template'}
           </div>
-          <span className="text-sm text-muted-foreground">{template.id}</span>
+          <span className="text-sm md:text-sm text-muted-foreground">{template.id}</span>
         </div>
 
         <button
@@ -110,20 +111,20 @@ export function TemplateEditor({
             e.stopPropagation()
             onDelete()
           }}
-          className="p-2 hover:bg-destructive/10 hover:text-destructive rounded transition-colors"
+          className="p-2 md:p-2 p-3 hover:bg-destructive/10 hover:text-destructive rounded-xl md:rounded transition-colors min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
           title="Delete template"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-5 w-5 md:h-4 md:w-4" />
         </button>
       </div>
 
       {/* Template Content */}
       {isExpanded && (
-        <div className="p-4 space-y-4">
+        <div className="p-4 md:p-4 space-y-4 md:space-y-4 mobile-form-container">
           {/* Basic Info */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">
                 Template ID <span className="text-destructive">*</span>
               </label>
               <input
@@ -131,12 +132,12 @@ export function TemplateEditor({
                 value={template.id}
                 onChange={(e) => updateField('id', e.target.value)}
                 placeholder="uniqueTemplateId"
-                className="w-full p-2 border rounded-md bg-background text-sm"
+                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">
                 Name <span className="text-destructive">*</span>
               </label>
               <input
@@ -144,12 +145,12 @@ export function TemplateEditor({
                 value={template.name}
                 onChange={(e) => updateField('name', e.target.value)}
                 placeholder="Template Name"
-                className="w-full p-2 border rounded-md bg-background text-sm"
+                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">
                 Result Type
               </label>
               <input
@@ -159,14 +160,14 @@ export function TemplateEditor({
                   updateField('resultType', e.target.value || undefined)
                 }
                 placeholder="encounter, description, etc."
-                className="w-full p-2 border rounded-md bg-background text-sm"
+                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">Description</label>
             <input
               type="text"
               value={template.description || ''}
@@ -174,7 +175,7 @@ export function TemplateEditor({
                 updateField('description', e.target.value || undefined)
               }
               placeholder="Template description"
-              className="w-full p-2 border rounded-md bg-background text-sm"
+              className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
             />
           </div>
 
@@ -216,8 +217,8 @@ export function TemplateEditor({
 
           {/* Pattern Editor with Syntax Helpers */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">
+            <div className="flex items-center justify-between mb-2 md:mb-2 mb-3">
+              <span className="text-base md:text-sm font-medium">
                 Pattern & Preview
               </span>
               <InsertDropdown
@@ -227,8 +228,10 @@ export function TemplateEditor({
               />
             </div>
 
-            {/* Quick Syntax Buttons */}
-            <div className="flex flex-wrap gap-1.5 mb-3">
+            {/* Quick Syntax Buttons - scrollable on mobile */}
+            <div className="flex flex-wrap md:flex-wrap flex-nowrap gap-2 md:gap-1.5 mb-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-none"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               <SyntaxHelperButton
                 icon={<Table2 className="h-3.5 w-3.5" />}
                 label="Table"
@@ -316,7 +319,7 @@ export function TemplateEditor({
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium mb-1">Tags</label>
+            <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Tags</label>
             <TagInput
               value={template.tags || []}
               onChange={(tags) =>
@@ -348,7 +351,7 @@ function SyntaxHelperButton({
       type="button"
       onClick={onClick}
       title={title}
-      className="flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md hover:bg-accent transition-colors"
+      className="flex items-center gap-1.5 px-3 md:px-2.5 py-2 md:py-1 text-sm md:text-xs border rounded-xl md:rounded-md hover:bg-accent active:bg-accent/70 transition-colors flex-shrink-0 min-h-[40px] md:min-h-0"
     >
       {icon}
       {label}
@@ -387,20 +390,20 @@ function TagInput({ value, onChange }: TagInputProps) {
   )
 
   return (
-    <div className="border rounded-md bg-background p-2">
+    <div className="border rounded-xl md:rounded-md bg-background p-3 md:p-2">
       <div className="flex flex-wrap gap-2">
         {value.map((tag, index) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 px-2 py-0.5 text-sm bg-primary/10 text-primary rounded-full"
+            className="inline-flex items-center gap-1.5 px-3 md:px-2 py-1.5 md:py-0.5 text-sm bg-primary/10 text-primary rounded-full"
           >
             {tag}
             <button
               type="button"
               onClick={() => removeTag(index)}
-              className="hover:bg-primary/20 rounded-full p-0.5"
+              className="hover:bg-primary/20 rounded-full p-1 md:p-0.5 min-w-[24px] min-h-[24px] md:min-w-0 md:min-h-0 flex items-center justify-center"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5 md:h-3 md:w-3" />
             </button>
           </span>
         ))}
@@ -418,7 +421,7 @@ function TagInput({ value, onChange }: TagInputProps) {
           }}
           onBlur={() => input && addTag(input)}
           placeholder={value.length === 0 ? 'Add tags...' : ''}
-          className="flex-1 min-w-[100px] bg-transparent outline-none text-sm"
+          className="flex-1 min-w-[100px] bg-transparent outline-none text-base md:text-sm py-1 md:py-0"
         />
       </div>
     </div>
