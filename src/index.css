@@ -52,10 +52,13 @@
 
     /* Accent colors - optimized for light backgrounds */
     --mint: 145 50% 35%;
+    --mint-dark: 145 50% 28%;
     --lavender: 262 40% 55%;
     --amber: 40 90% 45%;
     --rose: 340 70% 50%;
     --cyan: 190 75% 40%;
+    --copper: 25 75% 45%;
+    --copper-glow: 35 80% 55%;
   }
 
   .dark {
@@ -103,10 +106,13 @@
 
     /* Accent colors for cards */
     --mint: 142 52% 54%;
+    --mint-dark: 142 52% 45%;
     --lavender: 262 47% 72%;
     --amber: 45 93% 58%;
     --rose: 340 75% 72%;
     --cyan: 187 85% 53%;
+    --copper: 30 80% 58%;
+    --copper-glow: 38 85% 65%;
   }
 
   /* Light mode class for explicit light mode */
@@ -132,10 +138,13 @@
     --input: 35 20% 88%;
     --ring: 145 45% 38%;
     --mint: 145 50% 35%;
+    --mint-dark: 145 50% 28%;
     --lavender: 262 40% 55%;
     --amber: 40 90% 45%;
     --rose: 340 70% 50%;
     --cyan: 190 75% 40%;
+    --copper: 25 75% 45%;
+    --copper-glow: 35 80% 55%;
   }
 }
 
@@ -202,6 +211,27 @@
     border-color: hsl(var(--rose) / 0.2);
   }
 
+  /* Result card - warm copper/bronze theme for roll results */
+  .card-result {
+    background: linear-gradient(135deg,
+      hsl(var(--copper) / 0.12) 0%,
+      hsl(var(--copper) / 0.04) 100%);
+    border-color: hsl(var(--copper) / 0.25);
+    box-shadow:
+      0 0 20px hsl(var(--copper-glow) / 0.08),
+      inset 0 1px 0 hsl(var(--copper-glow) / 0.1);
+  }
+
+  .dark .card-result {
+    background: linear-gradient(135deg,
+      hsl(var(--copper) / 0.15) 0%,
+      hsl(var(--copper) / 0.05) 100%);
+    border-color: hsl(var(--copper) / 0.3);
+    box-shadow:
+      0 0 30px hsl(var(--copper-glow) / 0.15),
+      0 0 60px hsl(var(--copper-glow) / 0.05);
+  }
+
   /* Solid accent backgrounds */
   .bg-mint {
     background-color: hsl(var(--mint));
@@ -238,6 +268,10 @@
 
   .text-rose {
     color: hsl(var(--rose));
+  }
+
+  .text-copper {
+    color: hsl(var(--copper));
   }
 
   /* Pill/tag styles */
@@ -280,6 +314,10 @@
 
   .icon-rose {
     @apply bg-[hsl(var(--rose)/0.15)] text-[hsl(var(--rose))];
+  }
+
+  .icon-copper {
+    @apply bg-[hsl(var(--copper)/0.15)] text-[hsl(var(--copper))];
   }
 
   /* Button styles */
@@ -596,11 +634,11 @@
 }
 
 .prose-roll ul li::marker {
-  color: hsl(145, 45%, 42%); /* Mint for bullets */
+  color: hsl(25, 70%, 45%); /* Copper for bullets */
 }
 
 .prose-roll ol li::marker {
-  color: hsl(40, 70%, 42%); /* Amber for numbers */
+  color: hsl(30, 75%, 42%); /* Bronze for numbers */
   font-weight: 600;
 }
 
@@ -610,21 +648,21 @@
   @apply mt-1.5;
 }
 
-/* === CODE - Subtle lavender tint === */
+/* === CODE - Warm bronze tint === */
 
 .prose-roll code {
   @apply px-1.5 py-0.5 rounded text-sm font-mono;
-  background: linear-gradient(135deg, hsl(262, 25%, 94%) 0%, hsl(262, 20%, 90%) 100%);
-  color: hsl(262, 45%, 40%);
-  border: 1px solid hsl(262, 20%, 82%);
+  background: linear-gradient(135deg, hsl(30, 30%, 94%) 0%, hsl(25, 25%, 90%) 100%);
+  color: hsl(25, 50%, 35%);
+  border: 1px solid hsl(30, 25%, 82%);
   font-size: 0.85em;
 }
 
 .prose-roll pre {
   @apply my-4 p-4 rounded-lg overflow-x-auto;
-  background: linear-gradient(180deg, hsl(260, 15%, 96%) 0%, hsl(260, 12%, 93%) 100%);
-  border: 1px solid hsl(262, 18%, 85%);
-  box-shadow: inset 0 1px 3px hsl(262, 15%, 88%);
+  background: linear-gradient(180deg, hsl(28, 20%, 96%) 0%, hsl(25, 18%, 93%) 100%);
+  border: 1px solid hsl(30, 22%, 85%);
+  box-shadow: inset 0 1px 3px hsl(28, 18%, 88%);
 }
 
 .prose-roll pre code {
@@ -634,14 +672,14 @@
   font-size: 0.8125rem;
 }
 
-/* === BLOCKQUOTES - Warm amber accent === */
+/* === BLOCKQUOTES - Warm copper accent === */
 
 .prose-roll blockquote {
   @apply my-4 py-3 px-4 rounded-r-lg;
-  border-left: 3px solid hsl(40, 80%, 50%); /* Amber */
+  border-left: 3px solid hsl(25, 75%, 50%); /* Copper */
   background: linear-gradient(90deg,
-    hsl(40, 50%, 95%) 0%,
-    hsl(40, 35%, 97%) 50%,
+    hsl(28, 45%, 95%) 0%,
+    hsl(30, 30%, 97%) 50%,
     transparent 100%
   );
   color: hsl(25, 25%, 30%);
@@ -657,7 +695,7 @@
   left: 0.3em;
   font-size: 2.5em;
   font-family: Georgia, serif;
-  color: hsl(40, 60%, 70%);
+  color: hsl(28, 55%, 70%);
   line-height: 1;
   opacity: 0.6;
 }
@@ -696,19 +734,19 @@
   font-size: 0.65rem;
 }
 
-/* === LINKS - Primary mint color === */
+/* === LINKS - Warm copper color === */
 
 .prose-roll a {
-  color: hsl(145, 50%, 35%); /* Mint - app primary */
+  color: hsl(25, 70%, 42%); /* Copper */
   text-decoration: none;
-  border-bottom: 1px dotted hsl(145, 40%, 55%);
+  border-bottom: 1px dotted hsl(30, 60%, 55%);
   transition: all 0.2s ease;
 }
 
 .prose-roll a:hover {
-  color: hsl(145, 55%, 28%);
+  color: hsl(25, 75%, 35%);
   border-bottom-style: solid;
-  border-bottom-color: hsl(145, 50%, 40%);
+  border-bottom-color: hsl(28, 70%, 45%);
 }
 
 /* === TABLES - Clean with warm accents === */
@@ -824,41 +862,41 @@
 
 /* Dark mode list markers */
 :is(.dark .prose-roll) ul li::marker {
-  color: hsl(142, 52%, 54%); /* Mint */
+  color: hsl(30, 80%, 58%); /* Copper */
 }
 
 :is(.dark .prose-roll) ol li::marker {
-  color: hsl(45, 93%, 58%); /* Amber */
+  color: hsl(35, 85%, 60%); /* Bronze-gold */
 }
 
-/* Dark mode code - lavender tint */
+/* Dark mode code - warm bronze tint */
 :is(.dark .prose-roll) code {
-  background: linear-gradient(135deg, hsl(262, 25%, 18%) 0%, hsl(262, 20%, 14%) 100%);
-  color: hsl(262, 60%, 75%);
-  border-color: hsl(262, 30%, 28%);
-  box-shadow: 0 0 8px hsl(262, 40%, 30% / 0.3);
+  background: linear-gradient(135deg, hsl(28, 30%, 18%) 0%, hsl(25, 25%, 14%) 100%);
+  color: hsl(32, 65%, 72%);
+  border-color: hsl(28, 35%, 28%);
+  box-shadow: 0 0 8px hsl(30, 45%, 30% / 0.3);
 }
 
 :is(.dark .prose-roll) pre {
-  background: linear-gradient(180deg, hsl(260, 10%, 13%) 0%, hsl(260, 8%, 10%) 100%);
-  border-color: hsl(262, 20%, 25%);
+  background: linear-gradient(180deg, hsl(26, 15%, 13%) 0%, hsl(24, 12%, 10%) 100%);
+  border-color: hsl(28, 25%, 25%);
   box-shadow: inset 0 1px 3px hsl(0, 0%, 5%);
 }
 
-/* Dark mode blockquote - amber accent */
+/* Dark mode blockquote - copper accent */
 :is(.dark .prose-roll) blockquote {
-  border-left-color: hsl(45, 93%, 58%);
+  border-left-color: hsl(30, 80%, 58%);
   background: linear-gradient(90deg,
-    hsl(45, 40%, 12%) 0%,
-    hsl(45, 25%, 10%) 50%,
+    hsl(28, 35%, 12%) 0%,
+    hsl(26, 25%, 10%) 50%,
     transparent 100%
   );
   color: hsl(0, 0%, 82%);
-  box-shadow: 0 0 15px hsl(45, 60%, 40% / 0.1);
+  box-shadow: 0 0 15px hsl(30, 60%, 40% / 0.1);
 }
 
 :is(.dark .prose-roll) blockquote::before {
-  color: hsl(45, 50%, 35%);
+  color: hsl(30, 50%, 35%);
 }
 
 /* Dark mode horizontal rule */
@@ -877,16 +915,16 @@
   color: hsl(0, 0%, 50%);
 }
 
-/* Dark mode links - mint */
+/* Dark mode links - copper */
 :is(.dark .prose-roll) a {
-  color: hsl(142, 52%, 54%);
-  border-bottom-color: hsl(142, 40%, 35%);
+  color: hsl(30, 80%, 58%);
+  border-bottom-color: hsl(28, 60%, 40%);
 }
 
 :is(.dark .prose-roll) a:hover {
-  color: hsl(142, 55%, 65%);
-  border-bottom-color: hsl(142, 50%, 50%);
-  text-shadow: 0 0 8px hsl(142, 50%, 40% / 0.4);
+  color: hsl(35, 85%, 68%);
+  border-bottom-color: hsl(32, 75%, 55%);
+  text-shadow: 0 0 8px hsl(30, 60%, 45% / 0.4);
 }
 
 /* Dark mode tables */
@@ -929,35 +967,35 @@
 /* Description Drawer Prose Styling - Grimoire/Parchment Theme */
 .prose-description {
   @apply leading-relaxed;
-  /* Light mode: amber/parchment colors */
-  color: #78350f; /* amber-900 */
+  /* Light mode: warm copper/bronze colors */
+  color: hsl(20, 75%, 25%); /* copper-900 */
 }
 
 .prose-description h1 {
   @apply text-xl font-bold mt-4 mb-2 pb-1 border-b first:mt-0;
-  border-color: #fde68a; /* amber-200 */
-  color: #78350f; /* amber-900 */
+  border-color: hsl(28, 55%, 78%); /* copper-200 */
+  color: hsl(20, 75%, 25%); /* copper-900 */
 }
 
 .prose-description h2 {
   @apply text-lg font-bold mt-3 mb-2 first:mt-0;
-  color: #78350f; /* amber-900 */
+  color: hsl(20, 75%, 25%); /* copper-900 */
 }
 
 .prose-description h3 {
   @apply text-base font-semibold mt-3 mb-1 first:mt-0;
-  color: #92400e; /* amber-800 */
+  color: hsl(22, 78%, 32%); /* copper-800 */
 }
 
 .prose-description h4 {
   @apply text-sm font-semibold mt-2 mb-1 uppercase tracking-wide first:mt-0;
-  color: #92400e; /* amber-800 */
+  color: hsl(22, 78%, 32%); /* copper-800 */
 }
 
 .prose-description h5,
 .prose-description h6 {
   @apply text-xs font-semibold mt-2 mb-1 uppercase tracking-wider first:mt-0;
-  color: #b45309; /* amber-700 */
+  color: hsl(24, 80%, 38%); /* copper-700 */
 }
 
 .prose-description p {
@@ -974,40 +1012,40 @@
 }
 
 .prose-description ul li::marker {
-  color: rgba(245, 158, 11, 0.5); /* amber-500/50 */
+  color: hsl(var(--copper) / 0.6); /* copper/60 */
 }
 
 .prose-description strong {
   @apply font-semibold;
-  color: #92400e; /* amber-800 */
+  color: hsl(22, 78%, 32%); /* copper-800 */
 }
 
 .prose-description em {
   @apply italic;
-  color: #92400e; /* amber-800 */
+  color: hsl(22, 78%, 32%); /* copper-800 */
 }
 
 .prose-description code {
   @apply px-1 py-0.5 rounded text-sm font-mono;
-  background-color: #fef3c7; /* amber-100 */
-  color: #b45309; /* amber-700 */
+  background-color: hsl(30, 45%, 92%); /* copper-100 */
+  color: hsl(24, 80%, 38%); /* copper-700 */
 }
 
 .prose-description blockquote {
   @apply border-l-2 pl-4 my-2 py-1 not-italic;
-  border-color: rgba(245, 158, 11, 0.4); /* amber-500/40 */
-  background-color: rgba(254, 243, 199, 0.5); /* amber-100/50 */
-  color: #b45309; /* amber-700 */
+  border-color: hsl(var(--copper) / 0.5); /* copper/50 */
+  background-color: hsl(30, 40%, 94% / 0.6); /* copper-100/60 */
+  color: hsl(24, 80%, 38%); /* copper-700 */
 }
 
 .prose-description hr {
   @apply my-4;
-  border-color: #fde68a; /* amber-200 */
+  border-color: hsl(28, 55%, 78%); /* copper-200 */
 }
 
 .prose-description a {
   @apply no-underline hover:underline;
-  color: #d97706; /* amber-600 */
+  color: hsl(25, 75%, 45%); /* copper-600 - matches --copper */
 }
 
 .prose-description table {
@@ -1016,89 +1054,90 @@
 
 .prose-description thead {
   @apply border-b;
-  border-color: #fde68a; /* amber-200 */
-  background-color: rgba(254, 243, 199, 0.5); /* amber-100/50 */
+  border-color: hsl(28, 55%, 78%); /* copper-200 */
+  background-color: hsl(30, 40%, 94% / 0.6); /* copper-100/60 */
 }
 
 .prose-description th {
   @apply px-3 py-2 text-left font-semibold;
-  color: #78350f; /* amber-900 */
+  color: hsl(20, 75%, 25%); /* copper-900 */
 }
 
 .prose-description td {
   @apply px-3 py-2 border-b;
-  border-color: rgba(253, 230, 138, 0.5); /* amber-200/50 */
+  border-color: hsl(28, 55%, 78% / 0.5); /* copper-200/50 */
 }
 
 .prose-description tbody tr:hover {
-  background-color: #fffbeb; /* amber-50 */
+  background-color: hsl(30, 35%, 96%); /* copper-50 */
 }
 
 /* Dark mode overrides for description prose */
 :is(.dark .prose-description) {
-  color: #d6d3d1; /* stone-300 */
+  color: hsl(0, 0%, 82%); /* warm light gray */
 }
 
 :is(.dark .prose-description) h1 {
-  color: #fef3c7; /* amber-100 */
-  border-color: #92400e; /* amber-800 */
+  color: hsl(32, 70%, 85%); /* light copper */
+  border-color: hsl(28, 50%, 30%); /* copper-800 dark */
 }
 
 :is(.dark .prose-description) h2 {
-  color: #fef3c7; /* amber-100 */
+  color: hsl(32, 70%, 85%); /* light copper */
 }
 
 :is(.dark .prose-description) h3 {
-  color: #fde68a; /* amber-200 */
+  color: hsl(30, 65%, 75%); /* copper-200 */
 }
 
 :is(.dark .prose-description) h4,
 :is(.dark .prose-description) h5,
 :is(.dark .prose-description) h6 {
-  color: #fcd34d; /* amber-300 */
+  color: hsl(32, 75%, 68%); /* copper-300 */
 }
 
 :is(.dark .prose-description) strong {
-  color: #fde68a; /* amber-200 */
+  color: hsl(30, 65%, 75%); /* copper-200 */
 }
 
 :is(.dark .prose-description) em {
-  color: #e7e5e4; /* stone-200 */
+  color: hsl(0, 0%, 88%); /* light gray */
 }
 
 :is(.dark .prose-description) code {
-  background-color: rgba(41, 37, 36, 0.5); /* stone-800/50 */
-  color: #fcd34d; /* amber-300 */
+  background-color: hsl(28, 20%, 15%); /* dark bronze */
+  color: hsl(32, 75%, 68%); /* copper-300 */
 }
 
 :is(.dark .prose-description) blockquote {
-  background-color: rgba(41, 37, 36, 0.3); /* stone-800/30 */
-  color: #a8a29e; /* stone-400 */
+  background-color: hsl(26, 18%, 12%); /* dark bronze */
+  border-color: hsl(var(--copper) / 0.4);
+  color: hsl(0, 0%, 70%); /* muted text */
 }
 
 :is(.dark .prose-description) a {
-  color: #fbbf24; /* amber-400 */
+  color: hsl(30, 80%, 58%); /* copper bright - matches --copper dark */
 }
 
 :is(.dark .prose-description) thead {
-  border-color: #44403c; /* stone-700 */
-  background-color: rgba(41, 37, 36, 0.5); /* stone-800/50 */
+  border-color: hsl(28, 25%, 25%); /* copper border */
+  background-color: hsl(26, 18%, 14%); /* dark bronze */
 }
 
 :is(.dark .prose-description) th {
-  color: #e7e5e4; /* stone-200 */
+  color: hsl(0, 0%, 90%); /* near white */
 }
 
 :is(.dark .prose-description) td {
-  border-color: rgba(68, 64, 60, 0.5); /* stone-700/50 */
+  border-color: hsl(28, 20%, 22% / 0.5); /* subtle copper border */
 }
 
 :is(.dark .prose-description) tbody tr:hover {
-  background-color: rgba(41, 37, 36, 0.3); /* stone-800/30 */
+  background-color: hsl(26, 15%, 13%); /* subtle hover */
 }
 
 :is(.dark .prose-description) hr {
-  border-color: #44403c; /* stone-700 */
+  border-color: hsl(28, 25%, 25%); /* copper border */
 }
 
 /* Guide/Documentation Prose Styling */

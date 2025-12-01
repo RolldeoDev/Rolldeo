@@ -67,11 +67,11 @@ export const CurrentRollResult = memo(function CurrentRollResult({
   const ResultIcon = getResultTypeIcon(result.resultType)
 
   return (
-    <div className="mx-4 mt-4 p-5 rounded-xl card-elevated card-mint border animate-slide-up">
+    <div className="mx-4 mt-4 p-5 rounded-xl card-elevated card-result border animate-slide-up">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
-            className="icon-container icon-mint"
+            className="icon-container icon-copper"
             title={result.resultType ? `Type: ${result.resultType}` : undefined}
           >
             <ResultIcon className="h-5 w-5" />

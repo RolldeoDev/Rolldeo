@@ -16,6 +16,15 @@ interface TabConfig {
   count?: number
 }
 
+// Tab-specific underline colors (using project's custom color system)
+const tabUnderlineColors: Record<EditorTab, string> = {
+  metadata: 'bg-amber',
+  tables: 'bg-mint',
+  templates: 'bg-lavender',
+  variables: 'bg-copper',
+  json: 'bg-gray-400 dark:bg-white',
+}
+
 interface EditorTabBarProps {
   activeTab: EditorTab
   onTabChange: (tab: EditorTab) => void
@@ -73,7 +82,10 @@ export function EditorTabBar({ activeTab, onTabChange, tableCounts }: EditorTabB
 
               {/* Active indicator line */}
               {isActive && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-full" />
+                <span className={cn(
+                  'absolute bottom-0 left-2 right-2 h-0.5 rounded-full',
+                  tabUnderlineColors[tab.id]
+                )} />
               )}
             </button>
           )

@@ -30,7 +30,7 @@ export const BrowserTabs = memo(function BrowserTabs({
           border-b-2 -mb-px
           ${
             activeTab === 'tables'
-              ? 'text-foreground border-primary'
+              ? 'text-mint border-mint'
               : 'text-muted-foreground border-transparent hover:text-foreground/80 hover:bg-white/5'
           }
         `}
@@ -41,7 +41,9 @@ export const BrowserTabs = memo(function BrowserTabs({
       >
         <Table2 className="w-4 h-4" />
         <span>Tables</span>
-        <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded">
+        <span className={`text-xs px-1.5 py-0.5 rounded ${
+          activeTab === 'tables' ? 'bg-mint/20' : 'bg-white/10'
+        }`}>
           {tableCount}
         </span>
       </button>

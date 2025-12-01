@@ -22,9 +22,9 @@ export const TableTypeIcon = memo(function TableTypeIcon({
     case 'simple':
       return <Table2 className={`${className} text-mint`} aria-label="Simple table" />
     case 'composite':
-      return <Layers className={`${className} text-lavender`} aria-label="Composite table" />
+      return <Layers className={`${className} text-mint-dark`} aria-label="Composite table" />
     case 'collection':
-      return <FolderTree className={`${className} text-amber-400`} aria-label="Collection table" />
+      return <FolderTree className={`${className} text-amber`} aria-label="Collection table" />
     case 'template':
       return <FileText className={`${className} text-lavender`} aria-label="Template" />
     default:

@@ -44,7 +44,9 @@ export const SelectedItemInfo = memo(function SelectedItemInfo({
     <div className="p-4 border-b border-white/5">
       {/* Selected Item Info */}
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+          selectedItem.type === 'template' ? 'bg-lavender/10' : 'bg-mint/10'
+        }`}>
           <TableTypeIcon
             type={selectedItem.type === 'template' ? 'template' : (selectedItem.tableType || 'simple')}
             className="w-6 h-6"

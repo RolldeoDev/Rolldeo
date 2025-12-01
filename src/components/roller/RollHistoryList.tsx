@@ -99,7 +99,7 @@ export const RollHistoryList = memo(function RollHistoryList({
               className={cn(
                 'p-4 rounded-xl border transition-all duration-300 animate-slide-up',
                 item.pinned
-                  ? 'border-primary/30 card-elevated card-mint'
+                  ? 'border-copper/30 card-elevated card-result'
                   : 'border-white/5 hover:border-white/10 bg-white/[0.02]'
               )}
               style={{ animationDelay: `${index * 0.02}s` }}
