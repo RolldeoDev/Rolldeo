@@ -88,16 +88,15 @@ export const SelectedItemInfo = memo(function SelectedItemInfo({
         onClick={onRoll}
         disabled={!canRoll || isRolling}
         className={`
-          relative w-full flex items-center justify-center gap-3 px-6 py-4 text-lg font-bold rounded-xl
-          transition-all duration-300
-          bg-primary text-primary-foreground
-          hover:brightness-110 active:scale-[0.98]
-          disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:brightness-100
+          btn-copper relative w-full flex items-center justify-center gap-3 py-4 text-lg font-bold
           ${isRolling ? 'animate-pulse' : ''}
         `}
       >
         {/* Glow effect */}
-        <div className="absolute inset-0 rounded-xl bg-primary/30 blur-xl -z-10 opacity-50" />
+        <div
+          className="absolute inset-0 rounded-xl blur-xl -z-10 opacity-50"
+          style={{ backgroundColor: 'hsl(var(--copper-glow) / 0.3)' }}
+        />
 
         {isRolling ? (
           <Loader2 className="h-6 w-6 animate-spin" />

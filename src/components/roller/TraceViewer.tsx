@@ -65,21 +65,21 @@ const NODE_TYPE_ICONS: Record<TraceNodeType, React.ElementType> = {
 }
 
 const NODE_TYPE_COLORS: Record<TraceNodeType, string> = {
-  root: 'text-primary',
-  table_roll: 'text-amber-400',
-  template_roll: 'text-blue-400',
-  template_ref: 'text-blue-300',
-  entry_select: 'text-green-400',
+  root: 'text-copper',
+  table_roll: 'text-mint',              // Tables = Green/Mint
+  template_roll: 'text-lavender',       // Templates = Lavender
+  template_ref: 'text-lavender',        // Templates = Lavender
+  entry_select: 'text-mint',            // Table operation = Green
   expression: 'text-gray-400',
   dice_roll: 'text-purple-400',
   math_eval: 'text-cyan-400',
   variable_access: 'text-pink-400',
   placeholder_access: 'text-orange-400',
   conditional: 'text-red-400',
-  multi_roll: 'text-indigo-400',
+  multi_roll: 'text-mint',              // Table operation = Green
   instance: 'text-teal-400',
-  composite_select: 'text-yellow-400',
-  collection_merge: 'text-lime-400',
+  composite_select: 'text-mint-dark',   // Composite tables = Darker mint
+  collection_merge: 'text-mint',        // Table operation = Green
   capture_multi_roll: 'text-rose-400',
   capture_access: 'text-sky-400',
   collect: 'text-emerald-400',
@@ -128,11 +128,11 @@ export const TraceViewer = memo(function TraceViewer({
   }, [trace.root.id])
 
   return (
-    <div className="border border-border/50 rounded-xl bg-background/50 overflow-hidden">
+    <div className="border border-copper/30 rounded-xl bg-background/50 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-muted/30">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-copper/20 bg-copper/5">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-primary" />
+          <Activity className="w-4 h-4 text-copper" />
           <span className="font-medium">Execution Trace</span>
           <span className="text-xs text-muted-foreground">
             ({trace.stats.nodeCount} ops, {trace.totalTime}ms)
@@ -173,7 +173,7 @@ export const TraceViewer = memo(function TraceViewer({
       </div>
 
       {/* Stats Footer */}
-      <div className="px-4 py-2 border-t border-border/50 bg-muted/30 text-xs text-muted-foreground">
+      <div className="px-4 py-2 border-t border-copper/20 bg-copper/5 text-xs text-muted-foreground">
         <div className="flex items-center gap-4 flex-wrap">
           {trace.stats.diceRolled > 0 && (
             <span>Dice: {trace.stats.diceRolled}</span>
@@ -233,14 +233,14 @@ const TraceTreeNode = memo(function TraceTreeNode({
         className={`
           flex items-center gap-2 py-1 px-2 rounded cursor-pointer
           hover:bg-accent transition-colors
-          ${isSelected ? 'bg-primary/10 border-l-2 border-primary' : ''}
+          ${isSelected ? 'bg-copper/10 border-l-2 border-copper' : ''}
         `}
         onClick={handleClick}
       >
         {/* Expand/Collapse Arrow */}
         {hasChildren ? (
           <ChevronRight
-            className={`w-3 h-3 transition-transform flex-shrink-0 hover:text-primary ${
+            className={`w-3 h-3 transition-transform flex-shrink-0 hover:text-copper ${
               isExpanded ? 'rotate-90' : ''
             }`}
             onClick={handleExpandClick}

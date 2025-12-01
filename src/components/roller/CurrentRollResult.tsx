@@ -134,7 +134,7 @@ export const CurrentRollResult = memo(function CurrentRollResult({
             className={`
               text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all
               ${showTrace
-                ? 'text-primary border-primary/40 bg-primary/10'
+                ? 'text-copper border-copper/40 bg-copper/10'
                 : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'}
             `}
           >

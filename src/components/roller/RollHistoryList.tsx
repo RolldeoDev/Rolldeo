@@ -173,7 +173,7 @@ export const RollHistoryList = memo(function RollHistoryList({
                       className={cn(
                         'text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all',
                         expandedTraces.has(item.id!)
-                          ? 'text-primary border-primary/40 bg-primary/10'
+                          ? 'text-copper border-copper/40 bg-copper/10'
                           : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'
                       )}
                     >

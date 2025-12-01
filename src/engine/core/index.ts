@@ -1668,23 +1668,29 @@ export class RandomTableEngine {
       // This prevents placeholders from imported templates leaking into the parent context.
       // Without isolation, table rolls in the imported collection add placeholder keys
       // that persist and pollute subsequent evaluations in the parent collection.
+      //
+      // We also isolate sharedVariables and sharedVariableSources so that:
+      // 1. The child template's shared variables are evaluated fresh
+      // 2. Side effects (like populating placeholders from table rolls) happen properly
+      // 3. Parent and child can have shared variables with the same name without conflict
       const isolatedContext: GenerationContext = {
         ...context,
         placeholders: new Map(), // Fresh placeholder map - prevents leakage
+        sharedVariables: new Map(context.sharedVariables), // Copy so child can add without affecting parent
+        sharedVariableSources: new Map(context.sharedVariableSources), // Copy for tracking
       }
 
       // Evaluate template-level shared variables (lazy evaluation)
-      // Clear this template's shared variables first so they get re-evaluated on each invocation
-      // BUT only if they were set by this same template (multi-roll case), not by a parent (inheritance case)
+      // For isolated template contexts, we need to re-evaluate shared variables even if
+      // the parent has the same name, because the side effects (populating placeholders)
+      // need to happen in the isolated context.
       if (template.shared) {
         for (const name of Object.keys(template.shared)) {
-          const source = getSharedVariableSource(isolatedContext, name)
-          if (source === template.id) {
-            // Same template set this variable before - clear it for re-evaluation
-            isolatedContext.sharedVariables.delete(name)
-            isolatedContext.sharedVariableSources.delete(name)
-          }
-          // If source is different (parent template/table), keep the value (inheritance)
+          // Clear any existing value for this shared variable so it gets re-evaluated
+          // in this isolated context. This ensures that table rolls populate the
+          // isolated placeholders map.
+          isolatedContext.sharedVariables.delete(name)
+          isolatedContext.sharedVariableSources.delete(name)
         }
         this.evaluateTableLevelShared(template.shared, isolatedContext, collectionId, template.id)
       }
