@@ -123,12 +123,13 @@ export function EntryEditor({
   return (
     <div
       className={cn(
-        'border rounded-lg transition-shadow',
+        'border rounded-xl md:rounded-lg transition-shadow',
+        'md:border md:rounded-lg',
         isDragging && 'shadow-lg bg-background'
       )}
     >
-      {/* Entry Header */}
-      <div className="flex items-center gap-2 p-3">
+      {/* Entry Header - Desktop: inline, Mobile: stacked card */}
+      <div className="hidden md:flex items-center gap-2 p-3">
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
@@ -225,6 +226,122 @@ export function EntryEditor({
           >
             <Trash2 className="h-4 w-4" />
           </button>
+        </div>
+      </div>
+
+      {/* Mobile Entry Card Layout */}
+      <div className="md:hidden mobile-entry-card">
+        {/* Card header with index and expand toggle */}
+        <div className="mobile-entry-header">
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="mobile-action-btn -ml-2"
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </button>
+          <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={!canDelete}
+            className="mobile-action-btn text-muted-foreground disabled:opacity-30"
+          >
+            <Trash2 className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Card content */}
+        <div className="mobile-entry-content">
+          {/* Value input - full width */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5">Value</label>
+            <input
+              ref={valueInputRef}
+              type="text"
+              value={entry.value}
+              onChange={(e) => updateField('value', e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Entry value (supports {{...}} templates)"
+              className="w-full p-3 border rounded-xl bg-background text-base min-h-[48px]"
+            />
+          </div>
+
+          {/* Weight/Range row */}
+          <div className="flex gap-3">
+            {weightMode === 'weight' ? (
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1.5">Weight</label>
+                <input
+                  type="number"
+                  value={entry.weight ?? 1}
+                  onChange={(e) =>
+                    updateField(
+                      'weight',
+                      e.target.value ? parseFloat(e.target.value) : 1
+                    )
+                  }
+                  min={0}
+                  step={0.1}
+                  className="w-full p-3 border rounded-xl bg-background text-base text-center min-h-[48px]"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1.5">From</label>
+                  <input
+                    type="number"
+                    value={entry.range?.[0] ?? 1}
+                    onChange={(e) =>
+                      handleRangeChange(0, parseInt(e.target.value, 10) || 1)
+                    }
+                    min={1}
+                    className="w-full p-3 border rounded-xl bg-background text-base text-center min-h-[48px]"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-muted-foreground mb-1.5">To</label>
+                  <input
+                    type="number"
+                    value={entry.range?.[1] ?? 1}
+                    onChange={(e) =>
+                      handleRangeChange(1, parseInt(e.target.value, 10) || 1)
+                    }
+                    min={entry.range?.[0] ?? 1}
+                    className="w-full p-3 border rounded-xl bg-background text-base text-center min-h-[48px]"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Preview toggle for mobile */}
+            {hasExpressions && collectionId && (
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className={cn(
+                    'p-3 rounded-xl transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center',
+                    showPreview
+                      ? 'bg-primary/10 text-primary'
+                      : 'bg-muted/50 text-muted-foreground'
+                  )}
+                >
+                  {showPreview ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

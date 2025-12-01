@@ -120,9 +120,9 @@ export function MetadataEditor({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mobile-form-container">
       {/* Required Fields */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
         <FormField
           label="Name"
           required
@@ -135,7 +135,7 @@ export function MetadataEditor({
             onChange={(e) => updateField('name', e.target.value)}
             placeholder="My Table Collection"
             className={cn(
-              'w-full p-2 border rounded-md bg-background',
+              'w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0',
               errors.name && 'border-destructive'
             )}
           />
@@ -153,7 +153,7 @@ export function MetadataEditor({
             onChange={(e) => updateField('namespace', e.target.value)}
             placeholder="myproject.tables"
             className={cn(
-              'w-full p-2 border rounded-md bg-background',
+              'w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0',
               errors.namespace && 'border-destructive'
             )}
           />
@@ -171,7 +171,7 @@ export function MetadataEditor({
             onChange={(e) => updateField('version', e.target.value)}
             placeholder="1.0.0"
             className={cn(
-              'w-full p-2 border rounded-md bg-background',
+              'w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0',
               errors.version && 'border-destructive'
             )}
           />
@@ -186,7 +186,7 @@ export function MetadataEditor({
             value={value.author || ''}
             onChange={(e) => updateField('author', e.target.value)}
             placeholder="Your Name"
-            className="w-full p-2 border rounded-md bg-background"
+            className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
           />
         </FormField>
       </div>
@@ -201,7 +201,7 @@ export function MetadataEditor({
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="A collection of random tables for..."
           rows={3}
-          className="w-full p-2 border rounded-md bg-background resize-y"
+          className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background resize-y text-base md:text-sm"
         />
       </FormField>
 
@@ -215,7 +215,7 @@ export function MetadataEditor({
           onChange={(e) => updateField('instructions', e.target.value)}
           placeholder="How to use these tables..."
           rows={3}
-          className="w-full p-2 border rounded-md bg-background resize-y"
+          className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background resize-y text-base md:text-sm"
         />
       </FormField>
 
@@ -645,15 +645,15 @@ function FormField({
 }: FormFieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">
+      <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">
         {label}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       {children}
       {description && !error && (
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        <p className="text-sm md:text-xs text-muted-foreground mt-1.5 md:mt-1">{description}</p>
       )}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+      {error && <p className="text-sm md:text-xs text-destructive mt-1.5 md:mt-1">{error}</p>}
     </div>
   )
 }
@@ -698,20 +698,20 @@ function TagInput({ value, onChange, placeholder }: TagInputProps) {
   )
 
   return (
-    <div className="border rounded-md bg-background p-2">
+    <div className="border rounded-xl md:rounded-md bg-background p-3 md:p-2">
       <div className="flex flex-wrap gap-2">
         {value.map((tag, index) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 px-2 py-0.5 text-sm bg-primary/10 text-primary rounded-full"
+            className="inline-flex items-center gap-1.5 px-3 md:px-2 py-1.5 md:py-0.5 text-sm bg-primary/10 text-primary rounded-full"
           >
             {tag}
             <button
               type="button"
               onClick={() => removeTag(index)}
-              className="hover:bg-primary/20 rounded-full p-0.5"
+              className="hover:bg-primary/20 rounded-full p-1 md:p-0.5 min-w-[24px] min-h-[24px] md:min-w-0 md:min-h-0 flex items-center justify-center"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5 md:h-3 md:w-3" />
             </button>
           </span>
         ))}
@@ -722,7 +722,7 @@ function TagInput({ value, onChange, placeholder }: TagInputProps) {
           onKeyDown={handleKeyDown}
           onBlur={() => input && addTag(input)}
           placeholder={value.length === 0 ? placeholder : ''}
-          className="flex-1 min-w-[100px] bg-transparent outline-none text-sm"
+          className="flex-1 min-w-[100px] bg-transparent outline-none text-base md:text-sm py-1 md:py-0"
         />
       </div>
     </div>
@@ -743,16 +743,16 @@ function PermissionCheckbox({
   onChange,
 }: PermissionCheckboxProps) {
   return (
-    <label className="flex items-start gap-3 p-3 rounded-lg border hover:bg-accent/30 cursor-pointer transition-colors">
+    <label className="flex items-start gap-3 p-4 md:p-3 rounded-xl md:rounded-lg border hover:bg-accent/30 active:bg-accent/50 cursor-pointer transition-colors">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 rounded"
+        className="mt-0.5 rounded w-5 h-5 md:w-4 md:h-4"
       />
       <div>
-        <div className="text-sm font-medium">{label}</div>
-        <div className="text-xs text-muted-foreground">{description}</div>
+        <div className="text-base md:text-sm font-medium">{label}</div>
+        <div className="text-sm md:text-xs text-muted-foreground">{description}</div>
       </div>
     </label>
   )

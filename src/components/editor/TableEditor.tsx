@@ -115,19 +115,20 @@ export function TableEditor({
       <div
         className={cn(
           'flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50 transition-colors',
+          'min-h-[56px] md:min-h-0',
           isExpanded && 'border-b'
         )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {isExpanded ? (
-          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
         ) : (
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
         )}
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium truncate">{table.name || 'Untitled Table'}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-medium truncate text-base md:text-sm">{table.name || 'Untitled Table'}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               {table.type}
             </span>
@@ -146,20 +147,20 @@ export function TableEditor({
             e.stopPropagation()
             onDelete()
           }}
-          className="p-2 hover:bg-destructive/10 hover:text-destructive rounded transition-colors"
+          className="p-3 md:p-2 hover:bg-destructive/10 hover:text-destructive rounded-xl md:rounded transition-colors min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center"
           title="Delete table"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-5 w-5 md:h-4 md:w-4" />
         </button>
       </div>
 
       {/* Table Content */}
       {isExpanded && (
-        <div className="p-4 space-y-6">
+        <div className="p-4 space-y-6 mobile-form-container">
           {/* Basic Info */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">
                 Table ID <span className="text-destructive">*</span>
               </label>
               <input
@@ -167,12 +168,12 @@ export function TableEditor({
                 value={table.id}
                 onChange={(e) => updateField('id', e.target.value)}
                 placeholder="uniqueTableId"
-                className="w-full p-2 border rounded-md bg-background text-sm"
+                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">
                 Name <span className="text-destructive">*</span>
               </label>
               <input
@@ -180,12 +181,12 @@ export function TableEditor({
                 value={table.name}
                 onChange={(e) => updateField('name', e.target.value)}
                 placeholder="Table Name"
-                className="w-full p-2 border rounded-md bg-background text-sm"
+                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Type</label>
+              <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Type</label>
               <select
                 value={table.type}
                 onChange={(e) =>
@@ -193,7 +194,7 @@ export function TableEditor({
                     e.target.value as 'simple' | 'composite' | 'collection'
                   )
                 }
-                className="w-full p-2 border rounded-md bg-background text-sm"
+                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
               >
                 <option value="simple">Simple (Weighted Entries)</option>
                 <option value="composite">Composite (Select Table)</option>
@@ -202,51 +203,51 @@ export function TableEditor({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Result Type</label>
+              <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Result Type</label>
               <input
                 type="text"
                 value={table.resultType || ''}
                 onChange={(e) => updateField('resultType', e.target.value || undefined)}
                 placeholder="creature, item, etc."
-                className="w-full p-2 border rounded-md bg-background text-sm"
+                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Description</label>
             <textarea
               value={table.description || ''}
               onChange={(e) => updateField('description', e.target.value || undefined)}
               placeholder="Table description (Markdown supported)"
               rows={2}
-              className="w-full p-2 border rounded-md bg-background text-sm resize-y"
+              className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm resize-y"
             />
           </div>
 
           {/* Options Row */}
-          <div className="flex flex-wrap gap-4 items-center">
-            <label className="flex items-center gap-2 text-sm">
+          <div className="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center">
+            <label className="flex items-center gap-3 md:gap-2 text-base md:text-sm p-3 md:p-0 bg-muted/30 md:bg-transparent rounded-xl md:rounded-none w-full md:w-auto">
               <input
                 type="checkbox"
                 checked={table.hidden || false}
                 onChange={(e) => updateField('hidden', e.target.checked || undefined)}
-                className="rounded border-gray-300"
+                className="rounded border-gray-300 w-5 h-5 md:w-4 md:h-4"
               />
-              <span className="flex items-center gap-1">
-                {table.hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              <span className="flex items-center gap-2 md:gap-1">
+                {table.hidden ? <EyeOff className="h-5 w-5 md:h-4 md:w-4" /> : <Eye className="h-5 w-5 md:h-4 md:w-4" />}
                 Hidden from UI
               </span>
             </label>
 
             {table.type === 'simple' && (
-              <div className="flex items-center gap-2">
-                <label className="text-sm">Extends:</label>
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-2 w-full md:w-auto">
+                <label className="text-base md:text-sm font-medium md:font-normal">Extends:</label>
                 <select
                   value={table.extends || ''}
                   onChange={(e) => updateField('extends', e.target.value || undefined)}
-                  className="p-2 border rounded-md bg-background text-sm"
+                  className="w-full md:w-auto p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
                 >
                   <option value="">None</option>
                   {availableTableIds
@@ -389,13 +390,13 @@ function SimpleTableEditor({ table, onChange, collectionId }: SimpleTableEditorP
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Entries ({table.entries.length})</h3>
+        <h3 className="text-base md:text-sm font-medium">Entries ({table.entries.length})</h3>
         <button
           type="button"
           onClick={addEntry}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md hover:bg-accent transition-colors"
+          className="flex items-center gap-2 px-4 md:px-3 py-2.5 md:py-1.5 text-base md:text-sm border rounded-xl md:rounded-md hover:bg-accent active:bg-accent/70 transition-colors min-h-[44px] md:min-h-0"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5 md:h-4 md:w-4" />
           Add Entry
         </button>
       </div>
@@ -405,7 +406,7 @@ function SimpleTableEditor({ table, onChange, collectionId }: SimpleTableEditorP
         getItemId={(entry) => getEntryId(entry, table.entries.indexOf(entry))}
         onReorder={handleReorder}
       >
-        <div className="space-y-2">
+        <div className="space-y-3 md:space-y-2">
           {table.entries.map((entry, index) => (
             <SortableItem
               key={getEntryId(entry, index)}
@@ -470,13 +471,13 @@ function CompositeTableEditor({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Source Tables ({table.sources.length})</h3>
+        <h3 className="text-base md:text-sm font-medium">Source Tables ({table.sources.length})</h3>
         <button
           type="button"
           onClick={addSource}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md hover:bg-accent transition-colors"
+          className="flex items-center gap-2 px-4 md:px-3 py-2.5 md:py-1.5 text-base md:text-sm border rounded-xl md:rounded-md hover:bg-accent active:bg-accent/70 transition-colors min-h-[44px] md:min-h-0"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5 md:h-4 md:w-4" />
           Add Source
         </button>
       </div>

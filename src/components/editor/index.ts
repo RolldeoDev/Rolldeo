@@ -38,3 +38,7 @@ export { SortableItem } from './SortableItem'
 export { CollectionSwitcher } from './CollectionSwitcher'
 export { EditorHelpButton } from './EditorHelpButton'
 export { ExportDialog } from './ExportDialog'
+
+// Mobile editor components
+export { MobileEditorNav } from './MobileEditorNav'
+export { MobileFocusInput } from './MobileFocusInput'

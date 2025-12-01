@@ -7,6 +7,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { EditorSidebar } from './EditorSidebar'
 import { EditorTabBar } from './EditorTabBar'
+import { MobileEditorNav } from './MobileEditorNav'
 import { useUIStore, type EditorTab } from '@/stores/uiStore'
 import { MetadataEditor } from './MetadataEditor'
 import { TableEditor } from './TableEditor'
@@ -253,19 +254,32 @@ export function EditorWorkspace({
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] border rounded-2xl overflow-hidden bg-background">
-      {/* Sidebar */}
-      <EditorSidebar
+    <div className="flex h-[calc(100vh-12rem)] md:h-[calc(100vh-12rem)] h-[calc(100vh-8rem)] border rounded-2xl overflow-hidden bg-background">
+      {/* Sidebar - hidden on mobile */}
+      <div className="hidden md:flex h-full">
+        <EditorSidebar
+          document={document}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onNavigate={handleNavigate}
+          onAddImport={addImport}
+          onAddTable={addTable}
+          onAddTemplate={addTemplate}
+          onDeleteImport={deleteImport}
+          onDeleteTable={deleteTable}
+          onDeleteTemplate={deleteTemplate}
+          selectedItemId={selectedItemId ?? undefined}
+        />
+      </div>
+
+      {/* Mobile Navigation FAB + Overlay */}
+      <MobileEditorNav
         document={document}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        activeTab={activeTab}
         onNavigate={handleNavigate}
-        onAddImport={addImport}
         onAddTable={addTable}
         onAddTemplate={addTemplate}
-        onDeleteImport={deleteImport}
-        onDeleteTable={deleteTable}
-        onDeleteTemplate={deleteTemplate}
+        onAddImport={addImport}
         selectedItemId={selectedItemId ?? undefined}
       />
 
@@ -279,7 +293,7 @@ export function EditorWorkspace({
         />
 
         {/* Content Area */}
-        <div ref={contentRef} className="flex-1 overflow-y-auto p-6">
+        <div ref={contentRef} className="flex-1 overflow-y-auto p-4 md:p-6">
           {activeTab === 'metadata' && (
             <div className="space-y-8 animate-fade-in">
               {/* Metadata */}
