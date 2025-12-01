@@ -10,6 +10,7 @@ import type { RandomTableDocument } from '../types'
 describe('Template reference with shared variables bug', () => {
   it('should properly evaluate {{fullName}} when referenced from another template', () => {
     // Simplified version of the fantasy-names scenario
+    // Set values use explicit {{}} syntax for dynamic content (evaluated at merge time)
     const doc: RandomTableDocument = {
       metadata: {
         name: 'Test',
@@ -27,7 +28,8 @@ describe('Template reference with shared variables bug', () => {
               value: 'Elf',
               sets: {
                 raceId: 'elf',
-                firstNameTable: 'elfFirstNames',
+                // Use explicit {{}} syntax - the table is rolled at merge time
+                firstName: '{{elfFirstNames}}',
               },
             },
           ],
@@ -44,9 +46,9 @@ describe('Template reference with shared variables bug', () => {
           id: 'fullName',
           name: 'Full Name',
           shared: {
-            _raceInit: '{{race}}', // This rolls race and should populate placeholders
+            _raceInit: '{{race}}', // This rolls race and populates placeholders (including evaluated firstName)
           },
-          pattern: '{{@race.firstNameTable}}', // This should resolve to elfFirstNames and roll it
+          pattern: '{{@race.firstName}}', // Access the pre-evaluated firstName from sets
         },
         {
           id: 'detailedNpc',
@@ -79,6 +81,7 @@ describe('Template reference with shared variables bug', () => {
 
   it('should work when child template has different shared variable name', () => {
     // This should work because there's no name collision
+    // Set values use explicit {{}} syntax for dynamic content
     const doc: RandomTableDocument = {
       metadata: {
         name: 'Test',
@@ -96,7 +99,8 @@ describe('Template reference with shared variables bug', () => {
               value: 'Elf',
               sets: {
                 raceId: 'elf',
-                firstNameTable: 'elfFirstNames',
+                // Use explicit {{}} syntax - evaluated at merge time
+                firstName: '{{elfFirstNames}}',
               },
             },
           ],
@@ -115,7 +119,7 @@ describe('Template reference with shared variables bug', () => {
           shared: {
             _childRaceInit: '{{race}}', // Different name - no collision
           },
-          pattern: '{{@race.firstNameTable}}',
+          pattern: '{{@race.firstName}}', // Access pre-evaluated firstName
         },
         {
           id: 'detailedNpc',

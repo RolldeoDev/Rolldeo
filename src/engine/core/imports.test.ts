@@ -12,6 +12,7 @@ import type { RandomTableDocument } from '../types'
  */
 
 // Imported collection with name generation
+// Uses explicit {{}} syntax in set values for dynamic table rolls
 const fantasyNamesDocument: RandomTableDocument = {
   metadata: {
     name: 'Fantasy Names',
@@ -31,8 +32,9 @@ const fantasyNamesDocument: RandomTableDocument = {
           weight: 1,
           sets: {
             raceId: 'elf',
-            firstNameTable: 'elfFirstNames',
-            surnameTable: 'elfSurnames',
+            // Use explicit {{}} syntax - tables are rolled at merge time
+            firstName: '{{elfFirstNames}}',
+            surname: '{{elfSurnames}}',
           },
         },
         {
@@ -41,8 +43,9 @@ const fantasyNamesDocument: RandomTableDocument = {
           weight: 1,
           sets: {
             raceId: 'dwarf',
-            firstNameTable: 'dwarfFirstNames',
-            surnameTable: 'dwarfSurnames',
+            // Use explicit {{}} syntax - tables are rolled at merge time
+            firstName: '{{dwarfFirstNames}}',
+            surname: '{{dwarfSurnames}}',
           },
         },
       ],
@@ -92,7 +95,8 @@ const fantasyNamesDocument: RandomTableDocument = {
       shared: {
         _raceInit: '{{race}}',
       },
-      pattern: '{{@race.firstNameTable}} {{@race.surnameTable}}',
+      // Access pre-evaluated set values (firstName and surname already rolled)
+      pattern: '{{@race.firstName}} {{@race.surname}}',
     },
     {
       id: 'simpleGreeting',
@@ -312,7 +316,7 @@ describe('Cross-Collection Imports', () => {
   })
 })
 
-describe('Dynamic Table Resolution via Placeholders', () => {
+describe('Explicit Pattern Syntax in Sets', () => {
   let engine: RandomTableEngine
 
   beforeEach(() => {
@@ -320,18 +324,18 @@ describe('Dynamic Table Resolution via Placeholders', () => {
     engine.loadCollection(fantasyNamesDocument, 'fantasy-names')
   })
 
-  it('should resolve @race.firstNameTable to actual name, not table ID', () => {
-    // The fullName template uses {{@race.firstNameTable}} which should:
-    // 1. Look up @race placeholder and get firstNameTable property (e.g., "elfFirstNames")
-    // 2. Resolve that as a table reference and roll on it
-    // 3. Return an actual name, not the table ID
+  it('should evaluate {{}} patterns in set values at merge time', () => {
+    // The fullName template uses {{@race.firstName}} which:
+    // 1. Looks up @race placeholder and gets firstName property
+    // 2. This was already evaluated at merge time via {{elfFirstNames}} in the set value
+    // 3. Returns an actual name that was rolled when the entry was selected
     const result = engine.rollTemplate('fullName', 'fantasy-names')
 
     // Should be "FirstName Surname" format
     const parts = result.text.split(' ')
     expect(parts.length).toBe(2)
 
-    // Should NOT contain table IDs
+    // Should NOT contain table IDs - patterns are evaluated at merge time
     expect(result.text).not.toContain('FirstNames')
     expect(result.text).not.toContain('Surnames')
 
@@ -342,7 +346,7 @@ describe('Dynamic Table Resolution via Placeholders', () => {
     expect(validSurnames).toContain(parts[1])
   })
 
-  it('should trace the dynamic table resolution correctly', () => {
+  it('should trace the pattern evaluation correctly', () => {
     const result = engine.rollTemplate('fullName', 'fantasy-names', { enableTrace: true })
 
     // Check the trace shows the correct resolution path
@@ -367,6 +371,8 @@ describe('Placeholder value vs property access', () => {
   })
 
   it('should return different values for @table.value vs @table.property', () => {
+    // With explicit {{}} syntax, set values are evaluated at merge time
+    // Literal strings remain as literals; patterns are evaluated
     const doc: RandomTableDocument = {
       metadata: {
         name: 'Property Test',
@@ -385,8 +391,10 @@ describe('Placeholder value vs property access', () => {
               value: 'MainValue',
               weight: 1,
               sets: {
-                propA: 'PropertyA',
-                propB: 'PropertyB',
+                // Literal string value - stays as "LiteralProp"
+                literalProp: 'LiteralProp',
+                // Pattern value - rolls PropertyA table at merge time
+                dynamicProp: '{{PropertyA}}',
               },
             },
           ],
@@ -407,30 +415,87 @@ describe('Placeholder value vs property access', () => {
           shared: {
             _init: '{{mainTable}}',
           },
-          pattern: 'Value={{@mainTable.value}} PropA={{@mainTable.propA}}',
+          // literalProp returns the literal string, dynamicProp returns the rolled result
+          pattern: 'Value={{@mainTable.value}} Literal={{@mainTable.literalProp}} Dynamic={{@mainTable.dynamicProp}}',
         },
         {
           id: 'testDynamicTable',
           name: 'Test Dynamic Table',
-          description: 'Tests that @table.property resolves to table roll, not raw value',
+          description: 'Tests that set values with {{}} are evaluated at merge time',
           shared: {
             _init: '{{mainTable}}',
           },
-          pattern: '{{@mainTable.propA}}',
+          pattern: '{{@mainTable.dynamicProp}}',
         },
       ],
     }
 
     engine.loadCollection(doc, 'test')
 
-    // Test that value and property are both accessible
+    // Test that value, literal property, and dynamic property all work correctly
     const result1 = engine.rollTemplate('testValueAccess', 'test')
-    expect(result1.text).toBe('Value=MainValue PropA=ResultFromA')
+    expect(result1.text).toBe('Value=MainValue Literal=LiteralProp Dynamic=ResultFromA')
 
-    // Test that @table.property that resolves to a table ID returns the rolled value
+    // Test that dynamic property returns the pre-rolled value
     const result2 = engine.rollTemplate('testDynamicTable', 'test')
     expect(result2.text).toBe('ResultFromA')
-    expect(result2.text).not.toBe('PropertyA') // Should NOT return the raw table ID
+  })
+
+  it('should keep literal set values as literals even if they match table IDs', () => {
+    // This tests that without explicit {{}} syntax, values that happen to match
+    // table IDs are NOT automatically rolled (breaking change from implicit resolution)
+    const doc: RandomTableDocument = {
+      metadata: {
+        name: 'Literal Test',
+        namespace: 'test.literal',
+        version: '1.0.0',
+        specVersion: '1.0',
+      },
+      tables: [
+        {
+          id: 'mainTable',
+          name: 'Main Table',
+          type: 'simple',
+          entries: [
+            {
+              id: 'entry1',
+              value: 'MainValue',
+              weight: 1,
+              sets: {
+                // This is a literal string that happens to match a table ID
+                // It should NOT be rolled - it stays as "colors"
+                category: 'colors',
+              },
+            },
+          ],
+        },
+        {
+          id: 'colors',
+          name: 'Colors Table',
+          type: 'simple',
+          entries: [
+            { id: 'red', value: 'Red', weight: 1 },
+            { id: 'blue', value: 'Blue', weight: 1 },
+          ],
+        },
+      ],
+      templates: [
+        {
+          id: 'test',
+          name: 'Test',
+          shared: {
+            _init: '{{mainTable}}',
+          },
+          pattern: 'Category: {{@mainTable.category}}',
+        },
+      ],
+    }
+
+    engine.loadCollection(doc, 'test')
+
+    const result = engine.rollTemplate('test', 'test')
+    // Should return the literal string "colors", NOT a rolled color
+    expect(result.text).toBe('Category: colors')
   })
 })
 

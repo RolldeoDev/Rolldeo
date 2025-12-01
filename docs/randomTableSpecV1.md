@@ -998,7 +998,7 @@ This rolls on `weapon` twice, storing results as `primary` and `secondary` insta
 **Placeholders** (`@`) reference contextual values set by previously rolled entries via their `sets` property:
 
 ```
-{{@race.nameTable}}
+{{@race.firstName}}
 ```
 
 See Section 9 for details on the placeholder system.
@@ -1411,7 +1411,7 @@ Shared variable keys starting with `$` are **capture-aware**: they capture the f
 
 #### 8.9.1 Purpose
 
-Capture-aware shared variables solve the problem of needing multiple independent "instances" from the same table. For example, when generating two NPCs (a hero and an enemy), each needs their own race and corresponding race-specific name table:
+Capture-aware shared variables solve the problem of needing multiple independent "instances" from the same table. For example, when generating two NPCs (a hero and an enemy), each needs their own race and corresponding race-specific name:
 
 ```json
 {
@@ -1419,11 +1419,11 @@ Capture-aware shared variables solve the problem of needing multiple independent
     "$hero": "{{race}}",
     "$enemy": "{{race}}"
   },
-  "pattern": "{{$hero.@firstNameTable}} the {{$hero}} battles {{$enemy.@firstNameTable}} the {{$enemy}}"
+  "pattern": "{{$hero.@firstName}} the {{$hero}} battles {{$enemy.@firstName}} the {{$enemy}}"
 }
 ```
 
-Without capture-aware variables, both characters would share the same placeholder values, causing both to use the same name table.
+Without capture-aware variables, both characters would share the same placeholder values, causing both to use the same name.
 
 #### 8.9.2 Syntax
 
@@ -1431,15 +1431,14 @@ Without capture-aware variables, both characters would share the same placeholde
 |--------|-------------|---------|
 | `"$varName": "{{table}}"` | Define capture-aware variable in shared block | `"$hero": "{{race}}"` |
 | `{{$varName}}` | Access the captured value | `{{$hero}}` → `"Elf"` |
-| `{{$varName.@property}}` | Access captured set property | `{{$hero.@nameTable}}` |
+| `{{$varName.@property}}` | Access captured set property | `{{$hero.@firstName}}` |
 
 #### 8.9.3 How It Works
 
 1. **Definition**: Keys in the `shared` block starting with `$` are capture-aware
 2. **Capture**: When evaluated, the full roll result (value + sets) is captured
 3. **Value Access**: `{{$varName}}` returns the string value
-4. **Property Access**: `{{$varName.@prop}}` returns the specified set property
-5. **Dynamic Resolution**: If the property value is a valid table/template ID, it is rolled automatically
+4. **Property Access**: `{{$varName.@prop}}` returns the specified set property (already evaluated if it contained a pattern)
 
 #### 8.9.4 Example: Multi-Character Generation
 
@@ -1450,8 +1449,8 @@ Without capture-aware variables, both characters would share the same placeholde
       "id": "race",
       "type": "simple",
       "entries": [
-        { "value": "Elf", "sets": { "nameTable": "elfNames", "homeland": "Forest" } },
-        { "value": "Dwarf", "sets": { "nameTable": "dwarfNames", "homeland": "Mountain" } }
+        { "value": "Elf", "sets": { "firstName": "{{elfNames}}", "homeland": "Forest" } },
+        { "value": "Dwarf", "sets": { "firstName": "{{dwarfNames}}", "homeland": "Mountain" } }
       ]
     },
     {
@@ -1473,7 +1472,7 @@ Without capture-aware variables, both characters would share the same placeholde
         "$hero": "{{race}}",
         "$enemy": "{{race}}"
       },
-      "pattern": "**{{$hero.@nameTable}}** the {{$hero}} from the {{$hero.@homeland}} vs **{{$enemy.@nameTable}}** the {{$enemy}} from the {{$enemy.@homeland}}"
+      "pattern": "**{{$hero.@firstName}}** the {{$hero}} from the {{$hero.@homeland}} vs **{{$enemy.@firstName}}** the {{$enemy}} from the {{$enemy.@homeland}}"
     }
   ]
 }
@@ -1484,7 +1483,7 @@ Without capture-aware variables, both characters would share the same placeholde
 
 Each character has independent:
 - Race value (`Elf` vs `Dwarf`)
-- Name table resolution (`elfNames` vs `dwarfNames`)
+- First name (evaluated from `{{elfNames}}` or `{{dwarfNames}}` at selection time)
 - Homeland property (`Forest` vs `Mountain`)
 
 #### 8.9.5 Key Differences from Regular Shared Variables
@@ -1494,19 +1493,28 @@ Each character has independent:
 | Key syntax | `"varName"` | `"$varName"` |
 | Captures sets | No | Yes |
 | Property access | No | Yes (`{{$var.@prop}}`) |
-| Dynamic resolution | No | Yes (table/template IDs) |
 | Value access | `{{$varName}}` | `{{$varName}}` |
 
-#### 8.9.6 Dynamic Table Resolution
+#### 8.9.6 Pattern Evaluation in Sets
 
-When accessing a property like `{{$hero.@nameTable}}`:
+Set values can contain `{{pattern}}` expressions that are evaluated when the entry is selected (at merge time). This enables dynamic content in placeholder values:
 
-1. The property value is retrieved from the captured sets
-2. If the value is a valid table ID in scope, that table is rolled
-3. If the value is a valid template ID in scope, that template is evaluated
-4. If neither, the raw string value is returned
+```json
+{
+  "sets": {
+    "firstName": "{{elfFirstNames}}",     // Rolls table when entry selected
+    "hp": "{{dice:2d6+10}}",               // Rolls dice when entry selected
+    "description": "A {{adjective}} elf"   // Mixed literal and pattern
+  }
+}
+```
 
-This enables powerful patterns where entry sets define which sub-tables to use, and the pattern uses those dynamically.
+When accessing `{{$hero.@firstName}}`:
+
+1. The property value was already evaluated at merge time
+2. The resolved string value is returned directly
+
+This enables powerful patterns where entry sets define dynamic values that are evaluated once and then accessed consistently throughout the template.
 
 ---
 
@@ -1516,7 +1524,7 @@ Placeholders enable dynamic behavior based on previously rolled results. When an
 
 ### 9.1 Setting Placeholder Values
 
-In a table entry, use `sets` to define key-value pairs:
+In a table entry, use `sets` to define key-value pairs. Values can be literal strings or contain `{{pattern}}` expressions that are evaluated when the entry is selected:
 
 ```json
 {
@@ -1525,13 +1533,18 @@ In a table entry, use `sets` to define key-value pairs:
   "tags": ["playable", "fey"],
   "sets": {
     "race": "elf",
-    "nameTable": "elfNames",
+    "firstName": "{{elfFirstNames}}",
     "lifespan": "750"
   }
 }
 ```
 
-When this entry is selected, three placeholder properties become available: `@race`, which returns `"elf"`, and `@nameTable`, `@lifespan` with their respective values.
+When this entry is selected:
+- `@race` returns the literal value `"elf"`
+- `@firstName` is evaluated by rolling the `elfFirstNames` table, returning something like `"Aelindra"`
+- `@lifespan` returns the literal value `"750"`
+
+**Pattern syntax is required for dynamic content.** A value like `"elfNames"` will be treated as a literal string, not a table reference. Use `"{{elfNames}}"` to roll a table.
 
 ### 9.2 Using Placeholder Values
 
@@ -1541,24 +1554,25 @@ Reference placeholders in templates using `@placeholder.property` syntax:
 A {{dice:1d100+{{@race.lifespan}}}} year old {{@race.value}}
 ```
 
-**Dynamic Table Selection:**
+**Pre-evaluated Values:**
 
-Placeholders can specify which table to roll on:
+Since set values containing `{{pattern}}` are evaluated when the entry is selected, you simply access the resolved value:
 
 ```json
 {
-  "pattern": "Named {{@race.nameTable}}"
+  "sets": { "firstName": "{{elfFirstNames}}" },
+  "pattern": "The elf's name is {{@race.firstName}}"
 }
 ```
 
-If `@race.nameTable` equals `"elfNames"`, this rolls on the `elfNames` table.
+When accessed, `{{@race.firstName}}` returns the already-evaluated name (e.g., `"Aelindra"`), not the original pattern. This ensures consistent values when the same placeholder is accessed multiple times in a pattern.
 
 ### 9.3 Placeholder vs Variable Separation
 
 | Prefix | Source | Syntax | Example |
 |--------|--------|--------|---------|
 | `$` | Static variables, shared variables, or `setVariable` action | `{{$varName}}` | `{{$setting}}` |
-| `@` | Entry `sets` property (merged with `defaultSets` and inherited) | `{{@placeholder.property}}` | `{{@race.nameTable}}` |
+| `@` | Entry `sets` property (merged with `defaultSets` and inherited) | `{{@placeholder.property}}` | `{{@race.firstName}}` |
 
 This separation prevents naming collisions and clarifies the source of each value.
 

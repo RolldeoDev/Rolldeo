@@ -61,6 +61,9 @@ export interface GenerationContext {
 
   /** Collected entry descriptions during generation */
   collectedDescriptions: EntryDescription[]
+
+  /** Set keys currently being evaluated (for cycle detection): "tableName.propName" */
+  evaluatingSetKeys: Set<string>
 }
 
 // ============================================================================
@@ -97,6 +100,7 @@ export function createContext(
     currentCollectionId: undefined,
     trace: options?.enableTrace ? createTraceContext() : undefined,
     collectedDescriptions: [],
+    evaluatingSetKeys: new Set(),
   }
 }
 
@@ -122,6 +126,7 @@ export function cloneContext(ctx: GenerationContext): GenerationContext {
     currentCollectionId: ctx.currentCollectionId,
     trace: ctx.trace, // Shared reference - trace tree is built across all nested calls
     collectedDescriptions: ctx.collectedDescriptions, // Shared reference - descriptions persist across nested calls
+    evaluatingSetKeys: ctx.evaluatingSetKeys, // Shared reference - cycle detection across nested calls
   }
 }
 
@@ -440,4 +445,27 @@ export function addDescription(
     description,
     depth: depth ?? ctx.recursionDepth,
   })
+}
+
+// ============================================================================
+// Set Evaluation Cycle Detection
+// ============================================================================
+
+/**
+ * Begin evaluating a set key. Returns true if safe to proceed, false if cycle detected.
+ * @param key - The set key being evaluated, format: "tableName.propName"
+ */
+export function beginSetEvaluation(ctx: GenerationContext, key: string): boolean {
+  if (ctx.evaluatingSetKeys.has(key)) {
+    return false // Cycle detected
+  }
+  ctx.evaluatingSetKeys.add(key)
+  return true
+}
+
+/**
+ * End evaluating a set key (cleanup after evaluation completes or fails)
+ */
+export function endSetEvaluation(ctx: GenerationContext, key: string): void {
+  ctx.evaluatingSetKeys.delete(key)
 }

@@ -8,12 +8,12 @@
  * - table: mint
  * - template: lavender
  * - variable: rose
- * - placeholder: pink (lighter rose)
+ * - placeholder: teal (cyan)
  * - again: mint (green)
  * - unique: amber
  * - capture: rose
  * - capture-shared: rose
- * - collect: rose
+ * - collect: blue
  * - unknown: gray
  */
 
@@ -52,8 +52,8 @@ export const EXPRESSION_COLORS: Record<
     badge: 'bg-rose/15 text-rose hover:bg-rose/25',
   },
   placeholder: {
-    text: 'text-pink',
-    badge: 'bg-pink/15 text-pink hover:bg-pink/25',
+    text: 'text-cyan',
+    badge: 'bg-cyan/15 text-cyan hover:bg-cyan/25',
   },
   again: {
     text: 'text-mint',
@@ -72,8 +72,8 @@ export const EXPRESSION_COLORS: Record<
     badge: 'bg-rose/15 text-rose hover:bg-rose/25',
   },
   collect: {
-    text: 'text-rose',
-    badge: 'bg-rose/15 text-rose hover:bg-rose/25',
+    text: 'text-blue-500 dark:text-blue-400',
+    badge: 'bg-blue-500/15 text-blue-500 dark:text-blue-400 hover:bg-blue-500/25',
   },
   unknown: {
     text: 'text-gray-500 dark:text-gray-400',
