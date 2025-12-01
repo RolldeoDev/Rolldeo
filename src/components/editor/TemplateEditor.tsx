@@ -124,13 +124,13 @@ export function TemplateEditor({
   )
 
   return (
-    <div className="border rounded-lg overflow-hidden" onFocus={handleFocus} onBlur={handleBlur}>
+    <div className={cn("editor-card", isExpanded && "editor-card-expanded")} onFocus={handleFocus} onBlur={handleBlur}>
       {/* Template Header */}
       <div
         className={cn(
-          'flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50 transition-colors',
+          'editor-accordion-header',
           'min-h-[56px] md:min-h-0',
-          isExpanded && 'border-b'
+          isExpanded && 'border-b border-border/50'
         )}
         onClick={handleToggleExpand}
       >
@@ -162,64 +162,60 @@ export function TemplateEditor({
 
       {/* Template Content */}
       {isExpanded && (
-        <div className="p-4 md:p-4 space-y-4 md:space-y-4 mobile-form-container">
+        <div className="p-4 space-y-5 mobile-form-container">
           {/* Basic Info */}
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-            <div>
-              <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">
-                Template ID <span className="text-destructive">*</span>
-              </label>
+          <div className="editor-field-group">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+              <div>
+                <label className="editor-label editor-label-required">Template ID</label>
+                <input
+                  type="text"
+                  value={template.id}
+                  onChange={(e) => updateField('id', e.target.value)}
+                  placeholder="uniqueTemplateId"
+                  className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
+                />
+              </div>
+
+              <div>
+                <label className="editor-label editor-label-required">Name</label>
+                <input
+                  type="text"
+                  value={template.name}
+                  onChange={(e) => updateField('name', e.target.value)}
+                  placeholder="Template Name"
+                  className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
+                />
+              </div>
+
+              <div>
+                <label className="editor-label">Result Type</label>
+                <ResultTypeSelector
+                  value={template.resultType}
+                  onChange={(value) => updateField('resultType', value)}
+                  placeholder="Select or enter type..."
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mt-4">
+              <label className="editor-label">Description</label>
               <input
                 type="text"
-                value={template.id}
-                onChange={(e) => updateField('id', e.target.value)}
-                placeholder="uniqueTemplateId"
-                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+                value={template.description || ''}
+                onChange={(e) =>
+                  updateField('description', e.target.value || undefined)
+                }
+                placeholder="Template description"
+                className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
               />
             </div>
-
-            <div>
-              <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">
-                Name <span className="text-destructive">*</span>
-              </label>
-              <input
-                type="text"
-                value={template.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                placeholder="Template Name"
-                className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">
-                Result Type
-              </label>
-              <ResultTypeSelector
-                value={template.resultType}
-                onChange={(value) => updateField('resultType', value)}
-                placeholder="Select or enter type..."
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm md:text-sm text-base font-medium mb-1 md:mb-1 mb-2">Description</label>
-            <input
-              type="text"
-              value={template.description || ''}
-              onChange={(e) =>
-                updateField('description', e.target.value || undefined)
-              }
-              placeholder="Template description"
-              className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
-            />
           </div>
 
           {/* Shared Variables (collapsible) */}
-          <details className="border rounded-lg">
-            <summary className="px-4 py-3 cursor-pointer hover:bg-accent/50 transition-colors list-none">
+          <details className="editor-collapsible">
+            <summary>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Shared Variables</span>
                 <span className="text-xs text-muted-foreground">(optional)</span>
@@ -234,7 +230,7 @@ export function TemplateEditor({
                 </div>
               </div>
             </summary>
-            <div className="p-4 border-t space-y-3">
+            <div className="editor-collapsible-content space-y-3">
               <p className="text-sm text-muted-foreground">
                 Variables evaluated when this template is rolled. Available to nested table references.
               </p>
@@ -349,7 +345,7 @@ export function TemplateEditor({
 
           {/* Tags */}
           <div>
-            <label className="block text-base md:text-sm font-medium mb-2 md:mb-1">Tags</label>
+            <label className="editor-label">Tags</label>
             <TagInput
               value={template.tags || []}
               onChange={(tags) =>
@@ -381,7 +377,7 @@ function SyntaxHelperButton({
       type="button"
       onClick={onClick}
       title={title}
-      className="flex items-center gap-1.5 px-3 md:px-2.5 py-2 md:py-1 text-sm md:text-xs border rounded-xl md:rounded-md hover:bg-accent active:bg-accent/70 transition-colors flex-shrink-0 min-h-[40px] md:min-h-0"
+      className="editor-input-btn flex items-center gap-1.5 px-3 md:px-2.5 py-2 md:py-1 text-sm md:text-xs rounded-xl md:rounded-lg flex-shrink-0 min-h-[40px] md:min-h-0"
     >
       {icon}
       {label}
@@ -420,7 +416,7 @@ function TagInput({ value, onChange }: TagInputProps) {
   )
 
   return (
-    <div className="border rounded-xl md:rounded-md bg-background p-3 md:p-2">
+    <div className="editor-input p-3 md:p-2">
       <div className="flex flex-wrap gap-2">
         {value.map((tag, index) => (
           <span
