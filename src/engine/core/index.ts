@@ -93,6 +93,24 @@ export interface TemplateInfo {
   tags?: string[]
 }
 
+export interface ImportedTableInfo extends TableInfo {
+  /** Alias prefix for import reference (e.g., "names") */
+  alias: string
+  /** Source collection namespace */
+  sourceNamespace: string
+  /** Source collection name for UI display */
+  sourceCollectionName: string
+}
+
+export interface ImportedTemplateInfo extends TemplateInfo {
+  /** Alias prefix for import reference (e.g., "names") */
+  alias: string
+  /** Source collection namespace */
+  sourceNamespace: string
+  /** Source collection name for UI display */
+  sourceCollectionName: string
+}
+
 export interface EngineOptions {
   config?: Partial<EngineConfig>
 }
@@ -187,6 +205,37 @@ export class RandomTableEngine {
    */
   getCollection(id: string): LoadedCollection | undefined {
     return this.collections.get(id)
+  }
+
+  /**
+   * Update a collection's document (for live editing).
+   * This updates the document and rebuilds indexes, then re-resolves imports.
+   */
+  updateDocument(id: string, document: RandomTableDocument): void {
+    const existing = this.collections.get(id)
+    if (!existing) return
+
+    // Rebuild table index
+    const tableIndex = new Map<string, Table>()
+    for (const table of document.tables) {
+      tableIndex.set(table.id, table)
+    }
+
+    // Rebuild template index
+    const templateIndex = new Map<string, Template>()
+    if (document.templates) {
+      for (const template of document.templates) {
+        templateIndex.set(template.id, template)
+      }
+    }
+
+    // Update the collection in place
+    existing.document = document
+    existing.tableIndex = tableIndex
+    existing.templateIndex = templateIndex
+
+    // Re-resolve imports for all collections
+    this.resolveImports()
   }
 
   /**
@@ -341,6 +390,124 @@ export class RandomTableEngine {
       description: t.description,
       tags: t.tags,
     }))
+  }
+
+  /**
+   * List tables from a collection's imports (recursively).
+   * Returns tables with their alias prefix for proper reference syntax.
+   */
+  listImportedTables(collectionId: string, includeHidden = true): ImportedTableInfo[] {
+    const collection = this.collections.get(collectionId)
+    if (!collection) return []
+
+    const results: ImportedTableInfo[] = []
+    const visited = new Set<string>()
+    visited.add(collectionId) // Don't include current collection's tables
+
+    for (const [alias, importedCollection] of collection.imports) {
+      this.collectImportedTables(importedCollection, alias, includeHidden, visited, results)
+    }
+
+    return results
+  }
+
+  /**
+   * List templates from a collection's imports (recursively).
+   * Returns templates with their alias prefix for proper reference syntax.
+   */
+  listImportedTemplates(collectionId: string): ImportedTemplateInfo[] {
+    const collection = this.collections.get(collectionId)
+    if (!collection) return []
+
+    const results: ImportedTemplateInfo[] = []
+    const visited = new Set<string>()
+    visited.add(collectionId) // Don't include current collection's templates
+
+    for (const [alias, importedCollection] of collection.imports) {
+      this.collectImportedTemplates(importedCollection, alias, visited, results)
+    }
+
+    return results
+  }
+
+  /**
+   * Helper to recursively collect tables from an imported collection
+   */
+  private collectImportedTables(
+    collection: LoadedCollection,
+    alias: string,
+    includeHidden: boolean,
+    visited: Set<string>,
+    results: ImportedTableInfo[]
+  ): void {
+    if (visited.has(collection.id)) return
+    visited.add(collection.id)
+
+    // Get direct tables from this imported collection
+    for (const table of collection.document.tables) {
+      if (!includeHidden && table.hidden) continue
+      results.push({
+        id: table.id,
+        name: table.name,
+        type: table.type,
+        description: table.description,
+        tags: table.tags,
+        hidden: table.hidden,
+        entryCount: table.type === 'simple' ? (table as SimpleTable).entries.length : undefined,
+        alias,
+        sourceNamespace: collection.document.metadata.namespace,
+        sourceCollectionName: collection.document.metadata.name,
+      })
+    }
+
+    // Recursively get from nested imports
+    for (const [nestedAlias, nestedCollection] of collection.imports) {
+      this.collectImportedTables(
+        nestedCollection,
+        `${alias}.${nestedAlias}`,
+        includeHidden,
+        visited,
+        results
+      )
+    }
+  }
+
+  /**
+   * Helper to recursively collect templates from an imported collection
+   */
+  private collectImportedTemplates(
+    collection: LoadedCollection,
+    alias: string,
+    visited: Set<string>,
+    results: ImportedTemplateInfo[]
+  ): void {
+    if (visited.has(collection.id)) return
+    visited.add(collection.id)
+
+    // Get direct templates from this imported collection
+    if (collection.document.templates) {
+      for (const template of collection.document.templates) {
+        results.push({
+          id: template.id,
+          name: template.name,
+          description: template.description,
+          tags: template.tags,
+          alias,
+          sourceNamespace: collection.document.metadata.namespace,
+          sourceCollectionName: collection.document.metadata.name,
+        })
+      }
+    }
+
+    // Recursively get from nested imports
+    for (const [nestedAlias, nestedCollection] of collection.imports) {
+      this.collectImportedTemplates(
+        nestedCollection,
+        `${alias}.${nestedAlias}`,
+        visited,
+        results
+      )
+    }
   }
 
   // ==========================================================================

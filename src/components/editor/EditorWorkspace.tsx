@@ -26,6 +26,8 @@ import type {
   Import,
   SimpleTable,
 } from '@/engine/types'
+import { useCollectionStore } from '@/stores/collectionStore'
+import type { ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 interface EditorWorkspaceProps {
   document: RandomTableDocument
@@ -56,6 +58,7 @@ export function EditorWorkspace({
   const setSelectedItemId = useUIStore((state) => state.setEditorSelectedItemId)
   const contentRef = useRef<HTMLDivElement>(null)
   const [showImportModal, setShowImportModal] = useState(false)
+  const [importsVersion, setImportsVersion] = useState(0)
 
   // Scroll to item when selected from sidebar
   useEffect(() => {
@@ -67,6 +70,21 @@ export function EditorWorkspace({
     }
   }, [selectedItemId])
 
+  // Sync document imports to engine when they change (for live import resolution)
+  // We need to ensure the document matches the collectionId to avoid corrupting
+  // engine state during collection switches (when collectionId changes before document)
+  useEffect(() => {
+    if (collectionId) {
+      // Verify the document belongs to this collection by checking namespace match
+      const collectionMeta = useCollectionStore.getState().getCollection(collectionId)
+      if (collectionMeta && document.metadata.namespace === collectionMeta.namespace) {
+        useCollectionStore.getState().updateCollectionDocument(collectionId, document)
+        // Increment version to trigger memo re-evaluation after engine update
+        setImportsVersion((v) => v + 1)
+      }
+    }
+  }, [collectionId, document.imports, document.metadata.namespace])
+
   // Available table IDs for references
   const availableTableIds = useMemo(() => {
     return document.tables.map((t) => t.id)
@@ -76,6 +94,19 @@ export function EditorWorkspace({
   const availableTemplateIds = useMemo(() => {
     return (document.templates || []).map((t) => t.id)
   }, [document.templates])
+
+  // Imported tables from resolved imports
+  // Note: importsVersion triggers re-evaluation after engine update
+  const importedTables = useMemo((): ImportedTableInfo[] => {
+    if (!collectionId) return []
+    return useCollectionStore.getState().getImportedTableList(collectionId, true)
+  }, [collectionId, importsVersion])
+
+  // Imported templates from resolved imports
+  const importedTemplates = useMemo((): ImportedTemplateInfo[] => {
+    if (!collectionId) return []
+    return useCollectionStore.getState().getImportedTemplateList(collectionId)
+  }, [collectionId, importsVersion])
 
   // Update handlers
   const updateMetadata = useCallback(
@@ -390,6 +421,8 @@ export function EditorWorkspace({
                         onDelete={() => deleteTemplate(index)}
                         availableTableIds={availableTableIds}
                         availableTemplateIds={availableTemplateIds}
+                        importedTables={importedTables}
+                        importedTemplates={importedTemplates}
                         defaultExpanded={selectedItemId === template.id || (document.templates?.length || 0) === 1}
                         collectionId={collectionId}
                       />

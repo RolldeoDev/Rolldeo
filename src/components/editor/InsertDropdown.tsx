@@ -2,16 +2,20 @@
  * InsertDropdown Component
  *
  * Inline searchable dropdown for inserting table/template references into patterns.
+ * Supports local tables/templates and imported items with tabbed navigation.
  */
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { Plus, Search, Table2, Sparkles, Dices, Calculator, Variable, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 interface InsertDropdownProps {
   availableTableIds: string[]
   availableTemplateIds: string[]
+  importedTables?: ImportedTableInfo[]
+  importedTemplates?: ImportedTemplateInfo[]
   onInsert: (text: string) => void
   buttonClassName?: string
 }
@@ -20,17 +24,24 @@ interface InsertItem {
   id: string
   label: string
   insertText: string
-  group: 'tables' | 'templates' | 'syntax'
+  type: 'table' | 'template' | 'syntax'
+  source: string // Collection name (e.g., "Local", "Fantasy Names")
   icon: typeof Table2
   description?: string
 }
+
+type TabType = 'tables' | 'templates' | 'syntax'
+
+const SYNTAX_SOURCE = 'Syntax Helpers'
+const LOCAL_SOURCE = 'Local'
 
 const SYNTAX_ITEMS: InsertItem[] = [
   {
     id: 'dice',
     label: 'Dice Roll',
     insertText: '{{dice:2d6}}',
-    group: 'syntax',
+    type: 'syntax',
+    source: SYNTAX_SOURCE,
     icon: Dices,
     description: 'Roll dice (e.g., 2d6, 1d20+5)',
   },
@@ -38,7 +49,8 @@ const SYNTAX_ITEMS: InsertItem[] = [
     id: 'math',
     label: 'Math Expression',
     insertText: '{{math:1 + 2}}',
-    group: 'syntax',
+    type: 'syntax',
+    source: SYNTAX_SOURCE,
     icon: Calculator,
     description: 'Calculate math expressions',
   },
@@ -46,7 +58,8 @@ const SYNTAX_ITEMS: InsertItem[] = [
     id: 'variable',
     label: 'Variable Reference',
     insertText: '{{$variableName}}',
-    group: 'syntax',
+    type: 'syntax',
+    source: SYNTAX_SOURCE,
     icon: Variable,
     description: 'Reference a shared variable',
   },
@@ -54,7 +67,8 @@ const SYNTAX_ITEMS: InsertItem[] = [
     id: 'again',
     label: 'Re-roll (Again)',
     insertText: '{{again}}',
-    group: 'syntax',
+    type: 'syntax',
+    source: SYNTAX_SOURCE,
     icon: RotateCcw,
     description: 'Re-roll the previous value',
   },
@@ -63,11 +77,14 @@ const SYNTAX_ITEMS: InsertItem[] = [
 export function InsertDropdown({
   availableTableIds,
   availableTemplateIds,
+  importedTables = [],
+  importedTemplates = [],
   onInsert,
   buttonClassName,
 }: InsertDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [activeTab, setActiveTab] = useState<TabType>('tables')
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -76,48 +93,104 @@ export function InsertDropdown({
 
   // Build list of all insertable items
   const allItems = useMemo((): InsertItem[] => {
+    // Local tables
     const tableItems: InsertItem[] = availableTableIds.map((id) => ({
       id: `table-${id}`,
       label: id,
       insertText: `{{${id}}}`,
-      group: 'tables' as const,
+      type: 'table' as const,
+      source: LOCAL_SOURCE,
       icon: Table2,
     }))
 
+    // Local templates
     const templateItems: InsertItem[] = availableTemplateIds.map((id) => ({
       id: `template-${id}`,
       label: id,
       insertText: `{{${id}}}`,
-      group: 'templates' as const,
+      type: 'template' as const,
+      source: LOCAL_SOURCE,
       icon: Sparkles,
     }))
 
-    return [...tableItems, ...templateItems, ...SYNTAX_ITEMS]
-  }, [availableTableIds, availableTemplateIds])
+    // Imported tables
+    const importedTableItems: InsertItem[] = importedTables.map((table) => ({
+      id: `imported-table-${table.alias}-${table.id}`,
+      label: `${table.alias}.${table.id}`,
+      insertText: `{{${table.alias}.${table.id}}}`,
+      type: 'table' as const,
+      source: table.sourceCollectionName,
+      icon: Table2,
+      description: table.name !== table.id ? table.name : undefined,
+    }))
 
-  // Filter items by search
+    // Imported templates
+    const importedTemplateItems: InsertItem[] = importedTemplates.map((template) => ({
+      id: `imported-template-${template.alias}-${template.id}`,
+      label: `${template.alias}.${template.id}`,
+      insertText: `{{${template.alias}.${template.id}}}`,
+      type: 'template' as const,
+      source: template.sourceCollectionName,
+      icon: Sparkles,
+      description: template.name !== template.id ? template.name : undefined,
+    }))
+
+    return [...tableItems, ...templateItems, ...importedTableItems, ...importedTemplateItems, ...SYNTAX_ITEMS]
+  }, [availableTableIds, availableTemplateIds, importedTables, importedTemplates])
+
+  // Filter items by tab and search
   const filteredItems = useMemo(() => {
-    if (!search.trim()) return allItems
-    const query = search.toLowerCase()
-    return allItems.filter(
-      (item) =>
-        item.label.toLowerCase().includes(query) ||
-        item.description?.toLowerCase().includes(query)
-    )
-  }, [allItems, search])
-
-  // Group filtered items
-  const groupedItems = useMemo(() => {
-    const groups: Record<string, InsertItem[]> = {
-      tables: [],
-      templates: [],
-      syntax: [],
+    // Map plural tab names to singular item types
+    const typeMap: Record<TabType, 'table' | 'template' | 'syntax'> = {
+      tables: 'table',
+      templates: 'template',
+      syntax: 'syntax'
     }
+    let items = allItems.filter((item) => item.type === typeMap[activeTab])
+
+    // Filter by search query
+    if (search.trim()) {
+      const query = search.toLowerCase()
+      items = items.filter(
+        (item) =>
+          item.label.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query) ||
+          item.source.toLowerCase().includes(query)
+      )
+    }
+
+    return items
+  }, [allItems, activeTab, search])
+
+  // Group filtered items by source
+  const groupedItems = useMemo(() => {
+    const groups: Record<string, InsertItem[]> = {}
+
     filteredItems.forEach((item) => {
-      groups[item.group].push(item)
+      if (!groups[item.source]) {
+        groups[item.source] = []
+      }
+      groups[item.source].push(item)
     })
-    return groups
+
+    // Sort groups: Local first, then alphabetically, Syntax Helpers last
+    const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
+      if (a === LOCAL_SOURCE) return -1
+      if (b === LOCAL_SOURCE) return 1
+      if (a === SYNTAX_SOURCE) return 1
+      if (b === SYNTAX_SOURCE) return -1
+      return a.localeCompare(b)
+    })
+
+    return sortedEntries
   }, [filteredItems])
+
+  // Count items per tab for badges
+  const tabCounts = useMemo(() => ({
+    tables: allItems.filter((item) => item.type === 'table').length,
+    templates: allItems.filter((item) => item.type === 'template').length,
+    syntax: allItems.filter((item) => item.type === 'syntax').length,
+  }), [allItems])
 
   // Update position when opening
   useEffect(() => {
@@ -136,9 +209,15 @@ export function InsertDropdown({
   useEffect(() => {
     if (!isOpen) {
       setSearch('')
+      setActiveTab('tables')
       setHighlightedIndex(0)
     }
   }, [isOpen])
+
+  // Reset highlighted index when tab or search changes
+  useEffect(() => {
+    setHighlightedIndex(0)
+  }, [activeTab, search])
 
   // Close on click outside
   useEffect(() => {
@@ -182,9 +261,19 @@ export function InsertDropdown({
           e.preventDefault()
           setIsOpen(false)
           break
+        case 'Tab':
+          e.preventDefault()
+          // Cycle through tabs
+          const tabs: TabType[] = ['tables', 'templates', 'syntax']
+          const currentIndex = tabs.indexOf(activeTab)
+          const nextIndex = e.shiftKey
+            ? (currentIndex - 1 + tabs.length) % tabs.length
+            : (currentIndex + 1) % tabs.length
+          setActiveTab(tabs[nextIndex])
+          break
       }
     },
-    [filteredItems, highlightedIndex, onInsert]
+    [filteredItems, highlightedIndex, onInsert, activeTab]
   )
 
   const handleItemClick = useCallback(
@@ -195,17 +284,18 @@ export function InsertDropdown({
     [onInsert]
   )
 
-  const renderGroup = (title: string, items: InsertItem[], startIndex: number) => {
-    if (items.length === 0) return null
+  // Render grouped items with proper highlighting
+  const renderGroups = () => {
+    let currentIndex = 0
 
-    return (
-      <div key={title}>
-        <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 bg-muted/30">
-          {title}
+    return groupedItems.map(([source, items]) => (
+      <div key={source}>
+        <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted sticky top-0 z-10">
+          {source}
         </div>
-        {items.map((item, i) => {
+        {items.map((item) => {
           const Icon = item.icon
-          const globalIndex = startIndex + i
+          const globalIndex = currentIndex++
 
           return (
             <button
@@ -235,16 +325,8 @@ export function InsertDropdown({
           )
         })}
       </div>
-    )
+    ))
   }
-
-  // Calculate start indices for each group
-  let startIndex = 0
-  const tablesStartIndex = startIndex
-  startIndex += groupedItems.tables.length
-  const templatesStartIndex = startIndex
-  startIndex += groupedItems.templates.length
-  const syntaxStartIndex = startIndex
 
   return (
     <>
@@ -254,8 +336,8 @@ export function InsertDropdown({
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors',
-          'hover:bg-accent hover:border-border',
-          isOpen && 'bg-accent border-border',
+          'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50',
+          isOpen && 'bg-primary/20 border-primary/50',
           buttonClassName
         )}
         title="Insert table or syntax reference"
@@ -268,13 +350,73 @@ export function InsertDropdown({
         createPortal(
           <div
             ref={dropdownRef}
-            className="fixed z-50 w-72 bg-popover border border-border/50 rounded-xl shadow-xl overflow-hidden animate-fade-in"
+            className="fixed z-50 w-96 bg-popover border border-border/50 rounded-xl shadow-xl overflow-hidden animate-fade-in"
             style={{
               top: dropdownPosition.top,
               left: dropdownPosition.left,
             }}
             onKeyDown={handleKeyDown}
           >
+            {/* Tabs */}
+            <div className="flex border-b border-border/30">
+              <button
+                type="button"
+                onClick={() => setActiveTab('tables')}
+                className={cn(
+                  'flex-1 min-w-0 px-2 py-2 text-sm font-medium transition-colors relative',
+                  activeTab === 'tables'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="flex items-center justify-center gap-1">
+                  <Table2 className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="truncate">Tables</span>
+                  <span className="text-xs text-muted-foreground flex-shrink-0">({tabCounts.tables})</span>
+                </span>
+                {activeTab === 'tables' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('templates')}
+                className={cn(
+                  'flex-1 min-w-0 px-2 py-2 text-sm font-medium transition-colors relative',
+                  activeTab === 'templates'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="flex items-center justify-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="truncate">Templates</span>
+                  <span className="text-xs text-muted-foreground flex-shrink-0">({tabCounts.templates})</span>
+                </span>
+                {activeTab === 'templates' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('syntax')}
+                className={cn(
+                  'flex-1 min-w-0 px-2 py-2 text-sm font-medium transition-colors relative',
+                  activeTab === 'syntax'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="flex items-center justify-center gap-1">
+                  <Dices className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="truncate">Syntax</span>
+                </span>
+                {activeTab === 'syntax' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                )}
+              </button>
+            </div>
+
             {/* Search Input */}
             <div className="p-2 border-b border-border/30">
               <div className="relative">
@@ -283,11 +425,8 @@ export function InsertDropdown({
                   ref={searchInputRef}
                   type="text"
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value)
-                    setHighlightedIndex(0)
-                  }}
-                  placeholder="Search tables, templates..."
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={`Search ${activeTab}...`}
                   className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
@@ -297,14 +436,10 @@ export function InsertDropdown({
             <div className="max-h-64 overflow-y-auto">
               {filteredItems.length === 0 ? (
                 <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-                  No matches found
+                  No {activeTab} found
                 </div>
               ) : (
-                <>
-                  {renderGroup('Tables', groupedItems.tables, tablesStartIndex)}
-                  {renderGroup('Templates', groupedItems.templates, templatesStartIndex)}
-                  {renderGroup('Syntax', groupedItems.syntax, syntaxStartIndex)}
-                </>
+                renderGroups()
               )}
             </div>
 
@@ -313,9 +448,9 @@ export function InsertDropdown({
               <p className="text-xs text-muted-foreground/70">
                 <kbd className="px-1 py-0.5 bg-background rounded text-[10px]">↑↓</kbd> navigate
                 <span className="mx-2">·</span>
-                <kbd className="px-1 py-0.5 bg-background rounded text-[10px]">Enter</kbd> insert
+                <kbd className="px-1 py-0.5 bg-background rounded text-[10px]">Tab</kbd> switch
                 <span className="mx-2">·</span>
-                <kbd className="px-1 py-0.5 bg-background rounded text-[10px]">Esc</kbd> close
+                <kbd className="px-1 py-0.5 bg-background rounded text-[10px]">Enter</kbd> insert
               </p>
             </div>
           </div>,
