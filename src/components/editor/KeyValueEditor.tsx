@@ -6,7 +6,9 @@
  */
 
 import { useState, useCallback } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, RefreshCw } from 'lucide-react'
+import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
+import { cn } from '@/lib/utils'
 
 export interface KeyValueEditorProps {
   value: Record<string, string>
@@ -16,6 +18,8 @@ export interface KeyValueEditorProps {
   keyPattern?: string
   keyError?: string
   valueSupportsExpressions?: boolean
+  /** Collection ID for evaluating expressions */
+  collectionId?: string
 }
 
 export function KeyValueEditor({
@@ -26,6 +30,7 @@ export function KeyValueEditor({
   keyPattern,
   keyError,
   valueSupportsExpressions,
+  collectionId,
 }: KeyValueEditorProps) {
   const entries = Object.entries(value)
   const [newKey, setNewKey] = useState('')
@@ -126,9 +131,7 @@ export function KeyValueEditor({
               placeholder={valuePlaceholder}
             />
             {valueSupportsExpressions && val.includes('{{') && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Expression detected
-              </p>
+              <ExpressionPreview value={val} collectionId={collectionId} />
             )}
           </div>
           <button
@@ -192,6 +195,69 @@ export function KeyValueEditor({
           reference earlier ones.
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * ExpressionPreview - Shows live preview of expression evaluation
+ */
+function ExpressionPreview({
+  value,
+  collectionId,
+}: {
+  value: string
+  collectionId?: string
+}) {
+  const { result, reroll, isEvaluating } = usePatternEvaluation(value, collectionId, {
+    enableTrace: false,
+    debounceMs: 300,
+  })
+
+  // No collection ID - can't evaluate
+  if (!collectionId) {
+    return (
+      <p className="text-xs text-muted-foreground mt-1">
+        Expression detected (save to preview)
+      </p>
+    )
+  }
+
+  // Show preview with re-roll button
+  const displayText = isEvaluating
+    ? '...'
+    : result?.error
+      ? result.error
+      : result?.fullText || '...'
+
+  const hasError = result?.error != null
+
+  return (
+    <div className="flex items-center gap-1.5 mt-1">
+      <span
+        className={cn(
+          'text-xs',
+          hasError ? 'text-destructive' : 'text-muted-foreground'
+        )}
+      >
+        → {displayText}
+      </span>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          reroll()
+        }}
+        className="p-0.5 rounded hover:bg-accent transition-colors"
+        title="Re-roll expression"
+      >
+        <RefreshCw
+          className={cn(
+            'w-3 h-3 text-muted-foreground',
+            isEvaluating && 'animate-spin'
+          )}
+        />
+      </button>
     </div>
   )
 }

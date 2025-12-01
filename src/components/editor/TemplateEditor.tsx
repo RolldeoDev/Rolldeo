@@ -209,6 +209,7 @@ export function TemplateEditor({
                 keyPattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
                 keyError="Must start with letter/underscore, alphanumeric only"
                 valueSupportsExpressions
+                collectionId={collectionId}
               />
             </div>
           </details>

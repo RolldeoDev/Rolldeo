@@ -404,6 +404,7 @@ export function EditorWorkspace({
                 shared={document.shared || {}}
                 onVariablesChange={updateVariables}
                 onSharedChange={updateShared}
+                collectionId={collectionId}
               />
             </div>
           )}
