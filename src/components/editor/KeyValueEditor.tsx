@@ -8,7 +8,9 @@
 import { useState, useCallback, useRef } from 'react'
 import { Plus, Trash2, RefreshCw } from 'lucide-react'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
+import { InsertDropdown } from './InsertDropdown'
 import { cn } from '@/lib/utils'
+import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 export interface KeyValueEditorProps {
   value: Record<string, string>
@@ -22,6 +24,16 @@ export interface KeyValueEditorProps {
   collectionId?: string
   /** Highlight keys starting with $ as capture-aware (content-aware) variables */
   highlightCaptureAware?: boolean
+  /** Show insert button for adding table/template references */
+  showInsertButton?: boolean
+  /** Local tables for insert dropdown */
+  localTables?: TableInfo[]
+  /** Local templates for insert dropdown */
+  localTemplates?: TemplateInfo[]
+  /** Imported tables for insert dropdown */
+  importedTables?: ImportedTableInfo[]
+  /** Imported templates for insert dropdown */
+  importedTemplates?: ImportedTemplateInfo[]
 }
 
 export function KeyValueEditor({
@@ -34,16 +46,41 @@ export function KeyValueEditor({
   valueSupportsExpressions,
   collectionId,
   highlightCaptureAware,
+  showInsertButton,
+  localTables = [],
+  localTemplates = [],
+  importedTables = [],
+  importedTemplates = [],
 }: KeyValueEditorProps) {
   const entries = Object.entries(value)
   const [newKey, setNewKey] = useState('')
   const [newValue, setNewValue] = useState('')
   const [keyValidationError, setKeyValidationError] = useState<string | null>(null)
   const newKeyInputRef = useRef<HTMLInputElement>(null)
+  const newValueInputRef = useRef<HTMLInputElement>(null)
 
   // Track which entry is being edited and its local state
   const [editingKeyIndex, setEditingKeyIndex] = useState<number | null>(null)
   const [editingKeyValue, setEditingKeyValue] = useState('')
+
+  // Track focus state for value inputs (to show insert button)
+  const [focusedValueIndex, setFocusedValueIndex] = useState<number | null>(null)
+  const [newValueFocused, setNewValueFocused] = useState(false)
+
+  // Track which dropdown is open (to keep button visible while dropdown is open)
+  const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(null)
+  const [newValueDropdownOpen, setNewValueDropdownOpen] = useState(false)
+
+  // Refs for existing value inputs (to handle inserts)
+  const valueInputRefs = useRef<Map<number, HTMLInputElement>>(new Map())
+
+  // Check if insert button should be available
+  const hasInsertData = showInsertButton && (
+    localTables.length > 0 ||
+    localTemplates.length > 0 ||
+    importedTables.length > 0 ||
+    importedTemplates.length > 0
+  )
 
   const validateKey = useCallback(
     (key: string): boolean => {
@@ -124,6 +161,47 @@ export function KeyValueEditor({
     setEditingKeyValue(currentKey)
   }, [])
 
+  // Insert text into existing entry value at cursor position
+  const handleInsertExisting = useCallback(
+    (index: number, key: string, insertText: string) => {
+      const input = valueInputRefs.current.get(index)
+      if (input) {
+        const start = input.selectionStart ?? input.value.length
+        const end = input.selectionEnd ?? input.value.length
+        const currentVal = value[key]
+        const newVal = currentVal.slice(0, start) + insertText + currentVal.slice(end)
+        updateEntryValue(key, newVal)
+        // Restore focus and position cursor after inserted text
+        setTimeout(() => {
+          input.focus()
+          const newPos = start + insertText.length
+          input.setSelectionRange(newPos, newPos)
+        }, 0)
+      }
+    },
+    [value, updateEntryValue]
+  )
+
+  // Insert text into new entry value
+  const handleInsertNew = useCallback(
+    (insertText: string) => {
+      const input = newValueInputRef.current
+      if (input) {
+        const start = input.selectionStart ?? newValue.length
+        const end = input.selectionEnd ?? newValue.length
+        const newVal = newValue.slice(0, start) + insertText + newValue.slice(end)
+        setNewValue(newVal)
+        // Restore focus and position cursor after inserted text
+        setTimeout(() => {
+          input.focus()
+          const newPos = start + insertText.length
+          input.setSelectionRange(newPos, newPos)
+        }, 0)
+      }
+    },
+    [newValue]
+  )
+
   return (
     <div className="space-y-3">
       {entries.length === 0 && (
@@ -142,7 +220,7 @@ export function KeyValueEditor({
           <div className="flex-1">
             <label className={cn(
               "block md:hidden text-sm font-medium mb-1.5",
-              isCaptureAware ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"
+              isCaptureAware ? "text-pink-500 dark:text-pink-300" : "text-muted-foreground"
             )}>
               {isCaptureAware ? "Key (capture-aware)" : "Key"}
             </label>
@@ -168,20 +246,47 @@ export function KeyValueEditor({
               title={isCaptureAware ? "Capture-aware: use {{$" + displayKey.slice(1) + ".@property}} to access sets" : undefined}
             />
             {isCaptureAware && (
-              <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">
-                Captures sets. Access with: <code className="px-1 bg-rose-100 dark:bg-rose-900/30 rounded">{`{{${displayKey}.@property}}`}</code>
+              <p className="text-xs text-pink-500 dark:text-pink-300 mt-1">
+                Captures sets. Access with: <code className="px-1 bg-pink-100 dark:bg-pink-900/30 rounded">{`{{${displayKey}.@property}}`}</code>
               </p>
             )}
           </div>
           <div className="flex-1">
             <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">Value</label>
-            <input
-              type="text"
-              value={val}
-              onChange={(e) => updateEntryValue(key, e.target.value)}
-              className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
-              placeholder={valuePlaceholder}
-            />
+            <div className="relative">
+              <input
+                ref={(el) => {
+                  if (el) valueInputRefs.current.set(index, el)
+                  else valueInputRefs.current.delete(index)
+                }}
+                type="text"
+                value={val}
+                onChange={(e) => updateEntryValue(key, e.target.value)}
+                onFocus={() => setFocusedValueIndex(index)}
+                onBlur={() => {
+                  // Delay clearing focus to allow clicking insert button
+                  setTimeout(() => setFocusedValueIndex((curr) => curr === index ? null : curr), 150)
+                }}
+                className={cn(
+                  "editor-input text-base md:text-sm min-h-[48px] md:min-h-0 w-full",
+                  hasInsertData && "pr-10"
+                )}
+                placeholder={valuePlaceholder}
+              />
+              {hasInsertData && (focusedValueIndex === index || openDropdownIndex === index) && (
+                <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                  <InsertDropdown
+                    localTables={localTables}
+                    localTemplates={localTemplates}
+                    importedTables={importedTables}
+                    importedTemplates={importedTemplates}
+                    onInsert={(text) => handleInsertExisting(index, key, text)}
+                    buttonClassName="!px-1.5 !py-1 !text-[10px] bg-primary/20 hover:bg-primary/30"
+                    onOpenChange={(isOpen) => setOpenDropdownIndex(isOpen ? index : null)}
+                  />
+                </div>
+              )}
+            </div>
             {valueSupportsExpressions && val.includes('{{') && (
               <ExpressionPreview value={val} collectionId={collectionId} />
             )}
@@ -207,7 +312,7 @@ export function KeyValueEditor({
           <div className="flex-1">
             <label className={cn(
               "block md:hidden text-sm font-medium mb-1.5",
-              newKeyIsCaptureAware ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"
+              newKeyIsCaptureAware ? "text-pink-500 dark:text-pink-300" : "text-muted-foreground"
             )}>
               {newKeyIsCaptureAware ? "New Key (capture-aware)" : "New Key"}
             </label>
@@ -229,14 +334,38 @@ export function KeyValueEditor({
           </div>
           <div className="flex-1">
             <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">New Value</label>
-            <input
-              type="text"
-              value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addEntry()}
-              className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
-              placeholder={valuePlaceholder}
-            />
+            <div className="relative">
+              <input
+                ref={newValueInputRef}
+                type="text"
+                value={newValue}
+                onChange={(e) => setNewValue(e.target.value)}
+                onFocus={() => setNewValueFocused(true)}
+                onBlur={() => {
+                  // Delay clearing focus to allow clicking insert button
+                  setTimeout(() => setNewValueFocused(false), 150)
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && addEntry()}
+                className={cn(
+                  "editor-input text-base md:text-sm min-h-[48px] md:min-h-0 w-full",
+                  hasInsertData && "pr-10"
+                )}
+                placeholder={valuePlaceholder}
+              />
+              {hasInsertData && (newValueFocused || newValueDropdownOpen) && (
+                <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                  <InsertDropdown
+                    localTables={localTables}
+                    localTemplates={localTemplates}
+                    importedTables={importedTables}
+                    importedTemplates={importedTemplates}
+                    onInsert={handleInsertNew}
+                    buttonClassName="!px-1.5 !py-1 !text-[10px] bg-primary/20 hover:bg-primary/30"
+                    onOpenChange={setNewValueDropdownOpen}
+                  />
+                </div>
+              )}
+            </div>
           </div>
           <button
             type="button"
@@ -265,12 +394,12 @@ export function KeyValueEditor({
             reference earlier ones.
           </p>
           {highlightCaptureAware && (
-            <p className="text-rose-600 dark:text-rose-400">
+            <p className="text-pink-500 dark:text-pink-300">
               <strong>Capture-aware:</strong> Name starting with{' '}
-              <code className="px-1.5 md:px-1 py-0.5 bg-rose-100 dark:bg-rose-900/30 rounded">$</code>{' '}
-              (e.g., <code className="px-1.5 md:px-1 py-0.5 bg-rose-100 dark:bg-rose-900/30 rounded">$hero</code>){' '}
+              <code className="px-1.5 md:px-1 py-0.5 bg-pink-100 dark:bg-pink-900/30 rounded">$</code>{' '}
+              (e.g., <code className="px-1.5 md:px-1 py-0.5 bg-pink-100 dark:bg-pink-900/30 rounded">$hero</code>){' '}
               captures the full roll including sets. Access properties with{' '}
-              <code className="px-1.5 md:px-1 py-0.5 bg-rose-100 dark:bg-rose-900/30 rounded">{'{{$hero.@property}}'}</code>.
+              <code className="px-1.5 md:px-1 py-0.5 bg-pink-100 dark:bg-pink-900/30 rounded">{'{{$hero.@property}}'}</code>.
             </p>
           )}
         </div>

@@ -350,7 +350,7 @@
       "shared": {
         "species": "{{speciesName}}"
       },
-      "pattern": "# The {{$species}}\n\n## Physical Characteristics\n\nThe {{$species}} are a {{sizeCategory}} {{bodyType}} species, typically standing {{@sizeCategory.heightRange}} {{@sizeCategory.heightUnit}} tall and massing {{@sizeCategory.massRange}}. Their skin is {{skinTexture}}, predominantly {{primaryColor}} with {{secondaryColor}} accents. A distinctive feature is their {{distinctiveFeature}}.\n\n## Homeworld\n\nThe {{$species}} evolved in {{homeEnvironment}}. They are adapted to {{@homeEnvironment.atmosphere}} atmospheres and {{@homeEnvironment.gravity}} gravity conditions.\n\n## Society & Culture\n\nTheir civilization operates as a {{governmentType}}, with decision-making speed described as {{@governmentType.decisionSpeed}}. They have reached {{techLevel}} (Tech Tier {{@techLevel.techTier}}). The core value of their society is {{culturalValue}}.\n\nCommunication occurs through {{communicationMethod}}. Contact feasibility: {{@communicationMethod.humanCompatible}}.\n\n## Diplomacy\n\nThe {{$species}} are generally {{disposition}} toward other species. Trade willingness: {{@disposition.tradeWilling}}.\n\n## Special Traits\n\n- **Ability:** {{specialAbility}}\n- **Weakness:** {{weakness}}"
+      "pattern": "# The {{$species}}\n\n## Physical Characteristics\n\nThe {{$species}} are a {{sizeCategory}} {{bodyType}} species, typically standing {{@sizeCategory.heightRange}} {{@sizeCategory.heightUnit}} tall and massing {{@sizeCategory.massRange}}. Their skin is {{skinTexture}}, predominantly {{primaryColor}} with {{secondaryColor}} accents. A distinctive feature is their {{distinctiveFeature}}.{{switch[@bodyType.symmetry==\"radial\":\"\n\n*Note: Radial symmetry suggests this species may have evolved in aquatic or microgravity environments.*\"].else[\"\"]}}\n\n## Homeworld\n\nThe {{$species}} evolved in {{homeEnvironment}}. They are adapted to {{@homeEnvironment.atmosphere}} atmospheres and {{@homeEnvironment.gravity}} gravity conditions.\n\n## Society & Culture\n\nTheir civilization operates as a {{governmentType}}, with decision-making speed described as {{@governmentType.decisionSpeed}}. They have reached {{techLevel}} (Tech Tier {{@techLevel.techTier}}). The core value of their society is {{culturalValue}}.\n\nCommunication occurs through {{communicationMethod}}. Contact feasibility: {{@communicationMethod.humanCompatible}}.\n\n## Diplomacy\n\nThe {{$species}} are generally {{disposition}} toward other species. Trade willingness: {{@disposition.tradeWilling}}.\n\n## Special Traits\n\n- **Ability:** {{specialAbility}}\n- **Weakness:** {{weakness}}{{switch[@techLevel.techTier>=\"5\":\"\n\n*Warning: This species possesses interstellar travel capability. First contact protocols apply.*\"].else[\"\"]}}"
     },
     {
       "id": "alienEncounterBrief",
@@ -367,20 +367,6 @@
       "resultType": "description",
       "tags": ["capture", "comparison", "advanced"],
       "pattern": "# Xenobiological Survey Report\n\n## Species Catalogued\n{{3*unique*speciesName >> $speciesNames}}\n\n## Body Types Observed\n{{3*unique*bodyType >> $bodies}}\n\n## Disposition Analysis\n{{3*unique*disposition >> $dispositions}}\n\n---\n\n### Summary\n\n- **Species Names:** {{$speciesNames}}\n- **Body Types:** {{$bodies}}\n- **Dispositions:** {{$dispositions}}\n\n### Detailed Breakdown\n\n1. **{{$speciesNames[0]}}** - {{$bodies[0]}} physiology, {{$dispositions[0]}}\n2. **{{$speciesNames[1]}}** - {{$bodies[1]}} physiology, {{$dispositions[1]}}\n3. **{{$speciesNames[2]}}** - {{$bodies[2]}} physiology, {{$dispositions[2]}}"
-    }
-  ],
-  "conditionals": [
-    {
-      "when": "@bodyType.symmetry == 'radial'",
-      "action": "append",
-      "value": "\n\n*Note: Radial symmetry suggests this species may have evolved in aquatic or microgravity environments.*",
-      "tags": ["physical", "note"]
-    },
-    {
-      "when": "@techLevel.techTier >= '5'",
-      "action": "append",
-      "value": "\n\n*Warning: This species possesses interstellar travel capability. First contact protocols apply.*",
-      "tags": ["technology", "warning"]
     }
   ]
 }

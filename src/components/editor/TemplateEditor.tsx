@@ -251,6 +251,11 @@ export function TemplateEditor({
                 valueSupportsExpressions
                 collectionId={collectionId}
                 highlightCaptureAware
+                showInsertButton
+                localTables={localTables}
+                localTemplates={localTemplates.filter(t => t.id !== template.id)}
+                importedTables={importedTables}
+                importedTemplates={importedTemplates.filter(t => t.id !== template.id)}
               />
             </div>
           </details>

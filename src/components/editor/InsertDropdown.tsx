@@ -19,6 +19,8 @@ interface InsertDropdownProps {
   importedTemplates?: ImportedTemplateInfo[]
   onInsert: (text: string) => void
   buttonClassName?: string
+  /** Called when dropdown opens or closes */
+  onOpenChange?: (isOpen: boolean) => void
 }
 
 interface InsertItem {
@@ -97,8 +99,15 @@ export function InsertDropdown({
   importedTemplates = [],
   onInsert,
   buttonClassName,
+  onOpenChange,
 }: InsertDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpenState] = useState(false)
+
+  // Wrapper to notify parent of open state changes
+  const setIsOpen = useCallback((open: boolean) => {
+    setIsOpenState(open)
+    onOpenChange?.(open)
+  }, [onOpenChange])
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<TabType>('tables')
   const [highlightedIndex, setHighlightedIndex] = useState(0)

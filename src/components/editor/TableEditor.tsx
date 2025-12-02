@@ -30,6 +30,7 @@ import type {
   SharedVariables,
   TableSource,
 } from '@/engine/types'
+import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 export interface TableEditorProps {
   /** The table to edit */
@@ -50,6 +51,14 @@ export interface TableEditorProps {
   onBlur?: () => void
   /** Called when expansion state changes (isExpanded) */
   onExpandChange?: (isExpanded: boolean) => void
+  /** Local tables for insert dropdown */
+  localTables?: TableInfo[]
+  /** Local templates for insert dropdown */
+  localTemplates?: TemplateInfo[]
+  /** Imported tables for insert dropdown */
+  importedTables?: ImportedTableInfo[]
+  /** Imported templates for insert dropdown */
+  importedTemplates?: ImportedTemplateInfo[]
 }
 
 export function TableEditor({
@@ -62,6 +71,10 @@ export function TableEditor({
   onFocus,
   onBlur,
   onExpandChange,
+  localTables = [],
+  localTemplates = [],
+  importedTables = [],
+  importedTemplates = [],
 }: TableEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const prevDefaultExpandedRef = useRef(defaultExpanded)
@@ -427,6 +440,11 @@ export function TableEditor({
                     valueSupportsExpressions
                     collectionId={collectionId}
                     highlightCaptureAware
+                    showInsertButton
+                    localTables={localTables}
+                    localTemplates={localTemplates}
+                    importedTables={importedTables}
+                    importedTemplates={importedTemplates}
                   />
                 </div>
               )}
@@ -446,6 +464,11 @@ export function TableEditor({
                     valuePlaceholder="Value or {{pattern}}"
                     valueSupportsExpressions={true}
                     collectionId={collectionId}
+                    showInsertButton
+                    localTables={localTables}
+                    localTemplates={localTemplates}
+                    importedTables={importedTables}
+                    importedTemplates={importedTemplates}
                   />
                 </div>
               )}
@@ -458,6 +481,10 @@ export function TableEditor({
               table={table}
               onChange={onChange}
               collectionId={collectionId}
+              localTables={localTables}
+              localTemplates={localTemplates}
+              importedTables={importedTables}
+              importedTemplates={importedTemplates}
             />
           )}
 
@@ -556,9 +583,21 @@ interface SimpleTableEditorProps {
   table: SimpleTable
   onChange: (table: SimpleTable) => void
   collectionId?: string
+  localTables?: TableInfo[]
+  localTemplates?: TemplateInfo[]
+  importedTables?: ImportedTableInfo[]
+  importedTemplates?: ImportedTemplateInfo[]
 }
 
-function SimpleTableEditor({ table, onChange, collectionId }: SimpleTableEditorProps) {
+function SimpleTableEditor({
+  table,
+  onChange,
+  collectionId,
+  localTables = [],
+  localTemplates = [],
+  importedTables = [],
+  importedTemplates = [],
+}: SimpleTableEditorProps) {
   const [focusedEntryIndex, setFocusedEntryIndex] = useState<number | null>(null)
 
   // Clear focus state after it's been applied
@@ -645,6 +684,10 @@ function SimpleTableEditor({ table, onChange, collectionId }: SimpleTableEditorP
                 canDelete={table.entries.length > 1}
                 collectionId={collectionId}
                 autoFocus={focusedEntryIndex === index}
+                localTables={localTables}
+                localTemplates={localTemplates}
+                importedTables={importedTables}
+                importedTemplates={importedTemplates}
               />
             </SortableItem>
           ))}

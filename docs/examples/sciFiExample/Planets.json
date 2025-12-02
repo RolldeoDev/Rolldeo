@@ -327,7 +327,7 @@
         "worldName": "{{planetName}}",
         "moonCount": "{{dice:1d4-1}}"
       },
-      "pattern": "# {{$worldName}}\n\n## Stellar Data\n\n**Primary Star:** {{starClassification}}\n**Habitable Zone Position:** {{@starClassification.habitalZone}}\n**System Age:** {{$systemAge}}\n\n## Planetary Characteristics\n\n**Type:** {{planetSize}} {{planetType}}\n**Diameter:** {{@planetSize.diameter}}\n**Surface Gravity:** {{@planetSize.gravity}}\n**Surface Type:** {{@planetType.surface}}\n\n## Atmosphere\n\n**Composition:** {{atmosphereType}}\n**Pressure:** {{@atmosphereType.pressure}}\n**Breathability:** {{@atmosphereType.breathable}}\n**Radiation Protection:** {{@atmosphereType.protection}}\n\n## Climate\n\n**Dominant Climate:** {{climateZone}}\n**Temperature Range:** {{@climateZone.tempRange}}\n**Precipitation:** {{@climateZone.precipitation}}\n\n## Geography\n\n{{geologicalFeature}}\n\n## Resources\n\n**Primary Resource:** {{naturalResource}}\n**Extraction Method:** {{@naturalResource.extraction}}\n**Economic Value:** {{@naturalResource.value}}\n\n## Native Life\n\n{{nativeLifeform}}\n**Complexity:** {{@nativeLifeform.complexity}}\n**Threat Assessment:** {{@nativeLifeform.threat}}\n\n## Orbital Bodies\n\n{{orbitalBody}}\n**Strategic Value:** {{@orbitalBody.strategic}}\n\n## Colonization\n\n**Status:** {{colonizationStatus}}\n**Population:** {{@colonizationStatus.population}}\n**Infrastructure:** {{@colonizationStatus.infrastructure}}\n**Governance:** {{@colonizationStatus.governance}}\n\n## Hazards\n\n- {{hazard}}\n- {{hazard}}\n\n## Points of Interest\n\n1. {{pointOfInterest}} (Danger: {{@pointOfInterest.dangerLevel}}, Value: {{@pointOfInterest.explorationValue}})\n2. {{pointOfInterest}} (Danger: {{@pointOfInterest.dangerLevel}}, Value: {{@pointOfInterest.explorationValue}})"
+      "pattern": "# {{$worldName}}\n\n## Stellar Data\n\n**Primary Star:** {{starClassification}}\n**Habitable Zone Position:** {{@starClassification.habitalZone}}\n**System Age:** {{$systemAge}}\n\n## Planetary Characteristics\n\n**Type:** {{planetSize}} {{planetType}}\n**Diameter:** {{@planetSize.diameter}}\n**Surface Gravity:** {{@planetSize.gravity}}\n**Surface Type:** {{@planetType.surface}}\n\n## Atmosphere\n\n**Composition:** {{atmosphereType}}\n**Pressure:** {{@atmosphereType.pressure}}\n**Breathability:** {{@atmosphereType.breathable}}\n**Radiation Protection:** {{@atmosphereType.protection}}\n\n## Climate\n\n**Dominant Climate:** {{climateZone}}\n**Temperature Range:** {{@climateZone.tempRange}}\n**Precipitation:** {{@climateZone.precipitation}}\n\n## Geography\n\n{{geologicalFeature}}\n\n## Resources\n\n**Primary Resource:** {{naturalResource}}\n**Extraction Method:** {{@naturalResource.extraction}}\n**Economic Value:** {{@naturalResource.value}}\n\n## Native Life\n\n{{nativeLifeform}}\n**Complexity:** {{@nativeLifeform.complexity}}\n**Threat Assessment:** {{@nativeLifeform.threat}}\n\n## Orbital Bodies\n\n{{orbitalBody}}\n**Strategic Value:** {{@orbitalBody.strategic}}\n\n## Colonization\n\n**Status:** {{colonizationStatus}}\n**Population:** {{@colonizationStatus.population}}\n**Infrastructure:** {{@colonizationStatus.infrastructure}}\n**Governance:** {{@colonizationStatus.governance}}\n\n## Hazards\n\n- {{hazard}}\n- {{hazard}}\n\n## Points of Interest\n\n1. {{pointOfInterest}} (Danger: {{@pointOfInterest.dangerLevel}}, Value: {{@pointOfInterest.explorationValue}})\n2. {{pointOfInterest}} (Danger: {{@pointOfInterest.dangerLevel}}, Value: {{@pointOfInterest.explorationValue}}){{switch[@planetType.lifePossible==\"no\":\"\n\n*Advisory: No native life support possible. Full life support systems required for any surface operations.*\"].else[\"\"]}}{{switch[@colonizationStatus.governance==\"military\":\"\n\n**RESTRICTED ACCESS:** This world is under military jurisdiction. Civilian access requires special authorization.\"].else[\"\"]}}{{switch[@atmosphereType.breathable==\"yes\":\"\n\n*Note: Standard atmospheric protocols apply. Local pathogens assessment recommended before unprotected exposure.*\"].else[\"\"]}}"
     },
     {
       "id": "inhabitedWorld",
@@ -363,26 +363,6 @@
       "resultType": "description",
       "tags": ["comparison", "capture", "advanced"],
       "pattern": "# Colonization Target Assessment\n\n## Candidate Worlds\n\n{{4*unique*planetName >> $names|silent}}\n{{4*unique*inhabitedPlanetType >> $types|silent}}\n{{4*unique*atmosphereType >> $atmos|silent}}\n{{4*unique*naturalResource >> $resources|silent}}\n\n| World | Type | Atmosphere | Key Resource |\n|-------|------|------------|-------------|\n| {{$names[0]}} | {{$types[0]}} | {{$atmos[0]}} | {{$resources[0]}} |\n| {{$names[1]}} | {{$types[1]}} | {{$atmos[1]}} | {{$resources[1]}} |\n| {{$names[2]}} | {{$types[2]}} | {{$atmos[2]}} | {{$resources[2]}} |\n| {{$names[3]}} | {{$types[3]}} | {{$atmos[3]}} | {{$resources[3]}} |\n\n## Analysis\n\n**Breathable Atmospheres:** {{collect:$atmos.@breathable}}\n**Resource Values:** {{collect:$resources.@value}}\n**Surface Types:** {{collect:$types.@surface|unique}}\n\n## Recommendation\n\nBased on {{$types.count}} surveyed worlds, prioritize targets with:\n- Breathable atmospheres\n- High-value resources\n- Solid surfaces for construction"
-    }
-  ],
-  "conditionals": [
-    {
-      "when": "@planetType.lifePossible == 'no'",
-      "action": "append",
-      "value": "\n\n*Advisory: No native life support possible. Full life support systems required for any surface operations.*",
-      "tags": ["life-support", "warning"]
-    },
-    {
-      "when": "@colonizationStatus.governance == 'military'",
-      "action": "append",
-      "value": "\n\n**RESTRICTED ACCESS:** This world is under military jurisdiction. Civilian access requires special authorization.",
-      "tags": ["access", "military"]
-    },
-    {
-      "when": "@atmosphereType.breathable == 'yes'",
-      "action": "append",
-      "value": "\n\n*Note: Standard atmospheric protocols apply. Local pathogens assessment recommended before unprotected exposure.*",
-      "tags": ["atmosphere", "safety"]
     }
   ]
 }

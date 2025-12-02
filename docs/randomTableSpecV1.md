@@ -4,7 +4,7 @@
 
 ## Overview
 
-This specification defines a JSON template format for creating configurable random table generators. The format supports simple weighted tables, composite tables, template-based text generation, mathematical operations, conditional logic, multi-level table inheritance, external file references, and generation-time shared variables.
+This specification defines a JSON template format for creating configurable random table generators. The format supports simple weighted tables, composite tables, template-based text generation, mathematical operations, inline switch expressions, multi-level table inheritance, external file references, and generation-time shared variables.
 
 ---
 
@@ -16,17 +16,16 @@ This specification defines a JSON template format for creating configurable rand
 4. [Tables Array](#3-tables-array)
 5. [Templates Array](#4-templates-array)
 6. [Template Pattern Syntax](#5-template-pattern-syntax)
-7. [Conditionals Array](#6-conditionals-array)
-8. [Variables Object](#7-variables-object)
-9. [Shared Block](#8-shared-block)
-10. [Placeholder System](#9-placeholder-system)
-11. [Table Inheritance](#10-table-inheritance)
-12. [ResultType System](#11-resulttype-system)
-13. [Markdown Support](#12-markdown-support)
-14. [Complete Example](#13-complete-example)
-15. [Processing Order](#14-processing-order)
-16. [Validation Rules](#15-validation-rules)
-17. [Error Handling](#16-error-handling)
+7. [Variables Object](#6-variables-object)
+8. [Shared Block](#7-shared-block)
+9. [Placeholder System](#8-placeholder-system)
+10. [Table Inheritance](#9-table-inheritance)
+11. [ResultType System](#10-resulttype-system)
+12. [Markdown Support](#11-markdown-support)
+13. [Complete Example](#12-complete-example)
+14. [Processing Order](#13-processing-order)
+15. [Validation Rules](#14-validation-rules)
+16. [Error Handling](#15-error-handling)
 
 ---
 
@@ -38,7 +37,6 @@ This specification defines a JSON template format for creating configurable rand
   "imports": [ ... ],
   "tables": [ ... ],
   "templates": [ ... ],
-  "conditionals": [ ... ],
   "variables": { ... },
   "shared": { ... }
 }
@@ -1219,88 +1217,28 @@ Result expressions can be:
 {{switch[$culture=="english" && $gender=="male":$race.@maleEnglishName].switch[$culture=="english" && $gender=="female":$race.@femaleEnglishName].switch[$culture=="chinese" && $gender=="male":$race.@maleChineseName].switch[$culture=="chinese" && $gender=="female":$race.@femaleChineseName].else[$race.@defaultName]}}
 ```
 
-#### 5.10.6 Switch vs. Conditionals
+#### 5.10.6 Switch Expression Use Cases
 
-Switch expressions and conditionals serve different purposes:
+Switch expressions are the primary mechanism for conditional logic in templates. They handle all conditional value selection inline during pattern evaluation.
 
-| Feature | Switch Expressions | Conditionals |
-|---------|-------------------|--------------|
-| Scope | Inline, within expressions | Document-level, post-processing |
-| Timing | During pattern evaluation | After all patterns evaluated |
-| Use Case | Dynamic value selection | Output modification |
-| Can Modify Output | No (returns a value) | Yes (append, prepend, replace) |
-| Can Set Variables | No | Yes (`setVariable` action) |
-
-**When to use Switch:**
+**Common use cases:**
 - Selecting between property values based on other variables
 - Transforming expression results inline
 - Gender/race/class-based name selection
 - Dice outcome interpretation
+- Adding conditional text (append empty string for no-match cases)
+- Conditional warnings or notes based on rolled results
 
-**When to use Conditionals:**
-- Adding text to final output based on rolled results
-- Replacing patterns in the final output
-- Setting variables based on outcomes
-- Complex multi-step output modifications
-
----
-
-## 6. Conditionals Array
-
-Conditionals apply logic based on rolled results.
-
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| when | string | Yes | Condition expression (see 6.1) |
-| action | string | Yes | One of: `"append"`, `"prepend"`, `"replace"`, `"setVariable"` |
-| target | string | Conditional | Required for `"replace"` and `"setVariable"`. For `"append"`/`"prepend"`, defaults to current output. |
-| value | string | Yes | Value to apply (may contain template syntax). Supports Markdown. |
-| tags | string[] | No | Tags for organization |
-
-**Example:**
-
-```json
-{
-  "when": "@size.value == 'large'",
-  "action": "append",
-  "value": " _This settlement has a defensive wall._",
-  "tags": ["settlement", "fortification"]
-}
+**Conditional text pattern:**
+```
+{{switch[@danger.value=="high":"\n\n*Warning: This area is dangerous.*"].else[""]}}
 ```
 
-### 6.1 Condition Expression Syntax
-
-**Comparison Operators:**
-
-| Operator   | Description              | Example                            |
-| ---------- | ------------------------ | ---------------------------------- |
-| `==`       | Equals                   | `@race.value == 'elf'`             |
-| `!=`       | Not equals               | `$setting != 'modern'`             |
-| `>`        | Greater than (numeric)   | `@size.buildings > 10`             |
-| `<`        | Less than (numeric)      | `dice:result < 5`                  |
-| `>=`       | Greater than or equal    | `@level.value >= 3`                |
-| `<=`       | Less than or equal       | `@age.years <= 100`                |
-| `contains` | String contains          | `@name.value contains 'the'`       |
-| `matches`  | Regex match (ECMAScript) | `@code.value matches '^[A-Z]{3}$'` |
-
-**Logical Operators:**
-
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `&&` | Logical AND | `@race.value == 'elf' && @class.value == 'mage'` |
-| `\|\|` | Logical OR | `@size.value == 'small' \|\| @size.value == 'tiny'` |
-| `!` | Logical NOT | `!(@hidden.value == true)` |
-| `()` | Grouping | `(@a == 1 \|\| @b == 2) && @c == 3` |
-
-**Variable Handling in Conditions:**
-- If a `$variable` referenced in a when-clause is not in scope (neither static nor shared), the condition evaluates to `false` without throwing an error
-- This allows optional conditional logic based on variables that may or may not be defined
-
-**Type Coercion:** Numeric comparisons (`>`, `<`, `>=`, `<=`) convert operands to numbers. If conversion fails, the comparison returns `false`.
+This pattern appends conditional text when the condition is met, or nothing when it's not.
 
 ---
 
-## 7. Variables Object
+## 6. Variables Object
 
 Static global variables that are loaded at engine initialization and can be referenced throughout templates using `{{$variableName}}`.
 
@@ -1326,15 +1264,15 @@ Variable names must:
 
 ---
 
-## 8. Shared Block
+## 7. Shared Block
 
 The `shared` block defines generation-time variables that are evaluated once at the start of each generation and remain constant throughout that generation run.
 
-### 8.1 Purpose
+### 7.1 Purpose
 
 Shared variables solve the problem of needing consistent values across a single generation. For example, if you roll for "number of monsters" and want to use that same number multiple times in a template, shared variables ensure consistency.
 
-### 8.2 Shared Object Structure
+### 7.2 Shared Object Structure
 
 ```json
 "shared": {
@@ -1344,7 +1282,7 @@ Shared variables solve the problem of needing consistent values across a single 
 }
 ```
 
-### 8.3 Evaluation Rules
+### 7.3 Evaluation Rules
 
 1. **Order-dependent:** Shared variables are evaluated in declaration order
 2. **Once per generation:** Each shared value is resolved exactly once at generation start
@@ -1352,7 +1290,7 @@ Shared variables solve the problem of needing consistent values across a single 
 4. **Static variable shadowing:** A shared variable cannot have the same name as a static variable (error at generation start)
 5. **Imported shared isolation:** The `shared` block from imported files is NOT evaluated; only the entry-point file's shared block is processed
 
-### 8.4 Supported Expressions
+### 7.4 Supported Expressions
 
 | Expression Type           | Example                            | Result Type   |
 | ------------------------- | ---------------------------------- | ------------- |
@@ -1363,7 +1301,7 @@ Shared variables solve the problem of needing consistent values across a single 
 | Math expression           | `"{{math:$a + $b}}"`               | Integer       |
 | Math with inline dice     | `"{{math:dice:2d6 + $modifier}}"` | Integer       |
 
-### 8.5 Math Expressions in Shared Block
+### 7.5 Math Expressions in Shared Block
 
 Use the `{{math:...}}` syntax for arithmetic operations. This explicit syntax eliminates ambiguity and provides full expression support.
 
@@ -1403,7 +1341,7 @@ If `baseMonsters` resolves to `7` and `eliteMonsters` resolves to `3`:
 
 See Section 5.4 for complete math expression syntax and operator details.
 
-### 8.6 Using Shared Variables
+### 7.6 Using Shared Variables
 
 Shared variables are referenced with the `$` prefix, just like static variables:
 
@@ -1650,7 +1588,7 @@ This enables powerful patterns where entry sets define dynamic values that are e
 
 ---
 
-## 9. Placeholder System
+## 8. Placeholder System
 
 Placeholders enable dynamic behavior based on previously rolled results. When an entry is selected, its `sets` property (merged with any `defaultSets` from the table, and inherited values if applicable) populates a placeholder context that subsequent operations can reference.
 
@@ -1777,7 +1715,7 @@ The `@self` placeholder provides access to properties of the current entry being
 
 ---
 
-## 10. Table Inheritance
+## 9. Table Inheritance
 
 Tables can extend other tables using the `extends` property. The child table inherits all entries from the parent, then applies its own modifications.
 
@@ -1968,7 +1906,7 @@ INHERITANCE_ERROR in table 'customTreasure':
 
 ---
 
-## 11. ResultType System
+## 10. ResultType System
 
 The `resultType` field provides semantic classification of output, enabling consuming applications to handle different result types appropriately.
 
@@ -2045,7 +1983,7 @@ ResultType is metadata for consuming applications. The engine:
 
 ---
 
-## 12. Markdown Support
+## 11. Markdown Support
 
 The specification supports Markdown formatting in specific fields to enable rich text output.
 
@@ -2106,7 +2044,7 @@ To output literal Markdown characters, use standard Markdown escaping with backs
 
 ---
 
-## 13. Complete Example
+## 12. Complete Example
 
 ```json
 {
@@ -2242,15 +2180,7 @@ To output literal Markdown characters, use standard Markdown escaping with backs
       "name": "Town Description",
       "resultType": "description",
       "tags": ["settlement", "description", "main"],
-      "pattern": "A **{{townSize}}** called {{names.townName}} with approximately _{{math:@size.population + $populationModifier}} residents_ and {{@size.buildingCount}} buildings. Notable features include {{$featureCount*unique*features|\" and \"}}."
-    }
-  ],
-  "conditionals": [
-    {
-      "when": "@size.size == 'medium'",
-      "action": "append",
-      "value": " The town is {{sizeBasedFeatures}}.",
-      "tags": ["settlement", "medium-size"]
+      "pattern": "A **{{townSize}}** called {{names.townName}} with approximately _{{math:@size.population + $populationModifier}} residents_ and {{@size.buildingCount}} buildings. Notable features include {{$featureCount*unique*features|\" and \"}}.{{switch[@size.size==\"medium\":\" The town is {{sizeBasedFeatures}}.\"].else[\"\"]}}"
     }
   ]
 }
@@ -2269,7 +2199,7 @@ To output literal Markdown characters, use standard Markdown escaping with backs
 
 ---
 
-## 14. Processing Order
+## 13. Processing Order
 
 ### 14.1 Engine Instantiation (File Loading)
 
@@ -2321,16 +2251,15 @@ To output literal Markdown characters, use standard Markdown escaping with backs
     END FOR
     
 8.  VALIDATE references
-    FOR each table, template, conditional:
+    FOR each table, template:
         8a. Parse all {{tableId}} references
         8b. CHECK each referenced table exists → ERROR if not
         8c. CHECK each {{$variable}} exists in static scope → WARN if not
     END FOR
-    
-9.  REGISTER templates and conditionals
+
+9.  REGISTER templates
     9a. Index templates by id
-    9b. Index conditionals for pattern matching
-    
+
 10. ENGINE READY
 ```
 
@@ -2452,39 +2381,19 @@ To output literal Markdown characters, use standard Markdown escaping with backs
                 
             {{tableId#instanceName}}:
                 - Roll on table
-                - Store result under instance name for conditionals
+                - Store result under instance name for later reference
                 - Return result
-                
+
         6c. SUBSTITUTE resolved value into string
     END FOR
     6d. RETURN fully resolved string
-    
-7.  CONDITIONAL EVALUATION (after primary generation)
-    FOR each conditional (in declaration order):
-        7a. EVALUATE when-clause:
-            - Resolve all variable/placeholder references
-            - Undefined variables in when-clause → treat as false
-            - Apply comparison operators
-            - Apply logical operators (&&, ||, !)
-            - RESULT: boolean
-        7b. IF when-clause is true:
-            SWITCH action:
-                "append":  Append value to current output
-                "prepend": Prepend value to current output
-                "replace": Replace target with value
-                "setVariable": 
-                    - Evaluate value expression
-                    - Store in shared scope
-            END SWITCH
-            - RESOLVE value using step 6 if contains {{...}}
-    END FOR
-    
-8.  FINALIZE OUTPUT
-    8a. COMPILE final resolved string
-    8b. ATTACH resultType (from entry/table/template hierarchy)
-    8c. ATTACH assets (from selected entry, if any)
-    8d. OPTIONALLY attach generation metadata
-    8e. RETURN generation result
+
+7.  FINALIZE OUTPUT
+    7a. COMPILE final resolved string
+    7b. ATTACH resultType (from entry/table/template hierarchy)
+    7c. ATTACH assets (from selected entry, if any)
+    7d. OPTIONALLY attach generation metadata
+    7e. RETURN generation result
 ```
 
 ### 14.3 Context Cleanup
@@ -2506,7 +2415,7 @@ To output literal Markdown characters, use standard Markdown escaping with backs
 
 ---
 
-## 15. Validation Rules
+## 14. Validation Rules
 
 Implementations must enforce these validation rules.
 
@@ -2647,7 +2556,7 @@ Invalid dice notation must produce a parse error with the invalid expression hig
 
 ---
 
-## 16. Error Handling
+## 15. Error Handling
 
 Implementations should handle errors gracefully with clear messages.
 

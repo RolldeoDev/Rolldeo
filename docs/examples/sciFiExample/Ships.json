@@ -444,7 +444,7 @@
         "vesselName": "{{shipName}}",
         "crewSize": "{{dice:2d6*10}}"
       },
-      "pattern": "# {{$vesselName}}\n\n**Class:** {{shipClass}}\n**Size:** {{@shipClass.size}}\n**Combat Role:** {{@shipClass.combatRole}}\n\n## Condition\n\n**Hull:** {{hullCondition}} (structural modifier: {{@hullCondition.structuralMod}})\n**Material:** {{hullMaterial}} ({{@hullMaterial.armorClass}} armor class)\n**Repairs Needed:** {{@hullCondition.repairNeeded}}\n\n## Systems\n\n- **Propulsion:** {{propulsionType}}\n- **FTL Drive:** {{ftlSystem}} ({{@ftlSystem.cooldown}} cooldown)\n- **Primary Weapons:** {{weaponSystem}}\n- **Secondary Weapons:** {{weaponSystem}}\n- **Defenses:** {{defenseSystem}}\n\n## Crew\n\n**Complement:** {{$crewSize}} (capacity: {{@shipClass.crewMin}}-{{@shipClass.crewMax}})\n**Morale:** {{crewMorale}} ({{@crewMorale.efficiency}} efficiency)\n**Captain:** {{captainTrait}}\n\n## Background\n\n**Origin:** {{shipOrigin}}\n**Quirk:** {{shipQuirk}}\n\n## Cargo\n\n**Capacity:** {{@shipClass.cargoCapacity}}\n**Current Cargo:** {{cargoType}}"
+      "pattern": "# {{$vesselName}}\n\n**Class:** {{shipClass}}\n**Size:** {{@shipClass.size}}\n**Combat Role:** {{@shipClass.combatRole}}\n\n## Condition\n\n**Hull:** {{hullCondition}} (structural modifier: {{@hullCondition.structuralMod}})\n**Material:** {{hullMaterial}} ({{@hullMaterial.armorClass}} armor class)\n**Repairs Needed:** {{@hullCondition.repairNeeded}}\n\n## Systems\n\n- **Propulsion:** {{propulsionType}}\n- **FTL Drive:** {{ftlSystem}} ({{@ftlSystem.cooldown}} cooldown)\n- **Primary Weapons:** {{weaponSystem}}\n- **Secondary Weapons:** {{weaponSystem}}\n- **Defenses:** {{defenseSystem}}\n\n## Crew\n\n**Complement:** {{$crewSize}} (capacity: {{@shipClass.crewMin}}-{{@shipClass.crewMax}})\n**Morale:** {{crewMorale}} ({{@crewMorale.efficiency}} efficiency)\n**Captain:** {{captainTrait}}\n\n## Background\n\n**Origin:** {{shipOrigin}}\n**Quirk:** {{shipQuirk}}\n\n## Cargo\n\n**Capacity:** {{@shipClass.cargoCapacity}}\n**Current Cargo:** {{cargoType}}{{switch[@shipClass.ftlCapable==\"no\":\"\n\n*Note: This vessel is not FTL-capable and requires carrier transport for interstellar travel.*\"].else[\"\"]}}{{switch[@hullCondition.structuralMod<=\"-2\":\"\n\n**WARNING:** This vessel requires immediate structural repairs before any high-stress maneuvers.\"].else[\"\"]}}{{switch[@shipOrigin.legalStatus==\"illegal\":\"\n\n*Caution: This vessel may trigger security alerts in regulated systems.*\"].else[\"\"]}}"
     },
     {
       "id": "fleetComposition",
@@ -472,26 +472,6 @@
       "resultType": "description",
       "tags": ["commerce", "capture", "advanced"],
       "pattern": "# Starport Shipyard - Current Inventory\n\n{{4*unique*shipClass >> $available|silent}}\n{{4*hullCondition >> $conditions|silent}}\n{{4*shipOrigin >> $origins|silent}}\n\n## Available Vessels\n\n1. **{{$available[0]}}** - {{$conditions[0]}} condition\n   - Origin: {{$origins[0]}}\n   - Price Factor: Based on {{$conditions[0].@repairNeeded}} repairs needed\n\n2. **{{$available[1]}}** - {{$conditions[1]}} condition\n   - Origin: {{$origins[1]}}\n   - Price Factor: Based on {{$conditions[1].@repairNeeded}} repairs needed\n\n3. **{{$available[2]}}** - {{$conditions[2]}} condition\n   - Origin: {{$origins[2]}}\n   - Price Factor: Based on {{$conditions[2].@repairNeeded}} repairs needed\n\n4. **{{$available[3]}}** - {{$conditions[3]}} condition\n   - Origin: {{$origins[3]}}\n   - Price Factor: Based on {{$conditions[3].@repairNeeded}} repairs needed\n\n---\n*Conditions range from {{collect:$conditions|unique|\" to \"}}*"
-    }
-  ],
-  "conditionals": [
-    {
-      "when": "@shipClass.ftlCapable == 'no'",
-      "action": "append",
-      "value": "\n\n*Note: This vessel is not FTL-capable and requires carrier transport for interstellar travel.*",
-      "tags": ["ftl", "limitation"]
-    },
-    {
-      "when": "@hullCondition.structuralMod <= '-2'",
-      "action": "append",
-      "value": "\n\n**WARNING:** This vessel requires immediate structural repairs before any high-stress maneuvers.",
-      "tags": ["condition", "warning"]
-    },
-    {
-      "when": "@shipOrigin.legalStatus == 'illegal'",
-      "action": "append",
-      "value": "\n\n*Caution: This vessel may trigger security alerts in regulated systems.*",
-      "tags": ["legal", "warning"]
     }
   ]
 }

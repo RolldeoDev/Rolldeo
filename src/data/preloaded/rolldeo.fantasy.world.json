@@ -1549,7 +1549,7 @@
         "$race": "{{characterRaces}}",
         "$job": "{{occupations}}"
       },
-      "pattern": "## {{$race.@firstName}} {{$race.@lastName}}\n\n**Race:** {{$race}} ({{$race.@lifespan}} lifespan)\n\n**Appearance:** {{$race.@physique}}, with {{physicalQuirks}}. They wear {{clothingColors}} {{clothingStyles}}.\n\n**Occupation:** {{$job}}, working at {{$job.@workplace}}.\n\n**Personality:** {{personalityTraits}}. They {{motivations}}.\n\n**Secret:** This person {{secrets}}."
+      "pattern": "## {{$race.@firstName}} {{$race.@lastName}}\n\n**Race:** {{$race}} ({{$race.@lifespan}} lifespan)\n\n**Appearance:** {{$race.@physique}}, with {{physicalQuirks}}. They wear {{clothingColors}} {{clothingStyles}}.\n\n**Occupation:** {{$job}}, working at {{$job.@workplace}}.\n\n**Personality:** {{personalityTraits}}. They {{motivations}}.\n\n**Secret:** This person {{secrets}}.{{switch[@socialClass.value==\"upper\":\" They carry themselves with obvious nobility.\"].else[\"\"]}}"
     },
     {
       "id": "rivalCharacters",
@@ -1589,7 +1589,7 @@
       "description": "Generates an atmospheric wilderness description.",
       "resultType": "description",
       "tags": ["location", "atmosphere"],
-      "pattern": "It is {{$timeOfDay}}, and the sky shows {{$currentWeather}}. Above hangs {{$moonPhase}}.\n\nYou find yourself in {{wildernessLocations}}. The air carries the scent of {{smells}}, and you can hear {{sounds}}."
+      "pattern": "It is {{$timeOfDay}}, and the sky shows {{$currentWeather}}. Above hangs {{$moonPhase}}.\n\nYou find yourself in {{wildernessLocations}}. The air carries the scent of {{smells}}, and you can hear {{sounds}}.{{switch[@danger.value==\"high\":\"\n\n*⚠️ This area is known to be dangerous. Proceed with caution.*\"].else[\"\"]}}"
     },
     {
       "id": "dungeonRoom",
@@ -1634,7 +1634,7 @@
         "$weapon": "{{weaponTypes}}",
         "$condition": "{{itemConditions}}"
       },
-      "pattern": "**{{weaponDescriptors}} {{$weapon}}**\n\nThis {{$weapon.@category}} weapon is {{$condition}} ({{$condition.@quality}} quality). It is made of {{metals}} and features {{inscriptions}}"
+      "pattern": "**{{weaponDescriptors}} {{$weapon}}**\n\nThis {{$weapon.@category}} weapon is {{$condition}} ({{$condition.@quality}} quality). It is made of {{metals}} and features {{inscriptions}}{{switch[@magical.value==\"true\":\" It faintly shimmers with magical energy.\"].else[\"\"]}}"
     },
     {
       "id": "jewelryDescription",
@@ -1646,7 +1646,7 @@
         "$jewel": "{{jewelryTypes}}",
         "$gem": "{{gemstones}}"
       },
-      "pattern": "A {{metals}} {{$jewel}} worn on the {{$jewel.@placement}}, set with a {{$gem.@color}} {{$gem}} ({{$gem.@rarity}} rarity)."
+      "pattern": "{{switch[@rarity.value==\"legendary\":\"**✨ LEGENDARY FIND!** \"].else[\"\"]}}A {{metals}} {{$jewel}} worn on the {{$jewel.@placement}}, set with a {{$gem.@color}} {{$gem}} ({{$gem.@rarity}} rarity)."
     },
     {
       "id": "atmosphericScene",
@@ -1657,7 +1657,7 @@
       "shared": {
         "$weather": "{{weatherConditions}}"
       },
-      "pattern": "The scene is set during {{timesOfDay}}. The weather is {{$weather}}, creating a {{$weather.@mood}} atmosphere.\n\nYou notice the smell of {{smells}} and hear {{sounds}}."
+      "pattern": "The scene is set during {{timesOfDay}}. The weather is {{$weather}}, creating a {{$weather.@mood}} atmosphere.\n\nYou notice the smell of {{smells}} and hear {{sounds}}.{{switch[@mood.value==\"ominous\":\"\n\n*An uneasy feeling settles over you.*\"].else[\"\"]}}"
     },
     {
       "id": "multipleRumors",
@@ -1711,34 +1711,6 @@
       "resultType": "description",
       "tags": ["items", "travel"],
       "pattern": "## Caravan Manifest\n\n**Passengers:** {{3*characterRaces}}\n\n**Cargo (5 items):**\n{{5*allTreasure|\"\n\"}}\n\n**Guards' Equipment:**\n{{3*weaponTypes}}"
-    }
-  ],
-
-  "conditionals": [
-    {
-      "when": "@danger.value == 'high'",
-      "action": "append",
-      "value": "\n\n*⚠️ This area is known to be dangerous. Proceed with caution.*"
-    },
-    {
-      "when": "@rarity.value == 'legendary'",
-      "action": "prepend",
-      "value": "**✨ LEGENDARY FIND!** "
-    },
-    {
-      "when": "@socialClass.value == 'upper'",
-      "action": "append",
-      "value": " They carry themselves with obvious nobility."
-    },
-    {
-      "when": "@mood.value == 'ominous'",
-      "action": "append",
-      "value": "\n\n*An uneasy feeling settles over you.*"
-    },
-    {
-      "when": "@magical.value == 'true'",
-      "action": "append",
-      "value": " It faintly shimmers with magical energy."
     }
   ]
 }
