@@ -230,9 +230,10 @@ export function extractExpressions(text: string | undefined | null): ExpressionM
 // ============================================================================
 
 /**
- * Parse a single expression (content inside {{...}}) into a token
+ * Parse a single expression (content inside {{...}}) into a token.
+ * Returns ExpressionTokenWithSwitch to support attached switch modifiers on any token type.
  */
-export function parseExpression(expr: string): ExpressionToken {
+export function parseExpression(expr: string): ExpressionTokenWithSwitch {
   const trimmed = expr.trim()
 
   // ==== SWITCH EXPRESSION - Check first ====
@@ -247,7 +248,7 @@ export function parseExpression(expr: string): ExpressionToken {
   const { baseExpr, switchModifiers } = extractSwitchModifiers(trimmed)
   if (switchModifiers) {
     const baseToken = parseBaseExpression(baseExpr)
-    return { ...baseToken, switchModifiers } as ExpressionToken
+    return { ...baseToken, switchModifiers }
   }
 
   // No switch modifiers, parse normally
