@@ -7,6 +7,7 @@
 
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown'
 import { Dices, Layers, Trash2, User, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CollectionMeta } from '@/stores/collectionStore'
@@ -66,12 +67,33 @@ export const CollectionCard = memo(function CollectionCard({
       </div>
 
       {/* Description */}
-      <p className={cn(
-        'text-sm text-muted-foreground line-clamp-2',
+      <div className={cn(
+        'text-sm text-muted-foreground line-clamp-2 prose-card',
         compact ? 'mb-3 min-h-[2rem]' : 'mb-4 min-h-[2.5rem]'
       )}>
-        {collection.description || `Collection with ${collection.tableCount} tables`}
-      </p>
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => <span>{children} </span>,
+            h1: ({ children }) => <strong className="text-foreground">{children}: </strong>,
+            h2: ({ children }) => <strong className="text-foreground">{children}: </strong>,
+            h3: ({ children }) => <strong className="text-foreground">{children}: </strong>,
+            strong: ({ children }) => <strong className="font-semibold text-foreground/90">{children}</strong>,
+            em: ({ children }) => <em>{children}</em>,
+            code: ({ children }) => <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">{children}</code>,
+            a: ({ href, children }) => (
+              <a href={href} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+                {children}
+              </a>
+            ),
+            ul: ({ children }) => <span>{children}</span>,
+            ol: ({ children }) => <span>{children}</span>,
+            li: ({ children }) => <span>• {children} </span>,
+            blockquote: ({ children }) => <span className="italic">{children}</span>,
+          }}
+        >
+          {collection.description || `Collection with ${collection.tableCount} tables`}
+        </ReactMarkdown>
+      </div>
 
       {/* Author & Source metadata */}
       {hasMetadata && !compact && (

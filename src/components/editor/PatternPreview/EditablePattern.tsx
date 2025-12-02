@@ -90,7 +90,7 @@ export interface EditablePatternRef {
  */
 export const EditablePattern = memo(
   forwardRef<EditablePatternRef, EditablePatternProps>(function EditablePattern(
-    { value, onChange, placeholder, minHeight = 120, id },
+    { value, onChange, placeholder, minHeight = 250, id },
     ref
   ) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)

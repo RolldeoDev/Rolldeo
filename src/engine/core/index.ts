@@ -19,11 +19,8 @@ import type {
   Assets,
   Sets,
   EvaluatedSets,
-  CaptureItem,
-  CaptureVariable,
 } from '../types'
 
-import { rollDice } from '../dice'
 import { validateDocument, type ValidationResult } from './validator'
 import {
   createContext,
@@ -32,32 +29,12 @@ import {
   setCurrentTable,
   setCurrentCollection,
   mergePlaceholderSets,
-  resolveVariable,
-  getPlaceholder,
-  setInstance,
-  getInstance,
-  setSharedVariable,
   getSharedVariableSource,
   registerDocumentSharedName,
-  wouldShadowDocumentShared,
-  getCaptureVariable,
-  setCaptureVariable,
-  getCaptureSharedVariable,
-  setCaptureSharedVariable,
-  hasVariableConflict,
   addDescription,
-  beginSetEvaluation,
-  endSetEvaluation,
   setCurrentEntryDescription,
   type GenerationContext,
 } from './context'
-import {
-  parseTemplate,
-  parseExpression,
-  extractExpressions,
-  type ExpressionToken,
-} from './parser'
-import { evaluateMath } from './math'
 import { rollSimpleTable, buildWeightedPool, calculateTotalWeight } from '../tables/simple'
 import { selectSource, buildSourcePool, calculateSourceWeight } from '../tables/composite'
 import { rollCollectionTable } from '../tables/collection'
@@ -67,18 +44,15 @@ import {
   endTraceNode,
   addTraceLeaf,
   extractTrace,
-  type DiceRollMetadata,
   type EntrySelectMetadata,
-  type VariableAccessMetadata,
-  type PlaceholderAccessMetadata,
   type CompositeSelectMetadata,
-  type MultiRollMetadata,
-  type InstanceMetadata,
   type CollectionMergeMetadata,
-  type CaptureMultiRollMetadata,
-  type CaptureAccessMetadata,
-  type CollectMetadata,
 } from './trace'
+import {
+  resolveTableRef as resolveTableRefFn,
+  resolveTemplateRef as resolveTemplateRefFn,
+} from './resolver'
+import { ExpressionEvaluator } from './evaluator'
 
 // ============================================================================
 // Types
@@ -137,6 +111,7 @@ export interface RollOptions {
 export class RandomTableEngine {
   private collections: Map<string, LoadedCollection> = new Map()
   private config: EngineConfig
+  private evaluator: ExpressionEvaluator
 
   constructor(options: EngineOptions = {}) {
     this.config = {
@@ -145,6 +120,17 @@ export class RandomTableEngine {
       maxInheritanceDepth: options.config?.maxInheritanceDepth ?? 5,
       uniqueOverflowBehavior: options.config?.uniqueOverflowBehavior ?? 'stop',
     }
+
+    // Create evaluator with dependencies
+    // Note: We use bind() for methods that the evaluator needs to call back to
+    this.evaluator = new ExpressionEvaluator({
+      resolveTableRef: (ref, collectionId) => this.resolveTableRef(ref, collectionId),
+      resolveTemplateRef: (ref, collectionId) => this.resolveTemplateRef(ref, collectionId),
+      rollTable: (table, context, collectionId, options) =>
+        this.rollTable(table, context, collectionId, options),
+      getCollection: (id) => this.getCollection(id),
+      getTable: (tableId, collectionId) => this.getTable(tableId, collectionId),
+    })
   }
 
   // ==========================================================================
@@ -544,6 +530,12 @@ export class RandomTableEngine {
     const context = this.createGenerationContext(collection, options)
     setCurrentCollection(context, collectionId)
 
+    // Clear descriptions collected during document-level shared variable evaluation.
+    // Document-level shared variables are eagerly evaluated in createGenerationContext(),
+    // but they may not be used by this specific table roll. We only want to capture
+    // descriptions from table rolls that are actually part of this output.
+    context.collectedDescriptions = []
+
     // Start root trace node
     beginTraceNode(context, 'root', `Roll: ${table.name || tableId}`, {
       raw: tableId,
@@ -560,7 +552,7 @@ export class RandomTableEngine {
         collection.document.conditionals,
         result.text,
         context,
-        (pattern: string) => this.evaluatePattern(pattern, context, collectionId)
+        (pattern: string) => this.evaluator.evaluatePattern(pattern, context, collectionId)
       )
     }
 
@@ -613,6 +605,12 @@ export class RandomTableEngine {
     const context = this.createGenerationContext(collection, options)
     setCurrentCollection(context, collectionId)
 
+    // Clear descriptions collected during document-level shared variable evaluation.
+    // Document-level shared variables are eagerly evaluated in createGenerationContext(),
+    // but they may not be used by this specific template. We only want to capture
+    // descriptions from table rolls that are actually part of this template's output.
+    context.collectedDescriptions = []
+
     // Start root trace node
     beginTraceNode(context, 'root', `Template: ${template.name || templateId}`, {
       raw: templateId,
@@ -621,11 +619,11 @@ export class RandomTableEngine {
 
     // Evaluate template-level shared variables (lazy evaluation)
     if (template.shared) {
-      this.evaluateTableLevelShared(template.shared, context, collectionId, templateId)
+      this.evaluator.evaluateTableLevelShared(template.shared, context, collectionId, templateId)
     }
 
     // Evaluate the template pattern
-    let text = this.evaluatePattern(template.pattern, context, collectionId)
+    let text = this.evaluator.evaluatePattern(template.pattern, context, collectionId)
 
     // Apply document-level conditionals
     if (collection.document.conditionals && collection.document.conditionals.length > 0) {
@@ -633,7 +631,7 @@ export class RandomTableEngine {
         collection.document.conditionals,
         text,
         context,
-        (pattern: string) => this.evaluatePattern(pattern, context, collectionId)
+        (pattern: string) => this.evaluator.evaluatePattern(pattern, context, collectionId)
       )
     }
 
@@ -688,10 +686,16 @@ export class RandomTableEngine {
     const context = this.createGenerationContext(collection, options)
     setCurrentCollection(context, collectionId)
 
+    // Clear descriptions collected during document-level shared variable evaluation.
+    // Document-level shared variables are eagerly evaluated in createGenerationContext(),
+    // but they may not be used by this pattern preview. We only want to capture
+    // descriptions from table rolls that are actually part of this output.
+    context.collectedDescriptions = []
+
     // Evaluate template/table-level shared variables if provided
     // This happens BEFORE the root trace node so they don't appear in pattern trace
     if (options?.shared) {
-      this.evaluateTableLevelShared(options.shared, context, collectionId, '__preview__')
+      this.evaluator.evaluateTableLevelShared(options.shared, context, collectionId, '__preview__')
     }
 
     // Start root trace node
@@ -702,7 +706,7 @@ export class RandomTableEngine {
 
     // Evaluate the pattern and capture individual expression outputs
     const { text: evaluatedText, expressionOutputs } =
-      this.evaluatePatternWithOutputs(pattern, context, collectionId)
+      this.evaluator.evaluatePatternWithOutputs(pattern, context, collectionId)
     let text = evaluatedText
 
     // Apply document-level conditionals
@@ -711,7 +715,7 @@ export class RandomTableEngine {
         collection.document.conditionals,
         text,
         context,
-        (p: string) => this.evaluatePattern(p, context, collectionId)
+        (p: string) => this.evaluator.evaluatePattern(p, context, collectionId)
       )
     }
 
@@ -769,188 +773,10 @@ export class RandomTableEngine {
         registerDocumentSharedName(context, name)
       }
       // Then evaluate them
-      this.evaluateSharedVariables(collection.document.shared, context, collection.id)
+      this.evaluator.evaluateSharedVariables(collection.document.shared, context, collection.id)
     }
 
     return context
-  }
-
-  // ==========================================================================
-  // Internal: Shared Variables Evaluation
-  // ==========================================================================
-
-  /**
-   * Evaluate shared variables at generation start.
-   * Processed in order - later variables can reference earlier ones.
-   *
-   * Capture-aware shared variables: Keys starting with $ (e.g., "$hero") capture
-   * the full roll result including sets, enabling {{$hero.@prop}} access syntax.
-   */
-  private evaluateSharedVariables(
-    shared: Record<string, string>,
-    context: GenerationContext,
-    collectionId: string
-  ): void {
-    for (const [name, expression] of Object.entries(shared)) {
-      // Check if this is a capture-aware shared variable (starts with $)
-      if (name.startsWith('$')) {
-        const varName = name.slice(1) // Remove $ prefix
-        this.evaluateCaptureAwareShared(varName, expression, context, collectionId)
-        continue
-      }
-
-      // Regular shared variable evaluation
-      const evaluated = this.evaluatePattern(expression, context, collectionId)
-
-      // Try to parse as number, otherwise keep as string
-      const numValue = parseFloat(evaluated)
-      const value = !isNaN(numValue) && isFinite(numValue) ? numValue : evaluated
-
-      setSharedVariable(context, name, value)
-    }
-  }
-
-  /**
-   * Evaluate a capture-aware shared variable.
-   * Captures the full roll result including sets for {{$varName.@prop}} access.
-   */
-  private evaluateCaptureAwareShared(
-    varName: string,
-    expression: string,
-    context: GenerationContext,
-    collectionId: string
-  ): void {
-    // Parse the expression to check if it's a simple table reference
-    const expressions = extractExpressions(expression)
-
-    // If it's a single expression that's a table reference, capture the full result
-    if (expressions.length === 1) {
-      const token = parseExpression(expressions[0].expression)
-
-      if (token.type === 'table') {
-        // Resolve and roll the table, capturing the result with sets
-        const tableResult = this.resolveTableRef(token.tableId, collectionId)
-        if (tableResult) {
-          // Track description count before roll to find new descriptions
-          const descCountBefore = context.collectedDescriptions.length
-          const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
-
-          // Get the first description added by this roll (the entry's own description)
-          // Nested rolls may add more, but the first new one is the direct entry description
-          const newDescriptions = context.collectedDescriptions.slice(descCountBefore)
-          const entryDescription = newDescriptions.length > 0 ? newDescriptions[0].description : undefined
-
-          // Sets are already evaluated at merge time in evaluateSetValues()
-          // Just use the placeholders directly
-          setCaptureSharedVariable(context, varName, {
-            value: result.text,
-            sets: result.placeholders ?? {},
-            description: entryDescription,
-          })
-          return
-        }
-      }
-
-      // Handle capture access with properties - check if it references a nested CaptureItem
-      // This enables chaining: "$situation": "{{$conflict.@situation}}" where @situation is a nested CaptureItem
-      // Also supports deep chaining: "$deep": "{{$conflict.@situation.@focus}}"
-      if (token.type === 'captureAccess' && token.properties && token.properties.length > 0) {
-        const sourceCapture = getCaptureSharedVariable(context, token.varName)
-        if (sourceCapture) {
-          // Check if the final property is a terminal (value/count/description)
-          const lastProp = token.properties[token.properties.length - 1]
-          if (lastProp !== 'value' && lastProp !== 'count' && lastProp !== 'description') {
-            // Try to get the nested CaptureItem at the end of the property chain
-            const nestedItem = this.getNestedCaptureItem(sourceCapture, token.properties)
-            if (nestedItem) {
-              // It's a nested CaptureItem - store it directly to enable further chaining
-              setCaptureSharedVariable(context, varName, nestedItem)
-              return
-            }
-          }
-        }
-      }
-    }
-
-    // Fallback: For complex expressions, evaluate and capture with empty sets
-    // This supports patterns like "$result": "{{dice:1d6}} {{table}}"
-    const evaluated = this.evaluatePattern(expression, context, collectionId)
-    setCaptureSharedVariable(context, varName, {
-      value: evaluated,
-      sets: {},
-    })
-  }
-
-  /**
-   * Evaluate table/template-level shared variables at roll time.
-   * Validates that names don't shadow document-level shared variables.
-   * Processed in order - later variables can reference earlier ones.
-   *
-   * Capture-aware shared variables: Keys starting with $ (e.g., "$hero") capture
-   * the full roll result including sets, enabling {{$hero.@prop}} access syntax.
-   */
-  private evaluateTableLevelShared(
-    shared: Record<string, string>,
-    context: GenerationContext,
-    collectionId: string,
-    sourceId: string
-  ): void {
-    for (const [name, expression] of Object.entries(shared)) {
-      // Handle capture-aware shared variables (keys starting with $)
-      if (name.startsWith('$')) {
-        const varName = name.slice(1) // Remove $ prefix
-
-        // Check for shadowing document-level shared (check with $ prefix)
-        if (wouldShadowDocumentShared(context, name)) {
-          throw new Error(
-            `SHARED_SHADOW in ${sourceId}: Table/template-level capture-aware shared variable '${name}' ` +
-              `would shadow document-level shared variable. ` +
-              `Document-level shared variables take precedence.`
-          )
-        }
-
-        // If already set by a parent table, skip
-        if (context.captureSharedVariables.has(varName)) {
-          continue
-        }
-
-        this.evaluateCaptureAwareShared(varName, expression, context, collectionId)
-        continue
-      }
-
-      // Regular shared variable handling
-      // Check for shadowing document-level shared
-      if (wouldShadowDocumentShared(context, name)) {
-        throw new Error(
-          `SHARED_SHADOW in ${sourceId}: Table/template-level shared variable '${name}' ` +
-            `would shadow document-level shared variable. ` +
-            `Document-level shared variables take precedence.`
-        )
-      }
-
-      // Check for shadowing static variables
-      if (context.staticVariables.has(name)) {
-        throw new Error(
-          `SHARED_SHADOW in ${sourceId}: Shared variable '${name}' ` +
-            `would shadow static variable.`
-        )
-      }
-
-      // If already set by a parent table (propagated down), skip
-      // This allows nested tables to inherit shared from parent without error
-      if (context.sharedVariables.has(name)) {
-        continue
-      }
-
-      // Evaluate the expression
-      const evaluated = this.evaluatePattern(expression, context, collectionId)
-
-      // Try to parse as number, otherwise keep as string
-      const numValue = parseFloat(evaluated)
-      const value = !isNaN(numValue) && isFinite(numValue) ? numValue : evaluated
-
-      setSharedVariable(context, name, value, sourceId)
-    }
   }
 
   // ==========================================================================
@@ -1065,79 +891,7 @@ export class RandomTableEngine {
    * Returns both the table and the collection ID where it was found.
    */
   private resolveTableRef(ref: string, collectionId: string): { table: Table; collectionId: string } | undefined {
-    // Check for namespace/alias format (contains a dot)
-    if (ref.includes('.')) {
-      const parts = ref.split('.')
-      if (parts.length >= 2) {
-        // First part could be an alias or namespace prefix
-        const aliasOrNamespace = parts[0]
-        // Last part is the tableId
-        const tableId = parts[parts.length - 1]
-
-        // Check imports/aliases first (takes priority)
-        const currentCollection = this.collections.get(collectionId)
-
-        if (currentCollection?.imports.has(aliasOrNamespace)) {
-          const importedCollection = currentCollection.imports.get(aliasOrNamespace)!
-          const table = importedCollection.tableIndex.get(tableId)
-          if (table) {
-            return { table, collectionId: importedCollection.id }
-          }
-        }
-
-        // Fall back to namespace matching
-        const namespace = parts.slice(0, -1).join('.')
-        for (const collection of this.collections.values()) {
-          if (collection.document.metadata.namespace === namespace) {
-            const table = collection.tableIndex.get(tableId)
-            if (table) return { table, collectionId: collection.id }
-          }
-        }
-
-        // Fallback: If the alias matches a document import alias but imports weren't resolved,
-        // use the import's path to find the correct collection.
-        if (currentCollection?.document.imports) {
-          const importDef = currentCollection.document.imports.find(imp => imp.alias === aliasOrNamespace)
-          if (importDef) {
-            // The import alias exists in the document, but wasn't resolved.
-            // Use the import's path to find the target collection by namespace or ID.
-            for (const collection of this.collections.values()) {
-              if (collection.id !== collectionId) {
-                // Match by namespace (path is usually the namespace)
-                if (collection.document.metadata.namespace === importDef.path) {
-                  const table = collection.tableIndex.get(tableId)
-                  if (table) {
-                    return { table, collectionId: collection.id }
-                  }
-                }
-                // Match by collection ID
-                if (collection.id === importDef.path) {
-                  const table = collection.tableIndex.get(tableId)
-                  if (table) {
-                    return { table, collectionId: collection.id }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Simple tableId - look in current collection first
-    const currentCollection = this.collections.get(collectionId)
-    if (currentCollection) {
-      const table = currentCollection.tableIndex.get(ref)
-      if (table) return { table, collectionId }
-    }
-
-    // Search all collections as fallback
-    for (const collection of this.collections.values()) {
-      const table = collection.tableIndex.get(ref)
-      if (table) return { table, collectionId: collection.id }
-    }
-
-    return undefined
+    return resolveTableRefFn(ref, collectionId, { collections: this.collections })
   }
 
   /**
@@ -1145,79 +899,7 @@ export class RandomTableEngine {
    * Format: templateId, alias.templateId, or namespace.templateId
    */
   private resolveTemplateRef(ref: string, collectionId: string): { template: Template; collectionId: string } | undefined {
-    // Check for namespace/alias format (contains a dot)
-    if (ref.includes('.')) {
-      const parts = ref.split('.')
-      if (parts.length >= 2) {
-        // First part could be an alias or namespace prefix
-        const aliasOrNamespace = parts[0]
-        // Last part is the templateId
-        const templateId = parts[parts.length - 1]
-
-        // Check imports/aliases first (takes priority)
-        const currentCollection = this.collections.get(collectionId)
-
-        if (currentCollection?.imports.has(aliasOrNamespace)) {
-          const importedCollection = currentCollection.imports.get(aliasOrNamespace)!
-          const template = importedCollection.templateIndex.get(templateId)
-          if (template) {
-            return { template, collectionId: importedCollection.id }
-          }
-        }
-
-        // Fall back to namespace matching
-        const namespace = parts.slice(0, -1).join('.')
-        for (const collection of this.collections.values()) {
-          if (collection.document.metadata.namespace === namespace) {
-            const template = collection.templateIndex.get(templateId)
-            if (template) return { template, collectionId: collection.id }
-          }
-        }
-
-        // Fallback: If the alias matches a document import alias but imports weren't resolved,
-        // use the import's path to find the correct collection.
-        if (currentCollection?.document.imports) {
-          const importDef = currentCollection.document.imports.find(imp => imp.alias === aliasOrNamespace)
-          if (importDef) {
-            // The import alias exists in the document, but wasn't resolved.
-            // Use the import's path to find the target collection by namespace or ID.
-            for (const collection of this.collections.values()) {
-              if (collection.id !== collectionId) {
-                // Match by namespace (path is usually the namespace)
-                if (collection.document.metadata.namespace === importDef.path) {
-                  const template = collection.templateIndex.get(templateId)
-                  if (template) {
-                    return { template, collectionId: collection.id }
-                  }
-                }
-                // Match by collection ID
-                if (collection.id === importDef.path) {
-                  const template = collection.templateIndex.get(templateId)
-                  if (template) {
-                    return { template, collectionId: collection.id }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Simple templateId - look in current collection first
-    const currentCollection = this.collections.get(collectionId)
-    if (currentCollection) {
-      const template = currentCollection.templateIndex.get(ref)
-      if (template) return { template, collectionId }
-    }
-
-    // Search all collections as fallback
-    for (const collection of this.collections.values()) {
-      const template = collection.templateIndex.get(ref)
-      if (template) return { template, collectionId: collection.id }
-    }
-
-    return undefined
+    return resolveTemplateRefFn(ref, collectionId, { collections: this.collections })
   }
 
   /**
@@ -1264,7 +946,7 @@ export class RandomTableEngine {
           }
           // If source is different (parent table), keep the value (inheritance)
         }
-        this.evaluateTableLevelShared(table.shared, context, collectionId, table.id)
+        this.evaluator.evaluateTableLevelShared(table.shared, context, collectionId, table.id)
       }
 
       let result: { text: string; resultType?: string; assets?: Assets; placeholders?: EvaluatedSets; entryId?: string }
@@ -1356,7 +1038,7 @@ export class RandomTableEngine {
     // Set values containing {{patterns}} are evaluated at merge time for consistency
     let evaluatedSets: EvaluatedSets = selected.mergedSets
     if (Object.keys(selected.mergedSets).length > 0) {
-      evaluatedSets = this.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
+      evaluatedSets = this.evaluator.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
       mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
@@ -1365,14 +1047,14 @@ export class RandomTableEngine {
 
     // Evaluate the entry value (may contain expressions)
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
-    const text = this.evaluatePattern(selected.entry.value ?? '', context, collectionId)
+    const text = this.evaluator.evaluatePattern(selected.entry.value ?? '', context, collectionId)
 
     // Clear description from context after evaluation
     setCurrentEntryDescription(context, undefined)
 
     // Capture description if present
     if (selected.entry.description) {
-      const evaluatedDescription = this.evaluatePattern(
+      const evaluatedDescription = this.evaluator.evaluatePattern(
         selected.entry.description,
         context,
         collectionId
@@ -1515,7 +1197,7 @@ export class RandomTableEngine {
     // Set values containing {{patterns}} are evaluated at merge time for consistency
     let evaluatedSets: EvaluatedSets = selected.mergedSets
     if (Object.keys(selected.mergedSets).length > 0) {
-      evaluatedSets = this.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
+      evaluatedSets = this.evaluator.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
       mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
@@ -1524,7 +1206,7 @@ export class RandomTableEngine {
 
     // Evaluate the entry value
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
-    const text = this.evaluatePattern(selected.entry.value ?? '', context, collectionId)
+    const text = this.evaluator.evaluatePattern(selected.entry.value ?? '', context, collectionId)
 
     // Clear description from context after evaluation
     setCurrentEntryDescription(context, undefined)
@@ -1535,7 +1217,7 @@ export class RandomTableEngine {
       const sourceTable = this.getTable(selected.sourceTableId, collectionId)
       const tableName = sourceTable?.name ?? selected.sourceTableId
 
-      const evaluatedDescription = this.evaluatePattern(
+      const evaluatedDescription = this.evaluator.evaluatePattern(
         selected.entry.description,
         context,
         collectionId
@@ -1558,1229 +1240,6 @@ export class RandomTableEngine {
     }
   }
 
-  // ==========================================================================
-  // Internal: Expression Evaluation
-  // ==========================================================================
-
-  private evaluatePattern(pattern: string, context: GenerationContext, collectionId: string): string {
-    const tokens = parseTemplate(pattern)
-    return tokens.map((token) => this.evaluateToken(token, context, collectionId)).join('')
-  }
-
-  /**
-   * Evaluate set values that contain patterns.
-   * Set values are evaluated at merge time (when entry is selected) to ensure consistency.
-   * Only values containing {{}} are evaluated; plain strings are returned as-is.
-   * Uses cycle detection to prevent infinite loops from self-referential sets.
-   *
-   * @param sets - The merged sets from the selected entry
-   * @param context - The generation context
-   * @param collectionId - The collection ID for table resolution
-   * @param tableId - The table ID (used for cycle detection key)
-   * @returns Evaluated sets with patterns resolved
-   */
-  private evaluateSetValues(
-    sets: Sets,
-    context: GenerationContext,
-    collectionId: string,
-    tableId: string
-  ): EvaluatedSets {
-    const evaluated: EvaluatedSets = {}
-
-    for (const [key, value] of Object.entries(sets)) {
-      if (value.includes('{{')) {
-        // This value contains a pattern - evaluate it
-        const setKey = `${tableId}.${key}`
-
-        if (!beginSetEvaluation(context, setKey)) {
-          // Cycle detected - return raw value to prevent infinite loop
-          evaluated[key] = value
-          continue
-        }
-
-        try {
-          // Check if this is a single table reference - if so, capture full result
-          // This enables nested property access like {{$parent.@child.@grandchild}}
-          const expressions = extractExpressions(value)
-          if (expressions.length === 1 && value.trim() === expressions[0].raw) {
-            const token = parseExpression(expressions[0].expression)
-            if (token.type === 'table') {
-              // Roll table and capture full result including nested sets
-              const tableResult = this.resolveTableRef(token.tableId, collectionId)
-              if (tableResult) {
-                const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
-                evaluated[key] = {
-                  value: result.text,
-                  sets: result.placeholders ?? {},
-                  description: undefined,
-                }
-                continue
-              }
-            }
-          }
-          // Fallback: evaluate as string for complex expressions
-          evaluated[key] = this.evaluatePattern(value, context, collectionId)
-        } finally {
-          endSetEvaluation(context, setKey)
-        }
-      } else {
-        // Plain string value - use as-is
-        evaluated[key] = value
-      }
-    }
-
-    return evaluated
-  }
-
-  /**
-   * Evaluate pattern and capture individual expression outputs for segment mapping.
-   * Uses extractExpressions to identify expression positions and captures each output.
-   */
-  private evaluatePatternWithOutputs(
-    pattern: string,
-    context: GenerationContext,
-    collectionId: string
-  ): { text: string; expressionOutputs: string[] } {
-    const expressions = extractExpressions(pattern)
-    const expressionOutputs: string[] = []
-    let result = ''
-    let lastIndex = 0
-
-    for (const expr of expressions) {
-      // Add literal text before this expression
-      if (expr.start > lastIndex) {
-        result += pattern.slice(lastIndex, expr.start)
-      }
-
-      // Parse and evaluate the expression
-      const token = parseExpression(expr.expression)
-      const output = this.evaluateToken(token, context, collectionId)
-
-      result += output
-      expressionOutputs.push(output)
-      lastIndex = expr.end
-    }
-
-    // Add remaining literal text
-    if (lastIndex < pattern.length) {
-      result += pattern.slice(lastIndex)
-    }
-
-    return { text: result, expressionOutputs }
-  }
-
-  private evaluateToken(token: ExpressionToken, context: GenerationContext, collectionId: string): string {
-    switch (token.type) {
-      case 'literal':
-        return token.text
-
-      case 'dice':
-        return this.evaluateDice(token.expression, context)
-
-      case 'math': {
-        const result = evaluateMath(token.expression, context)
-        return result !== null ? String(result) : '[math error]'
-      }
-
-      case 'variable':
-        return this.evaluateVariable(token, context)
-
-      case 'placeholder':
-        return this.evaluatePlaceholder(token, context, collectionId)
-
-      case 'table':
-        return this.evaluateTableRef(token, context, collectionId)
-
-      case 'multiRoll':
-        return this.evaluateMultiRoll(token, context, collectionId)
-
-      case 'again':
-        return this.evaluateAgain(token, context, collectionId)
-
-      case 'instance':
-        return this.evaluateInstance(token, context, collectionId)
-
-      case 'captureMultiRoll':
-        return this.evaluateCaptureMultiRoll(token, context, collectionId)
-
-      case 'captureAccess':
-        return this.evaluateCaptureAccess(token, context, collectionId)
-
-      case 'collect':
-        return this.evaluateCollect(token, context, collectionId)
-
-      default:
-        return ''
-    }
-  }
-
-  private evaluateDice(expression: string, context: GenerationContext): string {
-    const result = rollDice(expression, {
-      maxExplodingDice: context.config.maxExplodingDice,
-    })
-
-    // Parse expression to extract modifier info for trace
-    const modifierMatch = expression.match(/([+\-*])(\d+)$/)
-    const modifier = modifierMatch ? {
-      operator: modifierMatch[1] as '+' | '-' | '*',
-      value: parseInt(modifierMatch[2], 10)
-    } : undefined
-
-    // Add dice roll trace with full breakdown
-    addTraceLeaf(context, 'dice_roll', `Dice: ${expression}`, {
-      raw: expression,
-    }, {
-      value: result.total,
-    }, {
-      type: 'dice',
-      expression: result.expression,
-      rolls: result.rolls,
-      kept: result.kept,
-      modifier,
-      exploded: result.rolls.length > (parseInt(expression.match(/^(\d+)d/)?.[1] || '1', 10)),
-      breakdown: result.breakdown,
-    } as DiceRollMetadata)
-
-    return String(result.total)
-  }
-
-  private evaluateVariable(
-    token: { name: string; alias?: string },
-    context: GenerationContext
-  ): string {
-    // Check capture-aware shared variables first
-    const captureShared = getCaptureSharedVariable(context, token.name)
-    if (captureShared) {
-      // Add variable access trace
-      addTraceLeaf(context, 'variable_access', `$${token.alias ? token.alias + '.' : ''}${token.name}`, {
-        raw: token.name,
-        parsed: { alias: token.alias }
-      }, {
-        value: captureShared.value,
-      }, {
-        type: 'variable',
-        name: token.name,
-        source: 'captureShared',
-      } as VariableAccessMetadata)
-
-      return captureShared.value
-    }
-
-    const value = resolveVariable(context, token.name, token.alias)
-    const result = value !== undefined ? String(value) : ''
-
-    // Determine variable source
-    let source: 'static' | 'shared' | 'undefined' = 'undefined'
-    if (context.sharedVariables.has(token.name)) {
-      source = 'shared'
-    } else if (context.staticVariables.has(token.name)) {
-      source = 'static'
-    }
-
-    // Add variable access trace
-    addTraceLeaf(context, 'variable_access', `$${token.alias ? token.alias + '.' : ''}${token.name}`, {
-      raw: token.name,
-      parsed: { alias: token.alias }
-    }, {
-      value: result,
-    }, {
-      type: 'variable',
-      name: token.name,
-      source,
-    } as VariableAccessMetadata)
-
-    return result
-  }
-
-  private evaluatePlaceholder(
-    token: { name: string; property?: string },
-    context: GenerationContext,
-    collectionId: string
-  ): string {
-    // Handle @self placeholder for current entry properties
-    if (token.name === 'self') {
-      if (token.property === 'description') {
-        const rawDescription = context.currentEntryDescription ?? ''
-        // Evaluate any expressions in the description
-        const result = rawDescription ? this.evaluatePattern(rawDescription, context, collectionId) : ''
-
-        // Add placeholder access trace
-        addTraceLeaf(context, 'placeholder_access', `@self.description`, {
-          raw: 'self',
-          parsed: { property: 'description' }
-        }, {
-          value: result,
-        }, {
-          type: 'placeholder',
-          name: 'self',
-          property: 'description',
-          found: rawDescription !== '',
-        } as PlaceholderAccessMetadata)
-
-        return result
-      }
-      // Unknown @self property - return empty string
-      return ''
-    }
-
-    // Get the placeholder value directly - no implicit table/template resolution
-    // Set values containing {{patterns}} are evaluated at merge time in evaluateSetValues()
-    // If you want a set value to roll a table, use explicit syntax: "nameTable": "{{elfNames}}"
-    const value = getPlaceholder(context, token.name, token.property)
-    const result = value ?? ''
-
-    // Add placeholder access trace
-    addTraceLeaf(context, 'placeholder_access', `@${token.name}${token.property ? '.' + token.property : ''}`, {
-      raw: token.name,
-      parsed: { property: token.property }
-    }, {
-      value: result,
-    }, {
-      type: 'placeholder',
-      name: token.name,
-      property: token.property,
-      found: value !== undefined,
-    } as PlaceholderAccessMetadata)
-
-    return result
-  }
-
-  private evaluateTableRef(
-    token: { tableId: string; alias?: string; namespace?: string },
-    context: GenerationContext,
-    collectionId: string
-  ): string {
-    // Build full reference with namespace if provided
-    let ref = token.tableId
-    if (token.namespace) {
-      ref = `${token.namespace}.${token.tableId}`
-    } else if (token.alias) {
-      ref = `${token.alias}.${token.tableId}`
-    }
-
-    // Try to resolve as a table first
-    const tableResult = this.resolveTableRef(ref, collectionId)
-    if (tableResult) {
-      // Use the collection ID where the table was found, not the original collection
-      const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
-      return result.text
-    }
-
-    // Fall back to template lookup
-    const templateResult = this.resolveTemplateRef(ref, collectionId)
-    if (templateResult) {
-      return this.evaluateTemplateInternal(templateResult.template, templateResult.collectionId, context)
-    }
-
-    return ''
-  }
-
-  /**
-   * Internal template evaluation for cross-collection template references.
-   * Used when a template is referenced via import alias.
-   */
-  private evaluateTemplateInternal(
-    template: Template,
-    collectionId: string,
-    context: GenerationContext
-  ): string {
-    // Check recursion limit
-    if (!incrementRecursion(context)) {
-      throw new Error(`Recursion limit exceeded (${context.config.maxRecursionDepth})`)
-    }
-
-    try {
-      // Get the collection for context
-      const collection = this.collections.get(collectionId)
-      if (!collection) {
-        return ''
-      }
-
-      // Start trace node for template reference evaluation
-      // This wraps the template's internal evaluations so the full result is captured
-      beginTraceNode(context, 'template_ref', `Template: ${template.name || template.id}`, {
-        raw: template.id,
-        parsed: { collectionId, templateId: template.id, pattern: template.pattern }
-      })
-
-      // CRITICAL: Create isolated context for cross-collection template evaluation.
-      // This prevents placeholders from imported templates leaking into the parent context.
-      // Without isolation, table rolls in the imported collection add placeholder keys
-      // that persist and pollute subsequent evaluations in the parent collection.
-      //
-      // We also isolate sharedVariables and sharedVariableSources so that:
-      // 1. The child template's shared variables are evaluated fresh
-      // 2. Side effects (like populating placeholders from table rolls) happen properly
-      // 3. Parent and child can have shared variables with the same name without conflict
-      const isolatedContext: GenerationContext = {
-        ...context,
-        placeholders: new Map(), // Fresh placeholder map - prevents leakage
-        sharedVariables: new Map(context.sharedVariables), // Copy so child can add without affecting parent
-        sharedVariableSources: new Map(context.sharedVariableSources), // Copy for tracking
-      }
-
-      // Evaluate template-level shared variables (lazy evaluation)
-      // For isolated template contexts, we need to re-evaluate shared variables even if
-      // the parent has the same name, because the side effects (populating placeholders)
-      // need to happen in the isolated context.
-      if (template.shared) {
-        for (const name of Object.keys(template.shared)) {
-          // Clear any existing value for this shared variable so it gets re-evaluated
-          // in this isolated context. This ensures that table rolls populate the
-          // isolated placeholders map.
-          isolatedContext.sharedVariables.delete(name)
-          isolatedContext.sharedVariableSources.delete(name)
-        }
-        this.evaluateTableLevelShared(template.shared, isolatedContext, collectionId, template.id)
-      }
-
-      // Evaluate the template pattern using isolated context
-      let text = this.evaluatePattern(template.pattern, isolatedContext, collectionId)
-
-      // Apply document-level conditionals using isolated context
-      if (collection.document.conditionals && collection.document.conditionals.length > 0) {
-        text = applyConditionals(
-          collection.document.conditionals,
-          text,
-          isolatedContext,
-          (pattern: string) => this.evaluatePattern(pattern, isolatedContext, collectionId)
-        )
-      }
-
-      // End trace node with full template result
-      endTraceNode(context, { value: text })
-
-      return text
-    } finally {
-      decrementRecursion(context)
-    }
-  }
-
-  private evaluateMultiRoll(
-    token: {
-      count: number | string
-      diceCount?: string
-      tableId: string
-      unique?: boolean
-      separator?: string
-    },
-    context: GenerationContext,
-    collectionId: string
-  ): string {
-    // Resolve count - can be a number, variable name, or dice expression
-    let count: number
-    let countSource: 'literal' | 'variable' | 'dice' = 'literal'
-
-    if (token.diceCount) {
-      // Roll dice to determine count
-      const diceResult = rollDice(token.diceCount, {
-        maxExplodingDice: context.config.maxExplodingDice,
-      })
-      count = diceResult.total
-      countSource = 'dice'
-    } else if (typeof token.count === 'number') {
-      count = token.count
-      countSource = 'literal'
-    } else {
-      const value = resolveVariable(context, token.count)
-      count = typeof value === 'number' ? value : parseInt(String(value), 10) || 1
-      countSource = 'variable'
-    }
-
-    // Try to resolve as a table first
-    const table = this.getTable(token.tableId, collectionId)
-
-    // If not a table, check if it's a template
-    if (!table) {
-      const templateResult = this.resolveTemplateRef(token.tableId, collectionId)
-      if (templateResult) {
-        // Handle template multi-roll
-        return this.evaluateMultiRollTemplate(
-          templateResult.template,
-          templateResult.collectionId,
-          count,
-          countSource,
-          token,
-          context
-        )
-      }
-      console.warn(`Table or template not found: ${token.tableId}`)
-      return ''
-    }
-
-    // Start multi_roll trace node
-    beginTraceNode(context, 'multi_roll', `${count}x ${token.tableId}`, {
-      raw: `${token.count}*${token.tableId}`,
-      parsed: { count, tableId: token.tableId, unique: token.unique }
-    })
-
-    const results: string[] = []
-    const usedIds = new Set<string>()
-
-    for (let i = 0; i < count; i++) {
-      const result = this.rollTable(table, context, collectionId, {
-        unique: token.unique,
-        excludeIds: token.unique ? usedIds : undefined,
-      })
-
-      if (result.text) {
-        results.push(result.text)
-        if (result.entryId) {
-          usedIds.add(result.entryId)
-        }
-      }
-    }
-
-    const finalResult = results.join(token.separator ?? ', ')
-
-    // End multi_roll trace node
-    endTraceNode(context, { value: finalResult }, {
-      type: 'multi_roll',
-      tableId: token.tableId,
-      countSource,
-      count,
-      unique: token.unique ?? false,
-      separator: token.separator ?? ', ',
-    } as MultiRollMetadata)
-
-    return finalResult
-  }
-
-  /**
-   * Handle multi-roll for templates (e.g., {{4*simpleNpc}})
-   * Note: 'unique' modifier is ignored for templates since they don't have entry IDs
-   */
-  private evaluateMultiRollTemplate(
-    template: Template,
-    templateCollectionId: string,
-    count: number,
-    countSource: 'literal' | 'variable' | 'dice',
-    token: { tableId: string; unique?: boolean; separator?: string; count: number | string },
-    context: GenerationContext
-  ): string {
-    // Start multi_roll trace node for template
-    beginTraceNode(context, 'multi_roll', `${count}x ${token.tableId} (template)`, {
-      raw: `${token.count}*${token.tableId}`,
-      parsed: { count, tableId: token.tableId, unique: token.unique, isTemplate: true }
-    })
-
-    const results: string[] = []
-
-    for (let i = 0; i < count; i++) {
-      const result = this.evaluateTemplateInternal(template, templateCollectionId, context)
-      if (result) {
-        results.push(result)
-      }
-    }
-
-    const finalResult = results.join(token.separator ?? ', ')
-
-    // End multi_roll trace node
-    endTraceNode(context, { value: finalResult }, {
-      type: 'multi_roll',
-      tableId: token.tableId,
-      countSource,
-      count,
-      unique: false, // unique not applicable for templates
-      separator: token.separator ?? ', ',
-    } as MultiRollMetadata)
-
-    return finalResult
-  }
-
-  private evaluateAgain(
-    token: { count?: number; unique?: boolean; separator?: string },
-    context: GenerationContext,
-    collectionId: string
-  ): string {
-    if (!context.currentTableId) {
-      console.warn('{{again}} used outside of table context')
-      return ''
-    }
-
-    const table = this.getTable(context.currentTableId, collectionId)
-    if (!table) {
-      return ''
-    }
-
-    // Exclude the current entry to prevent infinite loops
-    const excludeIds = new Set<string>()
-    if (context.currentEntryId) {
-      excludeIds.add(context.currentEntryId)
-    }
-
-    const count = token.count ?? 1
-    const results: string[] = []
-
-    for (let i = 0; i < count; i++) {
-      const result = this.rollTable(table, context, collectionId, {
-        unique: token.unique,
-        excludeIds,
-      })
-
-      if (result.text) {
-        results.push(result.text)
-        if (result.entryId && token.unique) {
-          excludeIds.add(result.entryId)
-        }
-      }
-    }
-
-    return results.join(token.separator ?? ', ')
-  }
-
-  private evaluateInstance(
-    token: { tableId: string; instanceName: string },
-    context: GenerationContext,
-    collectionId: string
-  ): string {
-    // Check if instance already exists
-    const existing = getInstance(context, token.instanceName)
-    if (existing) {
-      // Add instance trace for cache hit
-      addTraceLeaf(context, 'instance', `Instance: ${token.instanceName} (cached)`, {
-        raw: `${token.tableId}#${token.instanceName}`,
-      }, {
-        value: existing.text,
-        cached: true,
-      }, {
-        type: 'instance',
-        name: token.instanceName,
-        cached: true,
-        tableId: token.tableId,
-      } as InstanceMetadata)
-
-      return existing.text
-    }
-
-    // Roll and store the instance
-    const table = this.getTable(token.tableId, collectionId)
-    if (!table) {
-      console.warn(`Table not found: ${token.tableId}`)
-      return ''
-    }
-
-    // Start instance trace node (new roll)
-    beginTraceNode(context, 'instance', `Instance: ${token.instanceName}`, {
-      raw: `${token.tableId}#${token.instanceName}`,
-      parsed: { tableId: token.tableId, instanceName: token.instanceName }
-    })
-
-    const result = this.rollTable(table, context, collectionId)
-
-    const rollResult: RollResult = {
-      text: result.text,
-      resultType: result.resultType,
-      assets: result.assets,
-      placeholders: result.placeholders,
-      metadata: {
-        sourceId: token.tableId,
-        collectionId,
-        timestamp: Date.now(),
-        entryId: result.entryId,
-      },
-    }
-
-    setInstance(context, token.instanceName, rollResult)
-
-    // End instance trace node
-    endTraceNode(context, { value: result.text, cached: false }, {
-      type: 'instance',
-      name: token.instanceName,
-      cached: false,
-      tableId: token.tableId,
-    } as InstanceMetadata)
-
-    return result.text
-  }
-
-  // ============================================================================
-  // Capture System Evaluation
-  // ============================================================================
-
-  /**
-   * Evaluate capture multi-roll: {{3*table >> $var}}
-   * Captures each roll's value and resolved sets into a capture variable
-   */
-  private evaluateCaptureMultiRoll(
-    token: {
-      count: number | string
-      diceCount?: string
-      tableId: string
-      alias?: string
-      namespace?: string
-      unique?: boolean
-      captureVar: string
-      separator?: string
-      silent?: boolean
-    },
-    context: GenerationContext,
-    collectionId: string
-  ): string {
-    // Check for variable name conflict
-    const conflict = hasVariableConflict(context, token.captureVar)
-    if (conflict) {
-      console.warn(
-        `Capture variable '$${token.captureVar}' overwrites existing ${conflict} variable`
-      )
-    }
-
-    // Resolve count - can be a number, variable name, or dice expression
-    let count: number
-
-    if (token.diceCount) {
-      // Roll dice to determine count
-      const diceResult = rollDice(token.diceCount, {
-        maxExplodingDice: context.config.maxExplodingDice,
-      })
-      count = diceResult.total
-    } else if (typeof token.count === 'number') {
-      count = token.count
-    } else {
-      const value = resolveVariable(context, token.count)
-      count = typeof value === 'number' ? value : parseInt(String(value), 10) || 1
-    }
-
-    // Build full table reference with namespace if provided
-    let tableRef = token.tableId
-    if (token.namespace) {
-      tableRef = `${token.namespace}.${token.tableId}`
-    } else if (token.alias) {
-      tableRef = `${token.alias}.${token.tableId}`
-    }
-
-    const tableResult = this.resolveTableRef(tableRef, collectionId)
-    if (!tableResult) {
-      console.warn(`Table not found: ${tableRef}`)
-      return ''
-    }
-
-    const { table, collectionId: resolvedCollectionId } = tableResult
-
-    // Start capture_multi_roll trace node
-    beginTraceNode(
-      context,
-      'capture_multi_roll',
-      `${count}x ${token.tableId} >> $${token.captureVar}`,
-      {
-        raw: `${token.count}*${token.tableId} >> $${token.captureVar}`,
-        parsed: {
-          count,
-          tableId: token.tableId,
-          captureVar: token.captureVar,
-          unique: token.unique,
-          silent: token.silent,
-        },
-      }
-    )
-
-    const captureItems: CaptureItem[] = []
-    const results: string[] = []
-    const usedIds = new Set<string>()
-
-    for (let i = 0; i < count; i++) {
-      // Track description count before roll to find new descriptions
-      const descCountBefore = context.collectedDescriptions.length
-      const result = this.rollTable(table, context, resolvedCollectionId, {
-        unique: token.unique,
-        excludeIds: token.unique ? usedIds : undefined,
-      })
-
-      if (result.text) {
-        results.push(result.text)
-
-        // Get the first description added by this roll (the entry's own description)
-        const newDescriptions = context.collectedDescriptions.slice(descCountBefore)
-        const entryDescription = newDescriptions.length > 0 ? newDescriptions[0].description : undefined
-
-        // Sets are already evaluated at merge time in evaluateSetValues()
-        // Just use the placeholders directly
-        captureItems.push({
-          value: result.text,
-          sets: result.placeholders ?? {},
-          description: entryDescription,
-        })
-
-        if (result.entryId) {
-          usedIds.add(result.entryId)
-        }
-      }
-    }
-
-    // Store capture variable
-    const captureVariable: CaptureVariable = {
-      items: captureItems,
-      count: captureItems.length,
-    }
-    setCaptureVariable(context, token.captureVar, captureVariable)
-
-    // Determine output
-    let finalResult: string
-    if (token.silent) {
-      finalResult = ''
-    } else {
-      finalResult = results.join(token.separator ?? ', ')
-    }
-
-    // End capture_multi_roll trace node
-    endTraceNode(
-      context,
-      { value: finalResult },
-      {
-        type: 'capture_multi_roll',
-        tableId: token.tableId,
-        captureVar: token.captureVar,
-        count: captureItems.length,
-        unique: token.unique ?? false,
-        silent: token.silent ?? false,
-        separator: token.separator ?? ', ',
-        capturedItems: captureItems.map(item => ({
-          value: item.value,
-          sets: item.sets,
-        })),
-      } as CaptureMultiRollMetadata
-    )
-
-    return finalResult
-  }
-
-  /**
-   * Evaluate capture access: {{$var}}, {{$var[0]}}, {{$var.count}}, {{$var[0].@prop}}
-   * Also handles capture-aware shared variables: {{$hero}}, {{$hero.@prop}}
-   *
-   * Dynamic table resolution: When accessing a property that contains a table ID,
-   * the engine will roll on that table and return the result.
-   */
-  private evaluateCaptureAccess(
-    token: {
-      varName: string
-      index?: number
-      properties?: string[]
-      separator?: string
-    },
-    context: GenerationContext,
-    collectionId: string
-  ): string {
-    // Try to get from capture variables first, then fall back to capture-aware shared variables
-    const capture = getCaptureVariable(context, token.varName)
-    const captureShared = getCaptureSharedVariable(context, token.varName)
-
-    // Build label for trace
-    let label = `$${token.varName}`
-    if (token.index !== undefined) label += `[${token.index}]`
-    if (token.properties && token.properties.length > 0) {
-      label += '.' + token.properties.map((p) => `@${p}`).join('.')
-    }
-
-    // Handle capture-aware shared variables (single item, no index needed)
-    if (!capture && captureShared) {
-      return this.evaluateCaptureSharedAccess(token, captureShared, context, collectionId, label)
-    }
-
-    if (!capture) {
-      console.warn(`Capture variable not found: $${token.varName} (forward reference?)`)
-      addTraceLeaf(
-        context,
-        'capture_access',
-        label,
-        { raw: label },
-        { value: '', error: 'Variable not found' },
-        {
-          type: 'capture_access',
-          varName: token.varName,
-          index: token.index,
-          property: token.properties?.[0] ?? 'value',
-          found: false,
-        } as CaptureAccessMetadata
-      )
-      return ''
-    }
-
-    let result: string
-    const firstProp = token.properties?.[0]
-
-    // Handle .count property (no index)
-    if (firstProp === 'count' && token.index === undefined) {
-      result = String(capture.count)
-      addTraceLeaf(
-        context,
-        'capture_access',
-        label,
-        { raw: label },
-        { value: result },
-        {
-          type: 'capture_access',
-          varName: token.varName,
-          property: 'count',
-          found: true,
-          totalItems: capture.items.length,
-        } as CaptureAccessMetadata
-      )
-      return result
-    }
-
-    // Handle indexed access
-    if (token.index !== undefined) {
-      // Resolve negative index
-      let resolvedIndex = token.index
-      if (resolvedIndex < 0) {
-        resolvedIndex = capture.items.length + resolvedIndex
-      }
-
-      // Check bounds
-      if (resolvedIndex < 0 || resolvedIndex >= capture.items.length) {
-        console.warn(
-          `Capture access out of bounds: $${token.varName}[${token.index}] ` +
-            `(length: ${capture.items.length})`
-        )
-        addTraceLeaf(
-          context,
-          'capture_access',
-          label,
-          { raw: label },
-          { value: '', error: `Index out of bounds (${capture.items.length} items)` },
-          {
-            type: 'capture_access',
-            varName: token.varName,
-            index: token.index,
-            property: firstProp ?? 'value',
-            found: false,
-            totalItems: capture.items.length,
-          } as CaptureAccessMetadata
-        )
-        return ''
-      }
-
-      const item = capture.items[resolvedIndex]
-
-      // Handle property chain access on indexed item
-      if (token.properties && token.properties.length > 0) {
-        result = this.traversePropertyChain(item, token.properties, `$${token.varName}[${token.index}]`)
-      } else {
-        // Just indexed access - return value
-        result = item.value
-      }
-
-      addTraceLeaf(
-        context,
-        'capture_access',
-        label,
-        { raw: label },
-        { value: result },
-        {
-          type: 'capture_access',
-          varName: token.varName,
-          index: token.index,
-          property: firstProp ?? 'value',
-          found: true,
-          totalItems: capture.items.length,
-        } as CaptureAccessMetadata
-      )
-      return result
-    }
-
-    // Handle property access without index (on all items)
-    // For chained access, we only use the first property for collecting
-    if (firstProp && firstProp !== 'value' && firstProp !== 'count') {
-      // Collect this property from all items
-      // For chained properties, traverse each item's property chain
-      const values = capture.items.map((item) => {
-        if (token.properties && token.properties.length > 0) {
-          return this.traversePropertyChain(item, token.properties, `$${token.varName}`)
-        }
-        return item.value
-      })
-      result = values.filter((v) => v !== '').join(token.separator ?? ', ')
-    } else {
-      // Handle all values (no property or property is 'value')
-      const values = capture.items.map((item) => item.value)
-      result = values.join(token.separator ?? ', ')
-    }
-
-    addTraceLeaf(
-      context,
-      'capture_access',
-      label,
-      { raw: label },
-      { value: result },
-      {
-        type: 'capture_access',
-        varName: token.varName,
-        property: firstProp ?? 'value',
-        found: true,
-        totalItems: capture.items.length,
-      } as CaptureAccessMetadata
-    )
-
-    return result
-  }
-
-  /**
-   * Traverse a chain of properties through nested CaptureItems.
-   * Example: traversePropertyChain(item, ["situation", "focus"], "$conflict")
-   * Returns the final string value, or empty string if chain breaks.
-   */
-  private traversePropertyChain(
-    item: CaptureItem,
-    properties: string[],
-    pathPrefix: string
-  ): string {
-    let current: CaptureItem = item
-
-    for (let i = 0; i < properties.length; i++) {
-      const prop = properties[i]
-      const currentPath = `${pathPrefix}.@${prop}`
-
-      // Handle special properties
-      if (prop === 'value') {
-        // If more properties follow, this is invalid
-        if (i < properties.length - 1) {
-          console.warn(`Cannot access properties after .value: ${currentPath}`)
-          return ''
-        }
-        return current.value
-      }
-      if (prop === 'count') {
-        // count is always terminal - capture-aware shared is always 1 item
-        if (i < properties.length - 1) {
-          console.warn(`Cannot access properties after .count: ${currentPath}`)
-          return ''
-        }
-        return '1'
-      }
-      if (prop === 'description') {
-        if (i < properties.length - 1) {
-          console.warn(`Cannot access properties after .description: ${currentPath}`)
-          return ''
-        }
-        return current.description ?? ''
-      }
-
-      // Regular property access
-      const propValue = current.sets[prop]
-      if (propValue === undefined) {
-        console.warn(`Property not found: ${currentPath}`)
-        return ''
-      }
-
-      // If this is the last property, return the value
-      if (i === properties.length - 1) {
-        if (typeof propValue === 'string') {
-          return propValue
-        } else {
-          return propValue.value
-        }
-      }
-
-      // Need to continue traversing - must be a nested CaptureItem
-      if (typeof propValue === 'string') {
-        console.warn(`Cannot chain through string property: ${currentPath}`)
-        return ''
-      }
-
-      current = propValue
-      pathPrefix = currentPath
-    }
-
-    return current.value
-  }
-
-  /**
-   * Get a nested CaptureItem by traversing through property chain.
-   * Returns null if any property in the chain is not a CaptureItem.
-   * Used for storing intermediate captures in capture-aware shared variables.
-   */
-  private getNestedCaptureItem(item: CaptureItem, properties: string[]): CaptureItem | null {
-    let current = item
-    for (const prop of properties) {
-      // Terminal properties can't be traversed further
-      if (prop === 'value' || prop === 'count' || prop === 'description') {
-        return null
-      }
-      const propValue = current.sets[prop]
-      if (!propValue || typeof propValue === 'string') {
-        return null // Not a nested CaptureItem
-      }
-      current = propValue
-    }
-    return current
-  }
-
-  /**
-   * Handle access to capture-aware shared variables.
-   * These are single items (not arrays), so no index is needed.
-   * Supports chained property access: {{$var.@a.@b.@c}}
-   */
-  private evaluateCaptureSharedAccess(
-    token: {
-      varName: string
-      index?: number
-      properties?: string[]
-      separator?: string
-    },
-    item: CaptureItem,
-    context: GenerationContext,
-    _collectionId: string,
-    label: string
-  ): string {
-    let result: string
-
-    // Handle property chain access
-    if (token.properties && token.properties.length > 0) {
-      result = this.traversePropertyChain(item, token.properties, `$${token.varName}`)
-    } else {
-      // No properties - return the value
-      result = item.value
-    }
-
-    addTraceLeaf(
-      context,
-      'capture_access',
-      label,
-      { raw: label },
-      { value: result },
-      {
-        type: 'capture_access',
-        varName: token.varName,
-        property: token.properties?.[0] ?? 'value',
-        found: true,
-        totalItems: 1,
-        isCaptureShared: true,
-      } as CaptureAccessMetadata
-    )
-
-    return result
-  }
-
-  /**
-   * Evaluate collect expression: {{collect:$var.@prop}}
-   * Aggregates a property across all captured items.
-   * Also supports capture-aware shared variables (though collect typically makes more sense for multi-roll captures).
-   */
-  private evaluateCollect(
-    token: {
-      varName: string
-      property: string
-      unique?: boolean
-      separator?: string
-    },
-    context: GenerationContext,
-    _collectionId: string
-  ): string {
-    const label = `collect:$${token.varName}.${token.property}${token.unique ? '|unique' : ''}`
-    const capture = getCaptureVariable(context, token.varName)
-    const captureShared = getCaptureSharedVariable(context, token.varName)
-
-    // Handle capture-aware shared variables (single item)
-    // Sets are already evaluated at merge time, so just return the value
-    if (!capture && captureShared) {
-      let result: string
-      if (token.property === 'value') {
-        result = captureShared.value
-      } else if (token.property === 'description') {
-        result = captureShared.description ?? ''
-      } else {
-        const propValue = captureShared.sets[token.property]
-        if (propValue === undefined) {
-          result = ''
-        } else if (typeof propValue === 'string') {
-          result = propValue
-        } else {
-          // Nested CaptureItem - return its value string
-          result = propValue.value
-        }
-      }
-
-      addTraceLeaf(
-        context,
-        'collect',
-        label,
-        { raw: label },
-        { value: result },
-        {
-          type: 'collect',
-          varName: token.varName,
-          property: token.property,
-          unique: token.unique ?? false,
-          separator: token.separator ?? ', ',
-          allValues: [result].filter((v) => v !== ''),
-          resultValues: [result].filter((v) => v !== ''),
-        } as CollectMetadata
-      )
-
-      return result
-    }
-
-    if (!capture) {
-      console.warn(`Capture variable not found: $${token.varName} (forward reference?)`)
-      addTraceLeaf(
-        context,
-        'collect',
-        label,
-        { raw: label },
-        { value: '', error: 'Variable not found' },
-        {
-          type: 'collect',
-          varName: token.varName,
-          property: token.property,
-          unique: token.unique ?? false,
-          separator: token.separator ?? ', ',
-          allValues: [],
-          resultValues: [],
-        } as CollectMetadata
-      )
-      return ''
-    }
-
-    // Collect values from captured items
-    // Sets are already evaluated at merge time, so just return the values
-    let allValues: string[]
-
-    if (token.property === 'value') {
-      allValues = capture.items.map((item) => item.value)
-    } else if (token.property === 'description') {
-      // @description access
-      allValues = capture.items.map((item) => item.description ?? '')
-    } else {
-      // @property access (property stored without @)
-      // Handle nested CaptureItems - extract the value string
-      allValues = capture.items.map((item) => {
-        const propValue = item.sets[token.property]
-        if (propValue === undefined) return ''
-        if (typeof propValue === 'string') return propValue
-        return propValue.value // Nested CaptureItem
-      })
-    }
-
-    // Filter empty strings (as per design decision)
-    let resultValues = allValues.filter((v) => v !== '')
-
-    // Apply unique modifier
-    if (token.unique) {
-      resultValues = [...new Set(resultValues)]
-    }
-
-    const result = resultValues.join(token.separator ?? ', ')
-
-    addTraceLeaf(
-      context,
-      'collect',
-      label,
-      { raw: label },
-      { value: result },
-      {
-        type: 'collect',
-        varName: token.varName,
-        property: token.property,
-        unique: token.unique ?? false,
-        separator: token.separator ?? ', ',
-        allValues: allValues.filter((v) => v !== ''), // Pre-filtered values
-        resultValues,
-      } as CollectMetadata
-    )
-
-    return result
-  }
 }
 
 // ==========================================================================

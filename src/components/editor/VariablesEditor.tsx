@@ -96,6 +96,7 @@ export function VariablesEditor({
             keyError="Must start with optional $, then letter/underscore, alphanumeric only"
             valueSupportsExpressions
             collectionId={collectionId}
+            highlightCaptureAware
           />
         </div>
       </section>

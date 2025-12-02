@@ -162,7 +162,7 @@ export function KeyValueEditor({
               }}
               className={cn(
                 "editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0",
-                isCaptureAware && "text-rose-600 dark:text-rose-400 border-rose-400 dark:border-rose-600"
+                isCaptureAware && "capture-aware"
               )}
               placeholder={keyPlaceholder}
               title={isCaptureAware ? "Capture-aware: use {{$" + displayKey.slice(1) + ".@property}} to access sets" : undefined}
@@ -222,7 +222,7 @@ export function KeyValueEditor({
               onKeyDown={(e) => e.key === 'Enter' && addEntry()}
               className={cn(
                 "editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0",
-                newKeyIsCaptureAware && "text-rose-600 dark:text-rose-400 border-rose-400 dark:border-rose-600"
+                newKeyIsCaptureAware && "capture-aware"
               )}
               placeholder={keyPlaceholder}
             />

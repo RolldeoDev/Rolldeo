@@ -1,0 +1,250 @@
+--- Page 4 ---
+                           Table of Contents
+            Into the Waiting Night                                                                     1
+            Character Creation                                                                        3
+            Psionics                                                                                 29
+            Systems                                                                                  45
+            Equipment and Vehicles                                                                    61
+            Starships                                                                                93
+            The History of Space                                                                     121
+            Sector Creation                                                                         129
+            Adventure Creation                                                                      173
+            Xenobestiary                                                                            193
+            Factions                                                                                 211
+            Game Master Resources                                                                   231
+
+                                           Like What You See?
+            If you enjoy the content in this free version of Stars Without Number: Revised Edition, you can
+            get even more with the PDF and print versions at DriveThruRPG.
+                 What does the paid version add? It includes transhuman campaign rules for body-swap-
+            ping post-scarcity adventures, OSR-compatible “space magic” for GMs who like a little more
+            fantasy in their sci-fi, heroic PC rules for star-striding space operatic protagonists, True AI
+            rules for playing the half-embodied godminds of the far future, planetary society guidelines
+            for building interesting new cultures, and mech rules for campaigns that like a little humanoid
+            armored vehicle spice to their play. All told, it’s more than sixty pages of piping-hot content.
+                 And if even that isn’t enough, scoop up some of the existing first edition Stars Without
+            Number offerings, like the space-navy adventures of Skyward Steel, the espionage campaign
+            tools of Darkness Visible, or the merchant trader guide that is Suns of Gold. This revised version
+            was built for backward compatibility, so nothing will stop your all-new adventures.
+
+
+
+ISBN 978-1-936673-94-0
+©2017 Sine Nomine Publishing, Inc.
+Written by Kevin Crawford
+Cover background provided by NASA, ESA, and The Hubble Heritage Team (STScI), and edited by Jeff Brown.
+Interior art by Jeff Brown, Christof Grobelski, Norah Khor, Aaron Lee, Joyce Maureira, Nick Ong, Grzegorz Pedrycz,
+and Tan Ho Sim. Some art © grandfailure / Adobe Stock.
+Character sheet by Brian McGillivray
+
+--- Page 248 ---
+244• One-Roll NPCs
+
+
+One-Roll NPCs
+There will be times when a GM needs an NPC on short
+notice. The preceding name generators can be used in        d4                      Age
+conjunction with these tables to quickly produce a mi-       1    Unusually young or old for their role
+nor fill-in character for your adventure. Simply roll one    2    Young adult
+of each type of die: d4, d6, d8, d10, d12, and d20. Match
+them to the tables, smooth over any rough joins, and        3     Mature prime
+you have your instant NPC.                                  4     Middle-aged or elderly
+     When combat statistics are needed, just apply the
+most pertinent stat line from page 195 and assume they
+                                                            d12           Their Greatest Desire
+have whatever weaponry, armor, or other personal
+possessions might be appropriate for someone in their        1    They want a particular romantic partner
+social circumstance.                                        2     They want money for them or a loved one
+                                                            3     They want a promotion in their job
+                                                            4     They want answers about a past trauma
+                                                             5    They want revenge on an enemy
+   d6                Their Background                        6    They want to help a beleaguered friend
+    1    The local underclass or poorest natives            7     They want an entirely different job
+   2     Common laborers or cube workers                    8     They want protection from an enemy
+   3     Aspiring bourgeoise or upper class                 9     They want to leave their current life
+   4     The elite of this society                          10    They want fame and glory
+   5      Minority or foreigners; reroll on 1d4              11   They want power over those around them
+   6      Offworlders or exotics; reroll on 1d4             12    They have everything they want from life
+
+
+   d8               Their Role in Society                   d20         Most Obvious Character Trait
+    1    Criminal, thug, thief, swindler                     1    Ambition
+   2      Menial, cleaner, retail worker, servant            2    Avarice
+   3      Unskilled heavy labor, porter, construction       3     Bitterness
+   4      Skilled trade, electrician, mechanic, pilot       4     Courage
+   5      Idea worker, programmer, writer                    5    Cowardice
+   6      Merchant, business owner, trader, banker           6    Curiosity
+   7     Official, bureaucrat, courtier, clerk              7     Deceitfulness
+   8      Military, soldier, enforcer, law officer           8    Determination
+                                                            9     Devotion to a cause
+  d10               Their Biggest Problem                   10    Filiality
+    1    They have significant debt or money woes            11   Hatred
+   2     A loved one is in trouble; reroll for it           12    Honesty
+   3      Romantic failure with a desired person            13    Hopefulness
+   4      Drug or behavioral addiction                      14    Love of a person
+   5     Their superior dislikes or resents them            15    Nihilism
+   6     They have a persistent sickness                    16    Paternalism
+   7     They hate their job or life situation              17    Pessimism
+   8      Someone dangerous is targeting them               18    Protectiveness
+   9     They’re pursuing a disastrous purpose              19    Resentment
+   10    They have no problems worth mentioning             20    Shame
+
+--- Page 249 ---
+                                                                              One-Roll Patrons •245
+
+
+One-Roll Patrons
+PCs often need patrons to aim them at adventures or
+offer suitable recompense for semi-legal favors. In con-    d4           Patron Eagerness to Hire
+junction with the adjacent one-roll NPC tables, you can      1    Cautious, but can be convinced to hire
+use the tools below to quickly generate a patron and        2     Willing to promise standard rates
+what it is they want from the party.
+     One particularly convenient technique is to have       3     Eager, willing to offer a bonus
+a few short filler adventures drawn up as described on      4     Desperate, might offer what they can’t pay
+page 177, and then when the players suddenly need
+a job or need a favor that only a cooperative patron
+                                                            d12        Potential Non-Cash Rewards
+could provide, use the patron to hook them up with
+the filler adventure. If you lack a convenient premade       1    Government official favors owed
+adventure, it’s usually most practical to have the patron    2    Property in the area
+request some simple, direct, one-scene job that you feel    3     An item very valuable on another world
+comfortable in running on the fly. You can consult page
+178 to find appropriate pay rates for different patrons.    4     Pretech mod components
+                                                             5    Useful pretech artifact
+   d6            Patron Trustworthiness                      6    Information the PCs need
+    1    They intend to totally screw the PCs               7     Membership in a powerful group
+   2     They won’t pay unless forced to do so               8    Black market access
+   3     They’ll pay slowly or reluctantly                  9     Use of restricted facilities or shipyards
+   4     They’ll pay, but discount for mistakes             10    Shares in a profitable business
+   5     They’ll pay without quibbling                       11   Maps to a hidden or guarded treasure
+   6     They’ll pay more than they promised                12    Illegal but valuable weapons or gear
+
+
+   d8             Basic Challenge of the Job                d20             Complication to the Job
+    1     Kill somebody who might deserve it                 1    An ambush is laid somewhere
+   2      Kidnap someone dangerous                           2    PC involvement is leaked to the enemy
+   3      Steal a well-guarded object                       3     The patron gives faulty aid somehow
+   4     Arson or sabotage on a place                       4     Failing would be extremely unhealthy
+   5      Get proof of some misdeed                          5    The job IDs them as allies of a local faction
+   6      Protect someone from an immediate threat           6    The macguffin is physically dangerous
+   7     Transport someone through danger                   7     An important location is hard to get into
+   8      Guard an object being transported                 8     Succeeding would be morally distasteful
+                                                            9     A supposed ally is very unhelpful or stupid
+  d10             Main Countervailing Force                 10    The patron badly misunderstood the PCs
+    1    A treacherous employer or subordinate               11   The job changes suddenly partway through
+   2     An open and known enemy of the patron              12    An unexpected troublemaker is involved
+   3      Official governmental meddling                    13    Critical gear will fail partway through
+   4     An unknown rival of the patron                     14    An unrelated accident complicates things
+   5     The macguffin itself opposes them                  15    Payment comes in a hard-to-handle form
+   6     Very short time frame allowed                      16    Someone is turning traitor on the patron
+   7     The job is spectacularly illegal                   17    A critical element has suddenly moved
+   8     A participant would profit by their failure        18    Payment is in avidly-pursued hot goods
+   9     The patron is badly wrong about a thing            19    The true goal is a subsidiary part of the job
+   10    The locals are against the patron                  20    No complications; it’s just as it seems to be
+
+--- Page 250 ---
+246• One-Roll Urban Encounters
+
+
+One-Roll Urban Encounters
+There are inevitably times when a GM needs some-
+thing to distract the PCs quickly. A quick encounter,         d4         What’s the Conflict About?
+whether in the urban jungles or the alien wastes, can          1    Money, extortion, payment due, debts
+buy a GM the time they need to puzzle out some larger          2    Respect, submission to social authority
+problem. The tables here can be used to create a simple
+urban event to occupy the PCs for a little while.             3     Grudges, ethnic resentment, gang payback
+     The exact details of the event will have to be sup-      4     Politics, religion, or other ideology
+plied by the GM in such a way as to fit the planet’s
+culture and situation, but the goal of the tables is to
+                                                              d12        What Antagonists are Involved?
+provide a fast conflict that the PCs can interact with
+meaningfully. If the PCs resist the hook, it’s a relatively    1    A local bully and their thugs
+simple matter to make the avoidance of it enough of a         2     A ruthless political boss and their zealots
+challenge that it buys you the time you needed in the         3     Violent criminals
+first place. Don’t force the PCs to engage with it, but
+let them work a little to get free.                           4     Religious fanatics
+                                                               5    A blisteringly obnoxious offworlder
+   d6            General Venue of the Event                    6    Corrupt or over-strict government official
+    1     In the middle of the street                         7     A mob of intoxicated locals
+   2      In a public plaza                                    8    A ranting demagogue and their followers
+   3      Down a side alley                                   9     A stupidly bull-headed local grandee
+   4      Inside a local business                             10    A very capable assassin or strong-arm
+   5      Next to or in a public park                          11   A self-centered local scion of power
+   6      At a mass-transit station                           12    A confused foreigner or backwoodsman
+
+
+   d8           Why are the PCs Involved?                     d20            Relevant Urban Features
+    1     A sympathetic participant appeals to them            1    Heavy traffic running through the place
+   2      Ways around it are all dangerous/blocked             2    Music blaring at deafening volumes
+   3      It happens immediately around them                  3     Two groups present that detest each other
+   4      A valuable thing looks snatchable amid it           4     Large delivery taking place right there
+   5      A participant offers a reward for help               5    Swarm of schoolkids or feral youth
+   6      Someone mistakenly involves the PCs in it            6    Insistent soapbox preacher here
+   7      The seeming way out just leads deeper in            7     Several pickpockets working the crowd
+   8      Responsibility is somehow pinned on them             8    A kiosk is tipping over and spilling things
+                                                              9     Streetlights are out or visibility is low
+  d10          What’s the Nature of the Event?                10    A cop patrol is here and reluctant to act
+    1     A parade or festival is being disrupted              11   PC-hostile reporters are recording here
+   2      Innocents are being assaulted                       12    Someone’s trying to sell something to PCs
+   3      An establishment is being robbed                    13    Feral dogs or other animals crowd here
+   4      A disturbance over local politics happens           14    Unrelated activists are protesting here
+   5      Someone is being blamed for something               15    Street kids are trying to steal from the PCs
+   6      Fires or building collapses are happening           16    GPS maps are dangerously wrong here
+   7      A medical emergency is happening                    17    Downed power lines are a danger here
+   8      Someone’s trying to cheat the PCs                   18    Numerous open manholes and utility holes
+   9      A vehicle accident is happening                     19    The street’s blockaded by something
+   10     A religious ceremony is being disrupted             20    Crowds so thick one can barely move
+
+--- Page 251 ---
+                                                            One-Roll Wilderness Encounters •247
+
+
+One-Roll Wilderness Encounters
+Building appropriate wilderness encounters will vary
+greatly with the planet in question, but the tables below   d4              Initial Encounter Range
+assume that the wilderness is on an inhabited world          1    Visible from a long distance away
+with some vague analogs to Terran terrain and veg-           2    Noticed 1d4 hundred meters away
+etation. If the world is devoid of human inhabitants,
+replace the features with alien relics or the remnants      3     Noticed only within 1d6 x 10 meters
+of scouts or lost colonies.                                 4     Noticed only when adjacent to the event
+     The tables below provide a suggested time of day
+and initial distance for the encounter, but these base-
+                                                            d12          Types of Hostile Creatures
+lines will vary depending on the choices and capabilities
+of the PCs. Some encounters are unlikely to occur at         1    Bandits in their wilderness hideout
+night, unless the parties involved are traveling or oth-     2    Dangerous locals looking for easy marks
+erwise active despite the dark. Suggestions are given       3     Rabid or diseased large predator
+for likely-hostile and likely-friendly creatures, but a
+reaction roll will influence attitudes greatly.             4     Pack of hungry hunting beasts
+                                                             5    Herd of potentially dangerous prey animals
+   d6              Weather and Lighting                      6    Swarm of dangerous vermin
+    1    Takes place in daylight and clear weather          7     Criminal seeking to evade the law
+   2     Daylight, but fog, mist, rain or the like           8    Brutal local landowner and their men
+   3     Daylight, but harsh seasonal weather               9     Crazed hermit seeking enforced solitude
+   4     Night encounter, but clear weather                 10    Friendly-seeming guide into lethal danger
+   5     Night, with rain or other obscuring effects         11   Harmless-looking but dangerous beast
+   6     Night, with terrible weather and wind              12    Confidence man seeking to gull the PCs
+
+
+   d8          Basic Nature of the Encounter                d20    Specific Nearby Feature of Relevance
+    1    Attack by pack of hostiles                          1    Overgrown homestead
+   2     Ambush by single lone hostile                       2    Stream prone to flash-flooding
+   3     Meet people who don’t want to be met               3     Narrow bridge or beam over deep cleft
+   4     Encounter people in need of aid                    4     Box canyon with steep sides
+   5     Encounter hostile creatures                         5    Unstable hillside that slides if disturbed
+   6     Nearby feature is somehow dangerous                 6    Long-lost crash site of a gravflyer
+   7     Nearby feature promises useful loot                7     Once-inhabited cave or tunnel
+   8     Meet hostiles that aren’t immediately so            8    Steep and dangerous cliff
+                                                            9     Quicksand-laden swamp or dust pit
+  d10           Types of Friendly Creatures                 10    Ruins of a ghost town or lost hamlet
+    1    Affable but reclusive hermit                        11   Hunting cabin with necessities
+   2     Local herd animal let loose to graze               12    Ill-tended graveyard of a lost family stead
+   3     Government ranger or circuit judge                 13    Narrow pass that’s easily blocked
+   4     Curious local animal                               14    Dilapidated resort building
+   5     Remote homesteader and family                      15    Remote government monitoring outpost
+   6     Working trapper or hunter                          16    Illicit substance farm or processing center
+   7     Back-country villager or native                    17    Old and forgotten battleground
+   8     Hiker or wilderness tourist                        18    Zone overrun by dangerous plants
+   9     Religious recluse or holy person                   19    Thick growth that lights up at a spark
+   10    Impoverished social exile                          20    Abandoned vehicle
+

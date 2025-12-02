@@ -1547,6 +1547,33 @@ When this entry is selected:
 
 **Pattern syntax is required for dynamic content.** A value like `"elfNames"` will be treated as a literal string, not a table reference. Use `"{{elfNames}}"` to roll a table.
 
+**Reserved Set Names:**
+
+The following property names are reserved and should **not** be used as keys in `sets`:
+
+| Reserved Name | Reason |
+|---------------|--------|
+| `description` | Use the entry's `description` field instead. Using `description` in sets can cause unexpected behavior with `{{@self.description}}` and UI display. |
+
+**Correct Usage:**
+
+```json
+{
+  "value": "Deep One",
+  "description": "A batrachian humanoid with glistening scales",
+  "sets": { "origin": "ocean depths", "threat": "high" }
+}
+```
+
+**Avoid:**
+
+```json
+{
+  "value": "Deep One",
+  "sets": { "description": "A batrachian humanoid...", "origin": "ocean depths" }
+}
+```
+
 ### 9.2 Using Placeholder Values
 
 Reference placeholders in templates using `@placeholder.property` syntax:

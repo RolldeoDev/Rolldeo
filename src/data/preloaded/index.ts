@@ -5,9 +5,9 @@
  * They demonstrate the features of the random table engine.
  */
 
-import fantasyRpg from './fantasy-rpg.json'
-import fantasyNames from './fantasy-names.json'
-import sciFi from './sci-fi.json'
+import eldritchHorror from './rolldeo.horror.eldritch.json'
+import fantasyWorld from './rolldeo.fantasy.world.json'
+import scifiFrontier from './rolldeo.scifi.frontier.json'
 import type { RandomTableDocument } from '../../engine/types'
 
 export interface PreloadedCollection {
@@ -22,16 +22,16 @@ export interface PreloadedCollection {
  */
 export const preloadedCollections: PreloadedCollection[] = [
   {
-    id: 'fantasy-rpg',
-    document: fantasyRpg as unknown as RandomTableDocument,
+    id: 'rolldeo.horror.eldritch',
+    document: eldritchHorror as unknown as RandomTableDocument,
   },
   {
-    id: 'fantasy-names',
-    document: fantasyNames as unknown as RandomTableDocument,
+    id: 'rolldeo.fantasy.world',
+    document: fantasyWorld as unknown as RandomTableDocument,
   },
   {
-    id: 'sci-fi',
-    document: sciFi as unknown as RandomTableDocument,
+    id: 'rolldeo.scifi.frontier',
+    document: scifiFrontier as unknown as RandomTableDocument,
   },
 ]
 
