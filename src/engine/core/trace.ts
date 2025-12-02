@@ -142,8 +142,8 @@ export interface VariableAccessMetadata {
   type: 'variable'
   /** Variable name */
   name: string
-  /** Variable source: static, shared, captureShared, or undefined */
-  source: 'static' | 'shared' | 'captureShared' | 'undefined'
+  /** Variable source: static, shared, capture, captureShared, or undefined */
+  source: 'static' | 'shared' | 'capture' | 'captureShared' | 'undefined'
 }
 
 export interface PlaceholderAccessMetadata {

@@ -36,7 +36,7 @@ export const PatternPreview = memo(
       onChange,
       collectionId,
       placeholder = 'Enter your pattern using {{...}} syntax',
-      minHeight = 120,
+      minHeight = 250,
       sharedVariables,
       hidePreviewWhenEmpty = false,
       hideLabel = false,

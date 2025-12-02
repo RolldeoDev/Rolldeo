@@ -310,7 +310,8 @@ export function parseExpression(expr: string): ExpressionToken {
   }
 
   // Multi-roll: N*tableId, N*unique*tableId, or with separator: N*tableId|"sep"
-  if (/^\d+\*/.test(trimmed) || /^\$\w+\*/.test(trimmed)) {
+  // Also supports $var*table (variable count) and $var.count*table (capture access count)
+  if (/^\d+\*/.test(trimmed) || /^\$\w+(\.\w+)?\*/.test(trimmed)) {
     return parseMultiRoll(trimmed)
   }
 

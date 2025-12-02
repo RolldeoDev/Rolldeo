@@ -537,6 +537,56 @@ describe('Roll Capture System', () => {
       const result = engine.rollTemplate('test', 'test')
       expect(result.text).toBe('Found: Sword')
     })
+
+    it('should use $capture.count as multi-roll count', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: {
+          name: 'Test',
+          namespace: 'test',
+          version: '1.0.0',
+          specVersion: '1.0',
+        },
+        tables: [
+          {
+            id: 'races',
+            name: 'Races',
+            type: 'simple',
+            entries: [
+              { id: 'human', value: 'Human' },
+              { id: 'elf', value: 'Elf' },
+              { id: 'dwarf', value: 'Dwarf' },
+            ],
+          },
+          {
+            id: 'classes',
+            name: 'Classes',
+            type: 'simple',
+            entries: [
+              { id: 'warrior', value: 'Warrior' },
+              { id: 'mage', value: 'Mage' },
+              { id: 'rogue', value: 'Rogue' },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'party',
+            name: 'Party',
+            // First capture 2 races, then use that count to roll 2 classes
+            pattern:
+              '{{2*unique*races >> $members|silent}}Races: {{$members}}. Classes: {{$members.count*unique*classes}}.',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('party', 'test')
+      // Should have 2 races and 2 classes
+      const raceMatches = result.text.match(/Races: ([^.]+)\./)?.[1].split(', ') || []
+      const classMatches = result.text.match(/Classes: ([^.]+)\./)?.[1].split(', ') || []
+      expect(raceMatches.length).toBe(2)
+      expect(classMatches.length).toBe(2)
+    })
   })
 
   describe('collect aggregation', () => {
@@ -2458,5 +2508,131 @@ describe('$var.@description access via capture-aware shared variables', () => {
     engine.loadCollection(doc, 'test')
     const result = engine.rollTemplate('lootTemplate', 'test')
     expect(result.text).toBe('Item: Sword (A sharp blade)')
+  })
+})
+
+// ============================================================================
+// Template Multi-Roll Isolation Tests
+// ============================================================================
+
+describe('Template Multi-Roll Isolation', () => {
+  it('should re-evaluate capture-aware shared variables for each template invocation', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'races',
+          name: 'Races',
+          type: 'simple',
+          entries: [
+            { id: 'human', value: 'Human', sets: { firstName: 'John' } },
+            { id: 'elf', value: 'Elf', sets: { firstName: 'Legolas' } },
+            { id: 'dwarf', value: 'Dwarf', sets: { firstName: 'Gimli' } },
+            { id: 'orc', value: 'Orc', sets: { firstName: 'Thrall' } },
+            { id: 'gnome', value: 'Gnome', sets: { firstName: 'Fizz' } },
+            { id: 'halfling', value: 'Halfling', sets: { firstName: 'Sam' } },
+            { id: 'tiefling', value: 'Tiefling', sets: { firstName: 'Mira' } },
+            { id: 'dragonborn', value: 'Dragonborn', sets: { firstName: 'Kriv' } },
+          ],
+        },
+      ],
+      templates: [
+        {
+          id: 'npc',
+          name: 'NPC',
+          shared: {
+            // Capture-aware shared variable - should be re-evaluated for each template roll
+            '$race': '{{races}}',
+          },
+          pattern: '{{$race.@firstName}} the {{$race}}',
+        },
+        {
+          id: 'partyTest',
+          name: 'Party Test',
+          // Roll the npc template 4 times
+          pattern: '{{4*npc|" | "}}',
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+
+    // Run multiple times to verify that results can vary
+    // (Without isolation, all 4 NPCs would always be identical)
+    let sawVariation = false
+    for (let i = 0; i < 10; i++) {
+      const result = engine.rollTemplate('partyTest', 'test')
+      const npcs = result.text.split(' | ')
+      expect(npcs.length).toBe(4)
+
+      // Extract names
+      const names = npcs.map(npc => npc.split(' ')[0])
+      const uniqueNames = new Set(names)
+
+      // If we see more than 1 unique name, isolation is working
+      if (uniqueNames.size > 1) {
+        sawVariation = true
+        break
+      }
+    }
+
+    // With 8 races and 4 rolls, the probability of getting all same is very low
+    // If we see variation in any of 10 runs, isolation is working
+    expect(sawVariation).toBe(true)
+  })
+
+  it('should isolate capture-aware shared variables between template invocations', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            { id: 'a', value: 'Apple' },
+            { id: 'b', value: 'Banana' },
+            { id: 'c', value: 'Cherry' },
+            { id: 'd', value: 'Date' },
+            { id: 'e', value: 'Elderberry' },
+            { id: 'f', value: 'Fig' },
+          ],
+        },
+      ],
+      templates: [
+        {
+          id: 'picker',
+          name: 'Picker',
+          shared: {
+            '$item': '{{items}}',
+          },
+          pattern: '{{$item}}',
+        },
+        {
+          id: 'multiPick',
+          name: 'Multi Pick',
+          pattern: '{{3*picker|", "}}',
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+
+    // Run multiple times to verify isolation (results can vary)
+    let sawVariation = false
+    for (let i = 0; i < 10; i++) {
+      const result = engine.rollTemplate('multiPick', 'test')
+      const items = result.text.split(', ')
+      expect(items.length).toBe(3)
+
+      const uniqueItems = new Set(items)
+      if (uniqueItems.size > 1) {
+        sawVariation = true
+        break
+      }
+    }
+
+    // With 6 items and 3 rolls, probability of all same is very low
+    expect(sawVariation).toBe(true)
   })
 })

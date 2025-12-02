@@ -1,35 +1,16 @@
 {
   "metadata": {
-    "name": "Eldritch Horror Investigation Generator",
-    "namespace": "horror.eldritch.core",
+    "name": "Eldritch Horror Generator",
+    "namespace": "rolldeo.horror.eldritch",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "The Esoteric Order",
-    "description": "A comprehensive collection of random tables for generating **cosmic horror** investigations, investigators, entities, locations, and mysterious phenomena. Designed for games like *Call of Cthulhu*, *Delta Green*, and similar investigative horror TTRPGs.\n\nThis collection focuses on **atmospheric description** and **narrative elements** rather than game mechanics.",
-    "instructions": "Use the templates to generate complete investigation scenarios, or roll on individual tables for specific elements. The `fullInvestigation` template provides a complete scenario framework.",
+    "author": "Rolldeo",
+    "description": "A collection of random tables for generating **cosmic horror** investigations, investigators, entities, locations, and mysterious phenomena. Designed for games like *Call of Cthulhu*, *Delta Green*, and similar investigative horror TTRPGs.\n\nThis collection focuses on **atmospheric description** and **narrative elements** rather than game mechanics.",
     "tags": ["horror", "lovecraft", "cosmic", "investigation", "mystery", "cthulhu", "delta-green"],
-    "created": "2024-01-15T00:00:00Z",
-    "updated": "2024-12-01T00:00:00Z",
     "source": {
-      "license": "CC BY 4.0",
-      "copyright": {
-        "year": "2024",
-        "holder": "The Esoteric Order",
-        "notice": "Released under Creative Commons Attribution 4.0. Inspired by the works of H.P. Lovecraft (public domain) and the cosmic horror genre."
-      }
-    },
-    "rights": {
-      "type": "open-content",
-      "permissions": {
-        "commercialUse": true,
-        "modification": true,
-        "redistribution": true,
-        "derivativeWorks": true,
-        "attributionRequired": true
-      }
-    },
-    "maxRecursionDepth": 50,
-    "maxInheritanceDepth": 5
+      "license": "CC0-1.0",
+      "copyright": "Rolldeo - Free for any use"
+    }
   },
   "variables": {
     "era": "1920s",
@@ -580,9 +561,8 @@
           "id": "deepOne",
           "value": "Deep One",
           "weight": 4,
-          "description": "{{@self.description}}",
+          "description": "A batrachian humanoid with bulging eyes, webbed appendages, and glistening grey-green scales",
           "sets": {
-            "description": "A batrachian humanoid with bulging eyes, webbed appendages, and glistening grey-green scales",
             "origin": "the depths of the ocean",
             "motivation": "{{deepOneMotivation}}",
             "signifier": "a pervasive fishy odor and tracks of slime"
@@ -592,19 +572,19 @@
           "id": "ghoul",
           "value": "Ghoul",
           "weight": 3,
+          "description": "A hunched, rubbery humanoid with canine features, hooved feet, and an unwholesome pallor",
           "sets": {
-            "description": "A hunched, rubbery humanoid with canine features, hooved feet, and an unwholesome pallor",
             "origin": "tunnels beneath graveyards",
             "motivation": "feeding on the dead",
             "signifier": "disturbed graves and gnawed bones"
           }
         },
         {
-          "id": "mi-go",
+          "id": "migo",
           "value": "Mi-Go",
           "weight": 2,
+          "description": "A fungoid crustacean with a cluster of pyramided fleshy rings for a head and multiple pairs of membranous wings",
           "sets": {
-            "description": "A fungoid crustacean with a cluster of pyramided fleshy rings for a head and multiple pairs of membranous wings",
             "origin": "the dark side of Yuggoth",
             "motivation": "{{miGoMotivation}}",
             "signifier": "strange buzzing sounds and surgical precision"
@@ -614,8 +594,8 @@
           "id": "shoggoth",
           "value": "Shoggoth",
           "weight": 1,
+          "description": "A massive, shapeless mass of protoplasmic flesh covered in countless temporary eyes",
           "sets": {
-            "description": "A massive, shapeless mass of protoplasmic flesh covered in countless temporary eyes",
             "origin": "Elder Thing laboratories in Antarctica",
             "motivation": "consuming and absorbing",
             "signifier": "iridescent slime trails and a piping cry",
@@ -626,8 +606,8 @@
           "id": "nightgaunt",
           "value": "Night-Gaunt",
           "weight": 2,
+          "description": "A black, faceless humanoid with bat-like wings, a barbed tail, and cold, rubbery skin",
           "sets": {
-            "description": "A black, faceless humanoid with bat-like wings, a barbed tail, and cold, rubbery skin",
             "origin": "the peaks of the Dreamlands",
             "motivation": "carrying victims to unknown destinations",
             "signifier": "total silence and a sensation of tickling"
@@ -637,8 +617,8 @@
           "id": "dimensionalShambler",
           "value": "Dimensional Shambler",
           "weight": 1,
+          "description": "A grotesque ape-like creature with multiple limbs, capable of stepping between dimensions",
           "sets": {
-            "description": "A grotesque ape-like creature with multiple limbs, capable of stepping between dimensions",
             "origin": "the spaces between realities",
             "motivation": "hunting those who meddle with dimensional travel",
             "signifier": "impossible shadows and spatial distortions"
@@ -648,8 +628,8 @@
           "id": "byakhee",
           "value": "Byakhee",
           "weight": 2,
+          "description": "A bat-winged, insectoid horror capable of traversing the void between stars",
           "sets": {
-            "description": "A bat-winged, insectoid horror capable of traversing the void between stars",
             "origin": "interstellar space near Aldebaran",
             "motivation": "serving as mounts for those who know the proper summoning",
             "signifier": "an unnatural cold and the distant sound of piping"
@@ -659,8 +639,8 @@
           "id": "servitorOuter",
           "value": "Servitor of the Outer Gods",
           "weight": 1,
+          "description": "An amorphous entity of living darkness that absorbs light and warmth",
           "sets": {
-            "description": "An amorphous entity of living darkness that absorbs light and warmth",
             "origin": "the court of Azathoth",
             "motivation": "carrying out the will of beings beyond comprehension",
             "signifier": "extinguished lights and a creeping despair",
@@ -707,8 +687,8 @@
         {
           "id": "starSpawn",
           "value": "Star-Spawn of Cthulhu",
+          "description": "A titanic, octopoid horror with vestigial wings, vaguely humanoid in shape but utterly alien in nature",
           "sets": {
-            "description": "A titanic, octopoid horror with vestigial wings, vaguely humanoid in shape but utterly alien in nature",
             "origin": "R'lyeh and the depths of the Pacific",
             "motivation": "preparing for the return of Great Cthulhu",
             "signifier": "mass nightmares and inexplicable suicides"
@@ -717,8 +697,8 @@
         {
           "id": "flyingPolyp",
           "value": "Flying Polyp",
+          "description": "A partially invisible thing of whistling winds and grasping tentacles",
           "sets": {
-            "description": "A partially invisible thing of whistling winds and grasping tentacles",
             "origin": "subterranean ruins older than humanity",
             "motivation": "ancient territorial rage",
             "signifier": "inexplicable wind damage and people torn asunder"
@@ -727,8 +707,8 @@
         {
           "id": "colorSpace",
           "value": "Colour Out of Space",
+          "description": "An indescribable color from beyond the visible spectrum, a living radiation",
           "sets": {
-            "description": "An indescribable color from beyond the visible spectrum, a living radiation",
             "origin": "the void between galaxies",
             "motivation": "feeding and spreading contamination",
             "signifier": "withered vegetation, madness, and a sickly luminescence"
@@ -737,8 +717,8 @@
         {
           "id": "hunterDark",
           "value": "Hunting Horror",
+          "description": "A serpentine mass of ropy black tendrils with a single trifold eye",
           "sets": {
-            "description": "A serpentine mass of ropy black tendrils with a single trifold eye",
             "origin": "summoned by those who serve Nyarlathotep",
             "motivation": "hunting designated prey across any distance",
             "signifier": "a sense of being watched and victims torn to pieces"
@@ -747,8 +727,8 @@
         {
           "id": "elderthing",
           "value": "Elder Thing",
+          "description": "A barrel-shaped being with five-fold radial symmetry, starfish-headed and winged",
           "sets": {
-            "description": "A barrel-shaped being with five-fold radial symmetry, starfish-headed and winged",
             "origin": "the Antarctic and the depths of time",
             "motivation": "observing and cataloging, or defending ancient territories",
             "signifier": "impossible fossils and strange surgical marks"
@@ -1182,64 +1162,64 @@
       "entries": [
         {
           "value": "R'lyeh",
+          "description": "A sunken city of non-Euclidean geometry where Great Cthulhu dreams",
           "sets": {
-            "description": "A sunken city of non-Euclidean geometry where Great Cthulhu dreams",
             "danger": "absolute",
             "accessible": "when the stars are right"
           }
         },
         {
           "value": "the Plateau of Leng",
+          "description": "A frigid highland in the Dreamlands, home to the moon-beasts",
           "sets": {
-            "description": "A frigid highland in the Dreamlands, home to the moon-beasts",
             "danger": "extreme",
             "accessible": "through deep dreaming"
           }
         },
         {
           "value": "the Court of Azathoth",
+          "description": "The center of ultimate chaos where the Daemon Sultan writhes mindlessly",
           "sets": {
-            "description": "The center of ultimate chaos where the Daemon Sultan writhes mindlessly",
             "danger": "incomprehensible",
             "accessible": "only by the mad or the dead"
           }
         },
         {
           "value": "Yuggoth",
+          "description": "The dark planet at the rim of the solar system, home to the Mi-Go",
           "sets": {
-            "description": "The dark planet at the rim of the solar system, home to the Mi-Go",
             "danger": "extreme",
             "accessible": "via Mi-Go spacecraft"
           }
         },
         {
           "value": "the Dreamlands",
+          "description": "A parallel dimension accessible through dreams, with its own geography and horrors",
           "sets": {
-            "description": "A parallel dimension accessible through dreams, with its own geography and horrors",
             "danger": "variable",
             "accessible": "through seventy steps of light slumber"
           }
         },
         {
           "value": "Kadath in the Cold Waste",
+          "description": "A fortress of the Great Ones, hidden at the top of the world in dream",
           "sets": {
-            "description": "A fortress of the Great Ones, hidden at the top of the world in dream",
             "danger": "extreme",
             "accessible": "through the Dreamlands, with great peril"
           }
         },
         {
           "value": "the Vale of Pnath",
+          "description": "A lightless abyss beneath the Dreamlands, filled with vast bone-picking creatures",
           "sets": {
-            "description": "A lightless abyss beneath the Dreamlands, filled with vast bone-picking creatures",
             "danger": "extreme",
             "accessible": "by falling or being dropped by night-gaunts"
           }
         },
         {
           "value": "Carcosa",
+          "description": "A city on a distant world beneath black stars, seat of the King in Yellow",
           "sets": {
-            "description": "A city on a distant world beneath black stars, seat of the King in Yellow",
             "danger": "maddening",
             "accessible": "through reading the play or at certain conjunctions"
           }
@@ -1757,64 +1737,64 @@
       "entries": [
         {
           "value": "Arkham, Massachusetts",
+          "description": "A decaying New England town in the shadow of Miskatonic University",
           "sets": {
-            "description": "A decaying New England town in the shadow of Miskatonic University",
             "resources": "academic, archival",
             "danger": "high concentration of occult activity"
           }
         },
         {
           "value": "Innsmouth, Massachusetts",
+          "description": "An isolated coastal town with a terrible secret in its bloodlines",
           "sets": {
-            "description": "An isolated coastal town with a terrible secret in its bloodlines",
             "resources": "minimal, outsiders unwelcome",
             "danger": "entire population is compromised"
           }
         },
         {
           "value": "Kingsport, Massachusetts",
+          "description": "A dreaming seaside town where the boundary to other realms is thin",
           "sets": {
-            "description": "A dreaming seaside town where the boundary to other realms is thin",
             "resources": "artistic community, spiritualist circles",
             "danger": "reality is unstable"
           }
         },
         {
           "value": "New York City",
+          "description": "The teeming metropolis hides ancient evils beneath its modern veneer",
           "sets": {
-            "description": "The teeming metropolis hides ancient evils beneath its modern veneer",
             "resources": "extensive, but scattered",
             "danger": "cults hide in plain sight among millions"
           }
         },
         {
           "value": "New Orleans",
+          "description": "A city where voodoo traditions mask older, darker practices",
           "sets": {
-            "description": "A city where voodoo traditions mask older, darker practices",
             "resources": "occult community, unique traditions",
             "danger": "multiple competing supernatural factions"
           }
         },
         {
           "value": "London, England",
+          "description": "Ancient secrets lurk beneath the fog of the imperial capital",
           "sets": {
-            "description": "Ancient secrets lurk beneath the fog of the imperial capital",
             "resources": "British Museum, various occult societies",
             "danger": "centuries of accumulated evil"
           }
         },
         {
           "value": "Cairo, Egypt",
+          "description": "Gateway to ancient tombs and the secrets of the pharaohs",
           "sets": {
-            "description": "Gateway to ancient tombs and the secrets of the pharaohs",
             "resources": "archaeological community, black market antiquities",
             "danger": "disturbing what should remain buried"
           }
         },
         {
           "value": "Shanghai, China",
+          "description": "International settlement where East and West meet in shadow",
           "sets": {
-            "description": "International settlement where East and West meet in shadow",
             "resources": "international contacts, smuggling routes",
             "danger": "ancient Chinese sorcery meets Western occultism"
           }
@@ -2235,7 +2215,7 @@
         "$location": "{{hauntedLocations}}",
         "threatRating": "{{dice:1d10}}"
       },
-      "pattern": "## Investigation: {{$setting}}\n\n**Cosmic Threat Level:** {{$threatRating}}/10\n\n### The Hook\n\n{{$trigger}}\n\n*Personal Investment:* {{$trigger.@personal}}\n\n*Initial Urgency:* {{$trigger.@urgency}}\n\n### The Setting\n\n**Location:** {{$setting}}\n\n{{$setting.@description}}\n\n**Available Resources:** {{$setting.@resources}}\n\n**Inherent Dangers:** {{$setting.@danger}}\n\n### The Threat\n\n**Entity:** {{$entity}}\n\n{{$entity.@description}}\n\n**Motivation:** {{$entity.@motivation}}\n\n### Key Location\n\n**Primary Site:** {{$location}}\n\n**History:** {{$location.@history}}\n\n**Notable Feature:** {{$location.@feature}}\n\n### Complications\n\n{{2*unique*complications|\"; \"}}\n\n### Clues\n\n{{3*unique*strangeClues|\"; \"}}\n\n### Atmosphere\n\n*The investigation proceeds under an atmosphere that is {{investigationMood}}.*"
+      "pattern": "## Investigation: {{$setting}}\n\n**Cosmic Threat Level:** {{$threatRating}}/10\n\n### The Hook\n\n{{$trigger}}\n\n*Personal Investment:* {{$trigger.@personal}}\n\n*Initial Urgency:* {{$trigger.@urgency}}\n\n### The Setting\n\n**Location:** {{$setting}}\n\n{{$setting.@description}}\n\n**Available Resources:** {{$setting.@resources}}\n\n**Inherent Dangers:** {{$setting.@danger}}\n\n### The Threat\n\n**Entity:** {{$entity}}\n\n{{$entity.@description}}\n\n**Motivation:** {{$entity.@motivation}}\n\n### Key Location\n\n**Primary Site:** {{$location}}\n\n**History:** {{$location.@history}}\n\n**Notable Feature:** {{$location.@feature}}\n\n### Complications\n\n{{2*unique*complications|\"; \"}}\n\n### Clues\n\n{{3*unique*strangeClues|\"; \"}}\n\n### Atmosphere\n\n*The investigation proceeds under an atmosphere that is {{atmosphericMood}}.*"
     },
     {
       "id": "fullInvestigation",
@@ -2256,7 +2236,7 @@
         "$revelation": "{{finalRevelations}}",
         "investigatorCount": "{{dice:1d4+2}}"
       },
-      "pattern": "# Investigation Dossier\n\n## Overview\n\n**Setting:** {{$setting}}\n\n**Recommended Investigators:** {{$investigatorCount}}\n\n**Atmospheric Tone:** {{investigationMood}}\n\n---\n\n## Act I: The Hook\n\n{{$hook}}\n\n*Urgency Level:* {{$hook.@urgency}}\n\n### Initial Clues\n\n{{2*unique*strangeClues|\"; \"}}\n\n---\n\n## Act II: Investigation\n\n### Primary Location\n\n**{{$location1}}**\n\n*History:* {{$location1.@history}}\n\n*Notable Feature:* {{$location1.@feature}}\n\n*Current Weather:* {{weatherConditions}}\n\n### Secondary Location\n\n**{{$location2}}**\n\n*History:* {{$location2.@history}}\n\n*Notable Feature:* {{$location2.@feature}}\n\n### The Cult\n\n**{{$cult}}**\n\n*Current Activity:* {{$cultActivity}}\n\n*Scale:* {{$cultActivity.@scale}}\n\n*Leader:* {{$cultLeader.@title}} — Dedication: {{$cultLeader.@dedication}}\n\n### Complications\n\n{{3*unique*complications|\"; \"}}\n\n### Dead Ends\n\n{{2*unique*deadEnds|\"; \"}}\n\n---\n\n## Act III: The Truth\n\n### The Entity\n\n**{{$primaryEntity}}**\n\n{{$primaryEntity.@description}}\n\n*Origin:* {{$primaryEntity.@origin}}\n\n*Motivation:* {{$primaryEntity.@motivation}}\n\n*Signs of Presence:* {{$primaryEntity.@signifier}}\n\n### Forbidden Knowledge\n\n**Text:** {{$tome}}\n\n*Contents:* {{$tome.@contents}}\n\n**Artifact:** {{$artifact}}\n\n*Effect:* {{$artifact.@effect}}\n\n### Witnessed Ritual\n\n{{ritualsObserved}}\n\n### Omens Before the Climax\n\n{{2*unique*ominousOmens|\"; \"}}\n\n---\n\n## The Revelation\n\n*{{$revelation}}*\n\n**Tone:** {{$revelation.@tone}}\n\n---\n\n## Aftermath\n\n### Psychological Toll\n\n{{2*unique*sanityEffects|\"; \"}}\n\n### What Remains\n\nThe investigation concludes, but {{$revelation}}"
+      "pattern": "# Investigation Dossier\n\n## Overview\n\n**Setting:** {{$setting}}\n\n**Recommended Investigators:** {{$investigatorCount}}\n\n**Atmospheric Tone:** {{atmosphericMood}}\n\n---\n\n## Act I: The Hook\n\n{{$hook}}\n\n*Urgency Level:* {{$hook.@urgency}}\n\n### Initial Clues\n\n{{2*unique*strangeClues|\"; \"}}\n\n---\n\n## Act II: Investigation\n\n### Primary Location\n\n**{{$location1}}**\n\n*History:* {{$location1.@history}}\n\n*Notable Feature:* {{$location1.@feature}}\n\n*Current Weather:* {{weatherConditions}}\n\n### Secondary Location\n\n**{{$location2}}**\n\n*History:* {{$location2.@history}}\n\n*Notable Feature:* {{$location2.@feature}}\n\n### The Cult\n\n**{{$cult}}**\n\n*Current Activity:* {{$cultActivity}}\n\n*Scale:* {{$cultActivity.@scale}}\n\n*Leader:* {{$cultLeader.@title}} — Dedication: {{$cultLeader.@dedication}}\n\n### Complications\n\n{{3*unique*complications|\"; \"}}\n\n### Dead Ends\n\n{{2*unique*deadEnds|\"; \"}}\n\n---\n\n## Act III: The Truth\n\n### The Entity\n\n**{{$primaryEntity}}**\n\n{{$primaryEntity.@description}}\n\n*Origin:* {{$primaryEntity.@origin}}\n\n*Motivation:* {{$primaryEntity.@motivation}}\n\n*Signs of Presence:* {{$primaryEntity.@signifier}}\n\n### Forbidden Knowledge\n\n**Text:** {{$tome}}\n\n*Contents:* {{$tome.@contents}}\n\n**Artifact:** {{$artifact}}\n\n*Effect:* {{$artifact.@effect}}\n\n### Witnessed Ritual\n\n{{ritualsObserved}}\n\n### Omens Before the Climax\n\n{{2*unique*ominousOmens|\"; \"}}\n\n---\n\n## The Revelation\n\n*{{$revelation}}*\n\n**Tone:** {{$revelation.@tone}}\n\n---\n\n## Aftermath\n\n### Psychological Toll\n\n{{2*unique*sanityEffects|\"; \"}}\n\n### What Remains\n\nThe investigation concludes, but {{$revelation}}"
     },
     {
       "id": "npcGenerator",

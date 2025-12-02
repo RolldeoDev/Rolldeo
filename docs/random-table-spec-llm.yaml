@@ -203,6 +203,28 @@ decision_guide:
       locations: "size, population, government, danger, resources"
       spells: "level, school, components, duration, range"
 
+    reserved_set_names:
+      description: |
+        NEVER use "description" as a set key. The entry has a dedicated "description"
+        field for this purpose. Using "description" in sets can cause unexpected behavior
+        when accessing {{@self.description}} or when the UI displays entry information.
+      avoid: ["description"]
+      reason: |
+        The "description" property is reserved at the entry level for providing
+        human-readable descriptions of what the entry represents. Place descriptions
+        in the entry's "description" field, not in sets.
+      correct_example: |
+        {
+          "value": "Deep One",
+          "description": "A batrachian humanoid with glistening scales",
+          "sets": { "origin": "ocean depths", "threat": "high" }
+        }
+      incorrect_example: |
+        {
+          "value": "Deep One",
+          "sets": { "description": "A batrachian humanoid...", "origin": "ocean depths" }
+        }
+
     defaultSets_vs_entry_sets:
       defaultSets:
         use_when: "Property applies to ALL or MOST entries in table"

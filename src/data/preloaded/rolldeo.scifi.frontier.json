@@ -1,35 +1,16 @@
 {
   "metadata": {
-    "name": "Frontier Expanse Generator",
-    "namespace": "scifi.frontier",
+    "name": "Sci-Fi Frontier Generator",
+    "namespace": "rolldeo.scifi.frontier",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "Stellar Creations",
-    "description": "A comprehensive **science fiction generator** for creating ships, planets, stations, characters, and cosmic phenomena. Perfect for generating descriptive content for space opera settings.",
-    "instructions": "Use the templates to generate complete descriptions, or roll on individual tables for specific elements. Tables prefixed with common terms can be combined using the collection tables.",
+    "author": "Rolldeo",
+    "description": "A **science fiction** generator for creating ships, planets, stations, characters, and cosmic phenomena. Perfect for generating descriptive content for space opera settings.",
     "tags": ["sci-fi", "space", "generator", "worldbuilding", "descriptive"],
-    "created": "2025-01-15T00:00:00Z",
-    "updated": "2025-01-15T00:00:00Z",
     "source": {
-      "license": "CC BY 4.0",
-      "copyright": {
-        "year": "2025",
-        "holder": "Stellar Creations",
-        "notice": "Licensed under Creative Commons Attribution 4.0"
-      }
-    },
-    "rights": {
-      "type": "open-content",
-      "permissions": {
-        "commercialUse": true,
-        "modification": true,
-        "redistribution": true,
-        "derivativeWorks": true,
-        "attributionRequired": true
-      }
-    },
-    "maxRecursionDepth": 30,
-    "maxInheritanceDepth": 5
+      "license": "CC0-1.0",
+      "copyright": "Rolldeo - Free for any use"
+    }
   },
   "variables": {
     "settingName": "The Frontier Expanse",
@@ -787,54 +768,54 @@
       "entries": [
         {
           "value": "The Stellar Hegemony",
+          "description": "The remnant of the old empire, clinging to authority through bureaucracy",
           "sets": {
             "type": "government",
-            "description": "The remnant of the old empire, clinging to authority through bureaucracy",
             "colors": "silver and deep purple",
             "symbol": "a crowned star"
           }
         },
         {
           "value": "Free Traders' Consortium",
+          "description": "An alliance of independent merchants who value profit and freedom",
           "sets": {
             "type": "commercial",
-            "description": "An alliance of independent merchants who value profit and freedom",
             "colors": "gold and green",
             "symbol": "interlocked rings"
           }
         },
         {
           "value": "The Reclamation",
+          "description": "A faith dedicated to restoring humanity's lost homeworld",
           "sets": {
             "type": "religious",
-            "description": "A faith dedicated to restoring humanity's lost homeworld",
             "colors": "white and earth brown",
             "symbol": "a blue sphere"
           }
         },
         {
           "value": "Syndicate of Shadows",
+          "description": "A galaxy-spanning criminal organization with legitimate fronts",
           "sets": {
             "type": "criminal",
-            "description": "A galaxy-spanning criminal organization with legitimate fronts",
             "colors": "black and crimson",
             "symbol": "a masked face"
           }
         },
         {
           "value": "The Ascendancy Collective",
+          "description": "Those who believe humanity must evolve beyond flesh",
           "sets": {
             "type": "transhumanist",
-            "description": "Those who believe humanity must evolve beyond flesh",
             "colors": "chrome and electric blue",
             "symbol": "a rising circuit pattern"
           }
         },
         {
           "value": "Frontier Defense League",
+          "description": "Colonists banded together to protect the outer worlds",
           "sets": {
             "type": "military",
-            "description": "Colonists banded together to protect the outer worlds",
             "colors": "tan and orange",
             "symbol": "a raised fist holding a star"
           }
@@ -1357,8 +1338,7 @@
         "$planet": "{{planetTypes}}",
         "$settlement": "{{settlementSizes}}"
       },
-      "pattern": "## {{@self.description}}\n\n**Classification:** {{$planet}}\n\n**Atmosphere:** {{$planet.@atmosphere}}\n\n**Surface:** {{$planet.@surfaceDesc}}\n\n**Sky:** The sky here is {{$planet.@skyColor}}.\n\n**Notable Feature:** {{planetaryFeatures}}\n\n### Primary Settlement\nThe main population center is {{$settlement.@description}} - population approximately {{$settlement.@population}}.",
-      "description": "An unexplored world on the frontier"
+      "pattern": "## {{@self.description}}\n\n**Classification:** {{$planet}}\n\n**Atmosphere:** {{$planet.@atmosphere}}\n\n**Surface:** {{$planet.@surfaceDesc}}\n\n**Sky:** The sky here is {{$planet.@skyColor}}.\n\n**Notable Feature:** {{planetaryFeatures}}\n\n### Primary Settlement\nThe main population center is {{$settlement.@description}} - population approximately {{$settlement.@population}}."
     },
     {
       "id": "stationDescription",

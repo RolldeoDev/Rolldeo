@@ -1,38 +1,16 @@
 {
   "metadata": {
     "name": "Fantasy World Generator",
-    "namespace": "fantasy.world",
+    "namespace": "rolldeo.fantasy.world",
     "version": "1.0.0",
     "specVersion": "1.0",
-    "author": "World Builder",
-    "description": "A comprehensive **fantasy world generator** for creating characters, locations, items, and story elements. Focuses on descriptive and cosmetic details for immersive worldbuilding.",
-    "instructions": "Use the templates to generate complete descriptions, or roll individual tables for specific elements. Tables are organized by category and can be combined freely.",
+    "author": "Rolldeo",
+    "description": "A **fantasy** world generator for creating characters, locations, items, and story elements. Focuses on descriptive and cosmetic details for immersive worldbuilding.",
     "tags": ["fantasy", "worldbuilding", "characters", "locations", "items", "descriptive"],
-    "created": "2024-01-15T10:00:00Z",
-    "updated": "2024-01-15T10:00:00Z",
     "source": {
-      "license": "CC0",
-      "copyright": {
-        "year": "2024",
-        "holder": "Public Domain",
-        "notice": "Released to public domain under CC0. Use freely for any purpose."
-      }
-    },
-    "rights": {
-      "type": "open-content",
-      "official": false,
-      "permissions": {
-        "commercialUse": true,
-        "modification": true,
-        "redistribution": true,
-        "derivativeWorks": true,
-        "attributionRequired": false
-      }
-    },
-    "maxRecursionDepth": 30,
-    "maxInheritanceDepth": 5,
-    "maxExplodingDice": 100,
-    "uniqueOverflowBehavior": "cycle"
+      "license": "CC0-1.0",
+      "copyright": "Rolldeo - Free for any use"
+    }
   },
 
   "variables": {
@@ -1584,14 +1562,14 @@
     {
       "id": "partyOfAdventurers",
       "name": "Party of Adventurers",
-      "description": "Generates a group of {{dice:1d4+2}} unique characters.",
+      "description": "Generates a group of unique characters.",
       "resultType": "npc",
       "tags": ["character", "party"],
       "shared": {
         "partySize": "{{dice:1d4+2}}",
         "$members": "{{$partySize*unique*characterRaces >> $group|silent}}"
       },
-      "pattern": "## The Adventuring Party\n\nThis band of {{$group.count}} adventurers includes:\n\n{{$partySize*unique*characterRaces}}"
+      "pattern": "## The Adventuring Party\n\nThis band of {{$group.count}} adventurers includes:\n\n{{$group.count*unique*characterRaces}}"
     },
     {
       "id": "settlementDescription",
@@ -1633,7 +1611,7 @@
       "shared": {
         "hoardSize": "{{dice:2d4}}"
       },
-      "pattern": "## Treasure Hoard\n\nYou discover a cache containing {{$hoardSize}} items:\n\n{{$hoardSize*unique*treasureByRarity|\"\n\n\"}}"
+      "pattern": "## Treasure Hoard\n\nYou discover a cache containing {{$hoardSize}} items:\n\n* {{$hoardSize*unique*treasureByRarity|\"\n\n* \"}}"
     },
     {
       "id": "questHook",
@@ -1687,7 +1665,7 @@
       "description": "Generates several rumors at once, demonstrating multiple unique rolls.",
       "resultType": "rumor",
       "tags": ["story"],
-      "pattern": "## Rumors Heard at the Tavern\n\nYou overhear {{dice:1d3+2}} interesting pieces of gossip:\n\n{{3*unique*rumors|\"\n\n\"}}"
+      "pattern": "## Rumors Heard at the Tavern\n\nYou overhear some interesting pieces of gossip:\n\n{{dice:1d4+1*unique*rumors|\"\n\n\"}}"
     },
     {
       "id": "encounterScene",
