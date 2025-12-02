@@ -649,9 +649,40 @@ metadata:
     specVersion: {type: string, const: "1.0"}
   optional:
     author: string
-    description: {type: string, markdown: true}
+    description:
+      type: string
+      markdown: true
+      guidance: |
+        ALWAYS include a description. Write a markdown summary (2-5 sentences) explaining:
+        - What types of content/tables are in the file
+        - The intended use case or game system
+        - Key features (e.g., "includes 40 name tables across 10 cultures")
+        - Any notable structure (e.g., "parent tables with child sub-tables for each category")
+      examples:
+        - |
+          Name generators for Stars Without Number covering 10 cultural backgrounds
+          (Arabic, Chinese, English, Greek, Indian, Japanese, Latin, Nigerian, Russian, Spanish).
+          Each culture includes male names, female names, surnames, and place names.
+          Templates provided for generating full names with culture-appropriate ordering.
+        - |
+          World tag generator for sci-fi sandbox campaigns. Contains 100 world tags,
+          each with associated enemies, friends, complications, things, and places.
+          Use the worldTagGenerator template for complete tag generation with all sub-elements.
     instructions: {type: string, markdown: true}
-    tags: string[]
+    tags:
+      type: string[]
+      guidance: |
+        ALWAYS include relevant tags. Choose tags that help users discover and filter content.
+        Include tags from these categories as applicable:
+        - **Game system**: dnd5e, pathfinder2e, swn, mothership, osr, system-agnostic
+        - **Genre**: fantasy, sci-fi, horror, modern, historical, post-apocalyptic
+        - **Content type**: names, npcs, encounters, treasure, locations, world-building, generators
+        - **Specifics**: creatures, items, spells, factions, weather, rumors, plot-hooks
+        - **Source**: if from a specific book or publisher, include identifiers
+      examples:
+        - ["swn", "sci-fi", "names", "generators", "world-building"]
+        - ["fantasy", "osr", "encounters", "dungeons", "creatures", "treasure"]
+        - ["dnd5e", "npcs", "generators", "personality", "backgrounds"]
     created: {type: string, format: "ISO8601 datetime"}
     updated: {type: string, format: "ISO8601 datetime"}
   source:
@@ -957,8 +988,8 @@ example: |
       "version": "1.0.0",
       "specVersion": "1.0",
       "author": "Game Master",
-      "description": "Generates random **fantasy encounters** with treasure.",
-      "tags": ["fantasy", "encounters", "treasure"],
+      "description": "Random encounter generator for fantasy TTRPGs. Includes common and elite creature tables with HP/AC stats, a tiered treasure system with inheritance (base and rich variants), and magic item generation. The fullEncounter template combines creatures, leaders, and treasure into formatted encounter blocks with danger ratings.",
+      "tags": ["fantasy", "osr", "system-agnostic", "encounters", "creatures", "treasure", "generators"],
       "source": {
         "license": "CC0",
         "copyright": {

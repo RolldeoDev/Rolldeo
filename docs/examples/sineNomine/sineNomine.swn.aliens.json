@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "name": "Stars Without Number - Aliens",
-    "namespace": "swn.aliens",
+    "name": "Stars Without Number: Aliens",
+    "namespace": "sineNomine.swn.aliens",
     "version": "1.0.0",
     "specVersion": "1.0",
     "source": {

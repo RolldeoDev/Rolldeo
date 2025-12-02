@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "name": "Stars Without Number - Adventure Creation",
-    "namespace": "swn.adventureCreation",
+    "name": "Stars Without Number: Adventure Creation",
+    "namespace": "sineNomine.swn.adventureCreation",
     "version": "1.0.0",
     "specVersion": "1.0",
     "author": "Kevin Crawford",
