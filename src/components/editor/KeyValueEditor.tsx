@@ -164,7 +164,7 @@ export function KeyValueEditor({
 
   // Insert text into existing entry value at cursor position
   const handleInsertExisting = useCallback(
-    (index: number, key: string, insertText: string) => {
+    (index: number, _key: string, insertText: string) => {
       const inputRef = valueInputRefs.current.get(index)
       if (inputRef) {
         // Use the insertAtCursor method from HighlightedInputRef
