@@ -543,6 +543,10 @@ export function EditorWorkspace({
                       onFocus={() => setFocusedItemId(table.id)}
                       onBlur={() => setFocusedItemId(null)}
                       onExpandChange={(isExpanded) => handleExpandChange(table.id, isExpanded)}
+                      localTables={localTables}
+                      localTemplates={localTemplates}
+                      importedTables={importedTables}
+                      importedTemplates={importedTemplates}
                     />
                   </div>
                 ))}
@@ -609,6 +613,10 @@ export function EditorWorkspace({
                 onVariablesChange={updateVariables}
                 onSharedChange={updateShared}
                 collectionId={collectionId}
+                localTables={localTables}
+                localTemplates={localTemplates}
+                importedTables={importedTables}
+                importedTemplates={importedTemplates}
               />
             </div>
           )}

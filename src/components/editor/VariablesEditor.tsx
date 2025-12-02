@@ -7,6 +7,7 @@
 import { Info } from 'lucide-react'
 import { KeyValueEditor } from './KeyValueEditor'
 import type { Variables, SharedVariables } from '@/engine/types'
+import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 export interface VariablesEditorProps {
   /** Static variables (evaluated at load time) */
@@ -19,6 +20,14 @@ export interface VariablesEditorProps {
   onSharedChange: (shared: SharedVariables) => void
   /** Collection ID for expression preview */
   collectionId?: string
+  /** Local tables for insert dropdown */
+  localTables?: TableInfo[]
+  /** Local templates for insert dropdown */
+  localTemplates?: TemplateInfo[]
+  /** Imported tables for insert dropdown */
+  importedTables?: ImportedTableInfo[]
+  /** Imported templates for insert dropdown */
+  importedTemplates?: ImportedTemplateInfo[]
 }
 
 export function VariablesEditor({
@@ -27,6 +36,10 @@ export function VariablesEditor({
   onVariablesChange,
   onSharedChange,
   collectionId,
+  localTables,
+  localTemplates,
+  importedTables,
+  importedTemplates,
 }: VariablesEditorProps) {
   return (
     <div className="space-y-6">
@@ -97,6 +110,11 @@ export function VariablesEditor({
             valueSupportsExpressions
             collectionId={collectionId}
             highlightCaptureAware
+            showInsertButton
+            localTables={localTables}
+            localTemplates={localTemplates}
+            importedTables={importedTables}
+            importedTemplates={importedTemplates}
           />
         </div>
       </section>

@@ -2164,7 +2164,7 @@
         "$time": "{{timeOfDay}}",
         "$weather": "{{weatherConditions}}"
       },
-      "pattern": "## Entity Encounter\n\nDuring {{$time}}, under {{$weather}}, the investigators encounter **{{$entity}}**.\n\n**Appearance:** {{$entity.@description}}\n\n**Origin:** {{$entity.@origin}}\n\n**Current Motivation:** {{$entity.@motivation}}\n\n**Evidence of Presence:** {{$entity.@signifier}}\n\n**Threat Level:** {{$entity.@threatLevel}}\n\n**Psychological Impact:** {{sanityEffects}}"
+      "pattern": "{{switch[@threatLevel.value==\"catastrophic\":\"**☠️ CATASTROPHIC THREAT ☠️**\n\n\"].else[\"\"]}}## Entity Encounter\n\nDuring {{$time}}, under {{$weather}}, the investigators encounter **{{$entity}}**.\n\n**Appearance:** {{$entity.@description}}\n\n**Origin:** {{$entity.@origin}}\n\n**Current Motivation:** {{$entity.@motivation}}\n\n**Evidence of Presence:** {{$entity.@signifier}}\n\n**Threat Level:** {{$entity.@threatLevel}}\n\n**Psychological Impact:** {{sanityEffects}}{{switch[@rarity.value==\"rare\":\"\n\n*This is an extremely rare manifestation. Few who encounter such beings survive with their sanity intact.*\"].else[\"\"]}}{{switch[@threatLevel.value==\"extreme\":\"\n\n*Survival is unlikely. Escape should be prioritized over confrontation.*\"].else[\"\"]}}"
     },
     {
       "id": "cultCell",
@@ -2215,7 +2215,7 @@
         "$location": "{{hauntedLocations}}",
         "threatRating": "{{dice:1d10}}"
       },
-      "pattern": "## Investigation: {{$setting}}\n\n**Cosmic Threat Level:** {{$threatRating}}/10\n\n### The Hook\n\n{{$trigger}}\n\n*Personal Investment:* {{$trigger.@personal}}\n\n*Initial Urgency:* {{$trigger.@urgency}}\n\n### The Setting\n\n**Location:** {{$setting}}\n\n{{$setting.@description}}\n\n**Available Resources:** {{$setting.@resources}}\n\n**Inherent Dangers:** {{$setting.@danger}}\n\n### The Threat\n\n**Entity:** {{$entity}}\n\n{{$entity.@description}}\n\n**Motivation:** {{$entity.@motivation}}\n\n### Key Location\n\n**Primary Site:** {{$location}}\n\n**History:** {{$location.@history}}\n\n**Notable Feature:** {{$location.@feature}}\n\n### Complications\n\n{{2*unique*complications|\"; \"}}\n\n### Clues\n\n{{3*unique*strangeClues|\"; \"}}\n\n### Atmosphere\n\n*The investigation proceeds under an atmosphere that is {{atmosphericMood}}.*"
+      "pattern": "## Investigation: {{$setting}}\n\n**Cosmic Threat Level:** {{$threatRating}}/10\n\n### The Hook\n\n{{$trigger}}\n\n*Personal Investment:* {{$trigger.@personal}}\n\n*Initial Urgency:* {{$trigger.@urgency}}\n\n### The Setting\n\n**Location:** {{$setting}}\n\n{{$setting.@description}}\n\n**Available Resources:** {{$setting.@resources}}\n\n**Inherent Dangers:** {{$setting.@danger}}\n\n### The Threat\n\n**Entity:** {{$entity}}\n\n{{$entity.@description}}\n\n**Motivation:** {{$entity.@motivation}}\n\n### Key Location\n\n**Primary Site:** {{$location}}\n\n**History:** {{$location.@history}}\n\n**Notable Feature:** {{$location.@feature}}\n\n### Complications\n\n{{2*unique*complications|\"; \"}}\n\n### Clues\n\n{{3*unique*strangeClues|\"; \"}}\n\n### Atmosphere\n\n*The investigation proceeds under an atmosphere that is {{atmosphericMood}}.*{{switch[@personal.value==\"true\":\"\n\n*This investigation has deep personal stakes for at least one investigator.*\"].else[\"\"]}}"
     },
     {
       "id": "fullInvestigation",
@@ -2236,7 +2236,7 @@
         "$revelation": "{{finalRevelations}}",
         "investigatorCount": "{{dice:1d4+2}}"
       },
-      "pattern": "# Investigation Dossier\n\n## Overview\n\n**Setting:** {{$setting}}\n\n**Recommended Investigators:** {{$investigatorCount}}\n\n**Atmospheric Tone:** {{atmosphericMood}}\n\n---\n\n## Act I: The Hook\n\n{{$hook}}\n\n*Urgency Level:* {{$hook.@urgency}}\n\n### Initial Clues\n\n{{2*unique*strangeClues|\"; \"}}\n\n---\n\n## Act II: Investigation\n\n### Primary Location\n\n**{{$location1}}**\n\n*History:* {{$location1.@history}}\n\n*Notable Feature:* {{$location1.@feature}}\n\n*Current Weather:* {{weatherConditions}}\n\n### Secondary Location\n\n**{{$location2}}**\n\n*History:* {{$location2.@history}}\n\n*Notable Feature:* {{$location2.@feature}}\n\n### The Cult\n\n**{{$cult}}**\n\n*Current Activity:* {{$cultActivity}}\n\n*Scale:* {{$cultActivity.@scale}}\n\n*Leader:* {{$cultLeader.@title}} — Dedication: {{$cultLeader.@dedication}}\n\n### Complications\n\n{{3*unique*complications|\"; \"}}\n\n### Dead Ends\n\n{{2*unique*deadEnds|\"; \"}}\n\n---\n\n## Act III: The Truth\n\n### The Entity\n\n**{{$primaryEntity}}**\n\n{{$primaryEntity.@description}}\n\n*Origin:* {{$primaryEntity.@origin}}\n\n*Motivation:* {{$primaryEntity.@motivation}}\n\n*Signs of Presence:* {{$primaryEntity.@signifier}}\n\n### Forbidden Knowledge\n\n**Text:** {{$tome}}\n\n*Contents:* {{$tome.@contents}}\n\n**Artifact:** {{$artifact}}\n\n*Effect:* {{$artifact.@effect}}\n\n### Witnessed Ritual\n\n{{ritualsObserved}}\n\n### Omens Before the Climax\n\n{{2*unique*ominousOmens|\"; \"}}\n\n---\n\n## The Revelation\n\n*{{$revelation}}*\n\n**Tone:** {{$revelation.@tone}}\n\n---\n\n## Aftermath\n\n### Psychological Toll\n\n{{2*unique*sanityEffects|\"; \"}}\n\n### What Remains\n\nThe investigation concludes, but {{$revelation}}"
+      "pattern": "# Investigation Dossier\n\n## Overview\n\n**Setting:** {{$setting}}\n\n**Recommended Investigators:** {{$investigatorCount}}\n\n**Atmospheric Tone:** {{atmosphericMood}}\n\n---\n\n## Act I: The Hook\n\n{{$hook}}\n\n*Urgency Level:* {{$hook.@urgency}}\n\n### Initial Clues\n\n{{2*unique*strangeClues|\"; \"}}\n\n---\n\n## Act II: Investigation\n\n### Primary Location\n\n**{{$location1}}**\n\n*History:* {{$location1.@history}}\n\n*Notable Feature:* {{$location1.@feature}}\n\n*Current Weather:* {{weatherConditions}}\n\n### Secondary Location\n\n**{{$location2}}**\n\n*History:* {{$location2.@history}}\n\n*Notable Feature:* {{$location2.@feature}}\n\n### The Cult\n\n**{{$cult}}**\n\n*Current Activity:* {{$cultActivity}}\n\n*Scale:* {{$cultActivity.@scale}}\n\n*Leader:* {{$cultLeader.@title}} — Dedication: {{$cultLeader.@dedication}}\n\n### Complications\n\n{{3*unique*complications|\"; \"}}\n\n### Dead Ends\n\n{{2*unique*deadEnds|\"; \"}}\n\n---\n\n## Act III: The Truth\n\n### The Entity\n\n**{{$primaryEntity}}**\n\n{{$primaryEntity.@description}}\n\n*Origin:* {{$primaryEntity.@origin}}\n\n*Motivation:* {{$primaryEntity.@motivation}}\n\n*Signs of Presence:* {{$primaryEntity.@signifier}}\n\n### Forbidden Knowledge\n\n**Text:** {{$tome}}\n\n*Contents:* {{$tome.@contents}}\n\n**Artifact:** {{$artifact}}\n\n*Effect:* {{$artifact.@effect}}\n\n### Witnessed Ritual\n\n{{ritualsObserved}}\n\n### Omens Before the Climax\n\n{{2*unique*ominousOmens|\"; \"}}\n\n---\n\n## The Revelation\n\n*{{$revelation}}*\n\n**Tone:** {{$revelation.@tone}}\n\n---\n\n## Aftermath\n\n### Psychological Toll\n\n{{2*unique*sanityEffects|\"; \"}}\n\n### What Remains\n\nThe investigation concludes, but {{$revelation}}{{switch[$cosmicThreatLevel>=5:\"\n\n> ⚠️ **HIGH COSMIC THREAT:** The veil between worlds is thin. Reality may not be reliable.\"].else[\"\"]}}"
     },
     {
       "id": "npcGenerator",
@@ -2286,33 +2286,6 @@
       "tags": ["horror", "sanity"],
       "description": "Generates a madness event using the d100 table.",
       "pattern": "## Sanity Break\n\n**Effect:** {{d100MadnessEffects}}\n\n**Severity:** Consult the d100 Madness Effects table for detailed effects.\n\n### Sanity Threshold\n\nCosmic threat level is {{$cosmicThreatLevel}}, sanity threshold is {{$sanityThreshold}}."
-    }
-  ],
-  "conditionals": [
-    {
-      "when": "$cosmicThreatLevel >= 5",
-      "action": "append",
-      "value": "\n\n> ⚠️ **HIGH COSMIC THREAT:** The veil between worlds is thin. Reality may not be reliable."
-    },
-    {
-      "when": "@rarity.value == 'rare'",
-      "action": "append",
-      "value": "\n\n*This is an extremely rare manifestation. Few who encounter such beings survive with their sanity intact.*"
-    },
-    {
-      "when": "@threatLevel.value == 'catastrophic'",
-      "action": "prepend",
-      "value": "**☠️ CATASTROPHIC THREAT ☠️**\n\n"
-    },
-    {
-      "when": "@threatLevel.value == 'extreme'",
-      "action": "append",
-      "value": "\n\n*Survival is unlikely. Escape should be prioritized over confrontation.*"
-    },
-    {
-      "when": "@personal.value == 'true'",
-      "action": "append",
-      "value": "\n\n*This investigation has deep personal stakes for at least one investigator.*"
     }
   ]
 }

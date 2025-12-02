@@ -1326,7 +1326,7 @@
         "$class": "{{shipClasses}}",
         "$condition": "{{shipConditions}}"
       },
-      "pattern": "## {{shipPrefixes}} *{{shipNameFirst}} {{shipNameSecond}}*\n\nA **{{$class}}** that is {{$condition}}.\n\n**Silhouette:** {{$class.@silhouette}}\n\n**Crew Complement:** {{$class.@crew}}\n\n**Notable Quirk:** {{shipQuirks}}"
+      "pattern": "## {{shipPrefixes}} *{{shipNameFirst}} {{shipNameSecond}}*\n\nA **{{$class}}** that is {{$condition}}.\n\n**Silhouette:** {{$class.@silhouette}}\n\n**Crew Complement:** {{$class.@crew}}\n\n**Notable Quirk:** {{shipQuirks}}{{switch[@size.value==\"massive\":\"\n\n*This vessel is large enough to be detected from across the system.*\"].else[\"\"]}}"
     },
     {
       "id": "planetDescription",
@@ -1350,7 +1350,7 @@
         "$type": "{{stationTypes}}",
         "$status": "{{stationConditions}}"
       },
-      "pattern": "## Space Station: {{shipNameFirst}} {{stationTypes}}\n\n**Type:** {{$type}} - {{$type.@purpose}}\n\n**Status:** Currently {{$status}}\n\n**Architecture:** {{$type.@architecture}}\n\n**Gravity:** {{$type.@gravity}}\n\n**Atmosphere:** {{$type.@atmosphere}}\n\n**Current Buzz:** {{locationAtmospheres}}"
+      "pattern": "## Space Station: {{shipNameFirst}} {{stationTypes}}\n\n**Type:** {{$type}} - {{$type.@purpose}}\n\n**Status:** Currently {{$status}}\n\n**Architecture:** {{$type.@architecture}}\n\n**Gravity:** {{$type.@gravity}}\n\n**Atmosphere:** {{$type.@atmosphere}}\n\n**Current Buzz:** {{locationAtmospheres}}{{switch[@status.value==\"declining\":\"\n\n*Rumors suggest this location may not exist much longer.*\"].else[\"\"]}}"
     },
     {
       "id": "alienSpeciesProfile",
@@ -1373,7 +1373,7 @@
         "$appearance": "{{allCharacterAppearances}}",
         "$demeanor": "{{characterDemeanors}}"
       },
-      "pattern": "## {{firstNames}} \"{{nicknames}}\" {{surnames}}\n\n**Profession:** {{professions}}\n\n**Physical Description:** They are {{$appearance}}, with {{characterDistinguishingFeatures}}.\n\n**Demeanor:** {{$demeanor}}\n\n**Motivation:** {{characterMotivations}}"
+      "pattern": "## {{firstNames}} \"{{nicknames}}\" {{surnames}}\n\n**Profession:** {{professions}}\n\n**Physical Description:** They are {{$appearance}}, with {{characterDistinguishingFeatures}}.\n\n**Demeanor:** {{$demeanor}}\n\n**Motivation:** {{characterMotivations}}{{switch[@species.value==\"synthetic\":\"\n\n*Note: Synthetic individuals may face legal restrictions in some jurisdictions.*\"].else[\"\"]}}"
     },
     {
       "id": "corporationProfile",
@@ -1407,7 +1407,7 @@
       "shared": {
         "$anomaly": "{{anomalyTypes}}"
       },
-      "pattern": "## Sensors Detect...\n\n**Initial Reading:** {{sensorReadings}}\n\n**Upon Investigation:** You find {{$anomaly}}.\n\n**Visual:** {{$anomaly.@visualDesc}}\n\n**Threat Assessment:** {{$anomaly.@dangerLevel}}"
+      "pattern": "## Sensors Detect...\n\n**Initial Reading:** {{sensorReadings}}\n\n**Upon Investigation:** You find {{$anomaly}}.\n\n**Visual:** {{$anomaly.@visualDesc}}\n\n**Threat Assessment:** {{$anomaly.@dangerLevel}}{{switch[@dangerLevel.value==\"high\":\"\n\n⚠️ **Warning: Extreme caution advised.**\"].else[\"\"]}}"
     },
     {
       "id": "cargoManifest",
@@ -1418,7 +1418,7 @@
       "shared": {
         "cargoCount": "{{dice:2d4}}"
       },
-      "pattern": "## Cargo Manifest\n\n**Number of Lots:** {{$cargoCount}}\n\n**Contents:**\n{{$cargoCount*unique*cargoByRarity|\"\\n\"}}\n\n**Inspection Notes:** Standard customs procedures apply."
+      "pattern": "{{switch[@legality.value==\"illegal\":\"🚫 **CONTRABAND** - \"].else[\"\"]}}## Cargo Manifest\n\n**Number of Lots:** {{$cargoCount}}\n\n**Contents:**\n{{$cargoCount*unique*cargoByRarity|\"\\n\"}}\n\n**Inspection Notes:** Standard customs procedures apply."
     },
     {
       "id": "sessionStarter",
@@ -1462,33 +1462,6 @@
         "npcCount": "{{dice:1d4+2}}"
       },
       "pattern": "## NPC Group ({{$npcCount}} individuals)\n\n{{$npcCount*quickNPC|\"\\n\\n\"}}"
-    }
-  ],
-  "conditionals": [
-    {
-      "when": "@size.value == 'massive'",
-      "action": "append",
-      "value": "\n\n*This vessel is large enough to be detected from across the system.*"
-    },
-    {
-      "when": "@dangerLevel.value == 'high'",
-      "action": "append",
-      "value": "\n\n⚠️ **Warning: Extreme caution advised.**"
-    },
-    {
-      "when": "@legality.value == 'illegal'",
-      "action": "prepend",
-      "value": "🚫 **CONTRABAND** - "
-    },
-    {
-      "when": "@status.value == 'declining'",
-      "action": "append",
-      "value": "\n\n*Rumors suggest this location may not exist much longer.*"
-    },
-    {
-      "when": "@species.value == 'synthetic'",
-      "action": "append",
-      "value": "\n\n*Note: Synthetic individuals may face legal restrictions in some jurisdictions.*"
     }
   ]
 }

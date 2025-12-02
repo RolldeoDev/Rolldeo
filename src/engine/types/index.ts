@@ -13,7 +13,6 @@ export interface RandomTableDocument {
   imports?: Import[]
   tables: Table[]
   templates?: Template[]
-  conditionals?: Conditional[]
   variables?: Variables
   shared?: SharedVariables
 }
@@ -268,23 +267,6 @@ export interface Template {
   resultType?: string
   /** Template-level shared variables (evaluated lazily when rolled) */
   shared?: SharedVariables
-}
-
-// ============================================================================
-// Conditionals
-// ============================================================================
-
-export interface Conditional {
-  /** Condition expression */
-  when: string
-  /** Action to perform */
-  action: 'append' | 'prepend' | 'replace' | 'setVariable'
-  /** Target for replace/setVariable actions */
-  target?: string
-  /** Value to apply (supports {{...}} syntax) */
-  value: string
-  /** Tags for organization */
-  tags?: string[]
 }
 
 // ============================================================================

@@ -46,7 +46,7 @@ import {
   type SwitchToken,
 } from './parser'
 import { evaluateMath } from './math'
-import { applyConditionals, evaluateWhenClause } from './conditionals'
+import { evaluateWhenClause } from './conditionals'
 import {
   beginTraceNode,
   endTraceNode,
@@ -779,17 +779,7 @@ export class ExpressionEvaluator {
       }
 
       // Evaluate the template pattern using isolated context
-      let text = this.evaluatePattern(template.pattern, isolatedContext, collectionId)
-
-      // Apply document-level conditionals using isolated context
-      if (collection.document.conditionals && collection.document.conditionals.length > 0) {
-        text = applyConditionals(
-          collection.document.conditionals,
-          text,
-          isolatedContext,
-          (pattern: string) => this.evaluatePattern(pattern, isolatedContext, collectionId)
-        )
-      }
+      const text = this.evaluatePattern(template.pattern, isolatedContext, collectionId)
 
       // End trace node with full template result
       endTraceNode(context, { value: text })

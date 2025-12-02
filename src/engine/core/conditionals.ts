@@ -1,34 +1,22 @@
 /**
- * Conditionals Evaluation
+ * Condition Expression Evaluation
  *
- * Implements conditional logic for Random Table Spec v1.0.
- * Supports comparison operators, logical operators, and actions.
+ * Implements condition expression parsing and evaluation for switch expressions.
+ * Supports comparison operators and logical operators.
  */
 
-import type { Conditional } from '../types'
 import type { GenerationContext } from './context'
-import { resolveVariable, getPlaceholder, setSharedVariable, getCaptureSharedVariable } from './context'
+import { resolveVariable, getPlaceholder, getCaptureSharedVariable } from './context'
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export interface ConditionalResult {
-  /** Whether the condition was true */
-  matched: boolean
-  /** The action that was performed */
-  action?: Conditional['action']
-  /** The modified text (for append/prepend/replace) */
-  modifiedText?: string
-  /** Variable that was set (for setVariable) */
-  variableSet?: { name: string; value: string | number }
-}
+type ComparisonOperator = '==' | '!=' | '>' | '<' | '>=' | '<=' | 'contains' | 'matches'
 
 // ============================================================================
 // Expression Parsing
 // ============================================================================
-
-type ComparisonOperator = '==' | '!=' | '>' | '<' | '>=' | '<=' | 'contains' | 'matches'
 
 /**
  * Tokenize a when-clause expression
@@ -213,7 +201,7 @@ function compare(
 // ============================================================================
 
 /**
- * Evaluate a when-clause expression
+ * Evaluate a when-clause expression (used by switch expressions)
  */
 export function evaluateWhenClause(
   when: string,
@@ -302,94 +290,4 @@ function evaluateTokens(tokens: string[], context: GenerationContext): boolean {
   }
 
   return false
-}
-
-// ============================================================================
-// Conditional Evaluation
-// ============================================================================
-
-/**
- * Evaluate a conditional and apply its action if matched
- */
-export function evaluateConditional(
-  conditional: Conditional,
-  currentText: string,
-  context: GenerationContext,
-  evaluatePattern: (pattern: string) => string
-): ConditionalResult {
-  // Evaluate the when clause
-  const matched = evaluateWhenClause(conditional.when, context)
-
-  if (!matched) {
-    return { matched: false }
-  }
-
-  // Evaluate the value (may contain template expressions)
-  const evaluatedValue = evaluatePattern(conditional.value)
-
-  switch (conditional.action) {
-    case 'append':
-      return {
-        matched: true,
-        action: 'append',
-        modifiedText: currentText + evaluatedValue,
-      }
-
-    case 'prepend':
-      return {
-        matched: true,
-        action: 'prepend',
-        modifiedText: evaluatedValue + currentText,
-      }
-
-    case 'replace':
-      if (!conditional.target) {
-        return { matched: true, action: 'replace', modifiedText: evaluatedValue }
-      }
-      // Replace target string in text
-      const targetPattern = new RegExp(conditional.target, 'g')
-      return {
-        matched: true,
-        action: 'replace',
-        modifiedText: currentText.replace(targetPattern, evaluatedValue),
-      }
-
-    case 'setVariable':
-      if (!conditional.target) {
-        return { matched: true, action: 'setVariable' }
-      }
-      // Parse value as number if possible
-      const numValue = parseFloat(evaluatedValue)
-      const value = !isNaN(numValue) && isFinite(numValue) ? numValue : evaluatedValue
-      setSharedVariable(context, conditional.target, value)
-      return {
-        matched: true,
-        action: 'setVariable',
-        variableSet: { name: conditional.target, value },
-      }
-
-    default:
-      return { matched: true }
-  }
-}
-
-/**
- * Apply all conditionals to the generated text
- */
-export function applyConditionals(
-  conditionals: Conditional[],
-  text: string,
-  context: GenerationContext,
-  evaluatePattern: (pattern: string) => string
-): string {
-  let result = text
-
-  for (const conditional of conditionals) {
-    const evalResult = evaluateConditional(conditional, result, context, evaluatePattern)
-    if (evalResult.matched && evalResult.modifiedText !== undefined) {
-      result = evalResult.modifiedText
-    }
-  }
-
-  return result
 }

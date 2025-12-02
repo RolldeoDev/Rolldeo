@@ -38,7 +38,6 @@ import {
 import { rollSimpleTable, buildWeightedPool, calculateTotalWeight } from '../tables/simple'
 import { selectSource, buildSourcePool, calculateSourceWeight } from '../tables/composite'
 import { rollCollectionTable } from '../tables/collection'
-import { applyConditionals } from './conditionals'
 import {
   beginTraceNode,
   endTraceNode,
@@ -544,17 +543,7 @@ export class RandomTableEngine {
 
     // Roll on the table
     const result = this.rollTable(table, context, collectionId)
-
-    // Apply document-level conditionals
-    let finalText = result.text
-    if (collection.document.conditionals && collection.document.conditionals.length > 0) {
-      finalText = applyConditionals(
-        collection.document.conditionals,
-        result.text,
-        context,
-        (pattern: string) => this.evaluator.evaluatePattern(pattern, context, collectionId)
-      )
-    }
+    const finalText = result.text
 
     // End root trace and extract
     endTraceNode(context, { value: finalText })
@@ -623,17 +612,7 @@ export class RandomTableEngine {
     }
 
     // Evaluate the template pattern
-    let text = this.evaluator.evaluatePattern(template.pattern, context, collectionId)
-
-    // Apply document-level conditionals
-    if (collection.document.conditionals && collection.document.conditionals.length > 0) {
-      text = applyConditionals(
-        collection.document.conditionals,
-        text,
-        context,
-        (pattern: string) => this.evaluator.evaluatePattern(pattern, context, collectionId)
-      )
-    }
+    const text = this.evaluator.evaluatePattern(template.pattern, context, collectionId)
 
     // End root trace and extract
     endTraceNode(context, { value: text })
@@ -705,19 +684,8 @@ export class RandomTableEngine {
     })
 
     // Evaluate the pattern and capture individual expression outputs
-    const { text: evaluatedText, expressionOutputs } =
+    const { text, expressionOutputs } =
       this.evaluator.evaluatePatternWithOutputs(pattern, context, collectionId)
-    let text = evaluatedText
-
-    // Apply document-level conditionals
-    if (collection.document.conditionals && collection.document.conditionals.length > 0) {
-      text = applyConditionals(
-        collection.document.conditionals,
-        text,
-        context,
-        (p: string) => this.evaluator.evaluatePattern(p, context, collectionId)
-      )
-    }
 
     // End root trace and extract
     endTraceNode(context, { value: text })

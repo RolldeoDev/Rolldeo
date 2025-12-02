@@ -280,7 +280,7 @@
       "description": "A basic encounter with minimal details",
       "resultType": "encounter",
       "tags": ["simple", "quick"],
-      "pattern": "**{{encounterType}} Encounter** at {{encounterLocation}}.\n\nComplication: {{complication}}"
+      "pattern": "**{{encounterType}} Encounter** at {{encounterLocation}}.\n\nComplication: {{complication}}{{switch[@encounterType.nature==\"hostile\":\"\n\n**COMBAT ADVISORY:** Hostile encounter detected. Recommend raising shields and charging weapons.\"].else[\"\"]}}{{switch[@encounterLocation.environment==\"vacuum\":\"\n\n*Environmental Note: Vacuum conditions - EVA suits required for any exterior activity.*\"].else[\"\"]}}"
     },
     {
       "id": "spaceEncounter",
@@ -296,7 +296,7 @@
       "description": "First contact or meeting with alien species",
       "resultType": "encounter",
       "tags": ["aliens", "diplomatic"],
-      "pattern": "## Alien Contact\n\n**Species:** {{aliens.speciesName}}\n**Appearance:** {{aliens.sizeCategory}} {{aliens.bodyType}}, {{aliens.primaryColor}} coloration\n**Disposition:** {{aliens.disposition}}\n**Tech Level:** {{aliens.techLevel}}\n\n**Communication:** {{aliens.communicationMethod}}\n**Human Compatibility:** {{@aliens.communicationMethod.humanCompatible}}\n\n**Their Motivation:** {{motivation}}\n**Negotiation Possible:** {{@motivation.negotiable}}\n\n**Potential Complication:** {{complication}}"
+      "pattern": "## Alien Contact\n\n**Species:** {{aliens.speciesName}}\n**Appearance:** {{aliens.sizeCategory}} {{aliens.bodyType}}, {{aliens.primaryColor}} coloration\n**Disposition:** {{aliens.disposition}}\n**Tech Level:** {{aliens.techLevel}}\n\n**Communication:** {{aliens.communicationMethod}}\n**Human Compatibility:** {{@aliens.communicationMethod.humanCompatible}}\n\n**Their Motivation:** {{motivation}}\n**Negotiation Possible:** {{@motivation.negotiable}}\n\n**Potential Complication:** {{complication}}{{switch[@aliens.disposition.tradeWilling==\"no\":\"\n\n*Diplomatic Assessment: This species shows no interest in trade relations. Alternative approaches recommended.*\"].else[\"\"]}}"
     },
     {
       "id": "planetaryEncounter",
@@ -316,7 +316,7 @@
         "threatLevel": "{{dice:1d10}}",
         "encounterCode": "{{$encounterPrefix}}-{{dice:1d9999}}"
       },
-      "pattern": "# Encounter {{$encounterCode}}\n\n**Threat Level:** {{$threatLevel}}/10\n**Time:** {{$timeOfDay}}\n\n## Situation\n\n**Type:** {{encounterType}}\n**Nature:** {{@encounterType.nature}}\n**Resolution:** {{@encounterType.resolution}}\n**Time Scale:** {{@encounterType.timeScale}}\n\n## Location\n\n**Setting:** {{encounterLocation}}\n**Environment:** {{@encounterLocation.environment}}\n**Cover:** {{@encounterLocation.cover}}\n**Gravity:** {{@encounterLocation.gravity}}\n**Conditions:** {{weatherCondition}}\n\n## Opposition\n\n**NPC:** {{npcRole}}\n**Disposition:** {{@npcRole.disposition}}\n**Resources:** {{@npcRole.resources}}\n**Motivation:** {{motivation}} ({{@motivation.intensity}})\n\n## Complications\n\n1. {{complication}}\n2. {{complication}}\n\n## Stakes\n\n**Urgency:** {{urgency}}\n**Time Limit:** {{@urgency.timeLimit}}\n**Failure Consequences:** {{@urgency.consequences}}\n\n## Rewards\n\n{{reward}} ({{@reward.type}})"
+      "pattern": "{{switch[@urgency.consequences==\"catastrophic\":\"**PRIORITY ALERT:** This situation has catastrophic failure potential.\n\n\"].else[\"\"]}}# Encounter {{$encounterCode}}\n\n**Threat Level:** {{$threatLevel}}/10\n**Time:** {{$timeOfDay}}\n\n## Situation\n\n**Type:** {{encounterType}}\n**Nature:** {{@encounterType.nature}}\n**Resolution:** {{@encounterType.resolution}}\n**Time Scale:** {{@encounterType.timeScale}}\n\n## Location\n\n**Setting:** {{encounterLocation}}\n**Environment:** {{@encounterLocation.environment}}\n**Cover:** {{@encounterLocation.cover}}\n**Gravity:** {{@encounterLocation.gravity}}\n**Conditions:** {{weatherCondition}}\n\n## Opposition\n\n**NPC:** {{npcRole}}\n**Disposition:** {{@npcRole.disposition}}\n**Resources:** {{@npcRole.resources}}\n**Motivation:** {{motivation}} ({{@motivation.intensity}})\n\n## Complications\n\n1. {{complication}}\n2. {{complication}}\n\n## Stakes\n\n**Urgency:** {{urgency}}\n**Time Limit:** {{@urgency.timeLimit}}\n**Failure Consequences:** {{@urgency.consequences}}\n\n## Rewards\n\n{{reward}} ({{@reward.type}}){{switch[@motivation.negotiable==\"no\":\"\n\n*Warning: Opposition appears non-negotiable. Prepare for extended conflict.*\"].else[\"\"]}}{{switch[@weatherCondition.hazard==\"severe\":\"\n\n**HAZARD WARNING:** Severe environmental conditions will affect operations. Additional precautions required.\"].else[\"\"]}}"
     },
     {
       "id": "multiShipEncounter",
@@ -367,44 +367,6 @@
       "resultType": "description",
       "tags": ["table", "capture", "reference"],
       "pattern": "# Random Encounter Table\n\nRoll d6 for encounter type:\n\n{{6*unique*encounterType >> $types|silent}}\n{{6*encounterLocation >> $locations|silent}}\n{{6*complication >> $twists|silent}}\n\n| d6 | Type | Location | Twist |\n|----|------|----------|-------|\n| 1 | {{$types[0]}} | {{$locations[0]}} | {{$twists[0]}} |\n| 2 | {{$types[1]}} | {{$locations[1]}} | {{$twists[1]}} |\n| 3 | {{$types[2]}} | {{$locations[2]}} | {{$twists[2]}} |\n| 4 | {{$types[3]}} | {{$locations[3]}} | {{$twists[3]}} |\n| 5 | {{$types[4]}} | {{$locations[4]}} | {{$twists[4]}} |\n| 6 | {{$types[5]}} | {{$locations[5]}} | {{$twists[5]}} |\n\n---\n\n**Encounter Natures:** {{collect:$types.@nature|unique}}\n**Resolution Methods:** {{collect:$types.@resolution|unique}}"
-    }
-  ],
-  "conditionals": [
-    {
-      "when": "@encounterType.nature == 'hostile'",
-      "action": "append",
-      "value": "\n\n**COMBAT ADVISORY:** Hostile encounter detected. Recommend raising shields and charging weapons.",
-      "tags": ["combat", "alert"]
-    },
-    {
-      "when": "@urgency.consequences == 'catastrophic'",
-      "action": "prepend",
-      "value": "**PRIORITY ALERT:** This situation has catastrophic failure potential.\n\n",
-      "tags": ["urgency", "alert"]
-    },
-    {
-      "when": "@encounterLocation.environment == 'vacuum'",
-      "action": "append",
-      "value": "\n\n*Environmental Note: Vacuum conditions - EVA suits required for any exterior activity.*",
-      "tags": ["environment", "safety"]
-    },
-    {
-      "when": "@aliens.disposition.tradeWilling == 'no'",
-      "action": "append",
-      "value": "\n\n*Diplomatic Assessment: This species shows no interest in trade relations. Alternative approaches recommended.*",
-      "tags": ["diplomacy", "warning"]
-    },
-    {
-      "when": "@motivation.negotiable == 'no'",
-      "action": "append",
-      "value": "\n\n*Warning: Opposition appears non-negotiable. Prepare for extended conflict.*",
-      "tags": ["tactical", "warning"]
-    },
-    {
-      "when": "@weatherCondition.hazard == 'severe'",
-      "action": "append",
-      "value": "\n\n**HAZARD WARNING:** Severe environmental conditions will affect operations. Additional precautions required.",
-      "tags": ["environment", "hazard"]
     }
   ]
 }

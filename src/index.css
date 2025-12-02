@@ -1398,24 +1398,24 @@
   border-color: hsl(var(--primary) / 0.5);
 }
 
-/* Capture-aware variable styling (rose border) */
+/* Capture-aware variable styling (pink border - lighter to avoid error confusion) */
 .editor-input.capture-aware {
-  border-color: #fb7185; /* rose-400 */
-  color: #e11d48; /* rose-600 */
+  border-color: #f472b6; /* pink-400 */
+  color: #ec4899; /* pink-500 */
 }
 
 .dark .editor-input.capture-aware {
-  border-color: #e11d48; /* rose-600 */
-  color: #fb7185; /* rose-400 */
+  border-color: #f9a8d4; /* pink-300 */
+  color: #f9a8d4; /* pink-300 */
 }
 
 .editor-input.capture-aware:focus {
-  border-color: #f43f5e; /* rose-500 */
-  --tw-ring-color: rgb(244 63 94 / 0.4); /* rose-500/40 */
+  border-color: #ec4899; /* pink-500 */
+  --tw-ring-color: rgb(236 72 153 / 0.4); /* pink-500/40 */
 }
 
 .dark .editor-input.capture-aware:focus {
-  border-color: #f43f5e; /* rose-500 */
+  border-color: #f472b6; /* pink-400 */
 }
 
 /* Editor input - compact variant for inline/row items */

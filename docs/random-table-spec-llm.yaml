@@ -460,29 +460,6 @@ decision_guide:
         - '"scaledDifficulty": "{{math:$partyLevel * 2 + $dangerMod}}"'
 
   # ---------------------------------------------------------------------------
-  # CONDITIONALS
-  # ---------------------------------------------------------------------------
-  conditionals:
-    use_when: "Output should CHANGE based on what was rolled"
-    avoid_when: "Routing to type-specific sub-tables - use child_table_references in sets instead"
-
-    actions:
-      append: "Add text to end of output"
-      prepend: "Add text to beginning of output"
-      replace: "Replace specific target text"
-      setVariable: "Set a variable for later use"
-
-    common_patterns:
-      size_based: "@size.value == 'large' → append fortification description"
-      type_based: "@creatureType.value == 'undead' → append holy vulnerability"
-      threshold: "$dangerLevel >= 5 → setVariable 'highDanger' = 'true'"
-      contains: "@name.value contains 'the' → prepend title formatting"
-
-    operators:
-      comparison: ["==", "!=", ">", "<", ">=", "<=", "contains", "matches"]
-      logical: ["&&", "||", "!", "(grouping)"]
-
-  # ---------------------------------------------------------------------------
   # COMMON TTRPG TABLE PATTERNS
   # ---------------------------------------------------------------------------
   ttrpg_patterns:
@@ -541,11 +518,10 @@ decision_guide:
       template: "{{questGiver}} needs help with {{questType}} at {{location}}. Reward: {{reward}}. But: {{complication}}"
 
     settlement_generator:
-      structure: "Size determines other properties via conditionals"
+      structure: "Size determines other properties via switch expressions"
       tables: [settlementSize, government, mainIndustry, problem, landmark]
-      conditionals:
-        - "@size.value == 'city' → append 'Has defensive walls and multiple districts.'"
-        - "@size.value == 'village' → append 'Everyone knows each other.'"
+      switch_example: |
+        "pattern": "{{settlementSize}}{{switch[@size.value==\"city\":\" Has defensive walls and multiple districts.\"].switch[@size.value==\"village\":\" Everyone knows each other.\"].else[\"\"]}}"
 
     weather_table:
       structure: "Simple or composite by season"
@@ -623,7 +599,7 @@ decision_guide:
       independent_instances: "Use capture-aware ($prefix)"
 
     step5_conditional_output:
-      simple_conditions: "Add conditionals"
+      simple_conditions: "Use inline switch expressions"
       type_specific_subtables: "Use child_table_references in sets instead (see categorized_generator pattern)"
 
     step6_variant_table:
@@ -634,7 +610,7 @@ decision_guide:
 # =============================================================================
 file_structure:
   required: [metadata, tables]
-  optional: [imports, templates, conditionals, variables, shared]
+  optional: [imports, templates, variables, shared]
   minimal_valid: |
     {"metadata":{"name":"X","namespace":"x.y","version":"1.0.0","specVersion":"1.0"},"tables":[{"id":"t","name":"T","type":"simple","entries":[{"value":"v"}]}]}
 
@@ -890,26 +866,6 @@ template_syntax:
   escape: "\\{{ and \\}}"
 
 # =============================================================================
-# CONDITIONALS
-# =============================================================================
-conditional:
-  when: {type: string, required: true, desc: "condition expression"}
-  action: {enum: [append, prepend, replace, setVariable], required: true}
-  target: {type: string, required_if: "action is replace or setVariable"}
-  value: {type: string, required: true, markdown: true, supports: "{{}} syntax"}
-  tags: string[]
-
-  comparison_operators: ["==", "!=", ">", "<", ">=", "<=", "contains", "matches"]
-  logical_operators: ["&&", "||", "!", "(grouping)"]
-
-  examples:
-    - "@size.value == 'large'"
-    - "@race.value == 'elf' && @class.value == 'mage'"
-    - "$setting != 'modern'"
-    - "@name.value contains 'the'"
-    - "@code.value matches '^[A-Z]{3}$'"
-
-# =============================================================================
 # VARIABLES (static, load-time)
 # =============================================================================
 variables:
@@ -1153,20 +1109,7 @@ example: |
         "shared": {
           "dangerLevel": "{{dice:1d6}}"
         },
-        "pattern": "## Encounter (Danger: {{$dangerLevel}})\n\nYou encounter **{{$encounterSize}} {{encounterType}}** led by **{{$leader.@title}} {{$leader}}**.\n\n### Treasure\n{{$encounterSize*unique*richTreasure|\", \"}}\n\n**Total value:** ~{{$treasureMultiplier}} gold"
-      }
-    ],
-    "conditionals": [
-      {
-        "when": "@rarity.value == 'common'",
-        "action": "append",
-        "value": "\n\n_This is a common encounter._"
-      },
-      {
-        "when": "$dangerLevel >= 5",
-        "action": "setVariable",
-        "target": "highDanger",
-        "value": "true"
+        "pattern": "## Encounter (Danger: {{$dangerLevel}})\n\nYou encounter **{{$encounterSize}} {{encounterType}}** led by **{{$leader.@title}} {{$leader}}**.\n\n### Treasure\n{{$encounterSize*unique*richTreasure|\", \"}}\n\n**Total value:** ~{{$treasureMultiplier}} gold{{switch[@rarity.value==\"common\":\"\n\n_This is a common encounter._\"].else[\"\"]}}{{switch[$dangerLevel>=5:\"\n\n**HIGH DANGER!**\"].else[\"\"]}}"
       }
     ]
   }

@@ -14,6 +14,7 @@ import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
 import { ResultTypeSelector } from './ResultTypeSelector'
 import { KeyValueEditor } from './KeyValueEditor'
 import type { Entry } from '@/engine/types'
+import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 export interface EntryEditorProps {
   /** The entry to edit */
@@ -34,6 +35,14 @@ export interface EntryEditorProps {
   collectionId?: string
   /** Whether to auto-focus the value input on mount */
   autoFocus?: boolean
+  /** Local tables for insert dropdown */
+  localTables?: TableInfo[]
+  /** Local templates for insert dropdown */
+  localTemplates?: TemplateInfo[]
+  /** Imported tables for insert dropdown */
+  importedTables?: ImportedTableInfo[]
+  /** Imported templates for insert dropdown */
+  importedTemplates?: ImportedTemplateInfo[]
 }
 
 export function EntryEditor({
@@ -46,6 +55,10 @@ export function EntryEditor({
   canDelete = true,
   collectionId,
   autoFocus = false,
+  localTables = [],
+  localTemplates = [],
+  importedTables = [],
+  importedTemplates = [],
 }: EntryEditorProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -479,6 +492,11 @@ export function EntryEditor({
               valuePlaceholder="Value or {{pattern}}"
               valueSupportsExpressions={true}
               collectionId={collectionId}
+              showInsertButton
+              localTables={localTables}
+              localTemplates={localTemplates}
+              importedTables={importedTables}
+              importedTemplates={importedTemplates}
             />
           </div>
 
