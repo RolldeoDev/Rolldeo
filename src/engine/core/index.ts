@@ -1236,7 +1236,7 @@ export class RandomTableEngine {
     context: GenerationContext,
     collectionId: string,
     options: { unique?: boolean; excludeIds?: Set<string> } = {}
-  ): { text: string; resultType?: string; assets?: Assets; placeholders?: Sets; entryId?: string } {
+  ): { text: string; resultType?: string; assets?: Assets; placeholders?: EvaluatedSets; entryId?: string } {
     // Check recursion limit
     if (!incrementRecursion(context)) {
       throw new Error(`Recursion limit exceeded (${context.config.maxRecursionDepth})`)
@@ -1267,7 +1267,7 @@ export class RandomTableEngine {
         this.evaluateTableLevelShared(table.shared, context, collectionId, table.id)
       }
 
-      let result: { text: string; resultType?: string; assets?: Assets; placeholders?: Sets; entryId?: string }
+      let result: { text: string; resultType?: string; assets?: Assets; placeholders?: EvaluatedSets; entryId?: string }
 
       if (table.type === 'simple') {
         result = this.rollSimple(table as SimpleTable, context, collectionId, options)
@@ -1297,7 +1297,7 @@ export class RandomTableEngine {
     context: GenerationContext,
     collectionId: string,
     options: { unique?: boolean; excludeIds?: Set<string> }
-  ): { text: string; resultType?: string; assets?: Assets; placeholders?: Sets; entryId?: string } {
+  ): { text: string; resultType?: string; assets?: Assets; placeholders?: EvaluatedSets; entryId?: string } {
     // Resolve inheritance before rolling
     const resolvedTable = this.resolveTableInheritance(table, collectionId)
 
@@ -1354,7 +1354,7 @@ export class RandomTableEngine {
 
     // Evaluate and merge placeholders
     // Set values containing {{patterns}} are evaluated at merge time for consistency
-    let evaluatedSets = selected.mergedSets
+    let evaluatedSets: EvaluatedSets = selected.mergedSets
     if (Object.keys(selected.mergedSets).length > 0) {
       evaluatedSets = this.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
       mergePlaceholderSets(context, table.id, evaluatedSets)
@@ -1400,7 +1400,7 @@ export class RandomTableEngine {
     context: GenerationContext,
     collectionId: string,
     options: { unique?: boolean; excludeIds?: Set<string> }
-  ): { text: string; resultType?: string; assets?: Assets; placeholders?: Sets; entryId?: string } {
+  ): { text: string; resultType?: string; assets?: Assets; placeholders?: EvaluatedSets; entryId?: string } {
     // Build source pool for trace metadata
     const sourcePool = buildSourcePool(table.sources)
     const totalSourceWeight = calculateSourceWeight(sourcePool)
@@ -1447,7 +1447,7 @@ export class RandomTableEngine {
     context: GenerationContext,
     collectionId: string,
     options: { unique?: boolean; excludeIds?: Set<string> }
-  ): { text: string; resultType?: string; assets?: Assets; placeholders?: Sets; entryId?: string } {
+  ): { text: string; resultType?: string; assets?: Assets; placeholders?: EvaluatedSets; entryId?: string } {
     // Get source tables
     const getTables = (ids: string[]) => {
       const result: Array<{ id: string; table: SimpleTable }> = []
@@ -1513,7 +1513,7 @@ export class RandomTableEngine {
 
     // Evaluate and merge placeholders
     // Set values containing {{patterns}} are evaluated at merge time for consistency
-    let evaluatedSets = selected.mergedSets
+    let evaluatedSets: EvaluatedSets = selected.mergedSets
     if (Object.keys(selected.mergedSets).length > 0) {
       evaluatedSets = this.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
       mergePlaceholderSets(context, table.id, evaluatedSets)

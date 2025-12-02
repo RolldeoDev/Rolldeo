@@ -6,7 +6,7 @@
  */
 
 import { memo, useState, useCallback, useMemo } from 'react'
-import type { RollResult, EntryDescription, Sets } from '@/engine/types'
+import type { RollResult, EntryDescription, EvaluatedSets } from '@/engine/types'
 import type { StoredRoll } from '@/services/db'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
 import { SelectedItemInfo } from './SelectedItemInfo'
@@ -32,7 +32,7 @@ interface ResultsPanelProps {
 interface DrawerState {
   type: 'descriptions' | 'sets'
   descriptions?: EntryDescription[]
-  sets?: Sets
+  sets?: EvaluatedSets
   sourceLabel?: string
 }
 
@@ -57,7 +57,7 @@ export const ResultsPanel = memo(function ResultsPanel({
   }, [])
 
   // Open sets drawer
-  const openSets = useCallback((sets: Sets, sourceLabel?: string) => {
+  const openSets = useCallback((sets: EvaluatedSets, sourceLabel?: string) => {
     setDrawerState({ type: 'sets', sets, sourceLabel })
   }, [])
 

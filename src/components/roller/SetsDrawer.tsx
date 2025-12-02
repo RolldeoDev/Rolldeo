@@ -7,14 +7,19 @@
 
 import { memo, useState, useCallback, useEffect, useRef } from 'react'
 import { ChevronRight, ListOrdered, X, ChevronsUpDown, ChevronsDownUp, Copy, Check } from 'lucide-react'
-import type { Sets } from '@/engine/types'
+import type { EvaluatedSets, CaptureItem } from '@/engine/types'
 import { cn } from '@/lib/utils'
 
 interface SetsDrawerProps {
-  sets: Sets | null
+  sets: EvaluatedSets | null
   isOpen: boolean
   onClose: () => void
   sourceLabel?: string
+}
+
+/** Helper to get display value from a set entry (handles both string and CaptureItem) */
+const getDisplayValue = (value: string | CaptureItem): string => {
+  return typeof value === 'string' ? value : value.value
 }
 
 export const SetsDrawer = memo(function SetsDrawer({
@@ -88,7 +93,7 @@ export const SetsDrawer = memo(function SetsDrawer({
     if (!sets) return
     try {
       const text = Object.entries(sets)
-        .map(([key, value]) => `@${key}: ${value}`)
+        .map(([key, value]) => `@${key}: ${getDisplayValue(value)}`)
         .join('\n')
       await navigator.clipboard.writeText(text)
       setCopiedAll(true)
@@ -261,7 +266,7 @@ export const SetsDrawer = memo(function SetsDrawer({
 
 interface SetEntryProps {
   setKey: string
-  value: string
+  value: string | CaptureItem
   isExpanded: boolean
   onToggle: () => void
   index: number
@@ -275,17 +280,18 @@ const SetEntry = memo(function SetEntry({
   index,
 }: SetEntryProps) {
   const [copied, setCopied] = useState(false)
+  const displayValue = getDisplayValue(value)
 
   const handleCopy = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation()
     try {
-      await navigator.clipboard.writeText(`@${setKey}: ${value}`)
+      await navigator.clipboard.writeText(`@${setKey}: ${displayValue}`)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy:', err)
     }
-  }, [setKey, value])
+  }, [setKey, displayValue])
 
   return (
     <div
@@ -335,7 +341,7 @@ const SetEntry = memo(function SetEntry({
             isExpanded ? 'text-foreground dark:text-stone-100' : 'text-foreground/80 dark:text-stone-300',
             !isExpanded && 'line-clamp-1'
           )}>
-            {value}
+            {displayValue}
           </p>
         </div>
       </button>
@@ -387,7 +393,7 @@ const SetEntry = memo(function SetEntry({
               'bg-rose/5 text-foreground',
               'whitespace-pre-wrap break-words'
             )}>
-              {value}
+              {displayValue}
             </div>
           </div>
         </div>

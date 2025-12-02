@@ -9,7 +9,7 @@ import { memo, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen, ListOrdered } from 'lucide-react'
-import type { RollResult, EntryDescription, Sets } from '@/engine/types'
+import type { RollResult, EntryDescription, EvaluatedSets } from '@/engine/types'
 import { TraceViewer } from './TraceViewer'
 import { CaptureInspector } from './CaptureInspector'
 import { getResultTypeIcon } from '@/lib/resultTypeIcons'
@@ -21,7 +21,7 @@ interface CurrentRollResultProps {
   error: string | null
   onReroll: () => void
   onShowDescriptions: (descriptions: EntryDescription[], sourceLabel?: string) => void
-  onShowSets: (sets: Sets, sourceLabel?: string) => void
+  onShowSets: (sets: EvaluatedSets, sourceLabel?: string) => void
 }
 
 export const CurrentRollResult = memo(function CurrentRollResult({

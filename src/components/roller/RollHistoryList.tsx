@@ -10,7 +10,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { History as HistoryIcon, Pin, PinOff, Trash2, Activity, BookOpen, ListOrdered } from 'lucide-react'
 import type { StoredRoll } from '@/services/db'
-import type { EntryDescription, Sets } from '@/engine/types'
+import type { EntryDescription, EvaluatedSets } from '@/engine/types'
 import { formatTimestamp } from '@/stores/rollStore'
 import { cn } from '@/lib/utils'
 import { TraceViewer } from './TraceViewer'
@@ -22,7 +22,7 @@ interface RollHistoryListProps {
   onDelete: (id: number) => void
   onClearHistory: (keepPinned: boolean) => void
   onShowDescriptions: (descriptions: EntryDescription[], sourceLabel?: string) => void
-  onShowSets: (sets: Sets, sourceLabel?: string) => void
+  onShowSets: (sets: EvaluatedSets, sourceLabel?: string) => void
 }
 
 export const RollHistoryList = memo(function RollHistoryList({

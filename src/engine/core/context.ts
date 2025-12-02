@@ -5,7 +5,7 @@
  * Tracks variables, placeholders, recursion depth, and unique selections.
  */
 
-import type { EngineConfig, Sets, EvaluatedSets, RollResult, CaptureVariable, CaptureItem, EntryDescription } from '../types'
+import type { EngineConfig, EvaluatedSets, RollResult, CaptureVariable, CaptureItem, EntryDescription } from '../types'
 import type { TraceContext } from './trace'
 import { createTraceContext } from './trace'
 
