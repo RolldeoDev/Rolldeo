@@ -90,6 +90,63 @@
 | `{{collect:$var.@prop\|unique}}` | Deduplicated |
 | `{{collect:$var.@prop\|unique\|", "}}` | Deduplicated with separator |
 
+## Switch Expressions
+
+Inline conditional value selection with `switch[condition:result]` syntax.
+
+### Standalone Switch
+
+| Syntax | Description |
+|--------|-------------|
+| `{{switch[cond:result].else[fallback]}}` | Single condition with fallback |
+| `{{switch[c1:r1].switch[c2:r2].else[fb]}}` | Multiple conditions (first match wins) |
+| `{{switch[cond:result]}}` | No fallback (returns empty if no match) |
+
+### Attached Switch
+
+Apply switch to transform any expression result. Use `$` to reference the base result.
+
+| Syntax | Description |
+|--------|-------------|
+| `{{dice:1d20.switch[$>=10:"hit"].else["miss"]}}` | Transform dice result |
+| `{{mood.switch[$=="angry":"rage"].else["calm"]}}` | Transform table result |
+| `{{$var.switch[$=="a":"A"].else[$var]}}` | Transform variable (returns base if no match) |
+
+### Result Types
+
+| Type | Example |
+|------|---------|
+| String literal | `"he"`, `"Critical Hit!"` |
+| Interpolated string | `", glowing {{$color}} light"` |
+| Capture property | `$race.@maleName` |
+| Table reference | `{{spellBook}}` |
+| Placeholder | `@creature.type` |
+
+**Note:** Quoted strings containing `{{}}` are interpolated (like template literals).
+
+### Condition Operators
+
+| Operator | Description |
+|----------|-------------|
+| `==`, `!=` | Equality/inequality |
+| `>`, `<`, `>=`, `<=` | Numeric comparison |
+| `contains` | Substring match (case-insensitive) |
+| `matches` | Regex match |
+| `&&`, `\|\|`, `!` | Logical AND, OR, NOT |
+| `()` | Grouping |
+
+### Examples
+
+```
+{{switch[$gender=="male":"he"].switch[$gender=="female":"she"].else["they"]}}
+
+{{dice:1d20.switch[$>=20:"Critical!"].switch[$>=10:"Hit"].else["Miss"]}}
+
+{{switch[$gender=="male":$race.@maleName].else[$race.@femaleName]}}
+
+{{switch[$class=="wizard" && $level>=5:{{powerSpell}}].else[{{basicSpell}}]}}
+```
+
 ## Shared Block
 
 ```json

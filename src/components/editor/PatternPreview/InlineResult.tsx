@@ -49,6 +49,7 @@ function getExpressionLabel(type: ExpressionType): string {
     capture: 'Capture',
     'capture-shared': 'Capture Shared',
     collect: 'Collect',
+    switch: 'Switch',
     unknown: 'Expression',
   }
   return labels[type]

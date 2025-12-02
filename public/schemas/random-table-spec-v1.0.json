@@ -541,7 +541,7 @@
         },
         "value": {
           "type": "string",
-          "description": "The output text. Supports Markdown formatting and {{...}} template syntax for nested evaluation, dice rolls, math expressions, table references, roll captures ({{N*table >> $var}}), capture access ({{$var[0].@prop}}), and property aggregation ({{collect:$var.@prop}})."
+          "description": "The output text. Supports Markdown formatting and {{...}} template syntax for nested evaluation, dice rolls, math expressions, table references, roll captures ({{N*table >> $var}}), capture access ({{$var[0].@prop}}), property aggregation ({{collect:$var.@prop}}), and switch expressions ({{switch[cond:result].else[fallback]}})."
         },
         "weight": {
           "type": "number",
@@ -639,7 +639,7 @@
         },
         "pattern": {
           "type": "string",
-          "description": "Template pattern string. Use {{tableId}} for table rolls, {{dice:XdY}} for dice, {{$var}} for variables, {{@placeholder}} for placeholders, {{math:expr}} for math, {{N*table >> $var}} for captures, {{$var[0].@prop}} for capture access, {{collect:$var.@prop}} for aggregation. Supports Markdown."
+          "description": "Template pattern string. Use {{tableId}} for table rolls, {{dice:XdY}} for dice, {{$var}} for variables, {{@placeholder}} for placeholders, {{math:expr}} for math, {{N*table >> $var}} for captures, {{$var[0].@prop}} for capture access, {{collect:$var.@prop}} for aggregation, {{switch[cond:result].else[fallback]}} for inline conditionals, {{expr.switch[cond:result]}} for attached conditionals. Supports Markdown."
         },
         "description": {
           "type": "string",

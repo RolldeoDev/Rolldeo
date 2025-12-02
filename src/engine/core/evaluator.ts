@@ -42,9 +42,11 @@ import {
   parseExpression,
   extractExpressions,
   type ExpressionToken,
+  type SwitchModifiers,
+  type SwitchToken,
 } from './parser'
 import { evaluateMath } from './math'
-import { applyConditionals } from './conditionals'
+import { applyConditionals, evaluateWhenClause } from './conditionals'
 import {
   beginTraceNode,
   endTraceNode,
@@ -403,50 +405,77 @@ export class ExpressionEvaluator {
 
   /**
    * Evaluate a single expression token.
+   * If the token has switchModifiers attached, applies them after evaluating the base token.
    */
   evaluateToken(token: ExpressionToken, context: GenerationContext, collectionId: string): string {
+    let result: string
+
     switch (token.type) {
       case 'literal':
-        return token.text
+        result = token.text
+        break
 
       case 'dice':
-        return this.evaluateDice(token.expression, context)
+        result = this.evaluateDice(token.expression, context)
+        break
 
       case 'math': {
-        const result = evaluateMath(token.expression, context)
-        return result !== null ? String(result) : '[math error]'
+        const mathResult = evaluateMath(token.expression, context)
+        result = mathResult !== null ? String(mathResult) : '[math error]'
+        break
       }
 
       case 'variable':
-        return this.evaluateVariable(token, context)
+        result = this.evaluateVariable(token, context)
+        break
 
       case 'placeholder':
-        return this.evaluatePlaceholder(token, context, collectionId)
+        result = this.evaluatePlaceholder(token, context, collectionId)
+        break
 
       case 'table':
-        return this.evaluateTableRefExpr(token, context, collectionId)
+        result = this.evaluateTableRefExpr(token, context, collectionId)
+        break
 
       case 'multiRoll':
-        return this.evaluateMultiRoll(token, context, collectionId)
+        result = this.evaluateMultiRoll(token, context, collectionId)
+        break
 
       case 'again':
-        return this.evaluateAgain(token, context, collectionId)
+        result = this.evaluateAgain(token, context, collectionId)
+        break
 
       case 'instance':
-        return this.evaluateInstance(token, context, collectionId)
+        result = this.evaluateInstance(token, context, collectionId)
+        break
 
       case 'captureMultiRoll':
-        return this.evaluateCaptureMultiRoll(token, context, collectionId)
+        result = this.evaluateCaptureMultiRoll(token, context, collectionId)
+        break
 
       case 'captureAccess':
-        return this.evaluateCaptureAccess(token, context, collectionId)
+        result = this.evaluateCaptureAccess(token, context, collectionId)
+        break
 
       case 'collect':
-        return this.evaluateCollect(token, context, collectionId)
+        result = this.evaluateCollect(token, context, collectionId)
+        break
+
+      case 'switch':
+        // Standalone switch - no base result, just evaluate the switch itself
+        return this.evaluateSwitchExpression(token, context, collectionId)
 
       default:
-        return ''
+        result = ''
     }
+
+    // Check for attached switch modifiers and apply them
+    const tokenWithSwitch = token as ExpressionToken & { switchModifiers?: SwitchModifiers }
+    if (tokenWithSwitch.switchModifiers) {
+      return this.evaluateSwitchModifiers(result, tokenWithSwitch.switchModifiers, context, collectionId)
+    }
+
+    return result
   }
 
   // ==========================================================================
@@ -1692,5 +1721,128 @@ export class ExpressionEvaluator {
     )
 
     return result
+  }
+
+  // ==========================================================================
+  // Switch Expression Evaluation
+  // ==========================================================================
+
+  /**
+   * Evaluate a standalone switch expression: {{switch[condition:result].else[fallback]}}
+   * Evaluates each clause's condition in order, returning the first matching result.
+   */
+  private evaluateSwitchExpression(
+    token: SwitchToken,
+    context: GenerationContext,
+    collectionId: string
+  ): string {
+    // Evaluate each clause in order
+    for (const clause of token.clauses) {
+      if (this.evaluateSwitchCondition(clause.condition, undefined, context, collectionId)) {
+        return this.evaluateSwitchResult(clause.resultExpr, context, collectionId)
+      }
+    }
+
+    // No clause matched - use else if provided, otherwise return empty with warning
+    if (token.elseExpr !== undefined) {
+      return this.evaluateSwitchResult(token.elseExpr, context, collectionId)
+    }
+
+    console.warn('Switch expression: no clause matched and no else provided')
+    return ''
+  }
+
+  /**
+   * Evaluate switch modifiers attached to a base expression.
+   * The base result is available as $ in conditions.
+   */
+  private evaluateSwitchModifiers(
+    baseResult: string,
+    modifiers: SwitchModifiers,
+    context: GenerationContext,
+    collectionId: string
+  ): string {
+    // Evaluate each clause in order
+    for (const clause of modifiers.clauses) {
+      if (this.evaluateSwitchCondition(clause.condition, baseResult, context, collectionId)) {
+        return this.evaluateSwitchResult(clause.resultExpr, context, collectionId)
+      }
+    }
+
+    // No clause matched - use else if provided, otherwise return base result
+    if (modifiers.elseExpr !== undefined) {
+      return this.evaluateSwitchResult(modifiers.elseExpr, context, collectionId)
+    }
+
+    return baseResult
+  }
+
+  /**
+   * Replace standalone $ in a condition string with the base result value.
+   * Standalone $ is followed by a non-word character or end of string.
+   * Does NOT match: $varName, $hero.@prop
+   */
+  private prepareConditionWithBaseValue(condition: string, baseResult: string): string {
+    // Replace $ followed by non-word character or end of string
+    // This matches: $==, $>, $<, $ &&, $ contains, $" ", end of string
+    // Does NOT match: $varName, $hero.@prop
+    return condition.replace(/\$(?![a-zA-Z_])/g, JSON.stringify(baseResult))
+  }
+
+  /**
+   * Evaluate a switch condition expression.
+   * If baseResult is provided, standalone $ in the condition refers to that value.
+   */
+  private evaluateSwitchCondition(
+    condition: string,
+    baseResult: string | undefined,
+    context: GenerationContext,
+    collectionId: string
+  ): boolean {
+    let preparedCondition = condition
+
+    // Replace standalone $ with the base result value (if provided)
+    if (baseResult !== undefined) {
+      preparedCondition = this.prepareConditionWithBaseValue(condition, baseResult)
+    }
+
+    // Evaluate any {{expressions}} in the condition
+    const evaluatedCondition = this.evaluatePattern(preparedCondition, context, collectionId)
+
+    // Use existing conditional evaluation logic from conditionals.ts
+    return evaluateWhenClause(evaluatedCondition, context)
+  }
+
+  /**
+   * Evaluate a switch result expression.
+   * Can be "literal", $var.@prop, @placeholder, or {{expression}}.
+   * Quoted strings with {{}} inside are interpolated (like template literals).
+   */
+  private evaluateSwitchResult(
+    resultExpr: string,
+    context: GenerationContext,
+    collectionId: string
+  ): string {
+    const trimmed = resultExpr.trim()
+
+    // Handle quoted strings - check for interpolation
+    if ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+      const inner = trimmed.slice(1, -1)
+      // If contains {{}}, evaluate as pattern (interpolation)
+      if (inner.includes('{{')) {
+        return this.evaluatePattern(inner, context, collectionId)
+      }
+      // Pure literal - return as-is
+      return inner
+    }
+
+    // Everything else is evaluated as a pattern (including $var.@prop, @placeholder, {{expr}})
+    // Wrap in {{}} if not already wrapped for proper parsing
+    if (!trimmed.includes('{{')) {
+      return this.evaluatePattern(`{{${trimmed}}}`, context, collectionId)
+    }
+
+    return this.evaluatePattern(trimmed, context, collectionId)
   }
 }

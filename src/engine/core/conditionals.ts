@@ -7,7 +7,7 @@
 
 import type { Conditional } from '../types'
 import type { GenerationContext } from './context'
-import { resolveVariable, getPlaceholder, setSharedVariable } from './context'
+import { resolveVariable, getPlaceholder, setSharedVariable, getCaptureSharedVariable } from './context'
 
 // ============================================================================
 // Types
@@ -115,7 +115,7 @@ function tokenize(expr: string): string[] {
 
 /**
  * Resolve a value reference from the context
- * Handles @placeholder.property and $variable syntax
+ * Handles @placeholder.property, $variable, and $var.@property syntax
  */
 function resolveValue(
   ref: string,
@@ -128,7 +128,26 @@ function resolveValue(
     const property = parts[1]
     return getPlaceholder(context, name, property)
   } else if (ref.startsWith('$')) {
-    // Variable: $name
+    // Check for capture-aware shared variable with property access: $var.@property
+    const propMatch = ref.match(/^\$([a-zA-Z_][a-zA-Z0-9_]*)\.@([a-zA-Z_][a-zA-Z0-9_]*)$/)
+    if (propMatch) {
+      const varName = propMatch[1]
+      const propName = propMatch[2]
+      const captureShared = getCaptureSharedVariable(context, varName)
+      if (captureShared) {
+        // Access the property from the captured sets
+        const propValue = captureShared.sets[propName]
+        if (propValue !== undefined) {
+          // Handle nested CaptureItem (when set value was a table reference)
+          if (typeof propValue === 'object' && 'value' in propValue) {
+            return propValue.value
+          }
+          return propValue
+        }
+        return undefined
+      }
+    }
+    // Regular variable: $name
     const name = ref.slice(1)
     return resolveVariable(context, name)
   } else {

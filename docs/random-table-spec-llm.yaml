@@ -649,9 +649,40 @@ metadata:
     specVersion: {type: string, const: "1.0"}
   optional:
     author: string
-    description: {type: string, markdown: true}
+    description:
+      type: string
+      markdown: true
+      guidance: |
+        ALWAYS include a description. Write a markdown summary (2-5 sentences) explaining:
+        - What types of content/tables are in the file
+        - The intended use case or game system
+        - Key features (e.g., "includes 40 name tables across 10 cultures")
+        - Any notable structure (e.g., "parent tables with child sub-tables for each category")
+      examples:
+        - |
+          Name generators for Stars Without Number covering 10 cultural backgrounds
+          (Arabic, Chinese, English, Greek, Indian, Japanese, Latin, Nigerian, Russian, Spanish).
+          Each culture includes male names, female names, surnames, and place names.
+          Templates provided for generating full names with culture-appropriate ordering.
+        - |
+          World tag generator for sci-fi sandbox campaigns. Contains 100 world tags,
+          each with associated enemies, friends, complications, things, and places.
+          Use the worldTagGenerator template for complete tag generation with all sub-elements.
     instructions: {type: string, markdown: true}
-    tags: string[]
+    tags:
+      type: string[]
+      guidance: |
+        ALWAYS include relevant tags. Choose tags that help users discover and filter content.
+        Include tags from these categories as applicable:
+        - **Game system**: dnd5e, pathfinder2e, swn, mothership, osr, system-agnostic
+        - **Genre**: fantasy, sci-fi, horror, modern, historical, post-apocalyptic
+        - **Content type**: names, npcs, encounters, treasure, locations, world-building, generators
+        - **Specifics**: creatures, items, spells, factions, weather, rumors, plot-hooks
+        - **Source**: if from a specific book or publisher, include identifiers
+      examples:
+        - ["swn", "sci-fi", "names", "generators", "world-building"]
+        - ["fantasy", "osr", "encounters", "dungeons", "creatures", "treasure"]
+        - ["dnd5e", "npcs", "generators", "personality", "backgrounds"]
     created: {type: string, format: "ISO8601 datetime"}
     updated: {type: string, format: "ISO8601 datetime"}
   source:
@@ -837,6 +868,24 @@ template_syntax:
   capture_collect_unique: "{{collect:$var.@property|unique}}"
   capture_collect_sep: '{{collect:$var.@property|"sep"}}'
 
+  # Switch expressions (inline conditionals)
+  switch_standalone: '{{switch[condition:result].else[fallback]}}'
+  switch_multiple: '{{switch[cond1:res1].switch[cond2:res2].else[fallback]}}'
+  switch_attached: '{{expr.switch[condition:result].else[fallback]}}'
+  switch_implicit_subject: '$' # In attached switch, $ refers to base expression result
+  switch_result_types:
+    - '"literal string"'
+    - '"interpolated {{$var}} string"'  # Quoted strings with {{}} are interpolated
+    - '$var.@property'
+    - '{{tableReference}}'
+    - '@placeholder'
+  switch_examples:
+    pronoun: '{{switch[$gender=="male":"he"].switch[$gender=="female":"she"].else["they"]}}'
+    dice_outcome: '{{dice:1d20.switch[$>=20:"Critical!"].switch[$>=10:"Hit"].else["Miss"]}}'
+    name_selection: '{{switch[$gender=="male":$race.@maleName].else[$race.@femaleName]}}'
+    complex_condition: '{{switch[$class=="wizard" && $level>=5:{{powerSpell}}].else[{{basicSpell}}]}}'
+    interpolation: '{{switch[$color=="none":", no glow"].else[", glowing {{$color}} light"]}}'
+
   # Escape literal braces
   escape: "\\{{ and \\}}"
 
@@ -957,8 +1006,8 @@ example: |
       "version": "1.0.0",
       "specVersion": "1.0",
       "author": "Game Master",
-      "description": "Generates random **fantasy encounters** with treasure.",
-      "tags": ["fantasy", "encounters", "treasure"],
+      "description": "Random encounter generator for fantasy TTRPGs. Includes common and elite creature tables with HP/AC stats, a tiered treasure system with inheritance (base and rich variants), and magic item generation. The fullEncounter template combines creatures, leaders, and treasure into formatted encounter blocks with danger ratings.",
+      "tags": ["fantasy", "osr", "system-agnostic", "encounters", "creatures", "treasure", "generators"],
       "source": {
         "license": "CC0",
         "copyright": {

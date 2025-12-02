@@ -22,6 +22,7 @@ export type ExpressionToken =
   | CaptureMultiRollToken
   | CaptureAccessToken
   | CollectToken
+  | SwitchToken
 
 export interface LiteralToken {
   type: 'literal'
@@ -120,6 +121,41 @@ export interface CollectToken {
   separator?: string // custom separator
 }
 
+/**
+ * A single switch clause: condition and result expression
+ */
+export interface SwitchClause {
+  condition: string // e.g., '$gender=="male"'
+  resultExpr: string // e.g., '$race.@maleName'
+}
+
+/**
+ * Switch modifiers that can be attached to any expression.
+ * For attached switch: {{expr.switch[condition:result].else[fallback]}}
+ */
+export interface SwitchModifiers {
+  clauses: SwitchClause[] // Evaluated in order, first match wins
+  elseExpr?: string // Fallback if no match
+}
+
+/**
+ * Token for standalone switch expression:
+ * {{switch[condition:result].switch[condition2:result2].else[fallback]}}
+ */
+export interface SwitchToken {
+  type: 'switch'
+  clauses: SwitchClause[] // Evaluated in order, first match wins
+  elseExpr?: string // Fallback if no match
+}
+
+/**
+ * Extended token type that includes optional switch modifiers.
+ * Any token can have switch modifiers attached.
+ */
+export type ExpressionTokenWithSwitch = ExpressionToken & {
+  switchModifiers?: SwitchModifiers
+}
+
 // ============================================================================
 // Expression Extraction
 // ============================================================================
@@ -194,9 +230,35 @@ export function extractExpressions(text: string | undefined | null): ExpressionM
 // ============================================================================
 
 /**
- * Parse a single expression (content inside {{...}}) into a token
+ * Parse a single expression (content inside {{...}}) into a token.
+ * Returns ExpressionTokenWithSwitch to support attached switch modifiers on any token type.
  */
-export function parseExpression(expr: string): ExpressionToken {
+export function parseExpression(expr: string): ExpressionTokenWithSwitch {
+  const trimmed = expr.trim()
+
+  // ==== SWITCH EXPRESSION - Check first ====
+
+  // Standalone switch: switch[condition:result].switch[...].else[fallback]
+  if (trimmed.startsWith('switch[')) {
+    return parseSwitchExpression(trimmed)
+  }
+
+  // Check for attached switch modifiers: expr.switch[...].else[...]
+  // Extract them first, then parse the base expression
+  const { baseExpr, switchModifiers } = extractSwitchModifiers(trimmed)
+  if (switchModifiers) {
+    const baseToken = parseBaseExpression(baseExpr)
+    return { ...baseToken, switchModifiers }
+  }
+
+  // No switch modifiers, parse normally
+  return parseBaseExpression(trimmed)
+}
+
+/**
+ * Parse a base expression (without switch modifiers)
+ */
+function parseBaseExpression(expr: string): ExpressionToken {
   const trimmed = expr.trim()
 
   // ==== CAPTURE SYSTEM - Check these first ====
@@ -750,6 +812,206 @@ export function parseTemplate(pattern: string): ExpressionToken[] {
  */
 function unescapeBraces(text: string): string {
   return text.replace(/\\{{/g, '{{').replace(/\\}}/g, '}}')
+}
+
+// ============================================================================
+// Switch Expression Parsing
+// ============================================================================
+
+/**
+ * Find the first colon that is not inside quotes or nested brackets.
+ * Used to split switch clauses into condition and result.
+ */
+function findUnquotedColon(str: string): number {
+  let depth = 0
+  let inQuote = false
+  let quoteChar = ''
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i]
+    const prevChar = i > 0 ? str[i - 1] : ''
+
+    if (inQuote) {
+      // Check for closing quote (not escaped)
+      if (char === quoteChar && prevChar !== '\\') {
+        inQuote = false
+      }
+    } else if (char === '"' || char === "'") {
+      inQuote = true
+      quoteChar = char
+    } else if (char === '[' || char === '(' || char === '{') {
+      depth++
+    } else if (char === ']' || char === ')' || char === '}') {
+      depth--
+    } else if (char === ':' && depth === 0) {
+      return i
+    }
+  }
+
+  return -1
+}
+
+/**
+ * Extract a trailing modifier like .switch[content] or .else[content]
+ * Handles nested brackets properly using depth tracking.
+ * Returns null if modifier not found at end of expression.
+ */
+function extractTrailingModifier(
+  expr: string,
+  modifierName: string
+): { content: string; remaining: string } | null {
+  const suffix = `.${modifierName}[`
+
+  // Search from end to find the modifier
+  let searchPos = expr.length
+  while (searchPos > 0) {
+    const modStart = expr.lastIndexOf(suffix, searchPos - 1)
+    if (modStart === -1) return null
+
+    // Find matching closing bracket using depth tracking
+    let depth = 1
+    let i = modStart + suffix.length
+    let inQuote = false
+    let quoteChar = ''
+
+    while (i < expr.length && depth > 0) {
+      const char = expr[i]
+      const prevChar = i > 0 ? expr[i - 1] : ''
+
+      if (inQuote) {
+        if (char === quoteChar && prevChar !== '\\') {
+          inQuote = false
+        }
+      } else if (char === '"' || char === "'") {
+        inQuote = true
+        quoteChar = char
+      } else if (char === '[') {
+        depth++
+      } else if (char === ']') {
+        depth--
+      }
+      i++
+    }
+
+    // Check if this modifier extends to end of expression
+    if (depth === 0 && i === expr.length) {
+      return {
+        content: expr.slice(modStart + suffix.length, i - 1),
+        remaining: expr.slice(0, modStart),
+      }
+    }
+
+    // This modifier doesn't extend to end, search for another
+    searchPos = modStart
+  }
+
+  return null
+}
+
+/**
+ * Extract switch modifiers from an expression string.
+ * Returns the base expression and any switch/else modifiers found.
+ */
+function extractSwitchModifiers(expr: string): {
+  baseExpr: string
+  switchModifiers?: SwitchModifiers
+} {
+  const clauses: SwitchClause[] = []
+  let elseExpr: string | undefined
+  let remaining = expr
+
+  // Extract .else[...] first (if at end)
+  const elseMatch = extractTrailingModifier(remaining, 'else')
+  if (elseMatch) {
+    elseExpr = elseMatch.content
+    remaining = elseMatch.remaining
+  }
+
+  // Extract .switch[...] clauses (in reverse order to preserve left-to-right)
+  while (true) {
+    const switchMatch = extractTrailingModifier(remaining, 'switch')
+    if (!switchMatch) break
+
+    const colonIndex = findUnquotedColon(switchMatch.content)
+    if (colonIndex === -1) {
+      throw new Error(`Invalid switch syntax - missing colon: .switch[${switchMatch.content}]`)
+    }
+
+    clauses.unshift({
+      condition: switchMatch.content.slice(0, colonIndex).trim(),
+      resultExpr: switchMatch.content.slice(colonIndex + 1).trim(),
+    })
+    remaining = switchMatch.remaining
+  }
+
+  if (clauses.length === 0 && !elseExpr) {
+    return { baseExpr: expr }
+  }
+
+  return {
+    baseExpr: remaining,
+    switchModifiers: { clauses, elseExpr },
+  }
+}
+
+/**
+ * Parse a standalone switch expression: switch[condition:result].switch[...].else[fallback]
+ * Called when expression starts with "switch["
+ */
+function parseSwitchExpression(expr: string): SwitchToken {
+  const clauses: SwitchClause[] = []
+  let elseExpr: string | undefined
+  let remaining = expr
+
+  // Extract .else[...] first (if at end)
+  const elseMatch = extractTrailingModifier(remaining, 'else')
+  if (elseMatch) {
+    elseExpr = elseMatch.content
+    remaining = elseMatch.remaining
+  }
+
+  // Extract chained .switch[...] clauses (in reverse order)
+  while (true) {
+    const switchMatch = extractTrailingModifier(remaining, 'switch')
+    if (!switchMatch) break
+
+    const colonIndex = findUnquotedColon(switchMatch.content)
+    if (colonIndex === -1) {
+      throw new Error(`Invalid switch syntax - missing colon: .switch[${switchMatch.content}]`)
+    }
+
+    clauses.unshift({
+      condition: switchMatch.content.slice(0, colonIndex).trim(),
+      resultExpr: switchMatch.content.slice(colonIndex + 1).trim(),
+    })
+    remaining = switchMatch.remaining
+  }
+
+  // Parse the initial switch[...] (no leading dot)
+  const initialMatch = remaining.match(/^switch\[(.+)\]$/)
+  if (initialMatch) {
+    const colonIndex = findUnquotedColon(initialMatch[1])
+    if (colonIndex === -1) {
+      throw new Error(`Invalid switch syntax - missing colon: switch[${initialMatch[1]}]`)
+    }
+
+    clauses.unshift({
+      condition: initialMatch[1].slice(0, colonIndex).trim(),
+      resultExpr: initialMatch[1].slice(colonIndex + 1).trim(),
+    })
+  } else if (remaining !== '') {
+    throw new Error(`Invalid switch expression: ${expr}`)
+  }
+
+  if (clauses.length === 0) {
+    throw new Error(`Switch expression has no clauses: ${expr}`)
+  }
+
+  return {
+    type: 'switch',
+    clauses,
+    elseExpr,
+  }
 }
 
 // ============================================================================

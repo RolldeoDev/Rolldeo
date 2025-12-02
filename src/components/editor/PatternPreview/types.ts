@@ -38,6 +38,7 @@ export type ExpressionType =
   | 'capture'
   | 'capture-shared'
   | 'collect'
+  | 'switch'
   | 'template'
   | 'unknown'
 

@@ -2636,3 +2636,423 @@ describe('Template Multi-Roll Isolation', () => {
     expect(sawVariation).toBe(true)
   })
 })
+
+// ============================================================================
+// Switch Expression Tests
+// ============================================================================
+
+describe('Switch Expressions', () => {
+  describe('standalone switch', () => {
+    it('should evaluate first matching condition', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { gender: 'male' },
+            pattern: '{{switch[$gender=="male":"he"].switch[$gender=="female":"she"].else["they"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toBe('he')
+    })
+
+    it('should fall through to else when no match', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { gender: 'other' },
+            pattern: '{{switch[$gender=="male":"he"].switch[$gender=="female":"she"].else["they"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toBe('they')
+    })
+
+    it('should access capture properties in result', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'race',
+            name: 'Race',
+            type: 'simple',
+            entries: [
+              {
+                id: 'elf',
+                value: 'Elf',
+                sets: { maleName: 'Legolas', femaleName: 'Arwen' },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'person',
+            name: 'Person',
+            shared: {
+              gender: 'female',
+              '$race': '{{race}}',
+            },
+            pattern:
+              '{{switch[$gender=="male":$race.@maleName].switch[$gender=="female":$race.@femaleName].else[$race.@maleName]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('person', 'test')
+      expect(result.text).toBe('Arwen')
+    })
+
+    it('should evaluate nested table expressions in result', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'spellBook',
+            name: 'Spell Book',
+            type: 'simple',
+            entries: [{ value: 'Fireball Tome' }],
+          },
+          {
+            id: 'gear',
+            name: 'Gear',
+            type: 'simple',
+            entries: [{ value: 'Sword' }],
+          },
+        ],
+        templates: [
+          {
+            id: 'equipment',
+            name: 'Equipment',
+            shared: { class: 'wizard' },
+            pattern: '{{switch[$class=="wizard":{{spellBook}}].else[{{gear}}]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('equipment', 'test')
+      expect(result.text).toBe('Fireball Tome')
+    })
+  })
+
+  describe('attached switch', () => {
+    it('should apply switch to dice result using implicit subject', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'attack',
+            name: 'Attack',
+            // Using 1d1 to get deterministic result of 1
+            pattern: '{{dice:1d1.switch[$>=20:"Critical!"].switch[$>=10:"Hit"].else["Miss"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('attack', 'test')
+      expect(result.text).toBe('Miss') // 1 is less than 10, so "Miss"
+    })
+
+    it('should apply switch to table result', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'mood',
+            name: 'Mood',
+            type: 'simple',
+            entries: [{ value: 'angry' }],
+          },
+        ],
+        templates: [
+          {
+            id: 'reaction',
+            name: 'Reaction',
+            pattern: '{{mood.switch[$=="angry":"raging"].else["calm"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('reaction', 'test')
+      expect(result.text).toBe('raging')
+    })
+
+    it('should apply switch to variable and return base result when no match and no else', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { value: 'original' },
+            pattern: '{{$value.switch[$=="changed":"modified"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toBe('original') // No match, no else, returns base
+    })
+
+    it('should apply switch to capture property access', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'character',
+            name: 'Character',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Hero',
+                sets: { class: 'wizard' },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'title',
+            name: 'Title',
+            shared: { '$hero': '{{character}}' },
+            pattern: '{{$hero.@class.switch[$=="wizard":"Mage"].else["Warrior"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('title', 'test')
+      expect(result.text).toBe('Mage')
+    })
+  })
+
+  describe('complex conditions', () => {
+    it('should handle logical AND in conditions', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'power',
+            name: 'Power',
+            shared: { class: 'wizard', level: '5' },
+            pattern: '{{switch[$class=="wizard" && $level>=5:"Archmage"].else["Apprentice"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('power', 'test')
+      expect(result.text).toBe('Archmage')
+    })
+
+    it('should handle contains operator in conditions', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'title',
+            name: 'Title',
+            shared: { name: 'Gandalf the Grey' },
+            pattern: '{{switch[$name contains "the":"titled"].else["common"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('title', 'test')
+      expect(result.text).toBe('titled')
+    })
+  })
+
+  describe('gender/race name selection use case', () => {
+    it('should select appropriate name based on gender and race', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'gender',
+            name: 'Gender',
+            type: 'simple',
+            entries: [{ value: 'female' }],
+          },
+          {
+            id: 'race',
+            name: 'Race',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Elf',
+                sets: {
+                  maleEnglishName: 'Elrond',
+                  femaleEnglishName: 'Galadriel',
+                  maleChineseName: 'Wei',
+                  femaleChineseName: 'Mei',
+                },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'person',
+            name: 'Person Generator',
+            shared: {
+              '$gender': '{{gender}}',
+              '$race': '{{race}}',
+              culture: 'english',
+            },
+            pattern:
+              'A {{$gender}} {{$race}} named {{switch[$gender=="male" && $culture=="english":$race.@maleEnglishName].switch[$gender=="female" && $culture=="english":$race.@femaleEnglishName].switch[$gender=="male" && $culture=="chinese":$race.@maleChineseName].switch[$gender=="female" && $culture=="chinese":$race.@femaleChineseName].else[$race.@maleEnglishName]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('person', 'test')
+      expect(result.text).toBe('A female Elf named Galadriel')
+    })
+  })
+
+  describe('dynamic content in switch results', () => {
+    it('should support template syntax {{}} in unquoted switch results', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        shared: {
+          '$building': '{{buildingType}}',
+        },
+        tables: [
+          {
+            id: 'buildingType',
+            name: 'Building',
+            type: 'simple',
+            entries: [{ value: 'Tower', sets: { glowColor: 'amber' } }],
+          },
+        ],
+        templates: [
+          {
+            id: 'description',
+            name: 'Building Description',
+            // Unquoted result with {{}} template syntax
+            pattern:
+              '{{switch[$building.@glowColor=="none":no glow].else[glowing with a {{$building.@glowColor}} light]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('description', 'test')
+      expect(result.text).toBe('glowing with a amber light')
+    })
+
+    it('should interpolate {{}} inside quoted strings (like template literals)', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        shared: {
+          '$building': '{{buildingType}}',
+        },
+        tables: [
+          {
+            id: 'buildingType',
+            name: 'Building',
+            type: 'simple',
+            entries: [{ value: 'Tower', sets: { glowColor: 'amber' } }],
+          },
+        ],
+        templates: [
+          {
+            id: 'description',
+            name: 'Building Description',
+            // Quoted string with {{}} - should interpolate
+            pattern:
+              '{{switch[$building.@glowColor=="none":", lacking any glow"].else[", glowing with a {{$building.@glowColor}} light"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('description', 'test')
+      expect(result.text).toBe(', glowing with a amber light')
+    })
+
+    it('should handle pure quoted strings without {{}} as literals', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        shared: {
+          testVar: 'foo',
+        },
+        tables: [
+          { id: 'dummy', name: 'Dummy', type: 'simple', entries: [{ value: 'x' }] },
+        ],
+        templates: [
+          {
+            id: 'test',
+            name: 'Test',
+            // Quoted strings without {{}} are pure literals
+            pattern: '{{switch[$testVar=="foo":"simple literal"].else["other"]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      expect(result.text).toBe('simple literal')
+    })
+
+    it('should resolve $var.@property in switch conditions', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        shared: {
+          '$inhabitant': '{{feyInhabitant}}',
+        },
+        tables: [
+          {
+            id: 'feyInhabitant',
+            name: 'Fey Inhabitant',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Pixie',
+                sets: { mood: 'mischievous' },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'greeting',
+            name: 'Greeting',
+            // Test that $inhabitant.@mood is resolved in switch condition
+            pattern:
+              '{{$inhabitant.@mood}} - {{switch[$inhabitant.@mood=="mischievous":"Beware!"].switch[$inhabitant.@mood=="serene":"Peace."].else["Hello."]}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('greeting', 'test')
+      expect(result.text).toBe('mischievous - Beware!')
+    })
+  })
+})

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "name": "Stars Without Number: System Points of Interest",
-    "namespace": "swn.system.poi",
+    "namespace": "sineNomine.swn.pointsOfInterest",
     "version": "1.0.0",
     "specVersion": "1.0",
     "author": "Kevin Crawford",

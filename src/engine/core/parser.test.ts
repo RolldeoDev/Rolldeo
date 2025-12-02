@@ -631,3 +631,199 @@ describe('getReferencedTables with captures', () => {
     expect(tables).toContain('enemies')
   })
 })
+
+// ============================================================================
+// Switch Expression Tests
+// ============================================================================
+
+describe('switch expressions', () => {
+  describe('standalone switch', () => {
+    it('should parse simple switch with else', () => {
+      const token = parseExpression('switch[$x=="a":"A"].else["B"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses).toHaveLength(1)
+        expect(token.clauses[0].condition).toBe('$x=="a"')
+        expect(token.clauses[0].resultExpr).toBe('"A"')
+        expect(token.elseExpr).toBe('"B"')
+      }
+    })
+
+    it('should parse multiple switch clauses', () => {
+      const token = parseExpression('switch[$x=="a":"A"].switch[$x=="b":"B"].else["C"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses).toHaveLength(2)
+        expect(token.clauses[0].condition).toBe('$x=="a"')
+        expect(token.clauses[0].resultExpr).toBe('"A"')
+        expect(token.clauses[1].condition).toBe('$x=="b"')
+        expect(token.clauses[1].resultExpr).toBe('"B"')
+        expect(token.elseExpr).toBe('"C"')
+      }
+    })
+
+    it('should parse switch without else', () => {
+      const token = parseExpression('switch[$x=="a":"A"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses).toHaveLength(1)
+        expect(token.elseExpr).toBeUndefined()
+      }
+    })
+
+    it('should parse switch with capture property access result', () => {
+      const token = parseExpression('switch[$gender=="male":$race.@maleName].else[$race.@femaleName]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses[0].resultExpr).toBe('$race.@maleName')
+        expect(token.elseExpr).toBe('$race.@femaleName')
+      }
+    })
+
+    it('should parse switch with nested expression result', () => {
+      const token = parseExpression('switch[$class=="wizard":{{spellBook}}].else[{{gear}}]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses[0].resultExpr).toBe('{{spellBook}}')
+        expect(token.elseExpr).toBe('{{gear}}')
+      }
+    })
+
+    it('should parse switch with logical operators in condition', () => {
+      const token = parseExpression('switch[$a=="1" && $b=="2":$c.@prop].else["default"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses[0].condition).toBe('$a=="1" && $b=="2"')
+      }
+    })
+
+    it('should parse switch with nested brackets in condition', () => {
+      const token = parseExpression('switch[($a || $b) && $c:"match"].else["no"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses[0].condition).toBe('($a || $b) && $c')
+        expect(token.clauses[0].resultExpr).toBe('"match"')
+      }
+    })
+
+    it('should parse switch with contains operator', () => {
+      const token = parseExpression('switch[$name contains "the":"titled"].else["common"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses[0].condition).toBe('$name contains "the"')
+      }
+    })
+
+    it('should parse switch with numeric comparison', () => {
+      const token = parseExpression('switch[$level>=5:"high"].switch[$level>=3:"mid"].else["low"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses).toHaveLength(2)
+        expect(token.clauses[0].condition).toBe('$level>=5')
+        expect(token.clauses[1].condition).toBe('$level>=3')
+      }
+    })
+  })
+
+  describe('attached switch', () => {
+    it('should parse dice expression with switch', () => {
+      const token = parseExpression('dice:1d20.switch[$>=10:"hit"].else["miss"]')
+      expect(token.type).toBe('dice')
+      if (token.type === 'dice') {
+        expect(token.expression).toBe('1d20')
+      }
+      const tokenWithSwitch = token as typeof token & { switchModifiers?: { clauses: Array<{ condition: string; resultExpr: string }>; elseExpr?: string } }
+      expect(tokenWithSwitch.switchModifiers).toBeDefined()
+      expect(tokenWithSwitch.switchModifiers!.clauses).toHaveLength(1)
+      expect(tokenWithSwitch.switchModifiers!.clauses[0].condition).toBe('$>=10')
+      expect(tokenWithSwitch.switchModifiers!.elseExpr).toBe('"miss"')
+    })
+
+    it('should parse table with switch', () => {
+      const token = parseExpression('mood.switch[$=="angry":"rage"].else["calm"]')
+      expect(token.type).toBe('table')
+      if (token.type === 'table') {
+        expect(token.tableId).toBe('mood')
+      }
+      const tokenWithSwitch = token as typeof token & { switchModifiers?: { clauses: Array<{ condition: string; resultExpr: string }>; elseExpr?: string } }
+      expect(tokenWithSwitch.switchModifiers).toBeDefined()
+      expect(tokenWithSwitch.switchModifiers!.clauses[0].condition).toBe('$=="angry"')
+    })
+
+    it('should parse capture access with switch', () => {
+      const token = parseExpression('$race.switch[$gender=="male":$race.@maleName].else[$race.@femaleName]')
+      // This should be parsed as a variable with switch modifiers
+      // But since $race without special patterns falls through to variable...
+      expect(token.type).toBe('variable')
+      const tokenWithSwitch = token as typeof token & { switchModifiers?: { clauses: Array<{ condition: string; resultExpr: string }>; elseExpr?: string } }
+      expect(tokenWithSwitch.switchModifiers).toBeDefined()
+      expect(tokenWithSwitch.switchModifiers!.clauses).toHaveLength(1)
+    })
+
+    it('should parse capture property access with switch', () => {
+      const token = parseExpression('$hero.@class.switch[$=="wizard":"mage"].else["warrior"]')
+      expect(token.type).toBe('captureAccess')
+      if (token.type === 'captureAccess') {
+        expect(token.varName).toBe('hero')
+        expect(token.properties).toEqual(['class'])
+      }
+      const tokenWithSwitch = token as typeof token & { switchModifiers?: { clauses: Array<{ condition: string; resultExpr: string }>; elseExpr?: string } }
+      expect(tokenWithSwitch.switchModifiers).toBeDefined()
+    })
+
+    it('should parse multiple switch clauses on expression', () => {
+      const token = parseExpression('dice:1d20.switch[$>=20:"crit"].switch[$>=10:"hit"].else["miss"]')
+      expect(token.type).toBe('dice')
+      const tokenWithSwitch = token as typeof token & { switchModifiers?: { clauses: Array<{ condition: string; resultExpr: string }>; elseExpr?: string } }
+      expect(tokenWithSwitch.switchModifiers!.clauses).toHaveLength(2)
+      expect(tokenWithSwitch.switchModifiers!.clauses[0].condition).toBe('$>=20')
+      expect(tokenWithSwitch.switchModifiers!.clauses[1].condition).toBe('$>=10')
+    })
+
+    it('should parse variable with switch without else', () => {
+      const token = parseExpression('$x.switch[$=="a":"A"]')
+      expect(token.type).toBe('variable')
+      const tokenWithSwitch = token as typeof token & { switchModifiers?: { clauses: Array<{ condition: string; resultExpr: string }>; elseExpr?: string } }
+      expect(tokenWithSwitch.switchModifiers).toBeDefined()
+      expect(tokenWithSwitch.switchModifiers!.clauses).toHaveLength(1)
+      expect(tokenWithSwitch.switchModifiers!.elseExpr).toBeUndefined()
+    })
+  })
+
+  describe('switch with complex content', () => {
+    it('should preserve quotes in conditions', () => {
+      const token = parseExpression('switch[$name=="John Doe":"found"].else["not found"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses[0].condition).toBe('$name=="John Doe"')
+      }
+    })
+
+    it('should handle colons inside quoted strings', () => {
+      const token = parseExpression('switch[$time=="12:00":"noon"].else["other"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses[0].condition).toBe('$time=="12:00"')
+        expect(token.clauses[0].resultExpr).toBe('"noon"')
+      }
+    })
+
+    it('should handle nested brackets in result', () => {
+      const token = parseExpression('switch[$x=="a":{{table[0]}}].else["b"]')
+      expect(token.type).toBe('switch')
+      if (token.type === 'switch') {
+        expect(token.clauses[0].resultExpr).toBe('{{table[0]}}')
+      }
+    })
+  })
+
+  describe('switch error handling', () => {
+    it('should throw on missing colon in switch clause', () => {
+      expect(() => parseExpression('switch[$x=="a"]["A"].else["B"]')).toThrow(/missing colon/)
+    })
+
+    it('should throw on empty switch expression', () => {
+      expect(() => parseExpression('switch[]')).toThrow()
+    })
+  })
+})

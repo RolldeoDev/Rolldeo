@@ -1112,6 +1112,137 @@ disgraced noble, ghostly guardian, arctic ranger
 4. **Forward References:** A capture variable must be declared before it can be accessed
 5. **Overwrite Behavior:** If a capture variable name is reused, the second capture overwrites the first (with warning)
 
+### 5.10 Switch Expressions
+
+Switch expressions provide inline conditional value selection within templates. They allow you to choose different outputs based on runtime conditions, all within a single expression.
+
+#### 5.10.1 Basic Syntax
+
+There are two forms of switch expressions:
+
+**Standalone Switch** (no base expression):
+```
+{{switch[condition:result].switch[condition2:result2].else[fallback]}}
+```
+
+**Attached Switch** (transforms an expression result):
+```
+{{expression.switch[condition:result].else[fallback]}}
+```
+
+#### 5.10.2 Components
+
+| Component | Description | Required |
+|-----------|-------------|----------|
+| `condition` | Boolean expression using variables, operators, and literals | Yes |
+| `result` | Value returned if condition is true | Yes |
+| `fallback` | Value returned if no condition matches (in `.else[]`) | No |
+
+**Evaluation Order:** Switch clauses are evaluated left-to-right. The first matching condition wins.
+
+**No Match Behavior:**
+- Standalone switch: Returns empty string (with console warning)
+- Attached switch: Returns the original base expression result
+
+#### 5.10.3 Condition Syntax
+
+Conditions support the same operators as conditionals:
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `==` | Equality | `$gender=="male"` |
+| `!=` | Inequality | `$type!="common"` |
+| `>`, `<`, `>=`, `<=` | Numeric comparison | `$level>=5` |
+| `contains` | Substring match (case-insensitive) | `$name contains "the"` |
+| `matches` | Regex pattern match | `$code matches "^[A-Z]{3}$"` |
+| `&&` | Logical AND | `$class=="wizard" && $level>=5` |
+| `\|\|` | Logical OR | `$type=="fire" \|\| $type=="ice"` |
+| `!` | Logical NOT | `!$hidden` |
+| `()` | Grouping | `($a \|\| $b) && $c` |
+
+**Implicit Subject (`$`):** In attached switch expressions, a standalone `$` (not followed by a variable name) refers to the base expression's result:
+
+```
+{{dice:1d20.switch[$>=20:"Critical!"].switch[$>=10:"Hit"].else["Miss"]}}
+```
+
+Here, `$>=20` means "the dice result is >= 20".
+
+#### 5.10.4 Result Types
+
+Result expressions can be:
+
+| Type | Syntax | Example |
+|------|--------|---------|
+| String literal | `"text"` or `'text'` | `"he"`, `"Critical Hit!"` |
+| Capture property | `$var.@property` | `$race.@maleName` |
+| Table reference | `{{tableId}}` | `{{spellBook}}` |
+| Placeholder | `@name.property` | `@creature.type` |
+
+**Important:** Results require explicit paths. Use `$race.@maleName` not just `@maleName` to avoid ambiguity when multiple captures have the same property names.
+
+#### 5.10.5 Examples
+
+**Pronoun Selection:**
+```
+{{switch[$gender=="male":"he"].switch[$gender=="female":"she"].else["they"]}}
+```
+
+**Dice Outcome Transformation:**
+```
+{{dice:1d20.switch[$>=20:"Critical Hit!"].switch[$>=10:"Hit"].else["Miss"]}}
+```
+
+**Gender-Based Name Selection:**
+```json
+{
+  "shared": {
+    "$gender": "{{gender}}",
+    "$race": "{{race}}"
+  },
+  "pattern": "A {{$gender}} {{$race}} named {{switch[$gender==\"male\":$race.@maleName].else[$race.@femaleName]}}"
+}
+```
+
+**Complex Conditions with Nested Tables:**
+```
+{{switch[$class=="wizard" && $level>=5:{{powerSpells}}].else[{{basicSpells}}]}}
+```
+
+**Table Result Transformation:**
+```
+{{mood.switch[$=="angry":"furiously"].switch[$=="sad":"mournfully"].else["calmly"]}}
+```
+
+**Multiple Condition Chains:**
+```
+{{switch[$culture=="english" && $gender=="male":$race.@maleEnglishName].switch[$culture=="english" && $gender=="female":$race.@femaleEnglishName].switch[$culture=="chinese" && $gender=="male":$race.@maleChineseName].switch[$culture=="chinese" && $gender=="female":$race.@femaleChineseName].else[$race.@defaultName]}}
+```
+
+#### 5.10.6 Switch vs. Conditionals
+
+Switch expressions and conditionals serve different purposes:
+
+| Feature | Switch Expressions | Conditionals |
+|---------|-------------------|--------------|
+| Scope | Inline, within expressions | Document-level, post-processing |
+| Timing | During pattern evaluation | After all patterns evaluated |
+| Use Case | Dynamic value selection | Output modification |
+| Can Modify Output | No (returns a value) | Yes (append, prepend, replace) |
+| Can Set Variables | No | Yes (`setVariable` action) |
+
+**When to use Switch:**
+- Selecting between property values based on other variables
+- Transforming expression results inline
+- Gender/race/class-based name selection
+- Dice outcome interpretation
+
+**When to use Conditionals:**
+- Adding text to final output based on rolled results
+- Replacing patterns in the final output
+- Setting variables based on outcomes
+- Complex multi-step output modifications
+
 ---
 
 ## 6. Conditionals Array
