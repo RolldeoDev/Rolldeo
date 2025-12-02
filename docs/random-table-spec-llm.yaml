@@ -157,6 +157,8 @@ decision_guide:
       multiple: "{{3*again}}"
       unique: "{{2*unique*again}}"
       dice_count: "{{dice:1d4*again}}"
+      with_separator: '{{3*again|" and "}}'
+      unique_separator: '{{2*unique*again|"; "}}'
 
   # ---------------------------------------------------------------------------
   # MULTIPLE ROLL PATTERNS
@@ -218,6 +220,54 @@ decision_guide:
         - '"name": "{{elfFirstNames}}"'
       note: "Evaluated once when entry selected, consistent thereafter"
 
+    child_table_references:
+      use_when: "Parent entries need TYPE-SPECIFIC sub-tables (each category has its own related tables)"
+      pattern:
+        step1: "Create hidden child tables for each category/type"
+        step2: "Parent entry sets reference child tables with {{childTableId}}"
+        step3: "Capture parent with $prefix, then access via {{$parent.@property}}"
+      examples:
+        world_tags: |
+          # Each world tag has its own enemies, friends, complications
+          "sets": {
+            "enemy": "{{abandonedColonyEnemies}}",
+            "friend": "{{abandonedColonyFriends}}",
+            "complication": "{{abandonedColonyComplications}}"
+          }
+        system_poi: |
+          # Each point of interest type has specific occupants and situations
+          "sets": {
+            "occupant": "{{occupantsDeepSpace}}",
+            "situation": "{{situationDeepSpace}}"
+          }
+        template_usage: |
+          # Template captures parent, accesses child tables via sets
+          "shared": { "$point": "{{pointType}}" }
+          "pattern": "{{$point}} occupied by {{$point.@occupant}}"
+      benefits:
+        - "Eliminates complex conditionals for routing"
+        - "Self-contained entries - everything needed is in the entry's sets"
+        - "Naturally scales - add new types by adding entries with their sets"
+        - "Template stays simple: {{$result.@propertyName}}"
+      contrast_with_conditionals: |
+        AVOID: Rolling a type, then using conditionals to route to different tables
+        PREFER: Each type entry directly includes its child table references in sets
+      decision_test: "Does each category/type need its own set of related sub-tables?"
+      nested_access_support: |
+        CHAINED ACCESS IS SUPPORTED via intermediate capture-aware shared variables.
+        When a set value is a single table reference like "{{childTable}}", the engine
+        captures the full result including nested sets, enabling chained property access.
+        See nested_property_access section in capture_aware_shared for patterns.
+
+  # ---------------------------------------------------------------------------
+  # SELF-REFERENCE (@self placeholder)
+  # ---------------------------------------------------------------------------
+  self_reference:
+    use_when: "Entry value needs to include its own description field"
+    syntax: "{{@self.description}}"
+    example: '{"value": "{{@self.description}} sword", "description": "A gleaming silver"}'
+    note: "Returns empty string if no description defined. Expressions in description are evaluated."
+
   # ---------------------------------------------------------------------------
   # CAPTURES (roll capture system)
   # ---------------------------------------------------------------------------
@@ -277,6 +327,93 @@ decision_guide:
       solution: "Each $prefixed variable gets isolated placeholder context"
       result: "Each character has independent name, traits, etc."
 
+    # -------------------------------------------------------------------------
+    # Nested Property Access (Chained CaptureItems)
+    # -------------------------------------------------------------------------
+    nested_property_access:
+      description: |
+        When a set value contains a SINGLE TABLE REFERENCE (e.g., "{{childTable}}"),
+        the engine captures the full result including nested sets. This enables
+        chained property access either directly or via intermediate capture-aware shared variables.
+
+      how_it_works: |
+        1. Set value "situation": "{{situationTable}}" is evaluated
+        2. Engine detects single table reference and captures full result
+        3. Result is stored as a nested CaptureItem (value + sets) not just a string
+        4. Properties can be accessed via direct chained syntax OR intermediate variables
+
+      direct_chained_syntax:
+        description: "Access nested properties directly without intermediate variables"
+        syntax: "{{$var.@prop1.@prop2.@prop3}}"
+        examples:
+          - "{{$conflict.@situation.@focus}} - two levels deep"
+          - "{{$root.@a.@b.@c.@d}} - four levels deep"
+          - "{{$items[0].@weapon.@damage}} - indexed access with chain"
+        note: "This is the PREFERRED approach for most use cases"
+
+      intermediate_variable_syntax:
+        description: "Use intermediate capture-aware shared variables to chain access"
+        syntax: |
+          "$child": "{{$parent.@property}}"
+          Then access: {{$child.@nestedProperty}}
+        when_to_use:
+          - "When you need to reuse an intermediate result multiple times"
+          - "When debugging complex nested structures"
+          - "Backward compatibility with existing templates"
+
+      example_direct_access:
+        description: "Accessing properties three levels deep with direct syntax"
+        tables: |
+          # Level 1: conflictType has situation that references a table
+          conflictType:
+            entries:
+              - value: "Money"
+                sets:
+                  situation: "{{moneyConflict}}"  # Table reference captured as CaptureItem
+
+          # Level 2: moneyConflict has focus property
+          moneyConflict:
+            entries:
+              - value: "Debt"
+                sets:
+                  focus: "Collection Agency"
+
+        template: |
+          "shared": {
+            "$conflict": "{{conflictType}}"
+          },
+          "pattern": "Conflict: {{$conflict}}, Focus: {{$conflict.@situation.@focus}}"
+
+        result: "Conflict: Money, Focus: Collection Agency"
+
+      example_intermediate_variables:
+        description: "Same result using intermediate capture-aware shared variables"
+        template: |
+          "shared": {
+            "$conflict": "{{conflictType}}",
+            "$situation": "{{$conflict.@situation}}"  # Captures the nested CaptureItem
+          },
+          "pattern": "Conflict: {{$conflict}}, Situation: {{$situation}}, Focus: {{$situation.@focus}}"
+
+        result: "Conflict: Money, Situation: Debt, Focus: Collection Agency"
+
+      requirements:
+        - "Set value must be a SINGLE table reference: \"{{tableId}}\""
+        - "Each @ prefix accesses the next level of nested properties"
+        - "Properties are stored without @ prefix internally"
+
+      when_it_doesnt_work:
+        - "Static string values (no {{}}): Chain breaks, returns empty string"
+        - "Complex expressions (dice + table): Falls back to empty sets"
+        - "Missing property in chain: Returns empty string with warning"
+
+      fallback_for_static_strings: |
+        If a property contains a static string (not a table reference),
+        accessing further nested properties returns empty string.
+        Example: If @situation = "Static text" (no {{}}),
+        then {{$conflict.@situation.@focus}} returns "" with a console warning.
+        However, {{$conflict.@situation}} correctly returns "Static text".
+
   # ---------------------------------------------------------------------------
   # SHARED VARIABLES
   # ---------------------------------------------------------------------------
@@ -305,6 +442,7 @@ decision_guide:
   # ---------------------------------------------------------------------------
   conditionals:
     use_when: "Output should CHANGE based on what was rolled"
+    avoid_when: "Routing to type-specific sub-tables - use child_table_references in sets instead"
 
     actions:
       append: "Add text to end of output"
@@ -392,6 +530,21 @@ decision_guide:
       composite_example: "sources: [{tableId: springWeather, weight:1}, {tableId: summerWeather, weight:1}]"
       note: "Caller can pick seasonal table or use composite for random season"
 
+    categorized_generator:
+      structure: "Parent table with entries that each reference their own child tables via sets"
+      tables: "One parent table + multiple hidden child tables per category"
+      pattern: |
+        Parent entry: "sets": {"property": "{{categorySpecificTable}}"}
+        Template shared: {"$parent": "{{parentTable}}"}
+        Template pattern: {{$parent.@property}}
+      examples:
+        - "World tags with enemies/friends/things/places per tag"
+        - "Creature types with abilities/attacks/loot per type"
+        - "Location types with NPCs/hazards/treasure per location"
+        - "System POIs with occupants/situations per point type"
+      note: "Preferred over conditionals when each parent category has its own set of sub-tables"
+      reference: "See child_table_references in sets_and_placeholders section"
+
   # ---------------------------------------------------------------------------
   # ORGANIZATION PATTERNS
   # ---------------------------------------------------------------------------
@@ -400,6 +553,22 @@ decision_guide:
       - "Shared content across multiple files (common names, core tables)"
       - "Modular content packs"
       - "Separating large collections into manageable files"
+
+    file_naming_convention:
+      format: "[publisher].[sourcebook].[contents].json"
+      components:
+        publisher: "Company or creator name in camelCase"
+        sourcebook: "Book or product name in camelCase"
+        contents: "What the file contains in camelCase"
+      examples:
+        - "koboldPress.tomeOfBeasts.oozes.json"
+        - "sineNomine.starsWithoutNumber.pointsOfInterest.json"
+        - "wizardsOfTheCoast.monsterManual.dragons.json"
+        - "paizo.pathfinder2e.criticalHits.json"
+      notes:
+        - "Use camelCase for multi-word segments"
+        - "Keep segments descriptive but concise"
+        - "Contents segment should describe the tables within"
 
     namespace_conventions:
       format: "publisher.product.category"
@@ -432,7 +601,8 @@ decision_guide:
       independent_instances: "Use capture-aware ($prefix)"
 
     step5_conditional_output:
-      yes: "Add conditionals"
+      simple_conditions: "Add conditionals"
+      type_specific_subtables: "Use child_table_references in sets instead (see categorized_generator pattern)"
 
     step6_variant_table:
       yes: "Use extends inheritance"
@@ -592,6 +762,8 @@ template_syntax:
   again_n: "{{N*again}}"
   again_unique: "{{N*unique*again}}"
   again_dice: "{{dice:XdY*again}}"
+  again_separator: '{{N*again|"sep"}}'
+  again_unique_separator: '{{N*unique*again|"sep"}}'
 
   # Multiple rolls
   multiple: "{{N*tableId}}"
@@ -624,6 +796,9 @@ template_syntax:
 
   # Placeholders (from entry sets)
   placeholder: "{{@placeholder.property}}"
+
+  # Self-reference (access current entry properties)
+  self_description: "{{@self.description}}"
 
   # Instance references (for conditionals)
   instance: "{{tableId#instanceName}}"

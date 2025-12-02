@@ -41,6 +41,10 @@ export function KeyValueEditor({
   const [keyValidationError, setKeyValidationError] = useState<string | null>(null)
   const newKeyInputRef = useRef<HTMLInputElement>(null)
 
+  // Track which entry is being edited and its local state
+  const [editingKeyIndex, setEditingKeyIndex] = useState<number | null>(null)
+  const [editingKeyValue, setEditingKeyValue] = useState('')
+
   const validateKey = useCallback(
     (key: string): boolean => {
       if (!keyPattern) return true
@@ -88,9 +92,15 @@ export function KeyValueEditor({
     [value, onChange]
   )
 
-  const updateEntryKey = useCallback(
-    (oldKey: string, newKey: string) => {
+  const commitKeyEdit = useCallback(
+    (_index: number, oldKey: string, newKey: string) => {
       const trimmedKey = newKey.trim()
+
+      // Reset editing state
+      setEditingKeyIndex(null)
+      setEditingKeyValue('')
+
+      // If empty or unchanged, don't update
       if (!trimmedKey || trimmedKey === oldKey) return
 
       if (!validateKey(trimmedKey)) return
@@ -109,6 +119,11 @@ export function KeyValueEditor({
     [value, onChange, validateKey]
   )
 
+  const startKeyEdit = useCallback((index: number, currentKey: string) => {
+    setEditingKeyIndex(index)
+    setEditingKeyValue(currentKey)
+  }, [])
+
   return (
     <div className="space-y-3">
       {entries.length === 0 && (
@@ -118,31 +133,43 @@ export function KeyValueEditor({
       )}
 
       {/* Existing entries */}
-      {entries.map(([key, val]) => {
-        const isCaptureAware = highlightCaptureAware && key.startsWith('$')
+      {entries.map(([key, val], index) => {
+        const isEditing = editingKeyIndex === index
+        const displayKey = isEditing ? editingKeyValue : key
+        const isCaptureAware = highlightCaptureAware && displayKey.startsWith('$')
         return (
-        <div key={key} className="editor-entry-row flex-col md:flex-row items-stretch md:items-start">
+        <div key={index} className="editor-entry-row flex-col md:flex-row items-stretch md:items-start">
           <div className="flex-1">
             <label className={cn(
               "block md:hidden text-sm font-medium mb-1.5",
-              isCaptureAware ? "text-violet-600 dark:text-violet-400" : "text-muted-foreground"
+              isCaptureAware ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"
             )}>
               {isCaptureAware ? "Key (capture-aware)" : "Key"}
             </label>
             <input
               type="text"
-              value={key}
-              onChange={(e) => updateEntryKey(key, e.target.value)}
+              value={displayKey}
+              onFocus={() => startKeyEdit(index, key)}
+              onChange={(e) => setEditingKeyValue(e.target.value)}
+              onBlur={() => commitKeyEdit(index, key, editingKeyValue)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.currentTarget.blur()
+                } else if (e.key === 'Escape') {
+                  setEditingKeyIndex(null)
+                  setEditingKeyValue('')
+                }
+              }}
               className={cn(
                 "editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0",
-                isCaptureAware && "text-violet-600 dark:text-violet-400 border-violet-400 dark:border-violet-600"
+                isCaptureAware && "text-rose-600 dark:text-rose-400 border-rose-400 dark:border-rose-600"
               )}
               placeholder={keyPlaceholder}
-              title={isCaptureAware ? "Capture-aware: use {{$" + key.slice(1) + ".@property}} to access sets" : undefined}
+              title={isCaptureAware ? "Capture-aware: use {{$" + displayKey.slice(1) + ".@property}} to access sets" : undefined}
             />
             {isCaptureAware && (
-              <p className="text-xs text-violet-600 dark:text-violet-400 mt-1">
-                Captures sets. Access with: <code className="px-1 bg-violet-100 dark:bg-violet-900/30 rounded">{`{{${key}.@property}}`}</code>
+              <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">
+                Captures sets. Access with: <code className="px-1 bg-rose-100 dark:bg-rose-900/30 rounded">{`{{${displayKey}.@property}}`}</code>
               </p>
             )}
           </div>
@@ -180,7 +207,7 @@ export function KeyValueEditor({
           <div className="flex-1">
             <label className={cn(
               "block md:hidden text-sm font-medium mb-1.5",
-              newKeyIsCaptureAware ? "text-violet-600 dark:text-violet-400" : "text-muted-foreground"
+              newKeyIsCaptureAware ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"
             )}>
               {newKeyIsCaptureAware ? "New Key (capture-aware)" : "New Key"}
             </label>
@@ -195,7 +222,7 @@ export function KeyValueEditor({
               onKeyDown={(e) => e.key === 'Enter' && addEntry()}
               className={cn(
                 "editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0",
-                newKeyIsCaptureAware && "text-violet-600 dark:text-violet-400 border-violet-400 dark:border-violet-600"
+                newKeyIsCaptureAware && "text-rose-600 dark:text-rose-400 border-rose-400 dark:border-rose-600"
               )}
               placeholder={keyPlaceholder}
             />
@@ -238,12 +265,12 @@ export function KeyValueEditor({
             reference earlier ones.
           </p>
           {highlightCaptureAware && (
-            <p className="text-violet-600 dark:text-violet-400">
+            <p className="text-rose-600 dark:text-rose-400">
               <strong>Capture-aware:</strong> Name starting with{' '}
-              <code className="px-1.5 md:px-1 py-0.5 bg-violet-100 dark:bg-violet-900/30 rounded">$</code>{' '}
-              (e.g., <code className="px-1.5 md:px-1 py-0.5 bg-violet-100 dark:bg-violet-900/30 rounded">$hero</code>){' '}
+              <code className="px-1.5 md:px-1 py-0.5 bg-rose-100 dark:bg-rose-900/30 rounded">$</code>{' '}
+              (e.g., <code className="px-1.5 md:px-1 py-0.5 bg-rose-100 dark:bg-rose-900/30 rounded">$hero</code>){' '}
               captures the full roll including sets. Access properties with{' '}
-              <code className="px-1.5 md:px-1 py-0.5 bg-violet-100 dark:bg-violet-900/30 rounded">{'{{$hero.@property}}'}</code>.
+              <code className="px-1.5 md:px-1 py-0.5 bg-rose-100 dark:bg-rose-900/30 rounded">{'{{$hero.@property}}'}</code>.
             </p>
           )}
         </div>

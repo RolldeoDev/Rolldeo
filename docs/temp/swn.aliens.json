@@ -1,0 +1,183 @@
+{
+  "metadata": {
+    "name": "Stars Without Number - Aliens",
+    "namespace": "swn.aliens",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "source": {
+      "book": "Stars Without Number: Revised Edition",
+      "publisher": "Sine Nomine Publishing",
+      "page": "207-211"
+    }
+  },
+  "tables": [
+    {
+      "id": "bodyTraits",
+      "name": "Alien Body Traits",
+      "type": "simple",
+      "resultType": "trait",
+      "entries": [
+        {
+          "value": "Avian",
+          "description": "Birdlike features including feathered tails, wings, beaks, drastic coloring differences between sexes, skin partially or fully covered in feathers, hollow bones, and clawed feet and hands. May have remarkably good vision or show unusual talent as pilots thanks to an evolutionary predilection for thinking in three dimensions."
+        },
+        {
+          "value": "Reptilian",
+          "description": "Ranges from classic \"lizard man\" look to subtle combinations of pebble-scaled skin, membrane frills, broad bodies, cold-bloodedness, nictitating membranes, exceptional sense of smell, thick claws, powerful builds, sharp teeth, and fine scales. Bodies may be broad like a lizard or sinuous like a snake. Often found on damp, watery worlds and might be outright amphibious."
+        },
+        {
+          "value": "Insectile",
+          "description": "Usually possessed of chitinous \"skin\" and one or more pairs of compound eyes. Membranous wings aren't unknown but are probably vestigial and useless on all but the smallest aliens. May have sucking mouthparts for plant sap or blood, or chewing mandibles for a more solid diet. Can be hive collective or take after more solitary hunting insects such as beetles or spiders."
+        },
+        {
+          "value": "Mammalian",
+          "description": "Might have very human-like appearances, or they might have fur, muzzles, claws, or quadrupedal modes of locomotion. Easy to conceptualize and describe, but to play up the alienness may need some dramatic social or cultural difference, or some unique element of physiognomy."
+        },
+        {
+          "value": "Exotic",
+          "description": "Built out of parts and materials not normally found in Terran life forms. A humanoid might be composed of organic plastic, or an intricate array of interlocking crystals and woody organic elements. Pick one or more materials that aren't normally part of an animal's body. Probably highly dependent upon their home world for food and biological necessities."
+        },
+        {
+          "value": "Hybrid",
+          "description": "Combines aspects of two or more body types. Mix and match components to create some blend that suits your purposes. Such hybrids might exist in multiple environments, or be in a transitional evolutionary state."
+        }
+      ]
+    },
+    {
+      "id": "lenses",
+      "name": "Alien Lenses",
+      "type": "simple",
+      "resultType": "trait",
+      "entries": [
+        {
+          "value": "Collectivity",
+          "description": "These aliens might be hive-like in their social structure, natural communists, or simply very closely attached to the customs and interests of their social group. The importance of the individual is thought to be minimal, and members will cheerfully sacrifice themselves for the good of the group. To willfully refuse to accept the consensus of the whole is an unspeakable sin, and to be separated permanently from one's social group is a fate worse than death."
+        },
+        {
+          "value": "Curiosity",
+          "description": "This species is insatiably curious, constantly prying into the affairs of those around them. Spying carries no opprobrium whatsoever. They love to explore new places and meet new sapients, and while they may be brutally indifferent to the fates of these beings, they're always eager to observe them. Their societies tend to operate in a profoundly transparent manner, and some view the keeping of secrets as an automatic indication of malicious intent."
+        },
+        {
+          "value": "Despair",
+          "description": "These aliens have fallen prey to a pervasive sense of failure and loss. Perhaps they are the remnants of a once-glorious empire or the survivors of some cataclysmic disaster. What they once loved has been destroyed, and their sources of comfort and courage have failed them. Their disports only serve to numb them to the existential gloom. Their leadership is desultory at best, and sophisticated social structures tend to degrade into loose, diffident associations."
+        },
+        {
+          "value": "Domination",
+          "description": "These aliens are consumed by a desire to conquer and rule, both each other and any other species unfortunate enough to share the stellar neighborhood. Some can be fair and thoughtful rulers, but others are nothing more than vainglorious tyrants. Society tends to be organized in intricate and clearly-marked hierarchies. These aliens constantly test their leaders, forcing them to maintain their position through strength and cunning."
+        },
+        {
+          "value": "Faith",
+          "description": "Such a species is driven by religious concerns, organizing their society around their faith and its clergy. Most have a single faith; others make do with different religions, all followed with fierce devotion. Challenges to this faith are met with blank incomprehension; the truth of their religions is so self-evident that it seems irrational to ever question it. Those who most perfectly embody the teachings tend to become rulers."
+        },
+        {
+          "value": "Fear",
+          "description": "These aliens live in constant fear. They may be natives of some lethal death-world, survivors of a species-annihilating cataclysm, or simply evolved from weak and easily-devoured prey animals. Their societies are based around hiding or protecting themselves from these dreads. The most revered members are those who are best hidden or best protected. Quite cowardly by human measure, but occasionally they can be driven into a frenzy of terror in which they fight with the courage of the doomed."
+        },
+        {
+          "value": "Gluttony",
+          "description": "These aliens devour. They are rapacious consumers of food, living space, energy, or some other resource. They will do almost anything to increase access to this resource and are deeply indifferent to the needs of other species. To consume greatly is glorious, with the greatest members being those who have the greatest stockpiles. The purpose of existence is to eat, and all good things are understood as different modes of devouring."
+        },
+        {
+          "value": "Greed",
+          "description": "These aliens are enormously greedy. Status depends almost entirely upon personal wealth, and their lives are spent in accumulating the greatest stores of value possible. Some focus on production while others seek to make profit on trade. Some have intricate property laws to safeguard accumulations, while others are little more than bandits among their own kind, too avaricious to let law interfere with their greed."
+        },
+        {
+          "value": "Hate",
+          "description": "There is something these aliens hate, and it defines their culture completely by their opposition to it. They may be rampant xenophobes, loathing all who are not of their own kind, or have acrid religious or political divisions among them. It could be an ancient enemy among the stars, a rival race that has wounded them so greatly as to be unforgivable. All goals and individuals are to some degree subordinated to the needs of their immortal hate."
+        },
+        {
+          "value": "Honor",
+          "description": "Whatever sort of society the race has, it is one obsessed with honorable behavior. Members will obey the social mores and expectations of their roles at all costs. Personal sacrifice for the sake of upholding these principles earns glory and esteem. Gaining advantage by inappropriate behavior or failing in one's duty is shameful, and an entity that has compromised its honor too greatly may prefer death to continued existence."
+        },
+        {
+          "value": "Journeying",
+          "description": "This species has an incurable wanderlust. Perhaps they roam the stars in fleets of massive spike drive ships, or make steady circuits of the nearby stars. More primitive species might sail alien seas or make nomadic journeys across continents. Few of these aliens can ever be happy remaining in one place for long, and they are forever scouting new worlds and new lands simply for the pleasure of being there a little while."
+        },
+        {
+          "value": "Joy",
+          "description": "These aliens are relentless bon vivants, constantly in pursuit of pleasure and enjoyable excitement. Beauty, grace, and the inspiration of passion are their highest virtues. Those who produce the most exquisite art or inspire the most extravagant delight have effective rule over their fellows, though such species tend to be loosely-organized. The brute necessities of life are acknowledged, but their societies sacrifice efficiency and practicality for immediate satisfaction."
+        },
+        {
+          "value": "Pacifism",
+          "description": "The race is remarkably peaceful and nonviolent. Few species survive while being totally averse to violent self-defense, but this race will never choose violence as a means of gaining advantage or retaliation. Among their own kind, violence is abhorrent. Probably herbivorous or subsists by photosynthesis. However, there are more ways to do injury: cession of trade, destruction of property, and incitement of divisions are all tools this race knows well."
+        },
+        {
+          "value": "Pride",
+          "description": "These aliens are suffused with enormous pride in their own culture and species, instinctively considering themselves superior to lesser beings. Some have a certain sense of noblesse oblige toward their \"lessers\", and some show pride through resolute refusal to lower themselves to deceit, cruelty, or avarice. More often, however, this pride manifests in casual contempt for their inferiors and single-minded focus on personal advancement among their own kind."
+        },
+        {
+          "value": "Sagacity",
+          "description": "These aliens love intellectual pursuits above all others. Logic, wisdom, and erudition are prized as the best expressions of their nature, and their rulers are invariably sage-kings of remarkable understanding. Such understanding does not necessarily stand in well for good judgment, and sagacious civilizations are notorious for overreaching in their ambitions. Stupidity and ignorance are moral failings, and some treat very harshly those species they do not feel to be their intellectual peers."
+        },
+        {
+          "value": "Subtlety",
+          "description": "Such a species is enormously cunning and patient, willing to endure years of suffering calmly to bring about some intricate plan. They shun open display of emotions or opinions, masking things behind protocols of bland correctness. To reveal one's true opinion about some contentious matter is a mark either of profound trust or a sign of obvious incipient treachery. The true ruler of such a species is almost never who it seems to be."
+        },
+        {
+          "value": "Tradition",
+          "description": "This species devoutly reveres the past and the ways of their ancestors. Social interactions are stiffly ritualized, and society is ornate with customs, traditions, and habits of their forebears. Innovations are viewed with deep suspicion, and the most favored solutions to problems are those employed before. Members are intensely uncomfortable when forced to exercise their own judgment, and contravening the past is almost impossible for them."
+        },
+        {
+          "value": "Treachery",
+          "description": "This species is uniformly treacherous and untrustworthy. Bargains and agreements are kept only so long as they are useful to both participants, and truthfulness is simply a tool placed next to deceit. There is no sense of acrimony at the inevitable betrayals that make up their societies; they consider it good and laudable that an individual should seek its own best interests. Those who can most perfectly manipulate each other are naturally those most worthy to rule."
+        },
+        {
+          "value": "Tribalism",
+          "description": "The aliens are fiercely tribal, divided into myriad small groups that are as often at war with each other as they are cooperating. Such tribes tend to be built along familial lines, though some are volitional in nature, representing different political or philosophical groups. A given alien's loyalty is to its tribe before its species, and it is not uncommon for their enemies to use one group against another."
+        },
+        {
+          "value": "Wrath",
+          "description": "The race is hot-tempered, prone to fits of personal violence. Disputes are settled by force, though rarely to the point of death among their own kind. Outsiders can expect swift and bloody retaliation for any insult or slight, and the prospect of death rarely intimidates these beings. Their chief mode of emotional expression is anger; wrath at obstacles, fury at enemies, and a slow smoldering burn when neither are available."
+        }
+      ]
+    },
+    {
+      "id": "socialStructure",
+      "name": "Alien Social Structure",
+      "type": "simple",
+      "resultType": "trait",
+      "entries": [
+        {
+          "value": "Democratic",
+          "description": "The species has a broadly democratic organization, with individual members having a formal say in the choice of leadership. This voting need not be based on numbers; it might be a vote with money, military power, religious influence, possession of certain biological traits, or any other metric. Whatever the currency, politics tends to revolve around persuasion and diplomacy rather than military force."
+        },
+        {
+          "value": "Monarchic",
+          "description": "The species is ruled by a single being, with rule justified by custom, biological imperative, divine mandate, personal influence, or familial ties. Such societies almost invariably have a \"noble\" caste to act as administrators and officials for the monarch, usually making up the pool from which new monarchs are chosen. Titles depend on the justification: Chieftain, Emperor, Broodmother, High Priest, Dictator, Chief Elder, or so forth."
+        },
+        {
+          "value": "Tribal",
+          "description": "The species is organized into multiple tribes based on lineage, philosophy, or geographical location. Tribes set their own laws and policies, and are prone to intense internal struggles over resources and status. There may exist a \"paramount tribe\" that inflicts its will upon the others through brute strength or traditional esteem. Tribal leaders tend to be personally distinguished and usually have earned their position through personal accomplishments and broad support."
+        },
+        {
+          "value": "Oligarchic",
+          "description": "The species is led by a number of powerful or revered figures who work in nominal harmony. Individual oligarchs might have their own goals, but no single member has the strength to enforce its will upon the whole. These oligarchs might be the product of hereditary inheritance, or individual members of the species might one day aspire to join their numbers."
+        },
+        {
+          "value": "Multipolar Competitive",
+          "range": [5, 6],
+          "description": "The species has more than one leadership organization in direct conflict. Roll 1d6: on 1-2 it has two competing factions, 3-4 indicates three, and 5-6 indicates four. These organizations are directly in conflict, such as a monarchy struggling against a democratic neighbor."
+        },
+        {
+          "value": "Multipolar Cooperative",
+          "range": [7, 8],
+          "description": "The species has more than one leadership organization operating in parallel. Roll 1d6: on 1-2 it has two organizations, 3-4 indicates three, and 5-6 indicates four. These multipolar institutions operate in parallel; for example, a tribal organization headed by one gender that determines the division of goods while a monarchic head of a different gender makes decisions about relations with other species."
+        }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "alienSpecies",
+      "name": "Alien Species Generator",
+      "resultType": "creature",
+      "shared": {
+        "$body": "{{bodyTraits}}",
+        "$lens1": "{{lenses}}",
+        "$lens2": "{{lenses|unique}}",
+        "$structure": "{{socialStructure}}"
+      },
+      "pattern": "## Alien Species\n\n**Body Type:** {{$body}}\n{{$body.description}}\n\n**Primary Lens:** {{$lens1}}\n{{$lens1.description}}\n\n**Secondary Lens:** {{$lens2}}\n{{$lens2.description}}\n\n**Social Structure:** {{$structure}}\n{{$structure.description}}"
+    }
+  ]
+}

@@ -61,6 +61,7 @@ export interface AgainToken {
   type: 'again'
   count?: number
   unique?: boolean
+  separator?: string
 }
 
 export interface MultiRollToken {
@@ -97,13 +98,14 @@ export interface CaptureMultiRollToken {
 }
 
 /**
- * Token for capture access: {{$var}}, {{$var[0]}}, {{$var.count}}
+ * Token for capture access: {{$var}}, {{$var[0]}}, {{$var.count}}, {{$var.@a.@b}}
+ * Supports chained property access through nested CaptureItems
  */
 export interface CaptureAccessToken {
   type: 'captureAccess'
   varName: string // variable name (without $)
   index?: number // array index (supports negative)
-  property?: 'count' | 'value' | string // .count, .value, or @propName (stored without @)
+  properties?: string[] // chain of properties (without @ prefix), e.g. ["situation", "focus"]
   separator?: string // custom separator for all values
 }
 
@@ -288,8 +290,12 @@ export function parseExpression(expr: string): ExpressionToken {
     }
   }
 
-  // Again keyword: again, N*again, N*unique*again
-  if (trimmed === 'again' || trimmed.endsWith('*again')) {
+  // Again keyword: again, N*again, N*unique*again, with optional separator
+  if (
+    trimmed === 'again' ||
+    trimmed.startsWith('again|') ||
+    /\*again(\|\s*"[^"]*")?$/.test(trimmed)
+  ) {
     return parseAgain(trimmed)
   }
 
@@ -314,15 +320,26 @@ export function parseExpression(expr: string): ExpressionToken {
 
 /**
  * Parse {{again}} variants
+ * Supports: again, N*again, N*unique*again, with optional separator |"sep" or | "sep"
  */
 function parseAgain(expr: string): AgainToken {
-  if (expr === 'again') {
-    return { type: 'again' }
+  // Check for separator: expr|"separator" or expr| "separator" (with optional space)
+  let separator: string | undefined
+  let mainExpr = expr
+
+  const separatorMatch = expr.match(/\|\s*"([^"]*)"$/)
+  if (separatorMatch) {
+    separator = separatorMatch[1]
+    mainExpr = expr.slice(0, expr.indexOf('|'))
+  }
+
+  if (mainExpr === 'again') {
+    return { type: 'again', separator }
   }
 
   // Parse N*again or N*unique*again
-  const parts = expr.split('*')
-  const token: AgainToken = { type: 'again' }
+  const parts = mainExpr.split('*')
+  const token: AgainToken = { type: 'again', separator }
 
   if (parts.length >= 2) {
     const countPart = parts[0]
@@ -583,6 +600,16 @@ function parseCaptureMultiRoll(expr: string): CaptureMultiRollToken {
 }
 
 /**
+ * Parse a chain of properties like "@situation.@focus" or "value.@prop"
+ * Returns array of property names (without @ prefix)
+ */
+function parsePropertyChain(propPart: string): string[] {
+  // Split by . and handle @-prefixed properties
+  const parts = propPart.split('.')
+  return parts.map((part) => (part.startsWith('@') ? part.slice(1) : part))
+}
+
+/**
  * Parse capture access expression:
  * - {{$var}} - all values
  * - {{$var|"; "}} - all values with separator
@@ -591,6 +618,7 @@ function parseCaptureMultiRoll(expr: string): CaptureMultiRollToken {
  * - {{$var[-1]}} - negative index
  * - {{$var[0].value}} - explicit value access
  * - {{$var[0].@prop}} - property access
+ * - {{$var.@a.@b.@c}} - chained property access through nested CaptureItems
  */
 function parseCaptureAccess(expr: string): CaptureAccessToken {
   // Remove leading $
@@ -605,36 +633,21 @@ function parseCaptureAccess(expr: string): CaptureAccessToken {
     separator = sepMatch[2]
   }
 
-  // Parse indexed access: varName[index].property?
+  // Parse indexed access: varName[index].property.property...?
   const indexMatch = mainContent.match(/^(\w+)\[(-?\d+)\](?:\.(.+))?$/)
   if (indexMatch) {
     const [, varName, indexStr, propPart] = indexMatch
     const index = parseInt(indexStr, 10)
-
-    // Parse property: could be 'value' or '@propName'
-    let property: string | undefined
-    if (propPart) {
-      if (propPart.startsWith('@')) {
-        property = propPart.slice(1) // Store without @
-      } else {
-        property = propPart
-      }
-    }
-
-    return { type: 'captureAccess', varName, index, property, separator }
+    const properties = propPart ? parsePropertyChain(propPart) : undefined
+    return { type: 'captureAccess', varName, index, properties, separator }
   }
 
-  // Parse property access without index: varName.property
+  // Parse property access without index: varName.property.property...
   const propMatch = mainContent.match(/^(\w+)\.(.+)$/)
   if (propMatch) {
     const [, varName, propPart] = propMatch
-    let property: string
-    if (propPart.startsWith('@')) {
-      property = propPart.slice(1) // Store without @
-    } else {
-      property = propPart
-    }
-    return { type: 'captureAccess', varName, property, separator }
+    const properties = parsePropertyChain(propPart)
+    return { type: 'captureAccess', varName, properties, separator }
   }
 
   // Simple case: just $var (all values)

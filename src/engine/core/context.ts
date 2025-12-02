@@ -5,7 +5,7 @@
  * Tracks variables, placeholders, recursion depth, and unique selections.
  */
 
-import type { EngineConfig, Sets, RollResult, CaptureVariable, CaptureItem, EntryDescription } from '../types'
+import type { EngineConfig, Sets, EvaluatedSets, RollResult, CaptureVariable, CaptureItem, EntryDescription } from '../types'
 import type { TraceContext } from './trace'
 import { createTraceContext } from './trace'
 
@@ -26,8 +26,8 @@ export interface GenerationContext {
   /** Document-level shared variable names (for shadowing prevention) */
   documentSharedNames: Set<string>
 
-  /** Placeholder values keyed by placeholder name */
-  placeholders: Map<string, Sets>
+  /** Placeholder values keyed by placeholder name (may contain nested CaptureItems) */
+  placeholders: Map<string, EvaluatedSets>
 
   /** Current recursion depth for table rolls */
   recursionDepth: number
@@ -52,6 +52,9 @@ export interface GenerationContext {
 
   /** Current entry ID (for {{again}} exclusion) */
   currentEntryId?: string
+
+  /** Current entry's description (for {{@self.description}}) */
+  currentEntryDescription?: string
 
   /** Current collection ID */
   currentCollectionId?: string
@@ -202,6 +205,7 @@ export function wouldShadowDocumentShared(ctx: GenerationContext, name: string):
 
 /**
  * Get a placeholder value
+ * @returns The string value, or undefined if not found
  */
 export function getPlaceholder(
   ctx: GenerationContext,
@@ -212,11 +216,20 @@ export function getPlaceholder(
   if (!sets) return undefined
 
   if (property) {
-    return sets[property]
+    const value = sets[property]
+    // Handle nested CaptureItems - extract the value string
+    if (value && typeof value !== 'string') {
+      return value.value
+    }
+    return value
   }
 
   // Return the 'value' property by default
-  return sets['value']
+  const defaultValue = sets['value']
+  if (defaultValue && typeof defaultValue !== 'string') {
+    return defaultValue.value
+  }
+  return defaultValue
 }
 
 /**
@@ -225,7 +238,7 @@ export function getPlaceholder(
 export function setPlaceholders(
   ctx: GenerationContext,
   name: string,
-  sets: Sets
+  sets: EvaluatedSets
 ): void {
   // Deep merge with existing placeholders
   const existing = ctx.placeholders.get(name) ?? {}
@@ -238,7 +251,7 @@ export function setPlaceholders(
 export function mergePlaceholderSets(
   ctx: GenerationContext,
   tableName: string,
-  sets: Sets
+  sets: EvaluatedSets
 ): void {
   // Sets are keyed by table name for @tableName.property access
   setPlaceholders(ctx, tableName, sets)
@@ -411,6 +424,16 @@ export function setCurrentTable(
 ): void {
   ctx.currentTableId = tableId
   ctx.currentEntryId = entryId
+}
+
+/**
+ * Set the current entry's description (for {{@self.description}})
+ */
+export function setCurrentEntryDescription(
+  ctx: GenerationContext,
+  description?: string
+): void {
+  ctx.currentEntryDescription = description
 }
 
 /**

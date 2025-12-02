@@ -1,7 +1,7 @@
 {
   "metadata": {
     "name": "Fantasy Name Generator",
-    "namespace": "rolldeo.fantasyNames",
+    "namespace": "rolldeo.fantasy.names",
     "version": "1.0.0",
     "specVersion": "1.0",
     "author": "Rolldeo Examples",

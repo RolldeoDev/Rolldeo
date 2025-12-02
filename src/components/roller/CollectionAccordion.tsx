@@ -3,16 +3,19 @@
  *
  * Displays collections as an accordion list.
  * Only one collection can be expanded at a time.
+ * Accepts pre-filtered collections from parent.
  */
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useCollectionStore } from '@/stores/collectionStore'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useUIStore } from '@/stores/uiStore'
 import { CollectionAccordionItem } from './CollectionAccordionItem'
-import { FolderPlus } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
+import type { CollectionMeta } from '@/stores/collectionStore'
 
 interface CollectionAccordionProps {
+  /** Pre-filtered collections to display */
+  collections: CollectionMeta[]
   /** Currently selected item ID (table or template) */
   selectedItemId: string | null
   /** Callback when an item is selected */
@@ -30,6 +33,7 @@ interface CollectionAccordionProps {
 }
 
 export const CollectionAccordion = memo(function CollectionAccordion({
+  collections,
   selectedItemId,
   onSelectItem,
   onRollItem,
@@ -38,8 +42,6 @@ export const CollectionAccordion = memo(function CollectionAccordion({
   onRollMultiple,
   onViewDetails,
 }: CollectionAccordionProps) {
-  // Select the Map directly to avoid creating new arrays in the selector
-  const collectionsMap = useCollectionStore((state) => state.collections)
   const expandedCollectionId = useUIStore((state) => state.expandedCollectionId)
   const toggleCollectionExpanded = useUIStore((state) => state.toggleCollectionExpanded)
   const setExpandedCollectionId = useUIStore((state) => state.setExpandedCollectionId)
@@ -48,16 +50,13 @@ export const CollectionAccordion = memo(function CollectionAccordion({
   // Track which collection should scroll into view
   const [scrollTargetCollectionId, setScrollTargetCollectionId] = useState<string | null>(null)
 
-  // Convert Map to sorted array with useMemo
-  const sortedCollections = useMemo(() => {
-    const collections = Array.from(collectionsMap.values())
-    return collections.sort((a, b) => {
-      if (a.isPreloaded !== b.isPreloaded) {
-        return a.isPreloaded ? -1 : 1
-      }
-      return a.name.localeCompare(b.name)
-    })
-  }, [collectionsMap])
+  // Sort collections: preloaded first, then alphabetically
+  const sortedCollections = [...collections].sort((a, b) => {
+    if (a.isPreloaded !== b.isPreloaded) {
+      return a.isPreloaded ? -1 : 1
+    }
+    return a.name.localeCompare(b.name)
+  })
 
   // Track if we've already auto-expanded to prevent re-triggering
   const hasAutoExpanded = useRef(false)
@@ -125,10 +124,10 @@ export const CollectionAccordion = memo(function CollectionAccordion({
   if (sortedCollections.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <FolderPlus className="w-12 h-12 text-muted-foreground/50 mb-4" />
-        <p className="text-sm text-muted-foreground">No collections loaded</p>
+        <Filter className="w-10 h-10 text-muted-foreground/50 mb-3" />
+        <p className="text-sm text-muted-foreground">No collections match filters</p>
         <p className="text-xs text-muted-foreground/70 mt-1">
-          Import a JSON file to get started
+          Try adjusting your search or namespace filter
         </p>
       </div>
     )

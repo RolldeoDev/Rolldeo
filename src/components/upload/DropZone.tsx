@@ -21,6 +21,8 @@ interface DropZoneProps {
   disabled?: boolean
   /** Custom content */
   children?: React.ReactNode
+  /** Compact variant for inline/secondary placement */
+  variant?: 'default' | 'compact'
 }
 
 export function DropZone({
@@ -29,6 +31,7 @@ export function DropZone({
   className,
   disabled = false,
   children,
+  variant = 'default',
 }: DropZoneProps) {
   const [isDragOver, setIsDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -99,6 +102,8 @@ export function DropZone({
     [handleClick]
   )
 
+  const isCompact = variant === 'compact'
+
   return (
     <div
       onDragOver={handleDragOver}
@@ -111,13 +116,14 @@ export function DropZone({
       aria-label="Drop files or click to browse"
       aria-disabled={disabled}
       className={cn(
-        'relative card-elevated rounded-2xl p-10 text-center transition-all duration-300',
+        'relative card-elevated rounded-2xl text-center transition-all duration-300',
         'border-2 border-dashed',
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background',
         disabled
           ? 'cursor-not-allowed opacity-50 border-white/10'
           : 'cursor-pointer border-white/10 hover:border-primary/50 hover:bg-primary/5',
         isDragOver && !disabled && 'border-primary bg-primary/10 scale-[1.01]',
+        isCompact ? 'p-4' : 'p-10',
         className
       )}
     >
@@ -141,48 +147,71 @@ export function DropZone({
       />
 
       {children || (
-        <div className="relative flex flex-col items-center gap-5">
-          {/* Icon group */}
-          <div className="flex items-center gap-3">
-            <div className="icon-container icon-lavender">
-              <FileJson className="h-5 w-5" />
-            </div>
+        isCompact ? (
+          <div className="relative flex items-center justify-center gap-3">
             <div
               className={cn(
-                'icon-container icon-mint p-4 transition-transform duration-300',
+                'icon-container icon-mint transition-transform duration-300',
                 isDragOver && 'scale-110'
               )}
             >
-              <CloudUpload className="h-7 w-7" />
+              <CloudUpload className="h-4 w-4" />
             </div>
-            <div className="icon-container icon-amber">
-              <FileArchive className="h-5 w-5" />
-            </div>
-          </div>
-
-          {/* Text */}
-          <div className="space-y-2">
-            <p className="text-foreground font-semibold text-lg">
-              {isDragOver ? 'Drop files here' : 'Drop files here or click to browse'}
-            </p>
             <p className="text-sm text-muted-foreground">
-              Accepts <span className="text-lavender font-medium">JSON</span> and{' '}
-              <span className="text-amber font-medium">ZIP</span> files
+              {isDragOver ? (
+                <span className="text-foreground font-medium">Drop files here</span>
+              ) : (
+                <>
+                  Drop <span className="text-lavender font-medium">.json</span> or{' '}
+                  <span className="text-amber font-medium">.zip</span> files to import
+                </>
+              )}
             </p>
           </div>
+        ) : (
+          <div className="relative flex flex-col items-center gap-5">
+            {/* Icon group */}
+            <div className="flex items-center gap-3">
+              <div className="icon-container icon-lavender">
+                <FileJson className="h-5 w-5" />
+              </div>
+              <div
+                className={cn(
+                  'icon-container icon-mint p-4 transition-transform duration-300',
+                  isDragOver && 'scale-110'
+                )}
+              >
+                <CloudUpload className="h-7 w-7" />
+              </div>
+              <div className="icon-container icon-amber">
+                <FileArchive className="h-5 w-5" />
+              </div>
+            </div>
 
-          {/* Pill hint */}
-          <div className="flex gap-2">
-            <span className="pill pill-lavender">
-              <FileJson className="h-3 w-3 mr-1.5 inline" />
-              .json
-            </span>
-            <span className="pill pill-amber">
-              <FileArchive className="h-3 w-3 mr-1.5 inline" />
-              .zip
-            </span>
+            {/* Text */}
+            <div className="space-y-2">
+              <p className="text-foreground font-semibold text-lg">
+                {isDragOver ? 'Drop files here' : 'Drop files here or click to browse'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Accepts <span className="text-lavender font-medium">JSON</span> and{' '}
+                <span className="text-amber font-medium">ZIP</span> files
+              </p>
+            </div>
+
+            {/* Pill hint */}
+            <div className="flex gap-2">
+              <span className="pill pill-lavender">
+                <FileJson className="h-3 w-3 mr-1.5 inline" />
+                .json
+              </span>
+              <span className="pill pill-amber">
+                <FileArchive className="h-3 w-3 mr-1.5 inline" />
+                .zip
+              </span>
+            </div>
           </div>
-        </div>
+        )
       )}
     </div>
   )

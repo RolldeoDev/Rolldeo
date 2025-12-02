@@ -8,9 +8,9 @@
 import { memo, useState, useCallback, useEffect, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { History as HistoryIcon, Pin, PinOff, Trash2, Activity, BookOpen } from 'lucide-react'
+import { History as HistoryIcon, Pin, PinOff, Trash2, Activity, BookOpen, ListOrdered } from 'lucide-react'
 import type { StoredRoll } from '@/services/db'
-import type { EntryDescription } from '@/engine/types'
+import type { EntryDescription, Sets } from '@/engine/types'
 import { formatTimestamp } from '@/stores/rollStore'
 import { cn } from '@/lib/utils'
 import { TraceViewer } from './TraceViewer'
@@ -22,6 +22,7 @@ interface RollHistoryListProps {
   onDelete: (id: number) => void
   onClearHistory: (keepPinned: boolean) => void
   onShowDescriptions: (descriptions: EntryDescription[], sourceLabel?: string) => void
+  onShowSets: (sets: Sets, sourceLabel?: string) => void
 }
 
 export const RollHistoryList = memo(function RollHistoryList({
@@ -31,6 +32,7 @@ export const RollHistoryList = memo(function RollHistoryList({
   onDelete,
   onClearHistory,
   onShowDescriptions,
+  onShowSets,
 }: RollHistoryListProps) {
   // Track which history items have their trace expanded (by item id)
   const [expandedTraces, setExpandedTraces] = useState<Set<number>>(new Set())
@@ -147,7 +149,7 @@ export const RollHistoryList = memo(function RollHistoryList({
               </div>
 
               {/* Toggle buttons row */}
-              {(item.result.descriptions?.length || item.result.trace) && (
+              {(item.result.descriptions?.length || item.result.placeholders && Object.keys(item.result.placeholders).length > 0 || item.result.trace) && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {/* Descriptions button - opens drawer */}
                   {item.result.descriptions && item.result.descriptions.length > 0 && (
@@ -156,12 +158,29 @@ export const RollHistoryList = memo(function RollHistoryList({
                         item.result.descriptions!,
                         item.tableId || item.templateId || undefined
                       )}
-                      className="text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all text-amber-400 border-amber-400/40 bg-amber-400/10 hover:bg-amber-400/20"
+                      className="text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-200 text-muted-foreground border-border/50 hover:text-copper hover:border-copper/50 hover:bg-copper/15 hover:scale-[1.02]"
                     >
                       <BookOpen className="w-3.5 h-3.5" />
                       View Descriptions
-                      <span className="text-amber-300/60">
+                      <span className="opacity-60">
                         ({item.result.descriptions.length})
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Sets button - opens drawer */}
+                  {item.result.placeholders && Object.keys(item.result.placeholders).length > 0 && (
+                    <button
+                      onClick={() => onShowSets(
+                        item.result.placeholders!,
+                        item.tableId || item.templateId || undefined
+                      )}
+                      className="text-xs flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-200 text-muted-foreground border-border/50 hover:text-rose hover:border-rose/40 hover:bg-rose/10 hover:scale-[1.02]"
+                    >
+                      <ListOrdered className="w-3.5 h-3.5" />
+                      View Sets
+                      <span className="opacity-60">
+                        ({Object.keys(item.result.placeholders).length})
                       </span>
                     </button>
                   )}

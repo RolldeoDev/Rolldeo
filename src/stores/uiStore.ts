@@ -16,6 +16,8 @@ export type BrowserViewMode = 'flat' | 'grouped'
 export type BrowserGroupBy = 'resultType' | 'tag' | 'alpha' | null
 export type BrowserTab = 'tables' | 'templates'
 export type EditorTab = 'metadata' | 'tables' | 'templates' | 'variables' | 'json'
+export type LibraryViewMode = 'grid' | 'grouped'
+export type NamespaceDepth = 1 | 2
 
 interface UIState {
   // Search and filter (library page)
@@ -43,6 +45,14 @@ interface UIState {
 
   // Library page state
   preloadedCollectionsExpanded: boolean
+  libraryViewMode: LibraryViewMode
+  libraryGroupDepth: NamespaceDepth
+  libraryNamespaceFilter: string | null
+  libraryExpandedNamespaces: string[]  // Which namespace groups are expanded
+
+  // Roller page namespace filter
+  rollerNamespaceFilter: string | null
+  rollerCollectionSearchQuery: string
 
   // Editor page state
   lastEditorCollectionId: string | null
@@ -80,6 +90,17 @@ interface UIState {
 
   // Actions - Library page
   togglePreloadedCollections: () => void
+  setLibraryViewMode: (mode: LibraryViewMode) => void
+  setLibraryGroupDepth: (depth: NamespaceDepth) => void
+  setLibraryNamespaceFilter: (namespace: string | null) => void
+  toggleLibraryNamespaceExpanded: (namespace: string) => void
+  setLibraryExpandedNamespaces: (namespaces: string[]) => void
+  clearLibraryFilters: () => void
+
+  // Actions - Roller page namespace filter
+  setRollerNamespaceFilter: (namespace: string | null) => void
+  setRollerCollectionSearchQuery: (query: string) => void
+  clearRollerCollectionFilters: () => void
 
   // Actions - Editor page
   setLastEditorCollectionId: (id: string | null) => void
@@ -116,6 +137,14 @@ export const useUIStore = create<UIState>()(
 
       // Library page initial state
       preloadedCollectionsExpanded: false,
+      libraryViewMode: 'grid',
+      libraryGroupDepth: 1,
+      libraryNamespaceFilter: null,
+      libraryExpandedNamespaces: [],
+
+      // Roller page namespace filter initial state
+      rollerNamespaceFilter: null,
+      rollerCollectionSearchQuery: '',
 
       // Editor page initial state
       lastEditorCollectionId: null,
@@ -203,6 +232,42 @@ export const useUIStore = create<UIState>()(
       togglePreloadedCollections: () =>
         set((state) => ({ preloadedCollectionsExpanded: !state.preloadedCollectionsExpanded })),
 
+      setLibraryViewMode: (mode) => set({ libraryViewMode: mode }),
+
+      setLibraryGroupDepth: (depth) => set({ libraryGroupDepth: depth }),
+
+      setLibraryNamespaceFilter: (namespace) => set({ libraryNamespaceFilter: namespace }),
+
+      toggleLibraryNamespaceExpanded: (namespace) =>
+        set((state) => ({
+          libraryExpandedNamespaces: state.libraryExpandedNamespaces.includes(namespace)
+            ? state.libraryExpandedNamespaces.filter((n) => n !== namespace)
+            : [...state.libraryExpandedNamespaces, namespace],
+        })),
+
+      setLibraryExpandedNamespaces: (namespaces) => set({ libraryExpandedNamespaces: namespaces }),
+
+      clearLibraryFilters: () =>
+        set({
+          searchQuery: '',
+          selectedTags: [],
+          libraryNamespaceFilter: null,
+        }),
+
+      // ========================================================================
+      // Roller Page Namespace Filter Actions
+      // ========================================================================
+
+      setRollerNamespaceFilter: (namespace) => set({ rollerNamespaceFilter: namespace }),
+
+      setRollerCollectionSearchQuery: (query) => set({ rollerCollectionSearchQuery: query }),
+
+      clearRollerCollectionFilters: () =>
+        set({
+          rollerNamespaceFilter: null,
+          rollerCollectionSearchQuery: '',
+        }),
+
       // ========================================================================
       // Editor Page Actions
       // ========================================================================
@@ -230,6 +295,10 @@ export const useUIStore = create<UIState>()(
         browserViewMode: state.browserViewMode,
         browserGroupBy: state.browserGroupBy,
         preloadedCollectionsExpanded: state.preloadedCollectionsExpanded,
+        // Library organization preferences
+        libraryViewMode: state.libraryViewMode,
+        libraryGroupDepth: state.libraryGroupDepth,
+        libraryExpandedNamespaces: state.libraryExpandedNamespaces,
         // Editor state persistence
         lastEditorCollectionId: state.lastEditorCollectionId,
         editorActiveTab: state.editorActiveTab,

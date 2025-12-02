@@ -62,6 +62,8 @@ const RESERVED_WORDS = new Set([
 const NAMESPACE_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?$/
 const IDENTIFIER_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/
+// Variable names can optionally start with $ for context-sensitive variables
+const VARIABLE_NAME_PATTERN = /^\$?[a-zA-Z_][a-zA-Z0-9_]*$/
 
 // ============================================================================
 // Main Validator
@@ -511,17 +513,20 @@ function validateVariables(
   issues: ValidationIssue[]
 ): void {
   for (const [name, _value] of Object.entries(variables)) {
-    if (!IDENTIFIER_PATTERN.test(name)) {
+    if (!VARIABLE_NAME_PATTERN.test(name)) {
       issues.push({
         severity: 'error',
         code: 'INVALID_VARIABLE_NAME',
         message: `Invalid variable name: ${name}`,
         path: `${path}.${name}`,
-        suggestion: 'Variable names must start with a letter and contain only alphanumeric characters and underscores',
+        suggestion:
+          'Variable names must start with a letter (or $ for context-sensitive variables) and contain only alphanumeric characters and underscores',
       })
     }
 
-    if (RESERVED_WORDS.has(name)) {
+    // Check reserved words (strip $ prefix for comparison)
+    const nameWithoutPrefix = name.startsWith('$') ? name.slice(1) : name
+    if (RESERVED_WORDS.has(nameWithoutPrefix)) {
       issues.push({
         severity: 'error',
         code: 'RESERVED_WORD',

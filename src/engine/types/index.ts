@@ -235,8 +235,16 @@ export interface Entry {
   resultType?: string
 }
 
-/** Key-value pairs for placeholder values */
+/** Key-value pairs for placeholder values (input from JSON) */
 export type Sets = Record<string, string>
+
+/**
+ * Evaluated sets with resolved placeholder values.
+ * Values can be strings OR nested CaptureItems for chained property access.
+ * When a set value is a single table reference (e.g., "{{childTable}}"),
+ * the full result including nested sets is captured as a CaptureItem.
+ */
+export type EvaluatedSets = Record<string, string | CaptureItem>
 
 /** Key-value pairs for asset paths */
 export type Assets = Record<string, string>
@@ -300,8 +308,15 @@ export type SharedVariables = Record<string, string>
 export interface CaptureItem {
   /** The resolved output text from the roll */
   value: string
-  /** The merged sets (defaultSets + entry sets), fully resolved */
-  sets: Record<string, string>
+  /**
+   * The merged sets (defaultSets + entry sets), fully resolved.
+   * Values can be strings OR nested CaptureItems for chained property access.
+   * When a set value is a single table reference (e.g., "{{childTable}}"),
+   * the full result including nested sets is captured as a CaptureItem.
+   */
+  sets: Record<string, string | CaptureItem>
+  /** The entry's description, if present */
+  description?: string
 }
 
 /**
@@ -365,8 +380,8 @@ export interface RollResult {
   resultType?: string
   /** Assets from the selected entry */
   assets?: Assets
-  /** Placeholder values that were set */
-  placeholders?: Sets
+  /** Placeholder values that were set (may contain nested CaptureItems for chained access) */
+  placeholders?: EvaluatedSets
   /** Roll metadata */
   metadata: {
     /** Table/template ID that was rolled */

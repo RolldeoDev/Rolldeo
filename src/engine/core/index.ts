@@ -18,6 +18,7 @@ import type {
   EngineConfig,
   Assets,
   Sets,
+  EvaluatedSets,
   CaptureItem,
   CaptureVariable,
 } from '../types'
@@ -47,6 +48,7 @@ import {
   addDescription,
   beginSetEvaluation,
   endSetEvaluation,
+  setCurrentEntryDescription,
   type GenerationContext,
 } from './context'
 import {
@@ -829,15 +831,43 @@ export class RandomTableEngine {
         // Resolve and roll the table, capturing the result with sets
         const tableResult = this.resolveTableRef(token.tableId, collectionId)
         if (tableResult) {
+          // Track description count before roll to find new descriptions
+          const descCountBefore = context.collectedDescriptions.length
           const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
+
+          // Get the first description added by this roll (the entry's own description)
+          // Nested rolls may add more, but the first new one is the direct entry description
+          const newDescriptions = context.collectedDescriptions.slice(descCountBefore)
+          const entryDescription = newDescriptions.length > 0 ? newDescriptions[0].description : undefined
 
           // Sets are already evaluated at merge time in evaluateSetValues()
           // Just use the placeholders directly
           setCaptureSharedVariable(context, varName, {
             value: result.text,
             sets: result.placeholders ?? {},
+            description: entryDescription,
           })
           return
+        }
+      }
+
+      // Handle capture access with properties - check if it references a nested CaptureItem
+      // This enables chaining: "$situation": "{{$conflict.@situation}}" where @situation is a nested CaptureItem
+      // Also supports deep chaining: "$deep": "{{$conflict.@situation.@focus}}"
+      if (token.type === 'captureAccess' && token.properties && token.properties.length > 0) {
+        const sourceCapture = getCaptureSharedVariable(context, token.varName)
+        if (sourceCapture) {
+          // Check if the final property is a terminal (value/count/description)
+          const lastProp = token.properties[token.properties.length - 1]
+          if (lastProp !== 'value' && lastProp !== 'count' && lastProp !== 'description') {
+            // Try to get the nested CaptureItem at the end of the property chain
+            const nestedItem = this.getNestedCaptureItem(sourceCapture, token.properties)
+            if (nestedItem) {
+              // It's a nested CaptureItem - store it directly to enable further chaining
+              setCaptureSharedVariable(context, varName, nestedItem)
+              return
+            }
+          }
         }
       }
     }
@@ -1330,9 +1360,15 @@ export class RandomTableEngine {
       mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
+    // Store description in context for {{@self.description}} access
+    setCurrentEntryDescription(context, selected.entry.description)
+
     // Evaluate the entry value (may contain expressions)
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
     const text = this.evaluatePattern(selected.entry.value ?? '', context, collectionId)
+
+    // Clear description from context after evaluation
+    setCurrentEntryDescription(context, undefined)
 
     // Capture description if present
     if (selected.entry.description) {
@@ -1483,9 +1519,15 @@ export class RandomTableEngine {
       mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
+    // Store description in context for {{@self.description}} access
+    setCurrentEntryDescription(context, selected.entry.description)
+
     // Evaluate the entry value
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
     const text = this.evaluatePattern(selected.entry.value ?? '', context, collectionId)
+
+    // Clear description from context after evaluation
+    setCurrentEntryDescription(context, undefined)
 
     // Capture description if present
     if (selected.entry.description) {
@@ -1542,8 +1584,8 @@ export class RandomTableEngine {
     context: GenerationContext,
     collectionId: string,
     tableId: string
-  ): Sets {
-    const evaluated: Sets = {}
+  ): EvaluatedSets {
+    const evaluated: EvaluatedSets = {}
 
     for (const [key, value] of Object.entries(sets)) {
       if (value.includes('{{')) {
@@ -1557,6 +1599,26 @@ export class RandomTableEngine {
         }
 
         try {
+          // Check if this is a single table reference - if so, capture full result
+          // This enables nested property access like {{$parent.@child.@grandchild}}
+          const expressions = extractExpressions(value)
+          if (expressions.length === 1 && value.trim() === expressions[0].raw) {
+            const token = parseExpression(expressions[0].expression)
+            if (token.type === 'table') {
+              // Roll table and capture full result including nested sets
+              const tableResult = this.resolveTableRef(token.tableId, collectionId)
+              if (tableResult) {
+                const result = this.rollTable(tableResult.table, context, tableResult.collectionId)
+                evaluated[key] = {
+                  value: result.text,
+                  sets: result.placeholders ?? {},
+                  description: undefined,
+                }
+                continue
+              }
+            }
+          }
+          // Fallback: evaluate as string for complex expressions
           evaluated[key] = this.evaluatePattern(value, context, collectionId)
         } finally {
           endSetEvaluation(context, setKey)
@@ -1733,8 +1795,34 @@ export class RandomTableEngine {
   private evaluatePlaceholder(
     token: { name: string; property?: string },
     context: GenerationContext,
-    _collectionId?: string
+    collectionId: string
   ): string {
+    // Handle @self placeholder for current entry properties
+    if (token.name === 'self') {
+      if (token.property === 'description') {
+        const rawDescription = context.currentEntryDescription ?? ''
+        // Evaluate any expressions in the description
+        const result = rawDescription ? this.evaluatePattern(rawDescription, context, collectionId) : ''
+
+        // Add placeholder access trace
+        addTraceLeaf(context, 'placeholder_access', `@self.description`, {
+          raw: 'self',
+          parsed: { property: 'description' }
+        }, {
+          value: result,
+        }, {
+          type: 'placeholder',
+          name: 'self',
+          property: 'description',
+          found: rawDescription !== '',
+        } as PlaceholderAccessMetadata)
+
+        return result
+      }
+      // Unknown @self property - return empty string
+      return ''
+    }
+
     // Get the placeholder value directly - no implicit table/template resolution
     // Set values containing {{patterns}} are evaluated at merge time in evaluateSetValues()
     // If you want a set value to roll a table, use explicit syntax: "nameTable": "{{elfNames}}"
@@ -2001,7 +2089,7 @@ export class RandomTableEngine {
   }
 
   private evaluateAgain(
-    token: { count?: number; unique?: boolean },
+    token: { count?: number; unique?: boolean; separator?: string },
     context: GenerationContext,
     collectionId: string
   ): string {
@@ -2038,7 +2126,7 @@ export class RandomTableEngine {
       }
     }
 
-    return results.join(', ')
+    return results.join(token.separator ?? ', ')
   }
 
   private evaluateInstance(
@@ -2191,6 +2279,8 @@ export class RandomTableEngine {
     const usedIds = new Set<string>()
 
     for (let i = 0; i < count; i++) {
+      // Track description count before roll to find new descriptions
+      const descCountBefore = context.collectedDescriptions.length
       const result = this.rollTable(table, context, resolvedCollectionId, {
         unique: token.unique,
         excludeIds: token.unique ? usedIds : undefined,
@@ -2199,11 +2289,16 @@ export class RandomTableEngine {
       if (result.text) {
         results.push(result.text)
 
+        // Get the first description added by this roll (the entry's own description)
+        const newDescriptions = context.collectedDescriptions.slice(descCountBefore)
+        const entryDescription = newDescriptions.length > 0 ? newDescriptions[0].description : undefined
+
         // Sets are already evaluated at merge time in evaluateSetValues()
         // Just use the placeholders directly
         captureItems.push({
           value: result.text,
           sets: result.placeholders ?? {},
+          description: entryDescription,
         })
 
         if (result.entryId) {
@@ -2260,7 +2355,7 @@ export class RandomTableEngine {
     token: {
       varName: string
       index?: number
-      property?: string
+      properties?: string[]
       separator?: string
     },
     context: GenerationContext,
@@ -2273,7 +2368,9 @@ export class RandomTableEngine {
     // Build label for trace
     let label = `$${token.varName}`
     if (token.index !== undefined) label += `[${token.index}]`
-    if (token.property) label += `.${token.property.startsWith('@') ? token.property : token.property}`
+    if (token.properties && token.properties.length > 0) {
+      label += '.' + token.properties.map((p) => `@${p}`).join('.')
+    }
 
     // Handle capture-aware shared variables (single item, no index needed)
     if (!capture && captureShared) {
@@ -2292,7 +2389,7 @@ export class RandomTableEngine {
           type: 'capture_access',
           varName: token.varName,
           index: token.index,
-          property: token.property ?? 'value',
+          property: token.properties?.[0] ?? 'value',
           found: false,
         } as CaptureAccessMetadata
       )
@@ -2300,9 +2397,10 @@ export class RandomTableEngine {
     }
 
     let result: string
+    const firstProp = token.properties?.[0]
 
     // Handle .count property (no index)
-    if (token.property === 'count' && token.index === undefined) {
+    if (firstProp === 'count' && token.index === undefined) {
       result = String(capture.count)
       addTraceLeaf(
         context,
@@ -2345,7 +2443,7 @@ export class RandomTableEngine {
             type: 'capture_access',
             varName: token.varName,
             index: token.index,
-            property: token.property ?? 'value',
+            property: firstProp ?? 'value',
             found: false,
             totalItems: capture.items.length,
           } as CaptureAccessMetadata
@@ -2355,21 +2453,9 @@ export class RandomTableEngine {
 
       const item = capture.items[resolvedIndex]
 
-      // Handle property access on indexed item
-      if (token.property) {
-        if (token.property === 'value') {
-          result = item.value
-        } else {
-          // @property access (property stored without @)
-          // Sets are already evaluated at merge time, so just return the value
-          const propValue = item.sets[token.property]
-          if (propValue === undefined) {
-            console.warn(
-              `Capture property not found: $${token.varName}[${token.index}].@${token.property}`
-            )
-          }
-          result = propValue ?? ''
-        }
+      // Handle property chain access on indexed item
+      if (token.properties && token.properties.length > 0) {
+        result = this.traversePropertyChain(item, token.properties, `$${token.varName}[${token.index}]`)
       } else {
         // Just indexed access - return value
         result = item.value
@@ -2385,7 +2471,7 @@ export class RandomTableEngine {
           type: 'capture_access',
           varName: token.varName,
           index: token.index,
-          property: token.property ?? 'value',
+          property: firstProp ?? 'value',
           found: true,
           totalItems: capture.items.length,
         } as CaptureAccessMetadata
@@ -2394,13 +2480,19 @@ export class RandomTableEngine {
     }
 
     // Handle property access without index (on all items)
-    if (token.property && token.property !== 'value' && token.property !== 'count') {
+    // For chained access, we only use the first property for collecting
+    if (firstProp && firstProp !== 'value' && firstProp !== 'count') {
       // Collect this property from all items
-      // Sets are already evaluated at merge time, so just return the values
-      const values = capture.items.map((item) => item.sets[token.property!] ?? '')
+      // For chained properties, traverse each item's property chain
+      const values = capture.items.map((item) => {
+        if (token.properties && token.properties.length > 0) {
+          return this.traversePropertyChain(item, token.properties, `$${token.varName}`)
+        }
+        return item.value
+      })
       result = values.filter((v) => v !== '').join(token.separator ?? ', ')
     } else {
-      // Handle all values (no index, property is 'value' or undefined)
+      // Handle all values (no property or property is 'value')
       const values = capture.items.map((item) => item.value)
       result = values.join(token.separator ?? ', ')
     }
@@ -2414,7 +2506,7 @@ export class RandomTableEngine {
       {
         type: 'capture_access',
         varName: token.varName,
-        property: token.property ?? 'value',
+        property: firstProp ?? 'value',
         found: true,
         totalItems: capture.items.length,
       } as CaptureAccessMetadata
@@ -2424,14 +2516,106 @@ export class RandomTableEngine {
   }
 
   /**
+   * Traverse a chain of properties through nested CaptureItems.
+   * Example: traversePropertyChain(item, ["situation", "focus"], "$conflict")
+   * Returns the final string value, or empty string if chain breaks.
+   */
+  private traversePropertyChain(
+    item: CaptureItem,
+    properties: string[],
+    pathPrefix: string
+  ): string {
+    let current: CaptureItem = item
+
+    for (let i = 0; i < properties.length; i++) {
+      const prop = properties[i]
+      const currentPath = `${pathPrefix}.@${prop}`
+
+      // Handle special properties
+      if (prop === 'value') {
+        // If more properties follow, this is invalid
+        if (i < properties.length - 1) {
+          console.warn(`Cannot access properties after .value: ${currentPath}`)
+          return ''
+        }
+        return current.value
+      }
+      if (prop === 'count') {
+        // count is always terminal - capture-aware shared is always 1 item
+        if (i < properties.length - 1) {
+          console.warn(`Cannot access properties after .count: ${currentPath}`)
+          return ''
+        }
+        return '1'
+      }
+      if (prop === 'description') {
+        if (i < properties.length - 1) {
+          console.warn(`Cannot access properties after .description: ${currentPath}`)
+          return ''
+        }
+        return current.description ?? ''
+      }
+
+      // Regular property access
+      const propValue = current.sets[prop]
+      if (propValue === undefined) {
+        console.warn(`Property not found: ${currentPath}`)
+        return ''
+      }
+
+      // If this is the last property, return the value
+      if (i === properties.length - 1) {
+        if (typeof propValue === 'string') {
+          return propValue
+        } else {
+          return propValue.value
+        }
+      }
+
+      // Need to continue traversing - must be a nested CaptureItem
+      if (typeof propValue === 'string') {
+        console.warn(`Cannot chain through string property: ${currentPath}`)
+        return ''
+      }
+
+      current = propValue
+      pathPrefix = currentPath
+    }
+
+    return current.value
+  }
+
+  /**
+   * Get a nested CaptureItem by traversing through property chain.
+   * Returns null if any property in the chain is not a CaptureItem.
+   * Used for storing intermediate captures in capture-aware shared variables.
+   */
+  private getNestedCaptureItem(item: CaptureItem, properties: string[]): CaptureItem | null {
+    let current = item
+    for (const prop of properties) {
+      // Terminal properties can't be traversed further
+      if (prop === 'value' || prop === 'count' || prop === 'description') {
+        return null
+      }
+      const propValue = current.sets[prop]
+      if (!propValue || typeof propValue === 'string') {
+        return null // Not a nested CaptureItem
+      }
+      current = propValue
+    }
+    return current
+  }
+
+  /**
    * Handle access to capture-aware shared variables.
    * These are single items (not arrays), so no index is needed.
+   * Supports chained property access: {{$var.@a.@b.@c}}
    */
   private evaluateCaptureSharedAccess(
     token: {
       varName: string
       index?: number
-      property?: string
+      properties?: string[]
       separator?: string
     },
     item: CaptureItem,
@@ -2441,27 +2625,11 @@ export class RandomTableEngine {
   ): string {
     let result: string
 
-    // Handle property access
-    if (token.property) {
-      if (token.property === 'value') {
-        result = item.value
-      } else if (token.property === 'count') {
-        // Capture-aware shared is always 1 item
-        result = '1'
-      } else {
-        // @property access (property stored without @)
-        const propValue = item.sets[token.property]
-        if (propValue === undefined) {
-          console.warn(
-            `Capture-aware shared property not found: $${token.varName}.@${token.property}`
-          )
-        }
-        // Values are already pre-resolved during capture-aware shared evaluation
-        // No need to resolve again - just return the cached value
-        result = propValue ?? ''
-      }
+    // Handle property chain access
+    if (token.properties && token.properties.length > 0) {
+      result = this.traversePropertyChain(item, token.properties, `$${token.varName}`)
     } else {
-      // No property - return the value
+      // No properties - return the value
       result = item.value
     }
 
@@ -2474,7 +2642,7 @@ export class RandomTableEngine {
       {
         type: 'capture_access',
         varName: token.varName,
-        property: token.property ?? 'value',
+        property: token.properties?.[0] ?? 'value',
         found: true,
         totalItems: 1,
         isCaptureShared: true,
@@ -2509,8 +2677,18 @@ export class RandomTableEngine {
       let result: string
       if (token.property === 'value') {
         result = captureShared.value
+      } else if (token.property === 'description') {
+        result = captureShared.description ?? ''
       } else {
-        result = captureShared.sets[token.property] ?? ''
+        const propValue = captureShared.sets[token.property]
+        if (propValue === undefined) {
+          result = ''
+        } else if (typeof propValue === 'string') {
+          result = propValue
+        } else {
+          // Nested CaptureItem - return its value string
+          result = propValue.value
+        }
       }
 
       addTraceLeaf(
@@ -2560,9 +2738,18 @@ export class RandomTableEngine {
 
     if (token.property === 'value') {
       allValues = capture.items.map((item) => item.value)
+    } else if (token.property === 'description') {
+      // @description access
+      allValues = capture.items.map((item) => item.description ?? '')
     } else {
       // @property access (property stored without @)
-      allValues = capture.items.map((item) => item.sets[token.property] ?? '')
+      // Handle nested CaptureItems - extract the value string
+      allValues = capture.items.map((item) => {
+        const propValue = item.sets[token.property]
+        if (propValue === undefined) return ''
+        if (typeof propValue === 'string') return propValue
+        return propValue.value // Nested CaptureItem
+      })
     }
 
     // Filter empty strings (as per design decision)
