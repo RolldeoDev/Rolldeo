@@ -1,0 +1,1766 @@
+{
+  "metadata": {
+    "name": "Fantasy World Generator",
+    "namespace": "fantasy.world",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "World Builder",
+    "description": "A comprehensive **fantasy world generator** for creating characters, locations, items, and story elements. Focuses on descriptive and cosmetic details for immersive worldbuilding.",
+    "instructions": "Use the templates to generate complete descriptions, or roll individual tables for specific elements. Tables are organized by category and can be combined freely.",
+    "tags": ["fantasy", "worldbuilding", "characters", "locations", "items", "descriptive"],
+    "created": "2024-01-15T10:00:00Z",
+    "updated": "2024-01-15T10:00:00Z",
+    "source": {
+      "license": "CC0",
+      "copyright": {
+        "year": "2024",
+        "holder": "Public Domain",
+        "notice": "Released to public domain under CC0. Use freely for any purpose."
+      }
+    },
+    "rights": {
+      "type": "open-content",
+      "official": false,
+      "permissions": {
+        "commercialUse": true,
+        "modification": true,
+        "redistribution": true,
+        "derivativeWorks": true,
+        "attributionRequired": false
+      }
+    },
+    "maxRecursionDepth": 30,
+    "maxInheritanceDepth": 5,
+    "maxExplodingDice": 100,
+    "uniqueOverflowBehavior": "cycle"
+  },
+
+  "variables": {
+    "worldName": "The Shattered Realms",
+    "currentAge": "Third Age",
+    "defaultSeparator": ", "
+  },
+
+  "shared": {
+    "timeOfDay": "{{timesOfDay}}",
+    "currentWeather": "{{weatherConditions}}",
+    "moonPhase": "{{moonPhases}}",
+    "$protagonist": "{{characterRaces}}",
+    "$deuteragonist": "{{characterRaces}}"
+  },
+
+  "tables": [
+    {
+      "id": "timesOfDay",
+      "name": "Times of Day",
+      "type": "simple",
+      "description": "Various times of day for scene-setting.",
+      "resultType": "time",
+      "tags": ["time", "atmosphere"],
+      "entries": [
+        { "value": "dawn, when the first light touches the horizon" },
+        { "value": "early morning, with dew still fresh on the grass" },
+        { "value": "mid-morning, as the world awakens fully" },
+        { "value": "high noon, under the blazing sun" },
+        { "value": "afternoon, in the lazy warmth" },
+        { "value": "late afternoon, as shadows begin to lengthen" },
+        { "value": "dusk, when the sky burns orange and purple" },
+        { "value": "twilight, in the liminal hour between day and night" },
+        { "value": "early evening, under the first stars" },
+        { "value": "deep night, beneath a canopy of stars" },
+        { "value": "the witching hour, when the world holds its breath" },
+        { "value": "the hour before dawn, in the coldest darkness" }
+      ]
+    },
+
+    {
+      "id": "moonPhases",
+      "name": "Moon Phases",
+      "type": "simple",
+      "resultType": "environment",
+      "hidden": true,
+      "entries": [
+        { "value": "a new moon", "sets": { "visibility": "dark", "omen": "beginnings" } },
+        { "value": "a waxing crescent", "sets": { "visibility": "dim", "omen": "growth" } },
+        { "value": "a first quarter moon", "sets": { "visibility": "moderate", "omen": "decisions" } },
+        { "value": "a waxing gibbous", "sets": { "visibility": "bright", "omen": "refinement" } },
+        { "value": "a full moon", "sets": { "visibility": "brilliant", "omen": "culmination" } },
+        { "value": "a waning gibbous", "sets": { "visibility": "bright", "omen": "gratitude" } },
+        { "value": "a last quarter moon", "sets": { "visibility": "moderate", "omen": "release" } },
+        { "value": "a waning crescent", "sets": { "visibility": "dim", "omen": "rest" } }
+      ]
+    },
+
+    {
+      "id": "weatherConditions",
+      "name": "Weather Conditions",
+      "type": "simple",
+      "resultType": "weather",
+      "tags": ["environment", "atmosphere"],
+      "defaultSets": {
+        "intensity": "moderate",
+        "mood": "neutral"
+      },
+      "entries": [
+        { "id": "clear", "value": "clear skies", "weight": 4, "sets": { "mood": "hopeful" } },
+        { "id": "partlyCloudy", "value": "partly cloudy with drifting clouds", "weight": 3 },
+        { "id": "overcast", "value": "overcast with a blanket of grey", "weight": 2, "sets": { "mood": "somber" } },
+        { "id": "lightRain", "value": "a gentle drizzle", "weight": 2, "sets": { "intensity": "light", "mood": "melancholy" } },
+        { "id": "heavyRain", "value": "heavy rain drumming against every surface", "weight": 1, "sets": { "intensity": "heavy", "mood": "dramatic" } },
+        { "id": "thunderstorm", "value": "a raging thunderstorm with lightning splitting the sky", "weight": 1, "sets": { "intensity": "severe", "mood": "ominous" } },
+        { "id": "fog", "value": "thick fog obscuring the distance", "weight": 1, "sets": { "mood": "mysterious" } },
+        { "id": "mist", "value": "a soft mist hanging in the air", "weight": 2, "sets": { "intensity": "light", "mood": "ethereal" } },
+        { "id": "wind", "value": "strong winds howling through every gap", "weight": 1, "sets": { "mood": "restless" } }
+      ]
+    },
+
+    {
+      "id": "severeWeather",
+      "name": "Severe Weather",
+      "type": "simple",
+      "extends": "weatherConditions",
+      "description": "More dramatic weather events for intense scenes.",
+      "entries": [
+        { "id": "clear", "weight": 0 },
+        { "id": "partlyCloudy", "weight": 0 },
+        { "id": "thunderstorm", "value": "an apocalyptic tempest with winds that could fell trees", "weight": 3, "sets": { "intensity": "catastrophic", "mood": "terrifying" } },
+        { "id": "blizzard", "value": "a blinding blizzard of ice and snow", "weight": 2, "sets": { "intensity": "severe", "mood": "desolate" } },
+        { "id": "sandstorm", "value": "a choking sandstorm that blocks out the sun", "weight": 1, "sets": { "intensity": "severe", "mood": "oppressive" } }
+      ]
+    },
+
+    {
+      "id": "characterRaces",
+      "name": "Character Races",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["character", "race"],
+      "entries": [
+        { 
+          "id": "human", 
+          "value": "Human", 
+          "weight": 5,
+          "description": "Adaptable and ambitious, humans are found in every corner of the world.",
+          "sets": { 
+            "firstName": "{{humanFirstNames}}", 
+            "lastName": "{{humanLastNames}}",
+            "lifespan": "70-90 years",
+            "physique": "{{humanPhysiques}}"
+          }
+        },
+        { 
+          "id": "elf", 
+          "value": "Elf", 
+          "weight": 2,
+          "description": "Ancient and graceful, elves possess an ethereal beauty and deep connection to magic.",
+          "sets": { 
+            "firstName": "{{elfFirstNames}}", 
+            "lastName": "{{elfLastNames}}",
+            "lifespan": "700-900 years",
+            "physique": "{{elfPhysiques}}"
+          }
+        },
+        { 
+          "id": "dwarf", 
+          "value": "Dwarf", 
+          "weight": 2,
+          "description": "Stout and steadfast, dwarves are master craftsmen with an unshakeable resolve.",
+          "sets": { 
+            "firstName": "{{dwarfFirstNames}}", 
+            "lastName": "{{dwarfLastNames}}",
+            "lifespan": "300-400 years",
+            "physique": "{{dwarfPhysiques}}"
+          }
+        },
+        { 
+          "id": "halfling", 
+          "value": "Halfling", 
+          "weight": 2,
+          "description": "Small but spirited, halflings love comfort, good food, and unexpected adventures.",
+          "sets": { 
+            "firstName": "{{halflingFirstNames}}", 
+            "lastName": "{{halflingLastNames}}",
+            "lifespan": "90-120 years",
+            "physique": "{{halflingPhysiques}}"
+          }
+        },
+        { 
+          "id": "orc", 
+          "value": "Orc", 
+          "weight": 1,
+          "description": "Proud and powerful, orcs value strength, honor, and the bonds of clan.",
+          "sets": { 
+            "firstName": "{{orcFirstNames}}", 
+            "lastName": "{{orcLastNames}}",
+            "lifespan": "50-70 years",
+            "physique": "{{orcPhysiques}}"
+          }
+        },
+        { 
+          "id": "tiefling", 
+          "value": "Tiefling", 
+          "weight": 1,
+          "description": "Marked by infernal heritage, tieflings bear the burden of suspicion but possess fierce independence.",
+          "sets": { 
+            "firstName": "{{tieflingFirstNames}}", 
+            "lastName": "{{tieflingLastNames}}",
+            "lifespan": "80-110 years",
+            "physique": "{{tieflingPhysiques}}"
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "humanFirstNames",
+      "name": "Human First Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Aldric" }, { "value": "Beatrix" }, { "value": "Corwin" }, { "value": "Delia" },
+        { "value": "Edmund" }, { "value": "Fiona" }, { "value": "Garrett" }, { "value": "Helena" },
+        { "value": "Ivan" }, { "value": "Johanna" }, { "value": "Kendrick" }, { "value": "Lydia" },
+        { "value": "Marcus" }, { "value": "Nadia" }, { "value": "Owen" }, { "value": "Petra" },
+        { "value": "Roland" }, { "value": "Sybil" }, { "value": "Theron" }, { "value": "Vivian" }
+      ]
+    },
+
+    {
+      "id": "humanLastNames",
+      "name": "Human Last Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Ashford" }, { "value": "Blackwood" }, { "value": "Cromwell" }, { "value": "Dawnridge" },
+        { "value": "Everhart" }, { "value": "Fairfax" }, { "value": "Greymoor" }, { "value": "Hartwell" },
+        { "value": "Ironwood" }, { "value": "Kingsley" }, { "value": "Lockwood" }, { "value": "Mercer" },
+        { "value": "Northcott" }, { "value": "Oakshield" }, { "value": "Pemberton" }, { "value": "Ravencrest" },
+        { "value": "Silverstone" }, { "value": "Thornbury" }, { "value": "Underhill" }, { "value": "Whitmore" }
+      ]
+    },
+
+    {
+      "id": "humanPhysiques",
+      "name": "Human Physiques",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "tall and broad-shouldered" },
+        { "value": "lean and wiry" },
+        { "value": "stocky and muscular" },
+        { "value": "average height with an athletic build" },
+        { "value": "slight and nimble" },
+        { "value": "heavyset and powerful" },
+        { "value": "graceful and well-proportioned" },
+        { "value": "compact but sturdy" }
+      ]
+    },
+
+    {
+      "id": "elfFirstNames",
+      "name": "Elf First Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Aelindra" }, { "value": "Caelum" }, { "value": "Elowen" }, { "value": "Faerindel" },
+        { "value": "Galadrien" }, { "value": "Ilmaris" }, { "value": "Kelaryn" }, { "value": "Loreleth" },
+        { "value": "Miravel" }, { "value": "Naelithra" }, { "value": "Orelion" }, { "value": "Syllana" },
+        { "value": "Thandril" }, { "value": "Vaelora" }, { "value": "Ylindra" }, { "value": "Zephyrine" }
+      ]
+    },
+
+    {
+      "id": "elfLastNames",
+      "name": "Elf Last Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Dawnwhisper" }, { "value": "Moonveil" }, { "value": "Starweaver" }, { "value": "Silverleaf" },
+        { "value": "Nightbreeze" }, { "value": "Sunsorrow" }, { "value": "Mistwalker" }, { "value": "Thornwood" },
+        { "value": "Crystalsong" }, { "value": "Shadowmere" }, { "value": "Goldenbough" }, { "value": "Winterbloom" }
+      ]
+    },
+
+    {
+      "id": "elfPhysiques",
+      "name": "Elf Physiques",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "tall and willowy with an otherworldly grace" },
+        { "value": "slender and elegant, moving like flowing water" },
+        { "value": "lithe and agile with dancer's poise" },
+        { "value": "ethereally beautiful with sharp, angular features" },
+        { "value": "delicate-seeming but with hidden strength" },
+        { "value": "tall and statuesque with perfect posture" }
+      ]
+    },
+
+    {
+      "id": "dwarfFirstNames",
+      "name": "Dwarf First Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Borin" }, { "value": "Dagna" }, { "value": "Gimrik" }, { "value": "Helga" },
+        { "value": "Kragmar" }, { "value": "Magna" }, { "value": "Thorin" }, { "value": "Brynhild" },
+        { "value": "Durak" }, { "value": "Freya" }, { "value": "Grundar" }, { "value": "Ingrid" },
+        { "value": "Nori" }, { "value": "Sigrun" }, { "value": "Ulfgar" }, { "value": "Valdis" }
+      ]
+    },
+
+    {
+      "id": "dwarfLastNames",
+      "name": "Dwarf Last Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Ironforge" }, { "value": "Stonehammer" }, { "value": "Goldvein" }, { "value": "Deepdelver" },
+        { "value": "Bronzebeard" }, { "value": "Darkmine" }, { "value": "Rubyfoot" }, { "value": "Mountainheart" },
+        { "value": "Coalblack" }, { "value": "Silveraxe" }, { "value": "Gemcutter" }, { "value": "Forgefire" }
+      ]
+    },
+
+    {
+      "id": "dwarfPhysiques",
+      "name": "Dwarf Physiques",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "broad and barrel-chested with arms like tree trunks" },
+        { "value": "short but incredibly dense with muscle" },
+        { "value": "stocky and solid as carved stone" },
+        { "value": "compact and powerful with calloused hands" },
+        { "value": "wide-shouldered with a thick neck" },
+        { "value": "stout and sturdy with an impressive beard" }
+      ]
+    },
+
+    {
+      "id": "halflingFirstNames",
+      "name": "Halfling First Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Bilbo" }, { "value": "Cora" }, { "value": "Drogo" }, { "value": "Esmeralda" },
+        { "value": "Finn" }, { "value": "Garnet" }, { "value": "Hilda" }, { "value": "Jasper" },
+        { "value": "Lavender" }, { "value": "Milo" }, { "value": "Nettle" }, { "value": "Otis" },
+        { "value": "Primrose" }, { "value": "Rufus" }, { "value": "Tansy" }, { "value": "Willow" }
+      ]
+    },
+
+    {
+      "id": "halflingLastNames",
+      "name": "Halfling Last Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Goodbarrel" }, { "value": "Underbough" }, { "value": "Tealeaf" }, { "value": "Bramblewood" },
+        { "value": "Honeycomb" }, { "value": "Lightfoot" }, { "value": "Proudfoot" }, { "value": "Thorngage" },
+        { "value": "Appleblossom" }, { "value": "Burrows" }, { "value": "Greenhill" }, { "value": "Tosscobble" }
+      ]
+    },
+
+    {
+      "id": "halflingPhysiques",
+      "name": "Halfling Physiques",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "small and round-faced with rosy cheeks" },
+        { "value": "tiny but surprisingly quick on their feet" },
+        { "value": "plump and comfortable-looking" },
+        { "value": "small and nimble with clever fingers" },
+        { "value": "diminutive but hearty" },
+        { "value": "petite with an infectious smile" }
+      ]
+    },
+
+    {
+      "id": "orcFirstNames",
+      "name": "Orc First Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Azog" }, { "value": "Brukka" }, { "value": "Drekhan" }, { "value": "Gashnak" },
+        { "value": "Grumsha" }, { "value": "Karza" }, { "value": "Mograth" }, { "value": "Nazgrel" },
+        { "value": "Ogthar" }, { "value": "Rukka" }, { "value": "Shara" }, { "value": "Thokk" },
+        { "value": "Ugrak" }, { "value": "Vazhra" }, { "value": "Yaghra" }, { "value": "Zurka" }
+      ]
+    },
+
+    {
+      "id": "orcLastNames",
+      "name": "Orc Last Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Skullcrusher" }, { "value": "Bloodfang" }, { "value": "Ironjaw" }, { "value": "Stormrage" },
+        { "value": "Bonegrinder" }, { "value": "Warbringer" }, { "value": "Deathbringer" }, { "value": "Thunderfist" },
+        { "value": "Stonehide" }, { "value": "Battleborn" }, { "value": "Firebrand" }, { "value": "Wolfcaller" }
+      ]
+    },
+
+    {
+      "id": "orcPhysiques",
+      "name": "Orc Physiques",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "massive and heavily muscled with prominent tusks" },
+        { "value": "tall and powerfully built with green-grey skin" },
+        { "value": "broad and intimidating with ritual scars" },
+        { "value": "towering and thick-limbed with a proud bearing" },
+        { "value": "muscular and battle-hardened with weathered skin" },
+        { "value": "imposing and fierce-looking with tribal tattoos" }
+      ]
+    },
+
+    {
+      "id": "tieflingFirstNames",
+      "name": "Tiefling First Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Amnon" }, { "value": "Criella" }, { "value": "Damakos" }, { "value": "Euphoria" },
+        { "value": "Fear" }, { "value": "Gladness" }, { "value": "Hex" }, { "value": "Idealis" },
+        { "value": "Kallista" }, { "value": "Leucis" }, { "value": "Makaria" }, { "value": "Nemeia" },
+        { "value": "Poetry" }, { "value": "Reverence" }, { "value": "Sorrow" }, { "value": "Torment" }
+      ]
+    },
+
+    {
+      "id": "tieflingLastNames",
+      "name": "Tiefling Last Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Ashfall" }, { "value": "Duskwalker" }, { "value": "Ember" }, { "value": "Hellborne" },
+        { "value": "Nighthollow" }, { "value": "Shadowmend" }, { "value": "Soulfire" }, { "value": "Thornheart" },
+        { "value": "Voidtouched" }, { "value": "Wrathborn" }, { "value": "Grimshaw" }, { "value": "Brimstone" }
+      ]
+    },
+
+    {
+      "id": "tieflingPhysiques",
+      "name": "Tiefling Physiques",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "lean and angular with curved horns and a tail" },
+        { "value": "lithe with reddish skin and glowing eyes" },
+        { "value": "striking and exotic with pointed teeth" },
+        { "value": "tall and unsettling with solid-colored eyes" },
+        { "value": "elegant but otherworldly with subtle scales" },
+        { "value": "graceful with an aura of barely-contained fire" }
+      ]
+    },
+
+    {
+      "id": "occupations",
+      "name": "Occupations",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["character", "profession"],
+      "defaultSets": {
+        "socialClass": "common"
+      },
+      "entries": [
+        { "value": "blacksmith", "weight": 3, "sets": { "workplace": "{{smithyDescriptions}}", "tools": "hammer and anvil" } },
+        { "value": "merchant", "weight": 3, "sets": { "workplace": "{{shopDescriptions}}", "tools": "scales and ledger", "socialClass": "middle" } },
+        { "value": "farmer", "weight": 4, "sets": { "workplace": "{{farmDescriptions}}", "tools": "plow and scythe" } },
+        { "value": "innkeeper", "weight": 2, "sets": { "workplace": "{{tavernDescriptions}}", "tools": "keys and tankards" } },
+        { "value": "healer", "weight": 2, "sets": { "workplace": "a small clinic filled with herbs", "tools": "mortar and pestle" } },
+        { "value": "scholar", "weight": 1, "sets": { "workplace": "{{libraryDescriptions}}", "tools": "quill and parchment", "socialClass": "middle" } },
+        { "value": "guard", "weight": 2, "sets": { "workplace": "the watchtower", "tools": "spear and shield" } },
+        { "value": "sailor", "weight": 2, "sets": { "workplace": "{{harborDescriptions}}", "tools": "rope and compass" } },
+        { "value": "entertainer", "weight": 2, "sets": { "workplace": "{{tavernDescriptions}}", "tools": "instrument or juggling balls" } },
+        { "value": "noble", "weight": 1, "sets": { "workplace": "{{manorDescriptions}}", "tools": "signet ring and fine clothes", "socialClass": "upper" } },
+        { "value": "hunter", "weight": 2, "sets": { "workplace": "the wilderness", "tools": "bow and traps" } },
+        { "value": "apothecary", "weight": 1, "sets": { "workplace": "{{shopDescriptions}}", "tools": "vials and dried herbs", "socialClass": "middle" } }
+      ]
+    },
+
+    {
+      "id": "personalityTraits",
+      "name": "Personality Traits",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["character", "personality"],
+      "entries": [
+        { "value": "fiercely loyal to those they consider friends" },
+        { "value": "quick to laugh and slow to anger" },
+        { "value": "deeply suspicious of strangers" },
+        { "value": "endlessly curious about the world" },
+        { "value": "haunted by a past they rarely speak of" },
+        { "value": "generous to a fault, sometimes to their detriment" },
+        { "value": "calculating and always planning three steps ahead" },
+        { "value": "hot-tempered but quick to forgive" },
+        { "value": "quietly observant, missing nothing" },
+        { "value": "cheerfully optimistic even in dark times" },
+        { "value": "melancholic and prone to brooding" },
+        { "value": "charming and silver-tongued" },
+        { "value": "honest to the point of bluntness" },
+        { "value": "secretive and guarded about their past" },
+        { "value": "bold and reckless, always the first into danger" },
+        { "value": "patient and methodical in all things" }
+      ]
+    },
+
+    {
+      "id": "physicalQuirks",
+      "name": "Physical Quirks",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["character", "appearance"],
+      "entries": [
+        { "value": "a prominent scar across their {{scarLocations}}" },
+        { "value": "heterochromatic eyes—one {{eyeColors}}, one {{eyeColors}}" },
+        { "value": "a distinctive birthmark shaped like {{birthmarkShapes}}" },
+        { "value": "prematurely grey hair despite their age" },
+        { "value": "a slight limp from an old injury" },
+        { "value": "calloused hands that speak of hard work" },
+        { "value": "an unusual tattoo depicting {{tattooSubjects}}" },
+        { "value": "a missing {{missingDigits}}" },
+        { "value": "a nervous habit of {{nervousHabits}}" },
+        { "value": "unusually bright {{eyeColors}} eyes" },
+        { "value": "a voice that's unexpectedly {{voiceQualities}}" },
+        { "value": "always smelling faintly of {{scents}}" }
+      ]
+    },
+
+    {
+      "id": "scarLocations",
+      "name": "Scar Locations",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "left cheek" }, { "value": "right cheek" }, { "value": "forehead" },
+        { "value": "chin" }, { "value": "neck" }, { "value": "left hand" }, { "value": "right hand" }
+      ]
+    },
+
+    {
+      "id": "eyeColors",
+      "name": "Eye Colors",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "deep brown" }, { "value": "striking blue" }, { "value": "forest green" },
+        { "value": "warm amber" }, { "value": "steel grey" }, { "value": "pale violet" },
+        { "value": "golden" }, { "value": "nearly black" }
+      ]
+    },
+
+    {
+      "id": "birthmarkShapes",
+      "name": "Birthmark Shapes",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a crescent moon" }, { "value": "a star" }, { "value": "a bird in flight" },
+        { "value": "an ancient rune" }, { "value": "a flame" }, { "value": "a crown" }
+      ]
+    },
+
+    {
+      "id": "tattooSubjects",
+      "name": "Tattoo Subjects",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a coiling serpent" }, { "value": "ancestral runes" }, { "value": "a flowering vine" },
+        { "value": "a skull wreathed in flames" }, { "value": "a sailing ship" }, { "value": "a wolf howling at the moon" },
+        { "value": "interlocking geometric patterns" }, { "value": "a loved one's name" }
+      ]
+    },
+
+    {
+      "id": "missingDigits",
+      "name": "Missing Digits",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "finger on their left hand" }, { "value": "finger on their right hand" },
+        { "value": "part of their left ear" }, { "value": "part of their right ear" }
+      ]
+    },
+
+    {
+      "id": "nervousHabits",
+      "name": "Nervous Habits",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "tapping their fingers" }, { "value": "touching their face" },
+        { "value": "adjusting their clothing" }, { "value": "humming softly" },
+        { "value": "cracking their knuckles" }, { "value": "pacing back and forth" }
+      ]
+    },
+
+    {
+      "id": "voiceQualities",
+      "name": "Voice Qualities",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "deep and resonant" }, { "value": "high and melodic" },
+        { "value": "raspy and worn" }, { "value": "soft and soothing" },
+        { "value": "loud and booming" }, { "value": "quiet and measured" }
+      ]
+    },
+
+    {
+      "id": "scents",
+      "name": "Scents",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "woodsmoke" }, { "value": "lavender" }, { "value": "the sea" },
+        { "value": "old books" }, { "value": "fresh bread" }, { "value": "pine" },
+        { "value": "exotic spices" }, { "value": "forge fires" }
+      ]
+    },
+
+    {
+      "id": "secrets",
+      "name": "Character Secrets",
+      "type": "simple",
+      "resultType": "hook",
+      "tags": ["character", "story"],
+      "entries": [
+        { "value": "is actually the long-lost heir to a minor noble house" },
+        { "value": "once committed a crime they deeply regret" },
+        { "value": "is hiding from someone powerful and dangerous" },
+        { "value": "possesses knowledge of a treasure's location" },
+        { "value": "has made a bargain they're ashamed of" },
+        { "value": "is not who they claim to be" },
+        { "value": "witnessed something they were never meant to see" },
+        { "value": "carries a burden of guilt for a death" },
+        { "value": "is secretly working for an organization" },
+        { "value": "has a forbidden love" },
+        { "value": "knows a dangerous secret about a powerful figure" },
+        { "value": "is searching for a lost family member" }
+      ]
+    },
+
+    {
+      "id": "motivations",
+      "name": "Character Motivations",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["character", "story"],
+      "entries": [
+        { "value": "seeks revenge against those who wronged them" },
+        { "value": "desires wealth to lift their family from poverty" },
+        { "value": "yearns for adventure and excitement" },
+        { "value": "searches for a cure for a loved one's illness" },
+        { "value": "hopes to restore their family's lost honor" },
+        { "value": "wants to prove themselves worthy" },
+        { "value": "seeks knowledge and understanding" },
+        { "value": "desires to protect the innocent" },
+        { "value": "hopes to find a place they truly belong" },
+        { "value": "works to atone for past sins" },
+        { "value": "dreams of building something that will last" },
+        { "value": "simply wants a quiet, peaceful life" }
+      ]
+    },
+
+    {
+      "id": "settlementTypes",
+      "name": "Settlement Types",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["location", "settlement"],
+      "entries": [
+        { 
+          "id": "hamlet", 
+          "value": "Hamlet", 
+          "weight": 3,
+          "sets": { 
+            "size": "tiny",
+            "population": "{{dice:2d6*10}}",
+            "features": "{{hamletFeatures}}",
+            "atmosphere": "{{ruralAtmospheres}}"
+          }
+        },
+        { 
+          "id": "village", 
+          "value": "Village", 
+          "weight": 4,
+          "sets": { 
+            "size": "small",
+            "population": "{{dice:3d6*50}}",
+            "features": "{{villageFeatures}}",
+            "atmosphere": "{{ruralAtmospheres}}"
+          }
+        },
+        { 
+          "id": "town", 
+          "value": "Town", 
+          "weight": 2,
+          "sets": { 
+            "size": "medium",
+            "population": "{{dice:2d6*500}}",
+            "features": "{{townFeatures}}",
+            "atmosphere": "{{urbanAtmospheres}}"
+          }
+        },
+        { 
+          "id": "city", 
+          "value": "City", 
+          "weight": 1,
+          "sets": { 
+            "size": "large",
+            "population": "{{dice:3d6*2000}}",
+            "features": "{{cityFeatures}}",
+            "atmosphere": "{{urbanAtmospheres}}"
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "hamletFeatures",
+      "name": "Hamlet Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a communal well at its center" },
+        { "value": "a small shrine to local spirits" },
+        { "value": "one general store that sells everything" },
+        { "value": "farmland stretching in every direction" }
+      ]
+    },
+
+    {
+      "id": "villageFeatures",
+      "name": "Village Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a central square with a weekly market" },
+        { "value": "a temple dedicated to {{deities}}" },
+        { "value": "a mill powered by the nearby river" },
+        { "value": "an ancient oak where elders gather" },
+        { "value": "a tavern that serves as the social hub" }
+      ]
+    },
+
+    {
+      "id": "townFeatures",
+      "name": "Town Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a walled center with guarded gates" },
+        { "value": "a bustling marketplace with diverse goods" },
+        { "value": "multiple temples and shrines" },
+        { "value": "a guild hall where artisans gather" },
+        { "value": "a mayor's manor overlooking the square" }
+      ]
+    },
+
+    {
+      "id": "cityFeatures",
+      "name": "City Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "towering walls and multiple districts" },
+        { "value": "a grand palace or castle at its heart" },
+        { "value": "an extensive sewer system beneath the streets" },
+        { "value": "a famous academy or university" },
+        { "value": "a harbor teeming with ships from distant lands" },
+        { "value": "districts segregated by wealth and trade" }
+      ]
+    },
+
+    {
+      "id": "ruralAtmospheres",
+      "name": "Rural Atmospheres",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "peaceful and slow-paced" },
+        { "value": "tight-knit but suspicious of outsiders" },
+        { "value": "hardworking and honest" },
+        { "value": "isolated and self-sufficient" },
+        { "value": "traditional and set in old ways" }
+      ]
+    },
+
+    {
+      "id": "urbanAtmospheres",
+      "name": "Urban Atmospheres",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "bustling and cosmopolitan" },
+        { "value": "divided by stark class differences" },
+        { "value": "vibrant with culture and commerce" },
+        { "value": "crowded and chaotic" },
+        { "value": "prosperous but with dark undercurrents" }
+      ]
+    },
+
+    {
+      "id": "deities",
+      "name": "Deities",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["religion", "lore"],
+      "entries": [
+        { "value": "Solara, Goddess of the Sun and Justice", "sets": { "domain": "sun", "symbol": "a radiant sun" } },
+        { "value": "Luneth, God of the Moon and Dreams", "sets": { "domain": "moon", "symbol": "a crescent moon" } },
+        { "value": "Terrath, God of Earth and Endurance", "sets": { "domain": "earth", "symbol": "a mountain" } },
+        { "value": "Aquileth, Goddess of Seas and Change", "sets": { "domain": "water", "symbol": "a wave" } },
+        { "value": "Pyrios, God of Fire and Passion", "sets": { "domain": "fire", "symbol": "a flame" } },
+        { "value": "Zephyra, Goddess of Wind and Freedom", "sets": { "domain": "air", "symbol": "a feather" } },
+        { "value": "Mortivus, God of Death and Endings", "sets": { "domain": "death", "symbol": "a skull" } },
+        { "value": "Vitalis, Goddess of Life and Healing", "sets": { "domain": "life", "symbol": "a tree" } }
+      ]
+    },
+
+    {
+      "id": "settlementProblems",
+      "name": "Settlement Problems",
+      "type": "simple",
+      "resultType": "hook",
+      "tags": ["location", "story"],
+      "entries": [
+        { "value": "raids by bandits have been increasing" },
+        { "value": "a mysterious illness is spreading" },
+        { "value": "the local water source has become tainted" },
+        { "value": "strange disappearances occur at night" },
+        { "value": "a feud between two families threatens peace" },
+        { "value": "crops are failing for unknown reasons" },
+        { "value": "an oppressive tax collector bleeds them dry" },
+        { "value": "something lurks in the nearby wilderness" },
+        { "value": "refugees from a distant conflict are arriving" },
+        { "value": "a sacred site has been desecrated" }
+      ]
+    },
+
+    {
+      "id": "tavernDescriptions",
+      "name": "Tavern Descriptions",
+      "type": "simple",
+      "resultType": "description",
+      "hidden": true,
+      "entries": [
+        { "value": "a cozy tavern with a roaring fireplace and worn wooden beams" },
+        { "value": "a rowdy alehouse filled with laughter and the smell of spilled ale" },
+        { "value": "an upscale inn with polished floors and discrete private rooms" },
+        { "value": "a dimly lit establishment where deals are made in shadowed corners" },
+        { "value": "a welcoming tavern decorated with hunting trophies and old maps" }
+      ]
+    },
+
+    {
+      "id": "shopDescriptions",
+      "name": "Shop Descriptions",
+      "type": "simple",
+      "resultType": "description",
+      "hidden": true,
+      "entries": [
+        { "value": "a cluttered shop with goods stacked floor to ceiling" },
+        { "value": "a tidy storefront with carefully displayed wares" },
+        { "value": "a dusty establishment that seems older than the town itself" },
+        { "value": "a bright and welcoming shop with a bell above the door" }
+      ]
+    },
+
+    {
+      "id": "smithyDescriptions",
+      "name": "Smithy Descriptions",
+      "type": "simple",
+      "resultType": "description",
+      "hidden": true,
+      "entries": [
+        { "value": "a sweltering forge filled with the ring of hammer on steel" },
+        { "value": "a well-organized smithy with tools hung precisely on the walls" },
+        { "value": "a smoky workshop with projects in various stages of completion" }
+      ]
+    },
+
+    {
+      "id": "farmDescriptions",
+      "name": "Farm Descriptions",
+      "type": "simple",
+      "resultType": "description",
+      "hidden": true,
+      "entries": [
+        { "value": "sprawling fields with a modest farmhouse" },
+        { "value": "a well-tended homestead with chickens in the yard" },
+        { "value": "rolling farmland with a weathered barn" }
+      ]
+    },
+
+    {
+      "id": "libraryDescriptions",
+      "name": "Library Descriptions",
+      "type": "simple",
+      "resultType": "description",
+      "hidden": true,
+      "entries": [
+        { "value": "a dusty archive filled with ancient tomes" },
+        { "value": "a quiet study with books lining every wall" },
+        { "value": "a scholarly sanctuary smelling of old paper and ink" }
+      ]
+    },
+
+    {
+      "id": "harborDescriptions",
+      "name": "Harbor Descriptions",
+      "type": "simple",
+      "resultType": "description",
+      "hidden": true,
+      "entries": [
+        { "value": "a busy dock where ships come and go with the tides" },
+        { "value": "a weather-worn pier where sailors swap stories" },
+        { "value": "a crowded harbor smelling of salt and fish" }
+      ]
+    },
+
+    {
+      "id": "manorDescriptions",
+      "name": "Manor Descriptions",
+      "type": "simple",
+      "resultType": "description",
+      "hidden": true,
+      "entries": [
+        { "value": "an elegant manor house with manicured gardens" },
+        { "value": "a stately estate overlooking the surrounding lands" },
+        { "value": "an ancestral hall filled with portraits and heirlooms" }
+      ]
+    },
+
+    {
+      "id": "wildernessLocations",
+      "name": "Wilderness Locations",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["location", "wilderness"],
+      "entries": [
+        { "value": "an ancient forest where the trees grow impossibly tall", "sets": { "terrain": "forest", "danger": "moderate" } },
+        { "value": "a misty swamp where the ground shifts beneath your feet", "sets": { "terrain": "swamp", "danger": "high" } },
+        { "value": "rolling hills dotted with standing stones", "sets": { "terrain": "hills", "danger": "low" } },
+        { "value": "a mountain pass carved by centuries of travelers", "sets": { "terrain": "mountain", "danger": "moderate" } },
+        { "value": "a sunlit meadow filled with wildflowers", "sets": { "terrain": "plains", "danger": "low" } },
+        { "value": "a dark cave system that descends into the earth", "sets": { "terrain": "underground", "danger": "high" } },
+        { "value": "a frozen tundra where the wind never stops", "sets": { "terrain": "arctic", "danger": "high" } },
+        { "value": "a parched desert with dunes like frozen waves", "sets": { "terrain": "desert", "danger": "high" } },
+        { "value": "a coastal cliff overlooking a churning sea", "sets": { "terrain": "coastal", "danger": "moderate" } },
+        { "value": "a peaceful river valley with fertile banks", "sets": { "terrain": "river", "danger": "low" } }
+      ]
+    },
+
+    {
+      "id": "dungeonRooms",
+      "name": "Dungeon Rooms",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["dungeon", "location"],
+      "entries": [
+        { "value": "a vaulted chamber with pillars carved like twisted figures" },
+        { "value": "a flooded room with water up to the knees" },
+        { "value": "a vast hall with a collapsed ceiling open to the sky" },
+        { "value": "a narrow corridor lined with ancient murals" },
+        { "value": "a circular room with a pit in the center" },
+        { "value": "a library with rotting books and scattered papers" },
+        { "value": "a throne room with a dust-covered seat of power" },
+        { "value": "a crypt with rows of stone sarcophagi" },
+        { "value": "a torture chamber with rusted implements" },
+        { "value": "a natural cavern connected to worked stone passages" }
+      ]
+    },
+
+    {
+      "id": "dungeonFeatures",
+      "name": "Dungeon Features",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["dungeon"],
+      "entries": [
+        { "value": "strange symbols are scratched into the walls" },
+        { "value": "a cold draft blows from somewhere deeper" },
+        { "value": "the remains of a camp suggest someone was here recently" },
+        { "value": "water drips constantly, creating echoing sounds" },
+        { "value": "phosphorescent moss provides an eerie glow" },
+        { "value": "old bones are scattered across the floor" },
+        { "value": "a partially collapsed tunnel blocks one direction" },
+        { "value": "torch sconces line the walls, long since burned out" },
+        { "value": "the air smells of dust and decay" },
+        { "value": "claw marks score the stone floor" }
+      ]
+    },
+
+    {
+      "id": "itemConditions",
+      "name": "Item Conditions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["items"],
+      "hidden": true,
+      "entries": [
+        { "value": "pristine and well-maintained", "sets": { "quality": "excellent" } },
+        { "value": "lightly used with minor wear", "sets": { "quality": "good" } },
+        { "value": "showing signs of age but serviceable", "sets": { "quality": "fair" } },
+        { "value": "battered and worn but functional", "sets": { "quality": "poor" } },
+        { "value": "barely holding together", "sets": { "quality": "terrible" } }
+      ]
+    },
+
+    {
+      "id": "weaponDescriptors",
+      "name": "Weapon Descriptors",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["items", "weapons"],
+      "hidden": true,
+      "entries": [
+        { "value": "elegantly crafted" },
+        { "value": "wickedly curved" },
+        { "value": "battle-worn" },
+        { "value": "ornately decorated" },
+        { "value": "brutally functional" },
+        { "value": "ancient and weathered" },
+        { "value": "masterfully balanced" },
+        { "value": "roughly forged" }
+      ]
+    },
+
+    {
+      "id": "weaponTypes",
+      "name": "Weapon Types",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["items", "weapons"],
+      "entries": [
+        { "value": "longsword", "sets": { "category": "sword", "handed": "one or two" } },
+        { "value": "shortsword", "sets": { "category": "sword", "handed": "one" } },
+        { "value": "battleaxe", "sets": { "category": "axe", "handed": "one or two" } },
+        { "value": "war hammer", "sets": { "category": "hammer", "handed": "one or two" } },
+        { "value": "spear", "sets": { "category": "polearm", "handed": "two" } },
+        { "value": "longbow", "sets": { "category": "bow", "handed": "two" } },
+        { "value": "dagger", "sets": { "category": "blade", "handed": "one" } },
+        { "value": "mace", "sets": { "category": "bludgeon", "handed": "one" } }
+      ]
+    },
+
+    {
+      "id": "armorTypes",
+      "name": "Armor Types",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["items", "armor"],
+      "entries": [
+        { "value": "leather armor", "sets": { "category": "light" } },
+        { "value": "chainmail", "sets": { "category": "medium" } },
+        { "value": "scale mail", "sets": { "category": "medium" } },
+        { "value": "plate armor", "sets": { "category": "heavy" } },
+        { "value": "padded armor", "sets": { "category": "light" } },
+        { "value": "brigandine", "sets": { "category": "medium" } }
+      ]
+    },
+
+    {
+      "id": "clothingStyles",
+      "name": "Clothing Styles",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["items", "clothing"],
+      "entries": [
+        { "value": "simple homespun garments", "sets": { "class": "peasant" } },
+        { "value": "practical traveling clothes", "sets": { "class": "common" } },
+        { "value": "well-tailored merchant's attire", "sets": { "class": "middle" } },
+        { "value": "elegant noble's finery", "sets": { "class": "upper" } },
+        { "value": "mysterious hooded robes", "sets": { "class": "mysterious" } },
+        { "value": "foreign garments of unusual cut", "sets": { "class": "exotic" } },
+        { "value": "religious vestments", "sets": { "class": "religious" } },
+        { "value": "rough-worn laborer's clothes", "sets": { "class": "working" } }
+      ]
+    },
+
+    {
+      "id": "clothingColors",
+      "name": "Clothing Colors",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["items", "clothing"],
+      "hidden": true,
+      "entries": [
+        { "value": "deep crimson" }, { "value": "forest green" }, { "value": "midnight blue" },
+        { "value": "golden yellow" }, { "value": "rich purple" }, { "value": "earthen brown" },
+        { "value": "stark black" }, { "value": "pure white" }, { "value": "faded grey" },
+        { "value": "burnt orange" }, { "value": "dusty rose" }, { "value": "teal" }
+      ]
+    },
+
+    {
+      "id": "jewelryTypes",
+      "name": "Jewelry Types",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["items", "jewelry"],
+      "entries": [
+        { "value": "ring", "sets": { "placement": "finger" } },
+        { "value": "necklace", "sets": { "placement": "neck" } },
+        { "value": "bracelet", "sets": { "placement": "wrist" } },
+        { "value": "brooch", "sets": { "placement": "chest" } },
+        { "value": "earring", "sets": { "placement": "ear" } },
+        { "value": "circlet", "sets": { "placement": "head" } },
+        { "value": "anklet", "sets": { "placement": "ankle" } },
+        { "value": "pendant", "sets": { "placement": "neck" } }
+      ]
+    },
+
+    {
+      "id": "gemstones",
+      "name": "Gemstones",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["items", "valuables"],
+      "defaultSets": {
+        "rarity": "common"
+      },
+      "entries": [
+        { "id": "ruby", "value": "ruby", "weight": 1, "sets": { "color": "deep red", "rarity": "rare" } },
+        { "id": "sapphire", "value": "sapphire", "weight": 1, "sets": { "color": "brilliant blue", "rarity": "rare" } },
+        { "id": "emerald", "value": "emerald", "weight": 1, "sets": { "color": "vivid green", "rarity": "rare" } },
+        { "id": "diamond", "value": "diamond", "weight": 1, "sets": { "color": "clear and sparkling", "rarity": "very rare" } },
+        { "id": "amethyst", "value": "amethyst", "weight": 3, "sets": { "color": "purple", "rarity": "uncommon" } },
+        { "id": "topaz", "value": "topaz", "weight": 3, "sets": { "color": "golden", "rarity": "uncommon" } },
+        { "id": "jade", "value": "jade", "weight": 2, "sets": { "color": "green", "rarity": "uncommon" } },
+        { "id": "opal", "value": "opal", "weight": 2, "sets": { "color": "iridescent", "rarity": "uncommon" } },
+        { "id": "quartz", "value": "quartz", "weight": 5, "sets": { "color": "milky white" } },
+        { "id": "agate", "value": "agate", "weight": 5, "sets": { "color": "banded" } }
+      ]
+    },
+
+    {
+      "id": "rareGemstones",
+      "name": "Rare Gemstones",
+      "type": "simple",
+      "extends": "gemstones",
+      "description": "Only rare and precious gemstones.",
+      "entries": [
+        { "id": "quartz", "weight": 0 },
+        { "id": "agate", "weight": 0 },
+        { "id": "amethyst", "weight": 0 },
+        { "id": "topaz", "weight": 0 },
+        { "id": "jade", "weight": 0 },
+        { "id": "opal", "weight": 0 },
+        { "id": "starSapphire", "value": "star sapphire", "weight": 1, "sets": { "color": "blue with inner star", "rarity": "legendary" } },
+        { "id": "blackDiamond", "value": "black diamond", "weight": 1, "sets": { "color": "dark as midnight", "rarity": "legendary" } }
+      ]
+    },
+
+    {
+      "id": "metals",
+      "name": "Metals",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["items", "materials"],
+      "entries": [
+        { "value": "iron", "weight": 5 },
+        { "value": "steel", "weight": 4 },
+        { "value": "bronze", "weight": 3 },
+        { "value": "copper", "weight": 3 },
+        { "value": "silver", "weight": 2 },
+        { "value": "gold", "weight": 1 },
+        { "value": "mithril", "weight": 1, "sets": { "magical": "true" } },
+        { "value": "adamantine", "weight": 1, "sets": { "magical": "true" } }
+      ]
+    },
+
+    {
+      "id": "treasureByRarity",
+      "name": "Treasure by Rarity",
+      "type": "composite",
+      "description": "Weighted selection of treasure quality - mostly common, sometimes valuable.",
+      "resultType": "loot",
+      "tags": ["treasure", "loot"],
+      "sources": [
+        { "tableId": "commonTreasure", "weight": 6 },
+        { "tableId": "uncommonTreasure", "weight": 3 },
+        { "tableId": "rareTreasure", "weight": 1 }
+      ]
+    },
+
+    {
+      "id": "commonTreasure",
+      "name": "Common Treasure",
+      "type": "simple",
+      "resultType": "loot",
+      "tags": ["treasure"],
+      "entries": [
+        { "value": "a handful of copper coins" },
+        { "value": "a simple {{metals}} ring" },
+        { "value": "a worn leather pouch" },
+        { "value": "a bundle of candles" },
+        { "value": "a flask of cheap wine" },
+        { "value": "a tarnished locket" },
+        { "value": "a set of bone dice" },
+        { "value": "a bundle of dried herbs" }
+      ]
+    },
+
+    {
+      "id": "uncommonTreasure",
+      "name": "Uncommon Treasure",
+      "type": "simple",
+      "resultType": "loot",
+      "tags": ["treasure"],
+      "entries": [
+        { "value": "a pouch of silver coins" },
+        { "value": "a silver {{jewelryTypes}} set with {{gemstones}}" },
+        { "value": "a bolt of fine silk" },
+        { "value": "a decorated weapon sheath" },
+        { "value": "an ivory comb" },
+        { "value": "a silver hand mirror" },
+        { "value": "a bottle of fine wine" },
+        { "value": "a small portrait in a gilded frame" }
+      ]
+    },
+
+    {
+      "id": "rareTreasure",
+      "name": "Rare Treasure",
+      "type": "simple",
+      "resultType": "loot",
+      "tags": ["treasure"],
+      "entries": [
+        { "value": "a chest of gold coins" },
+        { "value": "a gold {{jewelryTypes}} encrusted with {{rareGemstones}}" },
+        { "value": "an ancient tapestry of immense value" },
+        { "value": "a crown of silver and gems" },
+        { "value": "a jeweled chalice" },
+        { "value": "a masterwork {{weaponTypes}} with gold inlay" },
+        { "value": "an ornate music box" },
+        { "value": "a set of illuminated manuscripts" }
+      ]
+    },
+
+    {
+      "id": "allTreasure",
+      "name": "All Treasure",
+      "type": "collection",
+      "description": "All treasure types combined into one pool.",
+      "resultType": "loot",
+      "collections": ["commonTreasure", "uncommonTreasure", "rareTreasure"]
+    },
+
+    {
+      "id": "fortuneTelling",
+      "name": "Fortune Telling Results",
+      "type": "simple",
+      "description": "A d100-style fortune telling table demonstrating range syntax.",
+      "resultType": "description",
+      "tags": ["story", "fortune"],
+      "entries": [
+        { "value": "A journey awaits you, one that will change everything.", "range": [1, 15] },
+        { "value": "Beware a false friend who wears a smiling mask.", "range": [16, 30] },
+        { "value": "Love will find you when you least expect it.", "range": [31, 45] },
+        { "value": "Great wealth is within your grasp, if you dare reach for it.", "range": [46, 55] },
+        { "value": "An old enemy stirs. Be vigilant.", "range": [56, 65] },
+        { "value": "The stars align in your favor. Act boldly.", "range": [66, 75] },
+        { "value": "Loss comes before gain. Steel your heart.", "range": [76, 85] },
+        { "value": "A secret will be revealed that shakes the foundations of trust.", "range": [86, 95] },
+        { "value": "The cards show... nothing. Your fate is truly your own.", "range": [96, 100] }
+      ]
+    },
+
+    {
+      "id": "rumors",
+      "name": "Rumors",
+      "type": "simple",
+      "resultType": "rumor",
+      "tags": ["story", "hooks"],
+      "entries": [
+        { "value": "They say the old tower on the hill is haunted by the ghost of its last owner." },
+        { "value": "A merchant claims to have seen strange lights in the forest at midnight." },
+        { "value": "Word is the local lord has been acting strangely since his trip to the capital." },
+        { "value": "Some folks whisper that the well water has been making people sick." },
+        { "value": "There's talk of bandits on the north road, led by someone they call the Red Hood." },
+        { "value": "An old sailor swears he saw a ship with black sails just off the coast." },
+        { "value": "The blacksmith's daughter went missing three days ago and no one knows where." },
+        { "value": "They found strange symbols carved on trees at the edge of the forest." },
+        { "value": "A traveling priest warned that dark times are coming." },
+        { "value": "Someone's been stealing livestock, but no tracks have ever been found." },
+        { "value": "Roll twice and combine! {{2*unique*again|\" Also, \"}}", "weight": 1 }
+      ]
+    },
+
+    {
+      "id": "plotComplications",
+      "name": "Plot Complications",
+      "type": "simple",
+      "resultType": "complication",
+      "tags": ["story"],
+      "entries": [
+        { "value": "an old enemy recognizes one of the characters" },
+        { "value": "a storm forces everyone to seek shelter" },
+        { "value": "the map turns out to be partially wrong" },
+        { "value": "a supposed ally has their own agenda" },
+        { "value": "a key item has been stolen" },
+        { "value": "the situation is not what it first appeared" },
+        { "value": "an innocent person is caught in the middle" },
+        { "value": "time is running out faster than expected" },
+        { "value": "reinforcements arrive for the opposition" },
+        { "value": "a moral dilemma forces a difficult choice" },
+        { "value": "language barriers complicate communication" },
+        { "value": "the real threat was hiding in plain sight" }
+      ]
+    },
+
+    {
+      "id": "questGivers",
+      "name": "Quest Givers",
+      "type": "simple",
+      "resultType": "npc",
+      "tags": ["story", "npc"],
+      "entries": [
+        { "value": "a desperate parent", "sets": { "motivation": "love" } },
+        { "value": "a wealthy merchant", "sets": { "motivation": "profit" } },
+        { "value": "a mysterious stranger", "sets": { "motivation": "unknown" } },
+        { "value": "a local official", "sets": { "motivation": "duty" } },
+        { "value": "a grieving widow", "sets": { "motivation": "justice" } },
+        { "value": "a cunning noble", "sets": { "motivation": "power" } },
+        { "value": "a rambling prophet", "sets": { "motivation": "faith" } },
+        { "value": "a retired adventurer", "sets": { "motivation": "nostalgia" } }
+      ]
+    },
+
+    {
+      "id": "questObjectives",
+      "name": "Quest Objectives",
+      "type": "simple",
+      "resultType": "hook",
+      "tags": ["story"],
+      "entries": [
+        { "value": "retrieve a stolen {{treasureByRarity}}" },
+        { "value": "find and rescue a missing person" },
+        { "value": "deliver a message to a distant location" },
+        { "value": "investigate strange occurrences" },
+        { "value": "escort a vulnerable traveler" },
+        { "value": "broker peace between two factions" },
+        { "value": "uncover the truth behind a mystery" },
+        { "value": "gather rare ingredients" },
+        { "value": "clear out a dangerous location" },
+        { "value": "find and return a lost heirloom" }
+      ]
+    },
+
+    {
+      "id": "bookTitles",
+      "name": "Book Titles",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["items", "lore"],
+      "entries": [
+        { "value": "\"The Rise and Fall of the Second Empire\"", "sets": { "genre": "history" } },
+        { "value": "\"Herbalism for the Practical Healer\"", "sets": { "genre": "reference" } },
+        { "value": "\"Songs of the Wandering Minstrel\"", "sets": { "genre": "poetry" } },
+        { "value": "\"A Treatise on Elemental Forces\"", "sets": { "genre": "arcane" } },
+        { "value": "\"The Voyage of Captain Brightwater\"", "sets": { "genre": "adventure" } },
+        { "value": "\"Meditations on the Divine\"", "sets": { "genre": "religious" } },
+        { "value": "\"The Complete Guide to Mushrooms\"", "sets": { "genre": "reference" } },
+        { "value": "\"Love in the Time of Dragons\"", "sets": { "genre": "romance" } },
+        { "value": "\"Bloodlines of the Noble Houses\"", "sets": { "genre": "genealogy" } },
+        { "value": "\"Whispers from Beyond: A Ghost Story\"", "sets": { "genre": "horror" } }
+      ]
+    },
+
+    {
+      "id": "magicalArtifacts",
+      "name": "Magical Artifacts",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["items", "magical"],
+      "description": "Legendary magical items with self-referential descriptions.",
+      "entries": [
+        { "value": "{{@self.description}} amulet", "description": "A softly glowing", "sets": { "power": "protection" } },
+        { "value": "{{@self.description}} ring", "description": "An ancient silver", "sets": { "power": "invisibility" } },
+        { "value": "{{@self.description}} staff", "description": "A gnarled oak", "sets": { "power": "lightning" } },
+        { "value": "{{@self.description}} sword", "description": "A rune-etched", "sets": { "power": "flame" } },
+        { "value": "{{@self.description}} cloak", "description": "A midnight-black", "sets": { "power": "shadow" } },
+        { "value": "{{@self.description}} crown", "description": "A jewel-encrusted", "sets": { "power": "command" } }
+      ]
+    },
+
+    {
+      "id": "inscriptions",
+      "name": "Inscriptions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["lore", "dungeon"],
+      "entries": [
+        { "value": "\"Here lies one who sought too much.\"" },
+        { "value": "\"Turn back, traveler. Only death awaits.\"" },
+        { "value": "\"In darkness, seek the light within.\"" },
+        { "value": "\"Three keys open the way.\"" },
+        { "value": "\"Speak the name and enter.\"" },
+        { "value": "\"Beware the guardian that never sleeps.\"" },
+        { "value": "\"What is given cannot be taken back.\"" },
+        { "value": "A series of symbols you cannot decipher." },
+        { "value": "Names and dates, perhaps a memorial." },
+        { "value": "A warning in an ancient tongue." }
+      ]
+    },
+
+    {
+      "id": "smells",
+      "name": "Ambient Smells",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["atmosphere"],
+      "hidden": true,
+      "entries": [
+        { "value": "fresh bread baking" },
+        { "value": "wood smoke" },
+        { "value": "damp earth after rain" },
+        { "value": "salt and seaweed" },
+        { "value": "flowers in bloom" },
+        { "value": "animal dung" },
+        { "value": "spiced meat cooking" },
+        { "value": "pine resin" },
+        { "value": "musty old books" },
+        { "value": "something rotting" },
+        { "value": "incense burning" },
+        { "value": "forge smoke and hot metal" }
+      ]
+    },
+
+    {
+      "id": "sounds",
+      "name": "Ambient Sounds",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["atmosphere"],
+      "hidden": true,
+      "entries": [
+        { "value": "birds singing" },
+        { "value": "a dog barking in the distance" },
+        { "value": "the murmur of conversation" },
+        { "value": "a hammer striking an anvil" },
+        { "value": "children laughing" },
+        { "value": "cart wheels on cobblestones" },
+        { "value": "wind rustling through leaves" },
+        { "value": "water flowing in a stream" },
+        { "value": "bells ringing" },
+        { "value": "someone playing music" },
+        { "value": "complete, unsettling silence" },
+        { "value": "distant thunder" }
+      ]
+    },
+
+    {
+      "id": "tavernNames",
+      "name": "Tavern Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["location", "names"],
+      "entries": [
+        { "value": "The {{tavernAdjectives}} {{tavernNouns}}" }
+      ]
+    },
+
+    {
+      "id": "tavernAdjectives",
+      "name": "Tavern Adjectives",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Golden" }, { "value": "Silver" }, { "value": "Rusty" }, { "value": "Prancing" },
+        { "value": "Sleeping" }, { "value": "Drunken" }, { "value": "Dancing" }, { "value": "Laughing" },
+        { "value": "Broken" }, { "value": "Hidden" }, { "value": "Wandering" }, { "value": "Weary" },
+        { "value": "Crimson" }, { "value": "Merry" }, { "value": "Lonely" }, { "value": "Lucky" }
+      ]
+    },
+
+    {
+      "id": "tavernNouns",
+      "name": "Tavern Nouns",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Dragon" }, { "value": "Griffin" }, { "value": "Unicorn" }, { "value": "Stag" },
+        { "value": "Boar" }, { "value": "Eagle" }, { "value": "Wolf" }, { "value": "Bear" },
+        { "value": "Crown" }, { "value": "Sword" }, { "value": "Shield" }, { "value": "Anchor" },
+        { "value": "Barrel" }, { "value": "Goblet" }, { "value": "Lantern" }, { "value": "Raven" }
+      ]
+    },
+
+    {
+      "id": "settlementNames",
+      "name": "Settlement Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["location", "names"],
+      "entries": [
+        { "value": "{{settlementPrefixes}}{{settlementSuffixes}}" }
+      ]
+    },
+
+    {
+      "id": "settlementPrefixes",
+      "name": "Settlement Prefixes",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Oak" }, { "value": "River" }, { "value": "Stone" }, { "value": "Green" },
+        { "value": "Black" }, { "value": "White" }, { "value": "Red" }, { "value": "Gold" },
+        { "value": "Iron" }, { "value": "Silver" }, { "value": "Hawk" }, { "value": "Wolf" },
+        { "value": "Elder" }, { "value": "Ash" }, { "value": "Frost" }, { "value": "Storm" }
+      ]
+    },
+
+    {
+      "id": "settlementSuffixes",
+      "name": "Settlement Suffixes",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "haven" }, { "value": "ford" }, { "value": "holm" }, { "value": "wick" },
+        { "value": "dale" }, { "value": "vale" }, { "value": "brook" }, { "value": "wood" },
+        { "value": "field" }, { "value": "ton" }, { "value": "bridge" }, { "value": "keep" },
+        { "value": "shire" }, { "value": "gate" }, { "value": "watch" }, { "value": "cross" }
+      ]
+    }
+  ],
+
+  "templates": [
+    {
+      "id": "simpleNPC",
+      "name": "Simple NPC",
+      "description": "Generates a basic NPC with name, appearance, and personality.",
+      "resultType": "npc",
+      "tags": ["character", "npc"],
+      "shared": {
+        "$race": "{{characterRaces}}"
+      },
+      "pattern": "**{{$race.@firstName}} {{$race.@lastName}}** is a {{$race.@physique}} {{$race}}. They are {{personalityTraits}}."
+    },
+    {
+      "id": "detailedNPC",
+      "name": "Detailed NPC",
+      "description": "Generates a comprehensive NPC with background details.",
+      "resultType": "npc",
+      "tags": ["character", "npc"],
+      "shared": {
+        "$race": "{{characterRaces}}",
+        "$job": "{{occupations}}"
+      },
+      "pattern": "## {{$race.@firstName}} {{$race.@lastName}}\n\n**Race:** {{$race}} ({{$race.@lifespan}} lifespan)\n\n**Appearance:** {{$race.@physique}}, with {{physicalQuirks}}. They wear {{clothingColors}} {{clothingStyles}}.\n\n**Occupation:** {{$job}}, working at {{$job.@workplace}}.\n\n**Personality:** {{personalityTraits}}. They {{motivations}}.\n\n**Secret:** This person {{secrets}}."
+    },
+    {
+      "id": "rivalCharacters",
+      "name": "Rival Characters",
+      "description": "Generates two characters with independent traits using capture-aware variables.",
+      "resultType": "npc",
+      "tags": ["character", "story"],
+      "pattern": "**The Rivals**\n\n**{{$protagonist.@firstName}} {{$protagonist.@lastName}}** is a {{$protagonist.@physique}} {{$protagonist}} who {{motivations}}.\n\n**{{$deuteragonist.@firstName}} {{$deuteragonist.@lastName}}** is a {{$deuteragonist.@physique}} {{$deuteragonist}} who {{motivations}}.\n\nTheir paths cross when {{plotComplications}}."
+    },
+    {
+      "id": "partyOfAdventurers",
+      "name": "Party of Adventurers",
+      "description": "Generates a group of {{dice:1d4+2}} unique characters.",
+      "resultType": "npc",
+      "tags": ["character", "party"],
+      "shared": {
+        "partySize": "{{dice:1d4+2}}",
+        "$members": "{{$partySize*unique*characterRaces >> $group|silent}}"
+      },
+      "pattern": "## The Adventuring Party\n\nThis band of {{$group.count}} adventurers includes:\n\n{{$partySize*unique*characterRaces}}"
+    },
+    {
+      "id": "settlementDescription",
+      "name": "Settlement Description",
+      "description": "Generates a complete settlement with name and details.",
+      "resultType": "location",
+      "tags": ["location", "settlement"],
+      "shared": {
+        "$settlement": "{{settlementTypes}}",
+        "$name": "{{settlementNames}}"
+      },
+      "pattern": "## {{$name}}\n\n**Type:** {{$settlement}} (Population: ~{{$settlement.@population}})\n\n**Atmosphere:** The settlement is {{$settlement.@atmosphere}}.\n\n**Notable Feature:** {{$settlement.@features}}\n\n**Current Problem:** Unfortunately, {{settlementProblems}}.\n\n**Local Tavern:** Travelers often rest at **{{tavernNames}}**, {{tavernDescriptions}}."
+    },
+    {
+      "id": "wildernessScene",
+      "name": "Wilderness Scene",
+      "description": "Generates an atmospheric wilderness description.",
+      "resultType": "description",
+      "tags": ["location", "atmosphere"],
+      "pattern": "It is {{$timeOfDay}}, and the sky shows {{$currentWeather}}. Above hangs {{$moonPhase}}.\n\nYou find yourself in {{wildernessLocations}}. The air carries the scent of {{smells}}, and you can hear {{sounds}}."
+    },
+    {
+      "id": "dungeonRoom",
+      "name": "Dungeon Room",
+      "description": "Generates a dungeon room with multiple features.",
+      "resultType": "location",
+      "tags": ["dungeon", "location"],
+      "shared": {
+        "featureCount": "{{dice:1d3+1}}"
+      },
+      "pattern": "You enter {{dungeonRooms}}.\n\n**Features:**\n- {{$featureCount*unique*dungeonFeatures|\"\n- \"}}\n\n**Inscription:** On one wall, you find: {{inscriptions}}"
+    },
+    {
+      "id": "treasureHoard",
+      "name": "Treasure Hoard",
+      "description": "Generates a collection of treasures with variable quantity.",
+      "resultType": "loot",
+      "tags": ["treasure", "loot"],
+      "shared": {
+        "hoardSize": "{{dice:2d4}}"
+      },
+      "pattern": "## Treasure Hoard\n\nYou discover a cache containing {{$hoardSize}} items:\n\n{{$hoardSize*unique*treasureByRarity|\"\n\n\"}}"
+    },
+    {
+      "id": "questHook",
+      "name": "Quest Hook",
+      "description": "Generates a complete quest setup.",
+      "resultType": "hook",
+      "tags": ["story", "quest"],
+      "shared": {
+        "$giver": "{{questGivers}}"
+      },
+      "pattern": "## Quest: {{questObjectives}}\n\n**Quest Giver:** {{$giver}} approaches you. Their motivation seems to be {{$giver.@motivation}}.\n\n**The Situation:** {{rumors}}\n\n**Complication:** However, {{plotComplications}}."
+    },
+    {
+      "id": "itemDescription",
+      "name": "Detailed Item",
+      "description": "Generates a weapon with full details.",
+      "resultType": "item",
+      "tags": ["items"],
+      "shared": {
+        "$weapon": "{{weaponTypes}}",
+        "$condition": "{{itemConditions}}"
+      },
+      "pattern": "**{{weaponDescriptors}} {{$weapon}}**\n\nThis {{$weapon.@category}} weapon is {{$condition}} ({{$condition.@quality}} quality). It is made of {{metals}} and features {{inscriptions}}"
+    },
+    {
+      "id": "jewelryDescription",
+      "name": "Detailed Jewelry",
+      "description": "Generates jewelry with gemstone details using capture and property access.",
+      "resultType": "item",
+      "tags": ["items", "jewelry"],
+      "shared": {
+        "$jewel": "{{jewelryTypes}}",
+        "$gem": "{{gemstones}}"
+      },
+      "pattern": "A {{metals}} {{$jewel}} worn on the {{$jewel.@placement}}, set with a {{$gem.@color}} {{$gem}} ({{$gem.@rarity}} rarity)."
+    },
+    {
+      "id": "atmosphericScene",
+      "name": "Atmospheric Scene",
+      "description": "Generates a richly detailed scene description.",
+      "resultType": "description",
+      "tags": ["atmosphere"],
+      "shared": {
+        "$weather": "{{weatherConditions}}"
+      },
+      "pattern": "The scene is set during {{timesOfDay}}. The weather is {{$weather}}, creating a {{$weather.@mood}} atmosphere.\n\nYou notice the smell of {{smells}} and hear {{sounds}}."
+    },
+    {
+      "id": "multipleRumors",
+      "name": "Multiple Rumors",
+      "description": "Generates several rumors at once, demonstrating multiple unique rolls.",
+      "resultType": "rumor",
+      "tags": ["story"],
+      "pattern": "## Rumors Heard at the Tavern\n\nYou overhear {{dice:1d3+2}} interesting pieces of gossip:\n\n{{3*unique*rumors|\"\n\n\"}}"
+    },
+    {
+      "id": "encounterScene",
+      "name": "Encounter Scene",
+      "description": "Generates a complete encounter with location, NPCs, and atmosphere.",
+      "resultType": "encounter",
+      "tags": ["story", "encounter"],
+      "shared": {
+        "$location": "{{wildernessLocations}}",
+        "$npc1": "{{characterRaces}}",
+        "$npc2": "{{characterRaces}}"
+      },
+      "pattern": "## Wilderness Encounter\n\n**Setting:** {{$location}} ({{$location.@terrain}} terrain, {{$location.@danger}} danger)\n\n**Time:** {{timesOfDay}}\n\n**Weather:** {{weatherConditions}}\n\nYou encounter **{{$npc1.@firstName}}**, a {{$npc1.@physique}} {{$npc1}}, and **{{$npc2.@firstName}}**, a {{$npc2.@physique}} {{$npc2}}.\n\n{{$npc1.@firstName}} is {{personalityTraits}}, while {{$npc2.@firstName}} is {{personalityTraits}}.\n\n**What's Happening:** {{plotComplications}}"
+    },
+    {
+      "id": "shopInventory",
+      "name": "Shop Inventory",
+      "description": "Generates a shop with variable inventory using dice-count rolls.",
+      "resultType": "description",
+      "tags": ["location", "items"],
+      "shared": {
+        "stockSize": "{{dice:2d4+3}}"
+      },
+      "pattern": "## The {{tavernAdjectives}} Emporium\n\n{{shopDescriptions}}\n\n**Today's Stock ({{$stockSize}} items):**\n\n{{$stockSize*unique*allTreasure|\"\n\n\"}}"
+    },
+    {
+      "id": "merchantTransaction",
+      "name": "Merchant Transaction",
+      "description": "Generates a purchase with math expressions for price calculation.",
+      "resultType": "description",
+      "tags": ["items", "commerce"],
+      "shared": {
+        "basePrice": "{{dice:2d6*10}}",
+        "quantity": "{{dice:1d4}}",
+        "haggleDiscount": "{{dice:1d20}}"
+      },
+      "pattern": "## Transaction Receipt\n\n**Item:** {{treasureByRarity}}\n\n**Base Price:** {{$basePrice}} gold\n**Quantity:** {{$quantity}}\n**Subtotal:** {{math:$basePrice * $quantity}} gold\n**Haggle Roll:** {{$haggleDiscount}} ({{math:$haggleDiscount * 2}}% off if successful)\n**Final Price:** {{math:($basePrice * $quantity) - (($basePrice * $quantity * $haggleDiscount) / 50)}} gold (with discount)"
+    },
+    {
+      "id": "caravanManifest",
+      "name": "Caravan Manifest",
+      "description": "Demonstrates fixed-count multiple rolls without unique modifier.",
+      "resultType": "description",
+      "tags": ["items", "travel"],
+      "pattern": "## Caravan Manifest\n\n**Passengers:** {{3*characterRaces}}\n\n**Cargo (5 items):**\n{{5*allTreasure|\"\n\"}}\n\n**Guards' Equipment:**\n{{3*weaponTypes}}"
+    }
+  ],
+
+  "conditionals": [
+    {
+      "when": "@danger.value == 'high'",
+      "action": "append",
+      "value": "\n\n*⚠️ This area is known to be dangerous. Proceed with caution.*"
+    },
+    {
+      "when": "@rarity.value == 'legendary'",
+      "action": "prepend",
+      "value": "**✨ LEGENDARY FIND!** "
+    },
+    {
+      "when": "@socialClass.value == 'upper'",
+      "action": "append",
+      "value": " They carry themselves with obvious nobility."
+    },
+    {
+      "when": "@mood.value == 'ominous'",
+      "action": "append",
+      "value": "\n\n*An uneasy feeling settles over you.*"
+    },
+    {
+      "when": "@magical.value == 'true'",
+      "action": "append",
+      "value": " It faintly shimmers with magical energy."
+    }
+  ]
+}

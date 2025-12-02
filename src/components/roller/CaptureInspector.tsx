@@ -6,7 +6,7 @@
 
 import { memo, useState } from 'react'
 import { ChevronRight, Grab, Hash, ListOrdered } from 'lucide-react'
-import type { CaptureVariable } from '@/engine/types'
+import type { CaptureVariable, EvaluatedSets } from '@/engine/types'
 
 interface CaptureInspectorProps {
   captures: Record<string, CaptureVariable>
@@ -115,7 +115,7 @@ const CaptureVariableItem = memo(function CaptureVariableItem({
 })
 
 interface CaptureItemDisplayProps {
-  item: { value: string; sets: Record<string, string> }
+  item: { value: string; sets: EvaluatedSets }
   index: number
 }
 
@@ -148,14 +148,18 @@ const CaptureItemDisplay = memo(function CaptureItemDisplay({
           )}
           {showSets && setKeys.length > 0 && (
             <div className="mt-2 space-y-1 text-xs">
-              {setKeys.map((key) => (
-                <div key={key} className="flex items-start gap-2">
-                  <span className="text-orange-400/70">@{key}:</span>
-                  <span className="text-muted-foreground truncate" title={item.sets[key]}>
-                    "{item.sets[key]}"
-                  </span>
-                </div>
-              ))}
+              {setKeys.map((key) => {
+                const setVal = item.sets[key]
+                const displayValue = typeof setVal === 'string' ? setVal : setVal.value
+                return (
+                  <div key={key} className="flex items-start gap-2">
+                    <span className="text-orange-400/70">@{key}:</span>
+                    <span className="text-muted-foreground truncate" title={displayValue}>
+                      "{displayValue}"
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>

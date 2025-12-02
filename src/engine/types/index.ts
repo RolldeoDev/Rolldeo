@@ -235,7 +235,7 @@ export interface Entry {
   resultType?: string
 }
 
-/** Key-value pairs for placeholder values (input from JSON) */
+/** Key-value pairs for placeholder values (input from JSON - string values only) */
 export type Sets = Record<string, string>
 
 /**

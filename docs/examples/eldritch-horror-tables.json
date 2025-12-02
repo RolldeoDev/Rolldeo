@@ -1,0 +1,2338 @@
+{
+  "metadata": {
+    "name": "Eldritch Horror Investigation Generator",
+    "namespace": "horror.eldritch.core",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "The Esoteric Order",
+    "description": "A comprehensive collection of random tables for generating **cosmic horror** investigations, investigators, entities, locations, and mysterious phenomena. Designed for games like *Call of Cthulhu*, *Delta Green*, and similar investigative horror TTRPGs.\n\nThis collection focuses on **atmospheric description** and **narrative elements** rather than game mechanics.",
+    "instructions": "Use the templates to generate complete investigation scenarios, or roll on individual tables for specific elements. The `fullInvestigation` template provides a complete scenario framework.",
+    "tags": ["horror", "lovecraft", "cosmic", "investigation", "mystery", "cthulhu", "delta-green"],
+    "created": "2024-01-15T00:00:00Z",
+    "updated": "2024-12-01T00:00:00Z",
+    "source": {
+      "license": "CC BY 4.0",
+      "copyright": {
+        "year": "2024",
+        "holder": "The Esoteric Order",
+        "notice": "Released under Creative Commons Attribution 4.0. Inspired by the works of H.P. Lovecraft (public domain) and the cosmic horror genre."
+      }
+    },
+    "rights": {
+      "type": "open-content",
+      "permissions": {
+        "commercialUse": true,
+        "modification": true,
+        "redistribution": true,
+        "derivativeWorks": true,
+        "attributionRequired": true
+      }
+    },
+    "maxRecursionDepth": 50,
+    "maxInheritanceDepth": 5
+  },
+  "variables": {
+    "era": "1920s",
+    "defaultLocation": "Arkham",
+    "separator": ", "
+  },
+  "shared": {
+    "investigationMood": "{{atmosphericMood}}",
+    "cosmicThreatLevel": "{{dice:1d6}}",
+    "sanityThreshold": "{{math:10 - $cosmicThreatLevel}}",
+    "$primaryEntity": "{{eldritchEntityTier}}",
+    "$cultLeader": "{{cultistRanks}}"
+  },
+  "tables": [
+    {
+      "id": "investigatorFirstNames",
+      "name": "Investigator First Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "tags": ["names", "investigators"],
+      "entries": [
+        { "value": "Arthur" },
+        { "value": "Beatrice" },
+        { "value": "Charles" },
+        { "value": "Dorothy" },
+        { "value": "Edmund" },
+        { "value": "Frances" },
+        { "value": "George" },
+        { "value": "Helena" },
+        { "value": "Irving" },
+        { "value": "Josephine" },
+        { "value": "Leopold" },
+        { "value": "Margaret" },
+        { "value": "Nathaniel" },
+        { "value": "Ophelia" },
+        { "value": "Percival" },
+        { "value": "Ruth" },
+        { "value": "Sebastian" },
+        { "value": "Theodora" },
+        { "value": "Vincent" },
+        { "value": "Winifred" }
+      ]
+    },
+    {
+      "id": "investigatorSurnames",
+      "name": "Investigator Surnames",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "tags": ["names", "investigators"],
+      "entries": [
+        { "value": "Ashworth" },
+        { "value": "Blackwood" },
+        { "value": "Crane" },
+        { "value": "Danforth" },
+        { "value": "Elwood" },
+        { "value": "Fairfax" },
+        { "value": "Graves" },
+        { "value": "Holloway" },
+        { "value": "Innsbrook" },
+        { "value": "Jameson" },
+        { "value": "Kingsport" },
+        { "value": "Legrasse" },
+        { "value": "Marsh" },
+        { "value": "Noyes" },
+        { "value": "Olmstead" },
+        { "value": "Peaslee" },
+        { "value": "Quarry" },
+        { "value": "Randolph" },
+        { "value": "Sargent" },
+        { "value": "Tillinghast" },
+        { "value": "Upham" },
+        { "value": "Waite" }
+      ]
+    },
+    {
+      "id": "investigatorOccupations",
+      "name": "Investigator Occupations",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["investigators", "occupations"],
+      "description": "Period-appropriate occupations for investigators in the {{$era}} era.",
+      "defaultSets": {
+        "socialClass": "middle",
+        "education": "some"
+      },
+      "entries": [
+        {
+          "id": "antiquarian",
+          "value": "Antiquarian",
+          "weight": 2,
+          "description": "A dealer and collector of rare artifacts and curiosities",
+          "sets": {
+            "expertise": "{{antiquarianExpertise}}",
+            "socialClass": "upper-middle",
+            "education": "extensive",
+            "resources": "comfortable"
+          }
+        },
+        {
+          "id": "journalist",
+          "value": "Journalist",
+          "weight": 3,
+          "description": "A reporter seeking the truth behind the headlines",
+          "sets": {
+            "expertise": "{{journalistExpertise}}",
+            "resources": "modest"
+          }
+        },
+        {
+          "id": "professor",
+          "value": "Professor",
+          "weight": 2,
+          "description": "An academic at Miskatonic University or similar institution",
+          "sets": {
+            "expertise": "{{professorExpertise}}",
+            "socialClass": "upper-middle",
+            "education": "doctorate",
+            "resources": "comfortable"
+          }
+        },
+        {
+          "id": "physician",
+          "value": "Physician",
+          "weight": 2,
+          "sets": {
+            "expertise": "medicine and anatomy",
+            "socialClass": "upper",
+            "education": "medical degree",
+            "resources": "wealthy"
+          }
+        },
+        {
+          "id": "privateeye",
+          "value": "Private Investigator",
+          "weight": 3,
+          "sets": {
+            "expertise": "surveillance and interrogation",
+            "socialClass": "working",
+            "education": "practical",
+            "resources": "modest"
+          }
+        },
+        {
+          "id": "artist",
+          "value": "Artist",
+          "weight": 2,
+          "sets": {
+            "expertise": "{{artistExpertise}}",
+            "resources": "variable"
+          }
+        },
+        {
+          "id": "occultist",
+          "value": "Occultist",
+          "weight": 1,
+          "description": "A student of forbidden lore and esoteric traditions",
+          "sets": {
+            "expertise": "forbidden knowledge and ritual",
+            "education": "self-taught in arcana",
+            "resources": "variable",
+            "dangerLevel": "high"
+          }
+        },
+        {
+          "id": "veteran",
+          "value": "War Veteran",
+          "weight": 2,
+          "sets": {
+            "expertise": "combat and survival",
+            "trauma": "{{warTrauma}}",
+            "resources": "modest"
+          }
+        },
+        {
+          "id": "librarian",
+          "value": "Librarian",
+          "weight": 2,
+          "sets": {
+            "expertise": "research and ancient languages",
+            "education": "extensive",
+            "resources": "modest"
+          }
+        },
+        {
+          "id": "clergyman",
+          "value": "Clergy Member",
+          "weight": 1,
+          "sets": {
+            "expertise": "theology and counseling",
+            "faith": "{{faithTradition}}",
+            "resources": "modest"
+          }
+        },
+        {
+          "id": "dilettante",
+          "value": "Dilettante",
+          "weight": 1,
+          "description": "A wealthy amateur with too much time and curiosity",
+          "sets": {
+            "expertise": "social connections",
+            "socialClass": "upper",
+            "education": "finishing school",
+            "resources": "wealthy"
+          }
+        },
+        {
+          "id": "archaeologist",
+          "value": "Archaeologist",
+          "weight": 2,
+          "sets": {
+            "expertise": "{{archaeologyExpertise}}",
+            "education": "doctorate",
+            "resources": "grant-funded"
+          }
+        }
+      ]
+    },
+    {
+      "id": "antiquarianExpertise",
+      "name": "Antiquarian Expertise Areas",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "pre-Columbian artifacts" },
+        { "value": "medieval manuscripts" },
+        { "value": "Egyptian antiquities" },
+        { "value": "Asian religious art" },
+        { "value": "Renaissance curiosities" },
+        { "value": "occult paraphernalia" }
+      ]
+    },
+    {
+      "id": "journalistExpertise",
+      "name": "Journalist Beats",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "crime and police reports" },
+        { "value": "society pages" },
+        { "value": "obituaries and strange deaths" },
+        { "value": "municipal corruption" },
+        { "value": "human interest stories" }
+      ]
+    },
+    {
+      "id": "professorExpertise",
+      "name": "Professor Academic Fields",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "anthropology and folklore" },
+        { "value": "archaeology" },
+        { "value": "astronomy and physics" },
+        { "value": "chemistry" },
+        { "value": "comparative religion" },
+        { "value": "history" },
+        { "value": "linguistics" },
+        { "value": "medicine" },
+        { "value": "psychology" }
+      ]
+    },
+    {
+      "id": "artistExpertise",
+      "name": "Artist Mediums",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "oil painting" },
+        { "value": "sculpture" },
+        { "value": "photography" },
+        { "value": "illustration" },
+        { "value": "avant-garde mixed media" }
+      ]
+    },
+    {
+      "id": "archaeologyExpertise",
+      "name": "Archaeology Specializations",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Mesopotamian civilizations" },
+        { "value": "Egyptian dynasties" },
+        { "value": "Central American pyramids" },
+        { "value": "lost Pacific cultures" },
+        { "value": "prehistoric Europe" }
+      ]
+    },
+    {
+      "id": "warTrauma",
+      "name": "War Trauma Types",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "recurring nightmares of the trenches" },
+        { "value": "aversion to loud noises" },
+        { "value": "survivor's guilt" },
+        { "value": "thousand-yard stare" },
+        { "value": "suppressed memories slowly surfacing" }
+      ]
+    },
+    {
+      "id": "faithTradition",
+      "name": "Faith Traditions",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Catholic" },
+        { "value": "Episcopalian" },
+        { "value": "Baptist" },
+        { "value": "Methodist" },
+        { "value": "Presbyterian" },
+        { "value": "Unitarian" }
+      ]
+    },
+    {
+      "id": "investigatorBackstory",
+      "name": "Investigator Backstories",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["investigators", "backstory"],
+      "entries": [
+        {
+          "value": "lost a loved one to unexplained circumstances",
+          "weight": 3,
+          "sets": {
+            "motivation": "seeking closure",
+            "lostPerson": "{{lostPersonType}}"
+          }
+        },
+        {
+          "value": "witnessed something impossible as a child",
+          "weight": 2,
+          "sets": {
+            "motivation": "proving sanity",
+            "childhoodVision": "{{childhoodVisions}}"
+          }
+        },
+        {
+          "value": "inherited a collection of disturbing documents",
+          "weight": 2,
+          "sets": {
+            "motivation": "understanding legacy",
+            "inheritedItem": "{{inheritedDocuments}}"
+          }
+        },
+        {
+          "value": "survived an encounter others did not",
+          "weight": 2,
+          "sets": {
+            "motivation": "survivor's guilt",
+            "encounter": "{{pastEncounters}}"
+          }
+        },
+        {
+          "value": "has recurring dreams of impossible geometries",
+          "weight": 2,
+          "sets": {
+            "motivation": "ending the visions",
+            "dreamContent": "{{dreamGeometries}}"
+          }
+        },
+        {
+          "value": "fled from a small town with a terrible secret",
+          "weight": 2,
+          "sets": {
+            "motivation": "running from the past",
+            "townSecret": "{{smallTownSecrets}}"
+          }
+        },
+        {
+          "value": "seeks redemption for past involvement with the occult",
+          "weight": 1,
+          "sets": {
+            "motivation": "atonement",
+            "pastInvolvement": "{{occultInvolvement}}"
+          }
+        },
+        {
+          "value": "is the last surviving member of a previous investigation",
+          "weight": 1,
+          "sets": {
+            "motivation": "finishing what was started",
+            "previousCase": "{{previousInvestigations}}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lostPersonType",
+      "name": "Types of Lost Persons",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a beloved spouse" },
+        { "value": "a younger sibling" },
+        { "value": "a close friend since childhood" },
+        { "value": "a respected mentor" },
+        { "value": "a parent who went mad" }
+      ]
+    },
+    {
+      "id": "childhoodVisions",
+      "name": "Childhood Visions",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "shapes moving in the walls of the family home" },
+        { "value": "a figure watching from the edge of the woods" },
+        { "value": "the face in the attic window that no one else saw" },
+        { "value": "the thing that lived in the basement" },
+        { "value": "the night the stars moved wrong" }
+      ]
+    },
+    {
+      "id": "inheritedDocuments",
+      "name": "Inherited Disturbing Documents",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a journal filled with increasingly unhinged entries" },
+        { "value": "a collection of newspaper clippings about disappearances" },
+        { "value": "letters from someone who claimed to be family but never existed" },
+        { "value": "a hand-drawn map of a place that shouldn't exist" },
+        { "value": "photographs of rituals performed in familiar locations" }
+      ]
+    },
+    {
+      "id": "pastEncounters",
+      "name": "Past Supernatural Encounters",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a shipwreck where something came aboard" },
+        { "value": "an archaeological dig that went wrong" },
+        { "value": "a séance that contacted something real" },
+        { "value": "a night lost to missing time" },
+        { "value": "the incident at the old asylum" }
+      ]
+    },
+    {
+      "id": "dreamGeometries",
+      "name": "Dream Geometries",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "angles that exist in too many dimensions" },
+        { "value": "a city of titanic black towers" },
+        { "value": "staircases that descend into the space between stars" },
+        { "value": "a door that opens in all directions at once" },
+        { "value": "a chamber where the walls are also the floor and ceiling" }
+      ]
+    },
+    {
+      "id": "smallTownSecrets",
+      "name": "Small Town Secrets",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the thing the townsfolk feed in the well" },
+        { "value": "the bloodline that shouldn't continue" },
+        { "value": "what happens during the harvest festival" },
+        { "value": "where the children really go" },
+        { "value": "the pact made three generations ago" }
+      ]
+    },
+    {
+      "id": "occultInvolvement",
+      "name": "Past Occult Involvement",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "membership in a secret society with dark purposes" },
+        { "value": "translation of a text that should have stayed unread" },
+        { "value": "participation in a ritual whose price is still being paid" },
+        { "value": "creation of an artifact that whispers" },
+        { "value": "opening of a door that cannot be closed" }
+      ]
+    },
+    {
+      "id": "previousInvestigations",
+      "name": "Previous Failed Investigations",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the disappearances at Falcon's Point" },
+        { "value": "the Kingsport cannery incident" },
+        { "value": "what happened to the Blackwood expedition" },
+        { "value": "the Silver Twilight Lodge affair" },
+        { "value": "the case of the Dunwich lights" }
+      ]
+    },
+    {
+      "id": "investigatorPhobias",
+      "name": "Investigator Phobias",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["investigators", "fears"],
+      "description": "Deep-seated fears that may complicate investigations.",
+      "entries": [
+        { "value": "claustrophobia", "sets": { "trigger": "enclosed spaces, tunnels, crypts" } },
+        { "value": "thalassophobia", "sets": { "trigger": "deep water, the ocean, aquatic creatures" } },
+        { "value": "nyctophobia", "sets": { "trigger": "darkness, being unable to see" } },
+        { "value": "necrophobia", "sets": { "trigger": "corpses, death, the dying" } },
+        { "value": "agoraphobia", "sets": { "trigger": "open spaces, crowds, public places" } },
+        { "value": "bibliophobia", "sets": { "trigger": "books, especially old tomes" } },
+        { "value": "scopophobia", "sets": { "trigger": "being watched, eyes, portraits" } },
+        { "value": "hemophobia", "sets": { "trigger": "blood, wounds, injury" } },
+        { "value": "entomophobia", "sets": { "trigger": "insects, crawling things, swarms" } },
+        { "value": "athazagoraphobia", "sets": { "trigger": "being forgotten, losing memories" } }
+      ]
+    },
+    {
+      "id": "investigatorMannerisms",
+      "name": "Investigator Mannerisms",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["investigators", "personality"],
+      "entries": [
+        { "value": "speaks in a quiet, measured tone" },
+        { "value": "constantly takes notes in a small leather journal" },
+        { "value": "fidgets with a lucky charm or memento" },
+        { "value": "quotes literature or scripture when stressed" },
+        { "value": "hums tunelessly when concentrating" },
+        { "value": "refuses to meet anyone's eyes directly" },
+        { "value": "compulsively checks locks and windows" },
+        { "value": "speaks to themselves under their breath" },
+        { "value": "always positions to see all exits" },
+        { "value": "pauses before answering, as if listening to something else" },
+        { "value": "touches walls and furniture to confirm their reality" },
+        { "value": "keeps a particular hand in their pocket, gripping something" }
+      ]
+    },
+    {
+      "id": "commonEldritchEntities",
+      "name": "Common Eldritch Entities",
+      "type": "simple",
+      "resultType": "creature",
+      "tags": ["entities", "common"],
+      "description": "Lesser manifestations of cosmic horror, commonly encountered during investigations.",
+      "defaultSets": {
+        "rarity": "common",
+        "threatLevel": "dangerous"
+      },
+      "entries": [
+        {
+          "id": "deepOne",
+          "value": "Deep One",
+          "weight": 4,
+          "description": "{{@self.description}}",
+          "sets": {
+            "description": "A batrachian humanoid with bulging eyes, webbed appendages, and glistening grey-green scales",
+            "origin": "the depths of the ocean",
+            "motivation": "{{deepOneMotivation}}",
+            "signifier": "a pervasive fishy odor and tracks of slime"
+          }
+        },
+        {
+          "id": "ghoul",
+          "value": "Ghoul",
+          "weight": 3,
+          "sets": {
+            "description": "A hunched, rubbery humanoid with canine features, hooved feet, and an unwholesome pallor",
+            "origin": "tunnels beneath graveyards",
+            "motivation": "feeding on the dead",
+            "signifier": "disturbed graves and gnawed bones"
+          }
+        },
+        {
+          "id": "mi-go",
+          "value": "Mi-Go",
+          "weight": 2,
+          "sets": {
+            "description": "A fungoid crustacean with a cluster of pyramided fleshy rings for a head and multiple pairs of membranous wings",
+            "origin": "the dark side of Yuggoth",
+            "motivation": "{{miGoMotivation}}",
+            "signifier": "strange buzzing sounds and surgical precision"
+          }
+        },
+        {
+          "id": "shoggoth",
+          "value": "Shoggoth",
+          "weight": 1,
+          "sets": {
+            "description": "A massive, shapeless mass of protoplasmic flesh covered in countless temporary eyes",
+            "origin": "Elder Thing laboratories in Antarctica",
+            "motivation": "consuming and absorbing",
+            "signifier": "iridescent slime trails and a piping cry",
+            "threatLevel": "extreme"
+          }
+        },
+        {
+          "id": "nightgaunt",
+          "value": "Night-Gaunt",
+          "weight": 2,
+          "sets": {
+            "description": "A black, faceless humanoid with bat-like wings, a barbed tail, and cold, rubbery skin",
+            "origin": "the peaks of the Dreamlands",
+            "motivation": "carrying victims to unknown destinations",
+            "signifier": "total silence and a sensation of tickling"
+          }
+        },
+        {
+          "id": "dimensionalShambler",
+          "value": "Dimensional Shambler",
+          "weight": 1,
+          "sets": {
+            "description": "A grotesque ape-like creature with multiple limbs, capable of stepping between dimensions",
+            "origin": "the spaces between realities",
+            "motivation": "hunting those who meddle with dimensional travel",
+            "signifier": "impossible shadows and spatial distortions"
+          }
+        },
+        {
+          "id": "byakhee",
+          "value": "Byakhee",
+          "weight": 2,
+          "sets": {
+            "description": "A bat-winged, insectoid horror capable of traversing the void between stars",
+            "origin": "interstellar space near Aldebaran",
+            "motivation": "serving as mounts for those who know the proper summoning",
+            "signifier": "an unnatural cold and the distant sound of piping"
+          }
+        },
+        {
+          "id": "servitorOuter",
+          "value": "Servitor of the Outer Gods",
+          "weight": 1,
+          "sets": {
+            "description": "An amorphous entity of living darkness that absorbs light and warmth",
+            "origin": "the court of Azathoth",
+            "motivation": "carrying out the will of beings beyond comprehension",
+            "signifier": "extinguished lights and a creeping despair",
+            "threatLevel": "extreme"
+          }
+        }
+      ]
+    },
+    {
+      "id": "deepOneMotivation",
+      "name": "Deep One Motivations",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "retrieving a stolen artifact" },
+        { "value": "claiming a promised human mate" },
+        { "value": "protecting a hidden hybrid colony" },
+        { "value": "performing rites to call Dagon" }
+      ]
+    },
+    {
+      "id": "miGoMotivation",
+      "name": "Mi-Go Motivations",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "harvesting human brains for their collection" },
+        { "value": "mining rare minerals from Earth" },
+        { "value": "establishing a new observation outpost" },
+        { "value": "silencing those who have seen too much" }
+      ]
+    },
+    {
+      "id": "rareEldritchEntities",
+      "name": "Rare Eldritch Entities",
+      "type": "simple",
+      "resultType": "creature",
+      "tags": ["entities", "rare"],
+      "defaultSets": {
+        "rarity": "rare",
+        "threatLevel": "catastrophic"
+      },
+      "entries": [
+        {
+          "id": "starSpawn",
+          "value": "Star-Spawn of Cthulhu",
+          "sets": {
+            "description": "A titanic, octopoid horror with vestigial wings, vaguely humanoid in shape but utterly alien in nature",
+            "origin": "R'lyeh and the depths of the Pacific",
+            "motivation": "preparing for the return of Great Cthulhu",
+            "signifier": "mass nightmares and inexplicable suicides"
+          }
+        },
+        {
+          "id": "flyingPolyp",
+          "value": "Flying Polyp",
+          "sets": {
+            "description": "A partially invisible thing of whistling winds and grasping tentacles",
+            "origin": "subterranean ruins older than humanity",
+            "motivation": "ancient territorial rage",
+            "signifier": "inexplicable wind damage and people torn asunder"
+          }
+        },
+        {
+          "id": "colorSpace",
+          "value": "Colour Out of Space",
+          "sets": {
+            "description": "An indescribable color from beyond the visible spectrum, a living radiation",
+            "origin": "the void between galaxies",
+            "motivation": "feeding and spreading contamination",
+            "signifier": "withered vegetation, madness, and a sickly luminescence"
+          }
+        },
+        {
+          "id": "hunterDark",
+          "value": "Hunting Horror",
+          "sets": {
+            "description": "A serpentine mass of ropy black tendrils with a single trifold eye",
+            "origin": "summoned by those who serve Nyarlathotep",
+            "motivation": "hunting designated prey across any distance",
+            "signifier": "a sense of being watched and victims torn to pieces"
+          }
+        },
+        {
+          "id": "elderthing",
+          "value": "Elder Thing",
+          "sets": {
+            "description": "A barrel-shaped being with five-fold radial symmetry, starfish-headed and winged",
+            "origin": "the Antarctic and the depths of time",
+            "motivation": "observing and cataloging, or defending ancient territories",
+            "signifier": "impossible fossils and strange surgical marks"
+          }
+        }
+      ]
+    },
+    {
+      "id": "eldritchEntityTier",
+      "name": "Eldritch Entity by Rarity",
+      "type": "composite",
+      "resultType": "creature",
+      "tags": ["entities"],
+      "description": "Selects an entity based on rarity tier. Common entities appear more frequently.",
+      "sources": [
+        { "tableId": "commonEldritchEntities", "weight": 8 },
+        { "tableId": "rareEldritchEntities", "weight": 2 }
+      ]
+    },
+    {
+      "id": "allEldritchEntities",
+      "name": "All Eldritch Entities",
+      "type": "collection",
+      "resultType": "creature",
+      "tags": ["entities"],
+      "description": "All entities from both common and rare tables, merged into a single pool.",
+      "collections": ["commonEldritchEntities", "rareEldritchEntities"]
+    },
+    {
+      "id": "cultNames",
+      "name": "Cult Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["cults", "names"],
+      "hidden": true,
+      "entries": [
+        { "value": "The Esoteric Order of Dagon" },
+        { "value": "The Brotherhood of the Yellow Sign" },
+        { "value": "The Starry Wisdom Sect" },
+        { "value": "The Silver Twilight Lodge" },
+        { "value": "The Cult of the Bloody Tongue" },
+        { "value": "The Church of Starry Wisdom" },
+        { "value": "The Chesuncook Witch Coven" },
+        { "value": "The Servants of the Outer Gods" },
+        { "value": "The Order of the Sword of St. Jerome" },
+        { "value": "The Disciples of the Worm" },
+        { "value": "The Circle of the Black Pharaoh" },
+        { "value": "The Keepers of the Gate" }
+      ]
+    },
+    {
+      "id": "cultistRanks",
+      "name": "Cultist Ranks and Roles",
+      "type": "simple",
+      "resultType": "npc",
+      "tags": ["cults", "npcs"],
+      "entries": [
+        {
+          "id": "initiate",
+          "value": "Initiate",
+          "weight": 4,
+          "sets": {
+            "knowledge": "fragmentary",
+            "dedication": "uncertain",
+            "title": "Brother/Sister"
+          }
+        },
+        {
+          "id": "acolyte",
+          "value": "Acolyte",
+          "weight": 3,
+          "sets": {
+            "knowledge": "basic rituals",
+            "dedication": "committed",
+            "title": "Acolyte"
+          }
+        },
+        {
+          "id": "priest",
+          "value": "Priest",
+          "weight": 2,
+          "sets": {
+            "knowledge": "extensive lore",
+            "dedication": "fanatical",
+            "title": "Priest/Priestess"
+          }
+        },
+        {
+          "id": "highpriest",
+          "value": "High Priest",
+          "weight": 1,
+          "sets": {
+            "knowledge": "forbidden secrets",
+            "dedication": "absolute",
+            "title": "High Priest/High Priestess"
+          }
+        },
+        {
+          "id": "chosen",
+          "value": "Chosen One",
+          "weight": 1,
+          "sets": {
+            "knowledge": "direct communion",
+            "dedication": "transcendent",
+            "title": "The Chosen",
+            "specialAbility": "{{chosenAbilities}}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "chosenAbilities",
+      "name": "Chosen One Abilities",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "sees through the eyes of the devoted" },
+        { "value": "speaks with the voice of the deity" },
+        { "value": "heals wounds by transferring them to others" },
+        { "value": "knows the true names of those nearby" },
+        { "value": "cannot be remembered after leaving" }
+      ]
+    },
+    {
+      "id": "cultActivities",
+      "name": "Cult Activities",
+      "type": "simple",
+      "resultType": "event",
+      "tags": ["cults", "activities"],
+      "entries": [
+        {
+          "value": "performing a ritual to summon {{eldritchEntityTier}}",
+          "weight": 2,
+          "sets": { "urgency": "immediate", "scale": "major" }
+        },
+        {
+          "value": "acquiring sacrificial victims from {{victimSource}}",
+          "weight": 3,
+          "sets": { "urgency": "ongoing", "scale": "local" }
+        },
+        {
+          "value": "protecting a sacred site from discovery",
+          "weight": 2,
+          "sets": { "urgency": "vigilant", "scale": "local" }
+        },
+        {
+          "value": "infiltrating local institutions",
+          "weight": 2,
+          "sets": { "urgency": "patient", "scale": "expanding" }
+        },
+        {
+          "value": "translating forbidden texts",
+          "weight": 2,
+          "sets": { "urgency": "methodical", "scale": "minor" }
+        },
+        {
+          "value": "breeding hybrid offspring",
+          "weight": 1,
+          "sets": { "urgency": "generational", "scale": "hidden" }
+        },
+        {
+          "value": "preparing for an astrological conjunction",
+          "weight": 2,
+          "sets": { "urgency": "calendar-bound", "scale": "cosmic" }
+        },
+        {
+          "value": "silencing those who know too much",
+          "weight": 3,
+          "sets": { "urgency": "immediate", "scale": "targeted" }
+        }
+      ]
+    },
+    {
+      "id": "victimSource",
+      "name": "Victim Sources",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the local homeless population" },
+        { "value": "travelers passing through" },
+        { "value": "members who have failed their tests" },
+        { "value": "the patients of a corrupt asylum" },
+        { "value": "sailors from the waterfront" },
+        { "value": "orphans from the nearby institution" }
+      ]
+    },
+    {
+      "id": "hauntedLocations",
+      "name": "Haunted Locations",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["locations", "haunted"],
+      "defaultSets": {
+        "atmosphere": "oppressive",
+        "access": "restricted"
+      },
+      "entries": [
+        {
+          "id": "mansion",
+          "value": "a decaying Victorian mansion",
+          "weight": 3,
+          "sets": {
+            "history": "{{mansionHistory}}",
+            "feature": "{{mansionFeature}}",
+            "access": "abandoned"
+          }
+        },
+        {
+          "id": "asylum",
+          "value": "an abandoned asylum",
+          "weight": 2,
+          "sets": {
+            "history": "{{asylumHistory}}",
+            "feature": "{{asylumFeature}}",
+            "access": "condemned"
+          }
+        },
+        {
+          "id": "church",
+          "value": "a desecrated church",
+          "weight": 2,
+          "sets": {
+            "history": "{{churchHistory}}",
+            "feature": "{{churchFeature}}",
+            "access": "forgotten"
+          }
+        },
+        {
+          "id": "lighthouse",
+          "value": "an isolated lighthouse",
+          "weight": 2,
+          "sets": {
+            "history": "{{lighthouseHistory}}",
+            "feature": "a light that sometimes shines when no one is there",
+            "access": "remote"
+          }
+        },
+        {
+          "id": "cemetery",
+          "value": "an ancient cemetery",
+          "weight": 3,
+          "sets": {
+            "history": "{{cemeteryHistory}}",
+            "feature": "{{cemeteryFeature}}",
+            "access": "public but avoided"
+          }
+        },
+        {
+          "id": "mine",
+          "value": "a collapsed mine",
+          "weight": 2,
+          "sets": {
+            "history": "{{mineHistory}}",
+            "feature": "strange sounds echoing from impossible depths",
+            "access": "sealed"
+          }
+        },
+        {
+          "id": "farmhouse",
+          "value": "a remote farmhouse",
+          "weight": 2,
+          "sets": {
+            "history": "{{farmhouseHistory}}",
+            "feature": "{{farmhouseFeature}}",
+            "access": "isolated"
+          }
+        },
+        {
+          "id": "theater",
+          "value": "a shuttered theater",
+          "weight": 1,
+          "sets": {
+            "history": "a final performance that drove the audience mad",
+            "feature": "whispered lines from a play that was never written",
+            "access": "locked since the incident"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mansionHistory",
+      "name": "Mansion Histories",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the site of a family's mysterious mass death" },
+        { "value": "once owned by an accused witch" },
+        { "value": "built over older foundations no one can identify" },
+        { "value": "where a renowned occultist conducted his final experiments" }
+      ]
+    },
+    {
+      "id": "mansionFeature",
+      "name": "Mansion Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a room that appears on no floor plan" },
+        { "value": "portraits whose eyes follow visitors" },
+        { "value": "a basement that extends impossibly deep" },
+        { "value": "wallpaper patterns that seem to move" }
+      ]
+    },
+    {
+      "id": "asylumHistory",
+      "name": "Asylum Histories",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "closed after patients began sharing the same impossible delusion" },
+        { "value": "the site of unethical experiments in consciousness transfer" },
+        { "value": "where the head doctor's own madness finally emerged" },
+        { "value": "burned by patients who claimed they were 'letting something out'" }
+      ]
+    },
+    {
+      "id": "asylumFeature",
+      "name": "Asylum Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "patient artwork depicting the same impossible creature" },
+        { "value": "a solitary confinement ward with scratch marks on the outside of doors" },
+        { "value": "an operating theater with inexplicable stains on the ceiling" },
+        { "value": "patient records describing experiences that match current events" }
+      ]
+    },
+    {
+      "id": "churchHistory",
+      "name": "Church Histories",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the congregation vanished during a service" },
+        { "value": "built by a heretical sect expelled from Europe" },
+        { "value": "the minister's sermon notes became increasingly disturbing" },
+        { "value": "constructed with stones from a demolished pagan site" }
+      ]
+    },
+    {
+      "id": "churchFeature",
+      "name": "Church Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "stained glass windows that show different images at night" },
+        { "value": "a crypt that leads to older tunnels" },
+        { "value": "an altar stone carved with pre-Christian symbols underneath" },
+        { "value": "hymnals containing songs in an unknown language" }
+      ]
+    },
+    {
+      "id": "lighthouseHistory",
+      "name": "Lighthouse Histories",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "its keepers have all died or gone mad" },
+        { "value": "ships that follow its light are never seen again" },
+        { "value": "the original architect drowned himself after completing it" },
+        { "value": "it was built to watch for something, not to guide ships" }
+      ]
+    },
+    {
+      "id": "cemeteryHistory",
+      "name": "Cemetery Histories",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "contains the graves of a family line touched by cosmic forces" },
+        { "value": "built atop a Native American burial ground with a curse" },
+        { "value": "the groundskeeper has been the same man for three generations" },
+        { "value": "bodies have been exhumed and found changed" }
+      ]
+    },
+    {
+      "id": "cemeteryFeature",
+      "name": "Cemetery Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a mausoleum that has no interior entrance" },
+        { "value": "graves that sink deeper each year" },
+        { "value": "statuary that weeps actual tears" },
+        { "value": "a section where nothing will grow" }
+      ]
+    },
+    {
+      "id": "mineHistory",
+      "name": "Mine Histories",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the miners broke through into a pre-existing cavern" },
+        { "value": "the workers refused to go below a certain depth" },
+        { "value": "something was found and removed in secret" },
+        { "value": "the collapse was deliberate, to seal something in" }
+      ]
+    },
+    {
+      "id": "farmhouseHistory",
+      "name": "Farmhouse Histories",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the family practiced old-world traditions that were not Christian" },
+        { "value": "something fell from the sky into the fields one night" },
+        { "value": "generations of inbreeding led to something other than human" },
+        { "value": "the land was purchased from natives under suspicious circumstances" }
+      ]
+    },
+    {
+      "id": "farmhouseFeature",
+      "name": "Farmhouse Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a well that goes down much too far" },
+        { "value": "a root cellar with chains bolted to the walls" },
+        { "value": "fields where the crops grow in unnatural patterns" },
+        { "value": "animal bones arranged in geometric formations" }
+      ]
+    },
+    {
+      "id": "cosmicLocations",
+      "name": "Cosmic Locations",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["locations", "cosmic"],
+      "description": "Places beyond normal reality, accessible through dreams, rituals, or dimensional rifts.",
+      "entries": [
+        {
+          "value": "R'lyeh",
+          "sets": {
+            "description": "A sunken city of non-Euclidean geometry where Great Cthulhu dreams",
+            "danger": "absolute",
+            "accessible": "when the stars are right"
+          }
+        },
+        {
+          "value": "the Plateau of Leng",
+          "sets": {
+            "description": "A frigid highland in the Dreamlands, home to the moon-beasts",
+            "danger": "extreme",
+            "accessible": "through deep dreaming"
+          }
+        },
+        {
+          "value": "the Court of Azathoth",
+          "sets": {
+            "description": "The center of ultimate chaos where the Daemon Sultan writhes mindlessly",
+            "danger": "incomprehensible",
+            "accessible": "only by the mad or the dead"
+          }
+        },
+        {
+          "value": "Yuggoth",
+          "sets": {
+            "description": "The dark planet at the rim of the solar system, home to the Mi-Go",
+            "danger": "extreme",
+            "accessible": "via Mi-Go spacecraft"
+          }
+        },
+        {
+          "value": "the Dreamlands",
+          "sets": {
+            "description": "A parallel dimension accessible through dreams, with its own geography and horrors",
+            "danger": "variable",
+            "accessible": "through seventy steps of light slumber"
+          }
+        },
+        {
+          "value": "Kadath in the Cold Waste",
+          "sets": {
+            "description": "A fortress of the Great Ones, hidden at the top of the world in dream",
+            "danger": "extreme",
+            "accessible": "through the Dreamlands, with great peril"
+          }
+        },
+        {
+          "value": "the Vale of Pnath",
+          "sets": {
+            "description": "A lightless abyss beneath the Dreamlands, filled with vast bone-picking creatures",
+            "danger": "extreme",
+            "accessible": "by falling or being dropped by night-gaunts"
+          }
+        },
+        {
+          "value": "Carcosa",
+          "sets": {
+            "description": "A city on a distant world beneath black stars, seat of the King in Yellow",
+            "danger": "maddening",
+            "accessible": "through reading the play or at certain conjunctions"
+          }
+        }
+      ]
+    },
+    {
+      "id": "forbiddenTomes",
+      "name": "Forbidden Tomes",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["books", "artifacts"],
+      "description": "Blasphemous texts containing knowledge that should not be known.",
+      "defaultSets": {
+        "language": "varied",
+        "danger": "high"
+      },
+      "entries": [
+        {
+          "id": "necronomicon",
+          "value": "the Necronomicon",
+          "weight": 1,
+          "sets": {
+            "author": "Abdul Alhazred, the Mad Arab",
+            "language": "Arabic, Latin, or English translation",
+            "contents": "rites, history of the Old Ones, dimensional travel",
+            "danger": "extreme",
+            "copies": "{{necronomiconCopy}}"
+          }
+        },
+        {
+          "id": "kingyellow",
+          "value": "The King in Yellow",
+          "weight": 2,
+          "sets": {
+            "author": "unknown",
+            "language": "any - it translates itself",
+            "contents": "a play that induces madness in the second act",
+            "danger": "extreme"
+          }
+        },
+        {
+          "id": "pnakotic",
+          "value": "the Pnakotic Manuscripts",
+          "weight": 1,
+          "sets": {
+            "author": "the Great Race of Yith",
+            "language": "various translations from an unknown original",
+            "contents": "history spanning millions of years, time travel formulae",
+            "danger": "high"
+          }
+        },
+        {
+          "id": "cultes",
+          "value": "Cultes des Goules",
+          "weight": 2,
+          "sets": {
+            "author": "Comte d'Erlette",
+            "language": "French",
+            "contents": "ghoul lore, necrophagy rituals, underworld navigation",
+            "danger": "moderate"
+          }
+        },
+        {
+          "id": "eltdown",
+          "value": "the Eltdown Shards",
+          "weight": 1,
+          "sets": {
+            "author": "pre-human",
+            "language": "untranslated pictographs",
+            "contents": "prophecies and summoning diagrams",
+            "danger": "high"
+          }
+        },
+        {
+          "id": "deVermis",
+          "value": "De Vermis Mysteriis",
+          "weight": 2,
+          "sets": {
+            "author": "Ludwig Prinn",
+            "language": "Latin",
+            "contents": "practical sorcery, demon summoning, immortality rites",
+            "danger": "high"
+          }
+        },
+        {
+          "id": "revelations",
+          "value": "Revelations of Glaaki",
+          "weight": 1,
+          "sets": {
+            "author": "cult scribes in trance",
+            "language": "English",
+            "contents": "prophecies dictated by an imprisoned Great Old One",
+            "danger": "extreme"
+          }
+        },
+        {
+          "id": "liber",
+          "value": "Liber Ivonis",
+          "weight": 2,
+          "sets": {
+            "author": "Eibon of Hyperborea",
+            "language": "Hyperborean, Latin translations exist",
+            "contents": "pre-human sorcery, worship of Tsathoggua",
+            "danger": "high"
+          }
+        }
+      ]
+    },
+    {
+      "id": "necronomiconCopy",
+      "name": "Necronomicon Copies",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the Miskatonic University copy, heavily restricted" },
+        { "value": "the British Museum copy, incomplete" },
+        { "value": "a black-market hand-copied version, possibly corrupted" },
+        { "value": "the Dee translation, annotated by the translator" },
+        { "value": "a partial photographic reproduction, sanity somewhat preserved" }
+      ]
+    },
+    {
+      "id": "cursedArtifacts",
+      "name": "Cursed Artifacts",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["artifacts", "cursed"],
+      "entries": [
+        {
+          "value": "a soapstone idol of disturbing proportions",
+          "sets": {
+            "origin": "recovered from a Pacific island",
+            "effect": "induces dreams of R'lyeh",
+            "appearance": "octopoid, with wings and multiple eyes"
+          }
+        },
+        {
+          "value": "a silver key of unusual design",
+          "sets": {
+            "origin": "passed down through a strange family line",
+            "effect": "opens doors that aren't there",
+            "appearance": "ornate, with arabesques that seem to move"
+          }
+        },
+        {
+          "value": "a yellowed theatrical mask",
+          "sets": {
+            "origin": "from a production of a forbidden play",
+            "effect": "the wearer sees through another's eyes",
+            "appearance": "pallid, expressionless, yet somehow sorrowful"
+          }
+        },
+        {
+          "value": "a cylinder of iridescent metal",
+          "sets": {
+            "origin": "found in a meteorite crater",
+            "effect": "records and plays back thoughts",
+            "appearance": "covered in tiny protrusions, warm to the touch"
+          }
+        },
+        {
+          "value": "a preserved hand in a glass case",
+          "sets": {
+            "origin": "cut from a hanged sorcerer",
+            "effect": "points toward hidden doors",
+            "appearance": "withered, yet still twitches occasionally"
+          }
+        },
+        {
+          "value": "a mirror of black glass",
+          "sets": {
+            "origin": "from the collection of John Dee",
+            "effect": "shows other places and times",
+            "appearance": "obsidian surface that reflects nothing normal"
+          }
+        },
+        {
+          "value": "a crystal prism that bends light impossibly",
+          "sets": {
+            "origin": "excavated from Antarctic ruins",
+            "effect": "reveals things invisible to normal sight",
+            "appearance": "five-sided, refracting colors that don't exist"
+          }
+        },
+        {
+          "value": "a music box that plays by itself",
+          "sets": {
+            "origin": "crafted by a composer who went mad",
+            "effect": "its melody summons attention from beyond",
+            "appearance": "silver, decorated with dancing figures that aren't human"
+          }
+        }
+      ]
+    },
+    {
+      "id": "strangeClues",
+      "name": "Strange Clues",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["clues", "investigation"],
+      "entries": [
+        { "value": "a journal with entries in an unknown language that appeared overnight" },
+        { "value": "newspaper clippings about disappearances, dating back decades" },
+        { "value": "a photograph showing the victim with someone who died years before" },
+        { "value": "a map with locations marked that correspond to recent events" },
+        { "value": "letters from someone claiming to know the future" },
+        { "value": "a recording of sounds that shouldn't exist" },
+        { "value": "architectural blueprints for a building with impossible geometry" },
+        { "value": "a ledger tracking payments to unnamed recipients for unnamed services" },
+        { "value": "a collection of hair and nail clippings, carefully labeled" },
+        { "value": "an appointment book with meetings scheduled after the owner's death" },
+        { "value": "a child's drawing depicting events that haven't happened yet" },
+        { "value": "dental records showing extra teeth in unusual arrangements" }
+      ]
+    },
+    {
+      "id": "ominousOmens",
+      "name": "Ominous Omens",
+      "type": "simple",
+      "resultType": "event",
+      "tags": ["omens", "atmosphere"],
+      "entries": [
+        {
+          "value": "birds falling dead from the sky",
+          "sets": { "interpretation": "the air itself is poisoned by what approaches" }
+        },
+        {
+          "value": "dogs howling in unison at an empty window",
+          "sets": { "interpretation": "they see what we cannot" }
+        },
+        {
+          "value": "clocks stopping at the same moment across town",
+          "sets": { "interpretation": "time itself flinches from what is coming" }
+        },
+        {
+          "value": "fish washing up dead, arranged in patterns",
+          "sets": { "interpretation": "a message from things beneath the waves" }
+        },
+        {
+          "value": "milk curdling instantly upon being poured",
+          "sets": { "interpretation": "corruption spreads through the mundane" }
+        },
+        {
+          "value": "children crying in their sleep, speaking the same words",
+          "sets": { "interpretation": "young minds are easier to touch" }
+        },
+        {
+          "value": "photographs developing with extra figures",
+          "sets": { "interpretation": "something wants to be seen" }
+        },
+        {
+          "value": "mirrors showing reflections that move independently",
+          "sets": { "interpretation": "the boundary between worlds thins" }
+        },
+        {
+          "value": "an unexpected eclipse on the wrong day",
+          "sets": { "interpretation": "the stars are aligning for something" }
+        },
+        {
+          "value": "the same stranger appearing in multiple witnesses' dreams",
+          "sets": { "interpretation": "a messenger from beyond" }
+        }
+      ]
+    },
+    {
+      "id": "atmosphericMood",
+      "name": "Atmospheric Moods",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["atmosphere"],
+      "hidden": true,
+      "entries": [
+        { "value": "oppressively silent" },
+        { "value": "thick with unspoken dread" },
+        { "value": "electrically charged" },
+        { "value": "suffocatingly claustrophobic" },
+        { "value": "unnervingly still" },
+        { "value": "pregnant with nameless horror" },
+        { "value": "dreamlike and disjointed" },
+        { "value": "permeated by wrongness" }
+      ]
+    },
+    {
+      "id": "weatherConditions",
+      "name": "Ominous Weather",
+      "type": "simple",
+      "resultType": "environment",
+      "tags": ["weather", "atmosphere"],
+      "entries": [
+        {
+          "value": "a thick fog that muffles all sound",
+          "sets": { "visibility": "severely limited", "effect": "disorienting" }
+        },
+        {
+          "value": "a cold rain that falls from a clear sky",
+          "sets": { "visibility": "normal", "effect": "unsettling" }
+        },
+        {
+          "value": "an unnatural darkness that streetlights cannot penetrate",
+          "sets": { "visibility": "minimal", "effect": "terrifying" }
+        },
+        {
+          "value": "a humid stillness before a storm that never comes",
+          "sets": { "visibility": "normal", "effect": "anxious anticipation" }
+        },
+        {
+          "value": "a freezing wind from an impossible direction",
+          "sets": { "visibility": "normal", "effect": "bone-chilling" }
+        },
+        {
+          "value": "greenish lightning without thunder",
+          "sets": { "visibility": "intermittent", "effect": "revealing glimpses" }
+        },
+        {
+          "value": "stars that seem to pulse and writhe",
+          "sets": { "visibility": "too clear", "effect": "cosmic awareness" }
+        },
+        {
+          "value": "aurora-like lights in colors that hurt to see",
+          "sets": { "visibility": "enhanced but wrong", "effect": "headache and nausea" }
+        }
+      ]
+    },
+    {
+      "id": "sanityEffects",
+      "name": "Sanity Breaking Experiences",
+      "type": "simple",
+      "resultType": "effect",
+      "tags": ["horror", "mental"],
+      "description": "The psychological toll of exposure to cosmic truth.",
+      "entries": [
+        {
+          "value": "temporary fugue state",
+          "sets": {
+            "duration": "minutes to hours",
+            "manifestation": "wandering with no memory of actions",
+            "recovery": "usually complete"
+          }
+        },
+        {
+          "value": "uncontrollable trembling",
+          "sets": {
+            "duration": "hours to days",
+            "manifestation": "hands shake, voice quavers",
+            "recovery": "gradual"
+          }
+        },
+        {
+          "value": "hysterical blindness",
+          "sets": {
+            "duration": "hours",
+            "manifestation": "the mind refuses to see",
+            "recovery": "sudden return of sight"
+          }
+        },
+        {
+          "value": "compulsive behavior",
+          "sets": {
+            "duration": "ongoing",
+            "manifestation": "{{compulsiveBehaviors}}",
+            "recovery": "therapy and time"
+          }
+        },
+        {
+          "value": "persistent hallucinations",
+          "sets": {
+            "duration": "intermittent, ongoing",
+            "manifestation": "glimpses of things that aren't there - or are they?",
+            "recovery": "uncertain"
+          }
+        },
+        {
+          "value": "paranoid ideation",
+          "sets": {
+            "duration": "weeks to permanent",
+            "manifestation": "everyone is part of the conspiracy",
+            "recovery": "difficult"
+          }
+        },
+        {
+          "value": "existential detachment",
+          "sets": {
+            "duration": "permanent alteration",
+            "manifestation": "nothing seems real or important anymore",
+            "recovery": "new purpose may help"
+          }
+        },
+        {
+          "value": "prophetic dreams",
+          "sets": {
+            "duration": "permanent",
+            "manifestation": "visions of what is to come, always terrible",
+            "recovery": "impossible - it's not an illness, it's knowledge"
+          }
+        }
+      ]
+    },
+    {
+      "id": "compulsiveBehaviors",
+      "name": "Compulsive Behaviors",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "obsessively drawing the same symbol" },
+        { "value": "counting and recounting objects" },
+        { "value": "checking locks and windows repeatedly" },
+        { "value": "avoiding certain words or numbers" },
+        { "value": "hoarding seemingly random objects" },
+        { "value": "speaking in rhymes or patterns" }
+      ]
+    },
+    {
+      "id": "investigationTriggers",
+      "name": "Investigation Triggers",
+      "type": "simple",
+      "resultType": "hook",
+      "tags": ["hooks", "investigation"],
+      "description": "Events that draw investigators into a case.",
+      "entries": [
+        {
+          "value": "a friend or family member goes missing under strange circumstances",
+          "weight": 3,
+          "sets": { "personal": "true", "urgency": "high" }
+        },
+        {
+          "value": "an unusual item is inherited from a deceased relative",
+          "weight": 2,
+          "sets": { "personal": "true", "urgency": "low" }
+        },
+        {
+          "value": "a newspaper article describes an impossible event",
+          "weight": 3,
+          "sets": { "personal": "false", "urgency": "medium" }
+        },
+        {
+          "value": "a stranger delivers a warning and then vanishes",
+          "weight": 2,
+          "sets": { "personal": "false", "urgency": "high" }
+        },
+        {
+          "value": "a recurring dream becomes too specific to ignore",
+          "weight": 2,
+          "sets": { "personal": "true", "urgency": "medium" }
+        },
+        {
+          "value": "an old case file reopens with new evidence",
+          "weight": 2,
+          "sets": { "personal": "varies", "urgency": "medium" }
+        },
+        {
+          "value": "a pattern of deaths matches an ancient prophecy",
+          "weight": 1,
+          "sets": { "personal": "false", "urgency": "extreme" }
+        },
+        {
+          "value": "a trusted colleague's behavior changes dramatically",
+          "weight": 2,
+          "sets": { "personal": "true", "urgency": "high" }
+        }
+      ]
+    },
+    {
+      "id": "complications",
+      "name": "Investigation Complications",
+      "type": "simple",
+      "resultType": "complication",
+      "tags": ["complications"],
+      "entries": [
+        {
+          "value": "a crucial witness dies before they can be questioned",
+          "sets": { "severity": "major", "type": "evidence" }
+        },
+        {
+          "value": "the authorities are actively covering up the truth",
+          "sets": { "severity": "major", "type": "opposition" }
+        },
+        {
+          "value": "an investigator begins experiencing the same symptoms as victims",
+          "sets": { "severity": "critical", "type": "personal" }
+        },
+        {
+          "value": "evidence keeps disappearing from secured locations",
+          "sets": { "severity": "moderate", "type": "evidence" }
+        },
+        {
+          "value": "a rival group is pursuing the same goal for different reasons",
+          "sets": { "severity": "moderate", "type": "opposition" }
+        },
+        {
+          "value": "an investigator's loved one is threatened or taken",
+          "sets": { "severity": "critical", "type": "personal" }
+        },
+        {
+          "value": "the cult has infiltrated local law enforcement",
+          "sets": { "severity": "major", "type": "opposition" }
+        },
+        {
+          "value": "the investigation attracts unwanted attention from something inhuman",
+          "sets": { "severity": "critical", "type": "supernatural" }
+        },
+        {
+          "value": "Roll twice and combine! {{2*unique*again|\" AND \"}}",
+          "weight": 1,
+          "sets": { "severity": "catastrophic", "type": "multiple" }
+        }
+      ]
+    },
+    {
+      "id": "investigationSettings",
+      "name": "Investigation Settings",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["settings", "locations"],
+      "entries": [
+        {
+          "value": "Arkham, Massachusetts",
+          "sets": {
+            "description": "A decaying New England town in the shadow of Miskatonic University",
+            "resources": "academic, archival",
+            "danger": "high concentration of occult activity"
+          }
+        },
+        {
+          "value": "Innsmouth, Massachusetts",
+          "sets": {
+            "description": "An isolated coastal town with a terrible secret in its bloodlines",
+            "resources": "minimal, outsiders unwelcome",
+            "danger": "entire population is compromised"
+          }
+        },
+        {
+          "value": "Kingsport, Massachusetts",
+          "sets": {
+            "description": "A dreaming seaside town where the boundary to other realms is thin",
+            "resources": "artistic community, spiritualist circles",
+            "danger": "reality is unstable"
+          }
+        },
+        {
+          "value": "New York City",
+          "sets": {
+            "description": "The teeming metropolis hides ancient evils beneath its modern veneer",
+            "resources": "extensive, but scattered",
+            "danger": "cults hide in plain sight among millions"
+          }
+        },
+        {
+          "value": "New Orleans",
+          "sets": {
+            "description": "A city where voodoo traditions mask older, darker practices",
+            "resources": "occult community, unique traditions",
+            "danger": "multiple competing supernatural factions"
+          }
+        },
+        {
+          "value": "London, England",
+          "sets": {
+            "description": "Ancient secrets lurk beneath the fog of the imperial capital",
+            "resources": "British Museum, various occult societies",
+            "danger": "centuries of accumulated evil"
+          }
+        },
+        {
+          "value": "Cairo, Egypt",
+          "sets": {
+            "description": "Gateway to ancient tombs and the secrets of the pharaohs",
+            "resources": "archaeological community, black market antiquities",
+            "danger": "disturbing what should remain buried"
+          }
+        },
+        {
+          "value": "Shanghai, China",
+          "sets": {
+            "description": "International settlement where East and West meet in shadow",
+            "resources": "international contacts, smuggling routes",
+            "danger": "ancient Chinese sorcery meets Western occultism"
+          }
+        }
+      ]
+    },
+    {
+      "id": "witnessReactions",
+      "name": "Witness Reactions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["npcs", "reactions"],
+      "entries": [
+        { "value": "refuses to speak, eyes darting nervously" },
+        { "value": "laughs inappropriately, clearly on the edge of hysteria" },
+        { "value": "recites what sounds like a prepared statement" },
+        { "value": "breaks down weeping and cannot continue" },
+        { "value": "speaks in a flat monotone, as if drugged" },
+        { "value": "becomes aggressive and defensive" },
+        { "value": "claims to remember nothing, unconvincingly" },
+        { "value": "provides information willingly, perhaps too willingly" },
+        { "value": "speaks in circles, never quite answering questions" },
+        { "value": "begs the investigators to leave it alone" }
+      ]
+    },
+    {
+      "id": "deadEnds",
+      "name": "Investigative Dead Ends",
+      "type": "simple",
+      "resultType": "complication",
+      "tags": ["investigation", "obstacles"],
+      "description": "Frustrating setbacks that force investigators to find new approaches.",
+      "entries": [
+        { "value": "the building has been demolished recently, no explanation given" },
+        { "value": "all records from that period were destroyed in a convenient fire" },
+        { "value": "the person in question never existed according to any records" },
+        { "value": "the location described cannot be found on any map" },
+        { "value": "everyone who could help has died within the past month" },
+        { "value": "the evidence contradicts itself in impossible ways" },
+        { "value": "the key document is in a language no scholar can identify" },
+        { "value": "the witness recants their testimony completely" }
+      ]
+    },
+    {
+      "id": "ritualsObserved",
+      "name": "Rituals Observed",
+      "type": "simple",
+      "resultType": "event",
+      "tags": ["rituals", "horror"],
+      "description": "Disturbing ceremonies investigators might witness.",
+      "entries": [
+        {
+          "value": "robed figures chanting in an unknown language",
+          "sets": {
+            "participants": "{{dice:2d6+4}}",
+            "duration": "hours",
+            "purpose": "summoning or communion"
+          }
+        },
+        {
+          "value": "a sacrifice being prepared on a stone altar",
+          "sets": {
+            "participants": "{{dice:1d6+2}}",
+            "duration": "brief",
+            "purpose": "appeasement or power"
+          }
+        },
+        {
+          "value": "dancers moving in patterns that hurt to watch",
+          "sets": {
+            "participants": "{{dice:3d6}}",
+            "duration": "until exhaustion",
+            "purpose": "trance induction"
+          }
+        },
+        {
+          "value": "a congregation drinking from a shared vessel",
+          "sets": {
+            "participants": "{{dice:4d6}}",
+            "duration": "ceremonial",
+            "purpose": "communion with the divine"
+          }
+        },
+        {
+          "value": "the reading aloud of forbidden texts",
+          "sets": {
+            "participants": "{{dice:1d4}}",
+            "duration": "hours of recitation",
+            "purpose": "education or invocation"
+          }
+        },
+        {
+          "value": "bodies being prepared in ways that suggest they will be used again",
+          "sets": {
+            "participants": "{{dice:1d4+1}}",
+            "duration": "methodical",
+            "purpose": "preservation for future need"
+          }
+        }
+      ]
+    },
+    {
+      "id": "finalRevelations",
+      "name": "Final Revelations",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["climax", "horror"],
+      "description": "The terrible truths investigators uncover at the investigation's climax.",
+      "entries": [
+        {
+          "value": "the threat has already won; this is just the beginning",
+          "sets": { "tone": "despair" }
+        },
+        {
+          "value": "the investigators themselves were manipulated into enabling the horror",
+          "sets": { "tone": "guilt" }
+        },
+        {
+          "value": "humanity is not the first intelligence to call Earth home, and will not be the last",
+          "sets": { "tone": "cosmic insignificance" }
+        },
+        {
+          "value": "the 'evil' they fought was trying to prevent something worse",
+          "sets": { "tone": "moral ambiguity" }
+        },
+        {
+          "value": "the investigators' families have always been part of this",
+          "sets": { "tone": "personal horror" }
+        },
+        {
+          "value": "stopping this threat only delays the inevitable",
+          "sets": { "tone": "pyrrhic victory" }
+        },
+        {
+          "value": "the boundary between the investigators and the horror has blurred",
+          "sets": { "tone": "transformation" }
+        },
+        {
+          "value": "some truths cannot be unlearned, and the investigators are forever changed",
+          "sets": { "tone": "loss of innocence" }
+        }
+      ]
+    },
+    {
+      "id": "timeOfDay",
+      "name": "Time of Day",
+      "type": "simple",
+      "resultType": "environment",
+      "hidden": true,
+      "entries": [
+        { "value": "the dead of night", "sets": { "lighting": "darkness", "activity": "minimal" } },
+        { "value": "the grey hour before dawn", "sets": { "lighting": "dim", "activity": "stirring" } },
+        { "value": "a fog-shrouded morning", "sets": { "lighting": "diffuse", "activity": "emerging" } },
+        { "value": "an overcast afternoon", "sets": { "lighting": "flat", "activity": "normal" } },
+        { "value": "the lengthening shadows of evening", "sets": { "lighting": "fading", "activity": "returning home" } },
+        { "value": "the witching hour", "sets": { "lighting": "darkness", "activity": "supernatural" } }
+      ]
+    },
+    {
+      "id": "baseCultDescription",
+      "name": "Base Cult Description",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["cults"],
+      "entries": [
+        {
+          "id": "secretive",
+          "value": "operates in absolute secrecy",
+          "sets": { "visibility": "hidden" }
+        },
+        {
+          "id": "public",
+          "value": "hides behind a respectable public front",
+          "sets": { "visibility": "disguised" }
+        },
+        {
+          "id": "isolated",
+          "value": "exists in geographic isolation",
+          "sets": { "visibility": "remote" }
+        },
+        {
+          "id": "generational",
+          "value": "has been active for generations",
+          "sets": { "visibility": "established" }
+        }
+      ]
+    },
+    {
+      "id": "aggressiveCultDescription",
+      "name": "Aggressive Cult Description",
+      "type": "simple",
+      "extends": "baseCultDescription",
+      "resultType": "description",
+      "tags": ["cults", "aggressive"],
+      "description": "Variant cult descriptions for more aggressive, actively dangerous cults.",
+      "entries": [
+        {
+          "id": "secretive",
+          "value": "operates in absolute secrecy, eliminating all who discover them"
+        },
+        {
+          "id": "public",
+          "value": "hides behind a respectable public front while conducting kidnappings"
+        },
+        {
+          "id": "expanding",
+          "value": "aggressively recruits and silences those who refuse",
+          "weight": 2,
+          "sets": { "visibility": "growing" }
+        }
+      ]
+    },
+    {
+      "id": "npcMotivations",
+      "name": "NPC Motivations",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["npcs", "motivation"],
+      "entries": [
+        { "value": "seeks forbidden knowledge regardless of cost" },
+        { "value": "desperately wants to protect their family" },
+        { "value": "is being blackmailed into cooperation" },
+        { "value": "genuinely believes they are doing good" },
+        { "value": "wants revenge for a past wrong" },
+        { "value": "is addicted to the power the cult provides" },
+        { "value": "fears what will happen if they stop" },
+        { "value": "has been promised immortality" },
+        { "value": "doesn't fully understand what they're involved in" },
+        { "value": "is a true believer awaiting the return of the Old Ones" }
+      ]
+    },
+    {
+      "id": "npcSecrets",
+      "name": "NPC Secrets",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["npcs", "secrets"],
+      "entries": [
+        { "value": "is not entirely human anymore" },
+        { "value": "has killed to protect the secret" },
+        { "value": "knows where the bodies are buried, literally" },
+        { "value": "is a double agent, but for which side?" },
+        { "value": "has seen what's coming and has accepted it" },
+        { "value": "possesses an artifact they don't fully understand" },
+        { "value": "can hear the voices of the dead" },
+        { "value": "made a deal they deeply regret" },
+        { "value": "is protecting someone else's secret" },
+        { "value": "was the sole survivor of a previous incident" }
+      ]
+    },
+    {
+      "id": "d100MadnessEffects",
+      "name": "d100 Madness Effects",
+      "type": "simple",
+      "resultType": "effect",
+      "tags": ["horror", "d100"],
+      "description": "A traditional d100-style table demonstrating range-based entries.",
+      "entries": [
+        {
+          "value": "fainting spell — the investigator collapses for {{dice:1d6}} minutes",
+          "range": [1, 20],
+          "sets": { "severity": "mild", "duration": "minutes" }
+        },
+        {
+          "value": "screaming fit — uncontrollable shrieking that alerts everyone nearby",
+          "range": [21, 35],
+          "sets": { "severity": "moderate", "duration": "minutes" }
+        },
+        {
+          "value": "fleeing panic — must run away from the source of horror",
+          "range": [36, 50],
+          "sets": { "severity": "moderate", "duration": "until exhausted" }
+        },
+        {
+          "value": "psychosomatic blindness or deafness",
+          "range": [51, 60],
+          "sets": { "severity": "severe", "duration": "hours" }
+        },
+        {
+          "value": "violent outburst — attacks the nearest person or object",
+          "range": [61, 70],
+          "sets": { "severity": "severe", "duration": "rounds" }
+        },
+        {
+          "value": "catatonic stupor — unresponsive to all stimuli",
+          "range": [71, 80],
+          "sets": { "severity": "severe", "duration": "hours" }
+        },
+        {
+          "value": "babbling incoherently — speaks only in fragments and nonsense",
+          "range": [81, 90],
+          "sets": { "severity": "severe", "duration": "hours to days" }
+        },
+        {
+          "value": "dissociative episode — believes they are someone else entirely",
+          "range": [91, 99],
+          "sets": { "severity": "extreme", "duration": "days" }
+        },
+        {
+          "value": "permanent psychological change — gains a new phobia or obsession",
+          "range": [100, 100],
+          "sets": { "severity": "permanent", "duration": "indefinite" }
+        }
+      ]
+    },
+    {
+      "id": "corpseConditions",
+      "name": "Corpse Conditions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["horror", "investigation"],
+      "description": "States in which bodies are discovered during investigations.",
+      "entries": [
+        { "value": "desiccated, as if drained of all moisture" },
+        { "value": "aged decades beyond possible" },
+        { "value": "partially fused with the surrounding architecture" },
+        { "value": "bearing expressions of absolute terror" },
+        { "value": "arranged in a ritualistic pattern" },
+        { "value": "missing organs that were never surgically removed" },
+        { "value": "covered in symbols carved post-mortem" },
+        { "value": "with hair turned completely white" },
+        { "value": "eyes replaced with polished stones" },
+        { "value": "hands positioned as if warding something off" }
+      ]
+    },
+    {
+      "id": "mysteriousSounds",
+      "name": "Mysterious Sounds",
+      "type": "simple",
+      "resultType": "environment",
+      "tags": ["atmosphere", "audio"],
+      "entries": [
+        { "value": "a distant, rhythmic chanting in no known language" },
+        { "value": "footsteps in an empty corridor above" },
+        { "value": "the wet slithering of something large" },
+        { "value": "whispered conversation just below audibility" },
+        { "value": "a child's laughter from an impossible direction" },
+        { "value": "scratching from inside the walls" },
+        { "value": "a melody that no one else seems to hear" },
+        { "value": "the grinding of stone against stone" },
+        { "value": "breathing that matches your own rhythm" },
+        { "value": "a voice calling your name, getting closer" }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "investigatorProfile",
+      "name": "Investigator Profile",
+      "resultType": "npc",
+      "tags": ["investigators", "generator"],
+      "description": "Generates a complete investigator profile with name, occupation, backstory, and psychological details.",
+      "shared": {
+        "$occupation": "{{investigatorOccupations}}",
+        "$backstory": "{{investigatorBackstory}}"
+      },
+      "pattern": "## Investigator Profile\n\n**Name:** {{investigatorFirstNames}} {{investigatorSurnames}}\n\n**Occupation:** {{$occupation}}\n\n**Expertise:** {{$occupation.@expertise}}\n\n**Social Standing:** {{$occupation.@socialClass}} class, {{$occupation.@resources}} resources\n\n**Backstory:** {{$backstory}}\n\n**Motivation:** {{$backstory.@motivation}}\n\n**Phobia:** {{investigatorPhobias}}\n\n**Mannerism:** {{investigatorMannerisms}}"
+    },
+    {
+      "id": "entityEncounter",
+      "name": "Entity Encounter",
+      "resultType": "encounter",
+      "tags": ["entities", "encounters"],
+      "description": "Generates a detailed encounter with an eldritch entity.",
+      "shared": {
+        "$entity": "{{eldritchEntityTier}}",
+        "$time": "{{timeOfDay}}",
+        "$weather": "{{weatherConditions}}"
+      },
+      "pattern": "## Entity Encounter\n\nDuring {{$time}}, under {{$weather}}, the investigators encounter **{{$entity}}**.\n\n**Appearance:** {{$entity.@description}}\n\n**Origin:** {{$entity.@origin}}\n\n**Current Motivation:** {{$entity.@motivation}}\n\n**Evidence of Presence:** {{$entity.@signifier}}\n\n**Threat Level:** {{$entity.@threatLevel}}\n\n**Psychological Impact:** {{sanityEffects}}"
+    },
+    {
+      "id": "cultCell",
+      "name": "Cult Cell",
+      "resultType": "faction",
+      "tags": ["cults", "generator"],
+      "description": "Generates details about a local cult cell.",
+      "shared": {
+        "$leader": "{{cultistRanks}}",
+        "$activity": "{{cultActivities}}"
+      },
+      "pattern": "## Cult Cell\n\n**Name:** {{cultNames}}\n\n**Description:** {{aggressiveCultDescription}}\n\n**Current Activity:** {{$activity}}\n\n**Urgency:** {{$activity.@urgency}}\n\n**Scale:** {{$activity.@scale}}\n\n### Leadership\n\n**Rank:** {{$leader.@title}} ({{$leader}})\n\n**Knowledge Level:** {{$leader.@knowledge}}\n\n**Dedication:** {{$leader.@dedication}}\n\n### Membership\n\nThe cell consists of {{dice:2d6+3}} members:\n\n{{3*unique*cultistRanks|\", \"}}"
+    },
+    {
+      "id": "hauntedLocationDetail",
+      "name": "Haunted Location Detail",
+      "resultType": "location",
+      "tags": ["locations", "generator"],
+      "description": "Generates comprehensive details about a haunted location.",
+      "shared": {
+        "$location": "{{hauntedLocations}}",
+        "$omen": "{{ominousOmens}}"
+      },
+      "pattern": "## Haunted Location\n\n**Site:** {{$location}}\n\n**History:** {{$location.@history}}\n\n**Distinctive Feature:** {{$location.@feature}}\n\n**Access:** {{$location.@access}}\n\n**Current Atmosphere:** {{atmosphericMood}}\n\n**Weather:** {{weatherConditions}}\n\n### Recent Omens\n\n{{$omen}}\n\n*Interpretation: {{$omen.@interpretation}}*\n\n### Clues Found Here\n\n{{2*unique*strangeClues|\"; \"}}"
+    },
+    {
+      "id": "forbiddenKnowledge",
+      "name": "Forbidden Knowledge Discovery",
+      "resultType": "item",
+      "tags": ["books", "artifacts", "generator"],
+      "description": "Generates a discovery of forbidden texts and artifacts.",
+      "shared": {
+        "$tome": "{{forbiddenTomes}}",
+        "$artifact": "{{cursedArtifacts}}"
+      },
+      "pattern": "## Forbidden Discovery\n\n### The Text\n\n**Title:** {{$tome}}\n\n**Author:** {{$tome.@author}}\n\n**Language:** {{$tome.@language}}\n\n**Contents:** {{$tome.@contents}}\n\n**Danger Level:** {{$tome.@danger}}\n\n### The Artifact\n\n**Description:** {{$artifact}}\n\n**Origin:** {{$artifact.@origin}}\n\n**Appearance:** {{$artifact.@appearance}}\n\n**Effect:** {{$artifact.@effect}}"
+    },
+    {
+      "id": "investigationScenario",
+      "name": "Investigation Scenario",
+      "resultType": "encounter",
+      "tags": ["investigation", "scenario"],
+      "description": "Generates a complete investigation scenario framework.",
+      "shared": {
+        "$trigger": "{{investigationTriggers}}",
+        "$setting": "{{investigationSettings}}",
+        "$entity": "{{eldritchEntityTier}}",
+        "$location": "{{hauntedLocations}}",
+        "threatRating": "{{dice:1d10}}"
+      },
+      "pattern": "## Investigation: {{$setting}}\n\n**Cosmic Threat Level:** {{$threatRating}}/10\n\n### The Hook\n\n{{$trigger}}\n\n*Personal Investment:* {{$trigger.@personal}}\n\n*Initial Urgency:* {{$trigger.@urgency}}\n\n### The Setting\n\n**Location:** {{$setting}}\n\n{{$setting.@description}}\n\n**Available Resources:** {{$setting.@resources}}\n\n**Inherent Dangers:** {{$setting.@danger}}\n\n### The Threat\n\n**Entity:** {{$entity}}\n\n{{$entity.@description}}\n\n**Motivation:** {{$entity.@motivation}}\n\n### Key Location\n\n**Primary Site:** {{$location}}\n\n**History:** {{$location.@history}}\n\n**Notable Feature:** {{$location.@feature}}\n\n### Complications\n\n{{2*unique*complications|\"; \"}}\n\n### Clues\n\n{{3*unique*strangeClues|\"; \"}}\n\n### Atmosphere\n\n*The investigation proceeds under an atmosphere that is {{investigationMood}}.*"
+    },
+    {
+      "id": "fullInvestigation",
+      "name": "Full Investigation Generator",
+      "resultType": "encounter",
+      "tags": ["investigation", "complete"],
+      "description": "Generates a comprehensive investigation with all elements.",
+      "shared": {
+        "$hook": "{{investigationTriggers}}",
+        "$setting": "{{investigationSettings}}",
+        "$primaryEntity": "{{eldritchEntityTier}}",
+        "$cult": "{{cultNames}}",
+        "$cultActivity": "{{cultActivities}}",
+        "$location1": "{{hauntedLocations}}",
+        "$location2": "{{hauntedLocations}}",
+        "$tome": "{{forbiddenTomes}}",
+        "$artifact": "{{cursedArtifacts}}",
+        "$revelation": "{{finalRevelations}}",
+        "investigatorCount": "{{dice:1d4+2}}"
+      },
+      "pattern": "# Investigation Dossier\n\n## Overview\n\n**Setting:** {{$setting}}\n\n**Recommended Investigators:** {{$investigatorCount}}\n\n**Atmospheric Tone:** {{investigationMood}}\n\n---\n\n## Act I: The Hook\n\n{{$hook}}\n\n*Urgency Level:* {{$hook.@urgency}}\n\n### Initial Clues\n\n{{2*unique*strangeClues|\"; \"}}\n\n---\n\n## Act II: Investigation\n\n### Primary Location\n\n**{{$location1}}**\n\n*History:* {{$location1.@history}}\n\n*Notable Feature:* {{$location1.@feature}}\n\n*Current Weather:* {{weatherConditions}}\n\n### Secondary Location\n\n**{{$location2}}**\n\n*History:* {{$location2.@history}}\n\n*Notable Feature:* {{$location2.@feature}}\n\n### The Cult\n\n**{{$cult}}**\n\n*Current Activity:* {{$cultActivity}}\n\n*Scale:* {{$cultActivity.@scale}}\n\n*Leader:* {{$cultLeader.@title}} — Dedication: {{$cultLeader.@dedication}}\n\n### Complications\n\n{{3*unique*complications|\"; \"}}\n\n### Dead Ends\n\n{{2*unique*deadEnds|\"; \"}}\n\n---\n\n## Act III: The Truth\n\n### The Entity\n\n**{{$primaryEntity}}**\n\n{{$primaryEntity.@description}}\n\n*Origin:* {{$primaryEntity.@origin}}\n\n*Motivation:* {{$primaryEntity.@motivation}}\n\n*Signs of Presence:* {{$primaryEntity.@signifier}}\n\n### Forbidden Knowledge\n\n**Text:** {{$tome}}\n\n*Contents:* {{$tome.@contents}}\n\n**Artifact:** {{$artifact}}\n\n*Effect:* {{$artifact.@effect}}\n\n### Witnessed Ritual\n\n{{ritualsObserved}}\n\n### Omens Before the Climax\n\n{{2*unique*ominousOmens|\"; \"}}\n\n---\n\n## The Revelation\n\n*{{$revelation}}*\n\n**Tone:** {{$revelation.@tone}}\n\n---\n\n## Aftermath\n\n### Psychological Toll\n\n{{2*unique*sanityEffects|\"; \"}}\n\n### What Remains\n\nThe investigation concludes, but {{$revelation}}"
+    },
+    {
+      "id": "npcGenerator",
+      "name": "Supporting NPC Generator",
+      "resultType": "npc",
+      "tags": ["npcs", "generator"],
+      "description": "Generates a supporting NPC with motivation and secrets.",
+      "pattern": "## Supporting Character\n\n**Name:** {{investigatorFirstNames}} {{investigatorSurnames}}\n\n**Role:** {{investigatorOccupations}}\n\n**Motivation:** {{npcMotivations}}\n\n**Secret:** {{npcSecrets}}\n\n**Reaction When Questioned:** {{witnessReactions}}"
+    },
+    {
+      "id": "multipleInvestigators",
+      "name": "Investigation Team",
+      "resultType": "npc",
+      "tags": ["investigators", "team"],
+      "description": "Generates a team of investigators with distinct roles.",
+      "shared": {
+        "$lead": "{{investigatorOccupations}}",
+        "$support1": "{{investigatorOccupations}}",
+        "$support2": "{{investigatorOccupations}}"
+      },
+      "pattern": "## Investigation Team\n\n### Lead Investigator\n\n**{{investigatorFirstNames}} {{investigatorSurnames}}**, {{$lead}}\n\n*Expertise:* {{$lead.@expertise}}\n\n*Backstory:* {{investigatorBackstory}}\n\n### Support Investigator 1\n\n**{{investigatorFirstNames}} {{investigatorSurnames}}**, {{$support1}}\n\n*Expertise:* {{$support1.@expertise}}\n\n*Phobia:* {{investigatorPhobias}}\n\n### Support Investigator 2\n\n**{{investigatorFirstNames}} {{investigatorSurnames}}**, {{$support2}}\n\n*Expertise:* {{$support2.@expertise}}\n\n*Mannerism:* {{investigatorMannerisms}}"
+    },
+    {
+      "id": "quickEncounter",
+      "name": "Quick Encounter",
+      "resultType": "encounter",
+      "tags": ["encounters", "quick"],
+      "description": "Generates a brief encounter description.",
+      "pattern": "During {{timeOfDay}}, in {{hauntedLocations}}, the investigators witness {{ominousOmens}}. {{weatherConditions}} adds to the {{atmosphericMood}} atmosphere."
+    },
+    {
+      "id": "crimeScene",
+      "name": "Crime Scene Generator",
+      "resultType": "location",
+      "tags": ["investigation", "crime"],
+      "description": "Generates a detailed crime scene with multiple clues and atmospheric elements.",
+      "shared": {
+        "bodyCount": "{{dice:1d3}}",
+        "clueCount": "{{math:$bodyCount + 2}}"
+      },
+      "pattern": "## Crime Scene Report\n\n**Bodies Found:** {{$bodyCount}}\n\n**Clues Expected:** {{$clueCount}}\n\n### Victim Conditions\n\n{{3*corpseConditions}}\n\n### Auditory Disturbances\n\n{{2*mysteriousSounds}}\n\n### Physical Evidence\n\n{{3*strangeClues}}\n\n### Atmospheric Conditions\n\n*The scene is {{atmosphericMood}}, with {{weatherConditions}}.*"
+    },
+    {
+      "id": "madnessEvent",
+      "name": "Madness Event",
+      "resultType": "effect",
+      "tags": ["horror", "sanity"],
+      "description": "Generates a madness event using the d100 table.",
+      "pattern": "## Sanity Break\n\n**Effect:** {{d100MadnessEffects}}\n\n**Severity:** Consult the d100 Madness Effects table for detailed effects.\n\n### Sanity Threshold\n\nCosmic threat level is {{$cosmicThreatLevel}}, sanity threshold is {{$sanityThreshold}}."
+    }
+  ],
+  "conditionals": [
+    {
+      "when": "$cosmicThreatLevel >= 5",
+      "action": "append",
+      "value": "\n\n> ⚠️ **HIGH COSMIC THREAT:** The veil between worlds is thin. Reality may not be reliable."
+    },
+    {
+      "when": "@rarity.value == 'rare'",
+      "action": "append",
+      "value": "\n\n*This is an extremely rare manifestation. Few who encounter such beings survive with their sanity intact.*"
+    },
+    {
+      "when": "@threatLevel.value == 'catastrophic'",
+      "action": "prepend",
+      "value": "**☠️ CATASTROPHIC THREAT ☠️**\n\n"
+    },
+    {
+      "when": "@threatLevel.value == 'extreme'",
+      "action": "append",
+      "value": "\n\n*Survival is unlikely. Escape should be prioritized over confrontation.*"
+    },
+    {
+      "when": "@personal.value == 'true'",
+      "action": "append",
+      "value": "\n\n*This investigation has deep personal stakes for at least one investigator.*"
+    }
+  ]
+}

@@ -1,0 +1,1514 @@
+{
+  "metadata": {
+    "name": "Frontier Expanse Generator",
+    "namespace": "scifi.frontier",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Stellar Creations",
+    "description": "A comprehensive **science fiction generator** for creating ships, planets, stations, characters, and cosmic phenomena. Perfect for generating descriptive content for space opera settings.",
+    "instructions": "Use the templates to generate complete descriptions, or roll on individual tables for specific elements. Tables prefixed with common terms can be combined using the collection tables.",
+    "tags": ["sci-fi", "space", "generator", "worldbuilding", "descriptive"],
+    "created": "2025-01-15T00:00:00Z",
+    "updated": "2025-01-15T00:00:00Z",
+    "source": {
+      "license": "CC BY 4.0",
+      "copyright": {
+        "year": "2025",
+        "holder": "Stellar Creations",
+        "notice": "Licensed under Creative Commons Attribution 4.0"
+      }
+    },
+    "rights": {
+      "type": "open-content",
+      "permissions": {
+        "commercialUse": true,
+        "modification": true,
+        "redistribution": true,
+        "derivativeWorks": true,
+        "attributionRequired": true
+      }
+    },
+    "maxRecursionDepth": 30,
+    "maxInheritanceDepth": 5
+  },
+  "variables": {
+    "settingName": "The Frontier Expanse",
+    "defaultSeparator": ", ",
+    "era": "Post-Expansion"
+  },
+  "shared": {
+    "systemAge": "{{dice:1d10+2}}",
+    "$dominantFaction": "{{factions}}",
+    "tradeRouteStatus": "{{tradeStatus}}"
+  },
+  "tables": [
+    {
+      "id": "shipPrefixes",
+      "name": "Ship Prefixes",
+      "type": "simple",
+      "hidden": true,
+      "description": "Registry prefixes for spacecraft",
+      "resultType": "name",
+      "entries": [
+        { "value": "ISV", "sets": { "meaning": "Interstellar Vessel" } },
+        { "value": "CSV", "sets": { "meaning": "Commercial Space Vessel" } },
+        { "value": "HMS", "sets": { "meaning": "Hegemony Military Ship" } },
+        { "value": "FTV", "sets": { "meaning": "Free Trader Vessel" } },
+        { "value": "RSV", "sets": { "meaning": "Research Science Vessel" } },
+        { "value": "XCV", "sets": { "meaning": "Experimental Craft Vessel" } }
+      ]
+    },
+    {
+      "id": "shipNameFirst",
+      "name": "Ship Name - First Part",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Stellar" },
+        { "value": "Void" },
+        { "value": "Crimson" },
+        { "value": "Silver" },
+        { "value": "Dark" },
+        { "value": "Quantum" },
+        { "value": "Eternal" },
+        { "value": "Distant" },
+        { "value": "Iron" },
+        { "value": "Golden" },
+        { "value": "Burning" },
+        { "value": "Silent" },
+        { "value": "Swift" },
+        { "value": "Wandering" },
+        { "value": "Fallen" }
+      ]
+    },
+    {
+      "id": "shipNameSecond",
+      "name": "Ship Name - Second Part",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Horizon" },
+        { "value": "Dream" },
+        { "value": "Fortune" },
+        { "value": "Destiny" },
+        { "value": "Phoenix" },
+        { "value": "Serpent" },
+        { "value": "Crown" },
+        { "value": "Pilgrim" },
+        { "value": "Marauder" },
+        { "value": "Endeavor" },
+        { "value": "Spirit" },
+        { "value": "Tempest" },
+        { "value": "Promise" },
+        { "value": "Fury" },
+        { "value": "Voyager" }
+      ]
+    },
+    {
+      "id": "shipClasses",
+      "name": "Ship Classes",
+      "type": "simple",
+      "description": "Classification of spacecraft by size and role",
+      "resultType": "description",
+      "tags": ["ships", "classification"],
+      "entries": [
+        {
+          "id": "shuttle",
+          "value": "Shuttle",
+          "weight": 4,
+          "description": "Small short-range craft",
+          "sets": {
+            "size": "tiny",
+            "crew": "{{dice:1d4}}",
+            "silhouette": "compact, angular hull with stubby wings"
+          }
+        },
+        {
+          "id": "corvette",
+          "value": "Corvette",
+          "weight": 3,
+          "description": "Fast, light vessel",
+          "sets": {
+            "size": "small",
+            "crew": "{{dice:2d6+5}}",
+            "silhouette": "sleek, needle-like hull with swept-back fins"
+          }
+        },
+        {
+          "id": "freighter",
+          "value": "Freighter",
+          "weight": 5,
+          "description": "Cargo transport vessel",
+          "sets": {
+            "size": "medium",
+            "crew": "{{dice:2d6+10}}",
+            "silhouette": "blocky, utilitarian hull with external cargo pods"
+          }
+        },
+        {
+          "id": "cruiser",
+          "value": "Cruiser",
+          "weight": 2,
+          "description": "Multi-purpose capital ship",
+          "sets": {
+            "size": "large",
+            "crew": "{{dice:4d20+50}}",
+            "silhouette": "imposing, wedge-shaped hull bristling with sensor arrays"
+          }
+        },
+        {
+          "id": "dreadnought",
+          "value": "Dreadnought",
+          "weight": 1,
+          "description": "Massive warship",
+          "sets": {
+            "size": "massive",
+            "crew": "{{dice:10d100+500}}",
+            "silhouette": "colossal, fortress-like hull spanning kilometers"
+          }
+        }
+      ]
+    },
+    {
+      "id": "shipConditions",
+      "name": "Ship Conditions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["ships", "condition"],
+      "defaultSets": {
+        "repairNeeded": "false"
+      },
+      "entries": [
+        {
+          "value": "pristine, fresh from the shipyard with that new-vessel gleam",
+          "weight": 1,
+          "sets": { "age": "new" }
+        },
+        {
+          "value": "well-maintained with only minor cosmetic wear",
+          "weight": 3,
+          "sets": { "age": "moderate" }
+        },
+        {
+          "value": "showing years of hard service with patched hull sections",
+          "weight": 4,
+          "sets": { "age": "old", "repairNeeded": "true" }
+        },
+        {
+          "value": "battle-scarred and held together by desperate repairs",
+          "weight": 2,
+          "sets": { "age": "ancient", "repairNeeded": "true" }
+        },
+        {
+          "value": "a frankenstein of salvaged parts from multiple vessels",
+          "weight": 1,
+          "sets": { "age": "mixed", "repairNeeded": "true" }
+        }
+      ]
+    },
+    {
+      "id": "shipQuirks",
+      "name": "Ship Quirks",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["ships", "flavor"],
+      "entries": [
+        { "value": "The navigation computer has developed an oddly sarcastic personality." },
+        { "value": "Strange harmonic vibrations occur during FTL transit." },
+        { "value": "The previous owner's exotic pet left permanent claw marks everywhere." },
+        { "value": "The ship's AI insists on playing classical music during docking procedures." },
+        { "value": "One cargo bay has a persistent zero-gravity malfunction." },
+        { "value": "The hull makes unsettling groaning sounds when cooling down." },
+        { "value": "A faint smell of ozone permeates the engineering section." },
+        { "value": "The emergency lights flicker on and off at random intervals." },
+        { "value": "All displays show a slight purple tint that no one can fix." },
+        { "value": "The captain's chair squeaks loudly with every movement." },
+        { "value": "Roll twice for multiple quirks: {{2*unique*again|\" Additionally, \"}}.", "weight": 1 }
+      ]
+    },
+    {
+      "id": "planetTypes",
+      "name": "Planet Types",
+      "type": "simple",
+      "description": "Classifications of planetary bodies",
+      "resultType": "description",
+      "tags": ["planets", "worlds"],
+      "entries": [
+        {
+          "id": "terrestrial",
+          "value": "Terrestrial World",
+          "weight": 4,
+          "sets": {
+            "atmosphere": "{{terrestrialAtmospheres}}",
+            "surfaceDesc": "{{terrestrialSurfaces}}",
+            "skyColor": "{{skyColors}}"
+          }
+        },
+        {
+          "id": "oceanic",
+          "value": "Ocean World",
+          "weight": 2,
+          "sets": {
+            "atmosphere": "thick, humid atmosphere laden with salt spray",
+            "surfaceDesc": "endless waves and scattered archipelagos",
+            "skyColor": "perpetually gray-blue"
+          }
+        },
+        {
+          "id": "desert",
+          "value": "Desert World",
+          "weight": 3,
+          "sets": {
+            "atmosphere": "thin, dusty atmosphere that glows orange at sunset",
+            "surfaceDesc": "vast dune seas and exposed bedrock mesas",
+            "skyColor": "pale amber"
+          }
+        },
+        {
+          "id": "ice",
+          "value": "Ice World",
+          "weight": 2,
+          "sets": {
+            "atmosphere": "biting cold atmosphere with perpetual ice crystals",
+            "surfaceDesc": "glacial plains and frozen methane lakes",
+            "skyColor": "pale white"
+          }
+        },
+        {
+          "id": "jungle",
+          "value": "Jungle World",
+          "weight": 2,
+          "sets": {
+            "atmosphere": "thick, steamy atmosphere rich with spores",
+            "surfaceDesc": "continent-spanning megaflora forests",
+            "skyColor": "hazy green"
+          }
+        },
+        {
+          "id": "volcanic",
+          "value": "Volcanic World",
+          "weight": 1,
+          "sets": {
+            "atmosphere": "choking atmosphere filled with ash and sulfur",
+            "surfaceDesc": "rivers of lava and obsidian plains",
+            "skyColor": "angry red-orange"
+          }
+        },
+        {
+          "id": "gas",
+          "value": "Gas Giant",
+          "weight": 2,
+          "sets": {
+            "atmosphere": "crushing layers of hydrogen and helium",
+            "surfaceDesc": "no solid surface, only deepening cloud layers",
+            "skyColor": "banded with storms"
+          }
+        }
+      ]
+    },
+    {
+      "id": "terrestrialAtmospheres",
+      "name": "Terrestrial Atmospheres",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "breathable atmosphere with a slight metallic tang" },
+        { "value": "thin atmosphere requiring supplemental oxygen" },
+        { "value": "dense atmosphere that makes voices sound oddly deep" },
+        { "value": "pristine atmosphere reminiscent of mountain air" },
+        { "value": "slightly toxic atmosphere requiring filter masks outdoors" }
+      ]
+    },
+    {
+      "id": "terrestrialSurfaces",
+      "name": "Terrestrial Surfaces",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "rolling grasslands dotted with crystalline rock formations" },
+        { "value": "mountainous terrain with deep valleys and rushing rivers" },
+        { "value": "sparse vegetation on reddish soil" },
+        { "value": "lush forests interspersed with mirror-flat lakes" },
+        { "value": "jagged canyon systems carved by ancient waterways" }
+      ]
+    },
+    {
+      "id": "skyColors",
+      "name": "Sky Colors",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "deep cerulean blue" },
+        { "value": "pale lavender" },
+        { "value": "greenish-gold" },
+        { "value": "burnt orange" },
+        { "value": "pearlescent white" }
+      ]
+    },
+    {
+      "id": "planetaryFeatures",
+      "name": "Planetary Features",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["planets", "features"],
+      "entries": [
+        { "value": "A massive ring system visible from the surface, painting the sky with bands of light." },
+        { "value": "Twin moons that create dramatic tidal effects and eclipse events." },
+        { "value": "Ancient alien ruins scattered across the northern continent." },
+        { "value": "A colossal impact crater visible from orbit, now home to a unique ecosystem." },
+        { "value": "Bioluminescent organisms that make the night glow in shifting colors." },
+        { "value": "Floating islands held aloft by deposits of anti-gravity minerals." },
+        { "value": "Massive electromagnetic storms that circle the equator perpetually." },
+        { "value": "Crystal forests that chime in the wind, audible for kilometers." },
+        { "value": "Underground ocean accessible through vast cave networks." },
+        { "value": "Migrating continent-sized organisms that reshape the geography." }
+      ]
+    },
+    {
+      "id": "settlementSizes",
+      "name": "Settlement Sizes",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["settlements"],
+      "entries": [
+        {
+          "id": "outpost",
+          "value": "outpost",
+          "range": [1, 25],
+          "sets": { "population": "{{dice:2d20}}", "description": "a handful of prefab structures" }
+        },
+        {
+          "id": "colony",
+          "value": "colony",
+          "range": [26, 55],
+          "sets": { "population": "{{dice:2d6*100}}", "description": "organized streets and essential services" }
+        },
+        {
+          "id": "settlement",
+          "value": "settlement",
+          "range": [56, 75],
+          "sets": { "population": "{{dice:2d6*1000}}", "description": "a proper small city with districts" }
+        },
+        {
+          "id": "metropolis",
+          "value": "metropolis",
+          "range": [76, 90],
+          "sets": { "population": "{{dice:2d6*100000}}", "description": "towering spires and bustling commerce" }
+        },
+        {
+          "id": "megacity",
+          "value": "megacity",
+          "range": [91, 100],
+          "sets": { "population": "{{dice:2d6*1000000}}", "description": "an arcology spanning the horizon" }
+        }
+      ]
+    },
+    {
+      "id": "stationTypes",
+      "name": "Space Station Types",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["stations", "locations"],
+      "defaultSets": {
+        "gravity": "artificial rotation"
+      },
+      "entries": [
+        {
+          "value": "Trade Hub",
+          "weight": 4,
+          "sets": {
+            "purpose": "commerce",
+            "atmosphere": "bustling markets and haggling merchants",
+            "architecture": "modular cargo bays surrounding a central promenade"
+          }
+        },
+        {
+          "value": "Mining Platform",
+          "weight": 3,
+          "sets": {
+            "purpose": "extraction",
+            "atmosphere": "industrial grime and exhausted workers",
+            "architecture": "sprawling refineries attached to asteroid moorings"
+          }
+        },
+        {
+          "value": "Research Facility",
+          "weight": 2,
+          "sets": {
+            "purpose": "science",
+            "atmosphere": "sterile corridors and hushed laboratories",
+            "architecture": "clean lines and isolated containment sections"
+          }
+        },
+        {
+          "value": "Luxury Resort",
+          "weight": 1,
+          "sets": {
+            "purpose": "entertainment",
+            "atmosphere": "opulent excess and wealthy clientele",
+            "architecture": "sweeping crystal viewports and gilded surfaces"
+          }
+        },
+        {
+          "value": "Waystation",
+          "weight": 3,
+          "sets": {
+            "purpose": "transit",
+            "atmosphere": "transient crowds and flickering departure boards",
+            "architecture": "efficient docking arms and minimal amenities"
+          }
+        },
+        {
+          "value": "Military Outpost",
+          "weight": 2,
+          "sets": {
+            "purpose": "defense",
+            "atmosphere": "rigid discipline and constant readiness",
+            "architecture": "armored hull sections and restricted zones",
+            "gravity": "variable gravity for training"
+          }
+        },
+        {
+          "value": "Salvage Yard",
+          "weight": 2,
+          "sets": {
+            "purpose": "recycling",
+            "atmosphere": "the smell of old metal and opportunities",
+            "architecture": "chaotic sprawl of docked hulks and cutting bays"
+          }
+        }
+      ]
+    },
+    {
+      "id": "stationConditions",
+      "name": "Station Conditions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["stations", "condition"],
+      "entries": [
+        { "value": "thriving, with expansion modules being added regularly", "sets": { "status": "growing" } },
+        { "value": "stable, maintaining the same population for decades", "sets": { "status": "stable" } },
+        { "value": "declining, with vacant sections and failing systems", "sets": { "status": "declining" } },
+        { "value": "newly established, still smelling of fresh sealant", "sets": { "status": "new" } },
+        { "value": "recovering from a recent crisis that left visible scars", "sets": { "status": "recovering" } }
+      ]
+    },
+    {
+      "id": "alienSpeciesAppearance",
+      "name": "Alien Species Appearance",
+      "type": "simple",
+      "description": "Physical descriptions of alien beings",
+      "resultType": "description",
+      "tags": ["aliens", "species", "appearance"],
+      "entries": [
+        {
+          "value": "Tall and willowy with luminescent skin that shifts between pale blue and silver",
+          "sets": { "bodyType": "humanoid", "distinctFeature": "bioluminescence" }
+        },
+        {
+          "value": "Compact and sturdy with four arms and chitinous plating in earthy browns",
+          "sets": { "bodyType": "insectoid", "distinctFeature": "multiple limbs" }
+        },
+        {
+          "value": "Serpentine lower body with a humanoid torso, scales in iridescent greens",
+          "sets": { "bodyType": "serpentine", "distinctFeature": "no legs" }
+        },
+        {
+          "value": "Avian features with vestigial wings and feathers ranging from crimson to gold",
+          "sets": { "bodyType": "avian", "distinctFeature": "decorative plumage" }
+        },
+        {
+          "value": "Amorphous form that can reshape at will, typically appearing as a shifting mass of translucent gel",
+          "sets": { "bodyType": "amorphous", "distinctFeature": "shapeshifting" }
+        },
+        {
+          "value": "Crystalline body structure that refracts light into rainbows, no discernible face",
+          "sets": { "bodyType": "mineral", "distinctFeature": "silicon-based" }
+        },
+        {
+          "value": "Feline grace with sleek fur patterns and large, reflective eyes adapted for low light",
+          "sets": { "bodyType": "mammalian", "distinctFeature": "enhanced senses" }
+        },
+        {
+          "value": "Aquatic adaptation with gills, webbed appendages, and skin in deep ocean blues",
+          "sets": { "bodyType": "aquatic", "distinctFeature": "amphibious" }
+        }
+      ]
+    },
+    {
+      "id": "alienCulturalTraits",
+      "name": "Alien Cultural Traits",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["aliens", "culture"],
+      "entries": [
+        { "value": "communicate primarily through color changes and bioluminescent patterns" },
+        { "value": "consider individual names taboo, referring to each other by role and lineage" },
+        { "value": "practice elaborate gift-giving rituals that determine social standing" },
+        { "value": "experience time non-linearly and speak of past and future interchangeably" },
+        { "value": "share a limited hive-mind connection with close family members" },
+        { "value": "express emotion through scent rather than facial expressions" },
+        { "value": "consider lying physically impossible and are easily deceived by other species" },
+        { "value": "hibernate for one month each year during their species' ancestral spawning season" },
+        { "value": "revere silence as sacred and conduct important business in complete quiet" },
+        { "value": "age in reverse, born with full knowledge that fades as they grow younger" }
+      ]
+    },
+    {
+      "id": "humanAppearanceBase",
+      "name": "Human Appearance - Base",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["humans", "appearance"],
+      "defaultSets": {
+        "species": "human"
+      },
+      "entries": [
+        {
+          "id": "stocky",
+          "value": "stocky and broad-shouldered",
+          "sets": { "build": "heavy" }
+        },
+        {
+          "id": "tall",
+          "value": "tall and lean",
+          "sets": { "build": "thin" }
+        },
+        {
+          "id": "average",
+          "value": "average height with a wiry build",
+          "sets": { "build": "average" }
+        },
+        {
+          "id": "compact",
+          "value": "compact and muscular",
+          "sets": { "build": "athletic" }
+        },
+        {
+          "id": "lanky",
+          "value": "lanky with elongated limbs from low-gravity upbringing",
+          "sets": { "build": "spacer" }
+        }
+      ]
+    },
+    {
+      "id": "humanAppearanceEnhanced",
+      "name": "Human Appearance - Enhanced",
+      "type": "simple",
+      "extends": "humanAppearanceBase",
+      "resultType": "description",
+      "tags": ["humans", "appearance", "enhanced"],
+      "entries": [
+        {
+          "id": "stocky",
+          "value": "stocky and broad-shouldered with visible cybernetic reinforcement"
+        },
+        {
+          "id": "lanky",
+          "value": "lanky with elongated limbs and subtle genetic optimization markers"
+        },
+        {
+          "id": "synthetic",
+          "value": "entirely synthetic, with a humanoid form of polished chrome and soft polymers",
+          "sets": { "build": "artificial", "species": "synthetic" }
+        }
+      ]
+    },
+    {
+      "id": "characterDistinguishingFeatures",
+      "name": "Distinguishing Features",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["characters", "appearance"],
+      "entries": [
+        { "value": "a prominent scar running across {{scarLocations}}" },
+        { "value": "heterochromatic eyes - one {{eyeColors}}, one {{eyeColors}}" },
+        { "value": "intricate tattoos depicting {{tattooSubjects}}" },
+        { "value": "a visible cybernetic {{cyberneticParts}}" },
+        { "value": "prematurely gray hair despite apparent youth" },
+        { "value": "an ever-present {{accessoryItems}}" },
+        { "value": "unusual skin pigmentation in shades of {{skinTones}}" },
+        { "value": "hands that never seem to stop moving, always fidgeting" },
+        { "value": "a distinctive accent from the {{regionNames}} colonies" },
+        { "value": "old burn marks partially hidden by clothing" }
+      ]
+    },
+    {
+      "id": "scarLocations",
+      "name": "Scar Locations",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "the left cheek" },
+        { "value": "the forehead" },
+        { "value": "the bridge of the nose" },
+        { "value": "the jawline" },
+        { "value": "the back of the hand" }
+      ]
+    },
+    {
+      "id": "eyeColors",
+      "name": "Eye Colors",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "deep brown" },
+        { "value": "pale gray" },
+        { "value": "vivid green" },
+        { "value": "artificial chrome" },
+        { "value": "luminous amber" },
+        { "value": "striking violet" }
+      ]
+    },
+    {
+      "id": "tattooSubjects",
+      "name": "Tattoo Subjects",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "star charts and navigation markers" },
+        { "value": "a former ship's crew roster" },
+        { "value": "memorial names of the fallen" },
+        { "value": "abstract geometric patterns" },
+        { "value": "bioluminescent circuitry designs" },
+        { "value": "a coiled serpent motif" }
+      ]
+    },
+    {
+      "id": "cyberneticParts",
+      "name": "Cybernetic Parts",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "arm with exposed servo-joints" },
+        { "value": "eye with a faintly glowing iris" },
+        { "value": "throat speaker replacing natural voice" },
+        { "value": "hand with too-precise movements" },
+        { "value": "leg with an industrial-grade build" },
+        { "value": "neural interface port at the temple" }
+      ]
+    },
+    {
+      "id": "accessoryItems",
+      "name": "Accessory Items",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "item",
+      "entries": [
+        { "value": "worn leather flight jacket" },
+        { "value": "tinted visor obscuring the eyes" },
+        { "value": "antique pocket watch on a chain" },
+        { "value": "military dog tags from a forgotten war" },
+        { "value": "religious medallion from an obscure faith" },
+        { "value": "data-slate that's never put down" }
+      ]
+    },
+    {
+      "id": "skinTones",
+      "name": "Skin Tones",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "deep blue from colonial gene therapy" },
+        { "value": "metallic bronze from radiation adaptation" },
+        { "value": "pale white from underground living" },
+        { "value": "warm copper from high-UV worlds" },
+        { "value": "faint gray from prolonged space habitation" }
+      ]
+    },
+    {
+      "id": "regionNames",
+      "name": "Region Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Outer Rim" },
+        { "value": "Coreward" },
+        { "value": "Spinward March" },
+        { "value": "Terminus" },
+        { "value": "Kepler Sector" },
+        { "value": "Frontier" }
+      ]
+    },
+    {
+      "id": "characterDemeanors",
+      "name": "Character Demeanors",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["characters", "personality"],
+      "entries": [
+        { "value": "speaks in clipped, efficient sentences", "sets": { "communication": "terse" } },
+        { "value": "laughs easily and finds humor in dark situations", "sets": { "communication": "jovial" } },
+        { "value": "maintains an unsettling stillness when listening", "sets": { "communication": "intense" } },
+        { "value": "constantly checks exits and keeps back to walls", "sets": { "communication": "paranoid" } },
+        { "value": "uses elaborate hand gestures when speaking", "sets": { "communication": "expressive" } },
+        { "value": "pauses thoughtfully before each response", "sets": { "communication": "measured" } },
+        { "value": "interrupts frequently with tangential observations", "sets": { "communication": "scattered" } },
+        { "value": "maintains formal speech patterns regardless of situation", "sets": { "communication": "formal" } }
+      ]
+    },
+    {
+      "id": "characterMotivations",
+      "name": "Character Motivations",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["characters", "motivation"],
+      "entries": [
+        { "value": "seeking revenge for a wrong committed decades ago" },
+        { "value": "trying to earn enough credits to buy back a family debt" },
+        { "value": "searching for a missing sibling lost during the last war" },
+        { "value": "running from a past identity that refuses to stay buried" },
+        { "value": "collecting specimens for a personal research obsession" },
+        { "value": "hoping to find a legendary location from old spacer tales" },
+        { "value": "working to expose corruption in a powerful organization" },
+        { "value": "simply trying to survive one more day in a hostile universe" },
+        { "value": "pursuing an art form that requires travel to master" },
+        { "value": "fulfilling a promise made to someone now dead" }
+      ]
+    },
+    {
+      "id": "factions",
+      "name": "Factions",
+      "type": "simple",
+      "description": "Major power groups in the setting",
+      "resultType": "faction",
+      "tags": ["factions", "organizations"],
+      "entries": [
+        {
+          "value": "The Stellar Hegemony",
+          "sets": {
+            "type": "government",
+            "description": "The remnant of the old empire, clinging to authority through bureaucracy",
+            "colors": "silver and deep purple",
+            "symbol": "a crowned star"
+          }
+        },
+        {
+          "value": "Free Traders' Consortium",
+          "sets": {
+            "type": "commercial",
+            "description": "An alliance of independent merchants who value profit and freedom",
+            "colors": "gold and green",
+            "symbol": "interlocked rings"
+          }
+        },
+        {
+          "value": "The Reclamation",
+          "sets": {
+            "type": "religious",
+            "description": "A faith dedicated to restoring humanity's lost homeworld",
+            "colors": "white and earth brown",
+            "symbol": "a blue sphere"
+          }
+        },
+        {
+          "value": "Syndicate of Shadows",
+          "sets": {
+            "type": "criminal",
+            "description": "A galaxy-spanning criminal organization with legitimate fronts",
+            "colors": "black and crimson",
+            "symbol": "a masked face"
+          }
+        },
+        {
+          "value": "The Ascendancy Collective",
+          "sets": {
+            "type": "transhumanist",
+            "description": "Those who believe humanity must evolve beyond flesh",
+            "colors": "chrome and electric blue",
+            "symbol": "a rising circuit pattern"
+          }
+        },
+        {
+          "value": "Frontier Defense League",
+          "sets": {
+            "type": "military",
+            "description": "Colonists banded together to protect the outer worlds",
+            "colors": "tan and orange",
+            "symbol": "a raised fist holding a star"
+          }
+        }
+      ]
+    },
+    {
+      "id": "corporationPrefixes",
+      "name": "Corporation Prefixes",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Apex" },
+        { "value": "Nova" },
+        { "value": "Quantum" },
+        { "value": "Stellar" },
+        { "value": "Omni" },
+        { "value": "Trans" },
+        { "value": "Exo" },
+        { "value": "Mega" },
+        { "value": "Core" },
+        { "value": "Astral" }
+      ]
+    },
+    {
+      "id": "corporationSuffixes",
+      "name": "Corporation Suffixes",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Corp" },
+        { "value": "Industries" },
+        { "value": "Dynamics" },
+        { "value": "Systems" },
+        { "value": "Solutions" },
+        { "value": "Holdings" },
+        { "value": "Interstellar" },
+        { "value": "Enterprises" },
+        { "value": "Consortium" },
+        { "value": "Unlimited" }
+      ]
+    },
+    {
+      "id": "corporationSpecialties",
+      "name": "Corporation Specialties",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "starship manufacturing", "sets": { "sector": "industrial" } },
+        { "value": "weapons development", "sets": { "sector": "military" } },
+        { "value": "terraforming technology", "sets": { "sector": "colonial" } },
+        { "value": "genetic modification services", "sets": { "sector": "biotech" } },
+        { "value": "luxury goods and entertainment", "sets": { "sector": "consumer" } },
+        { "value": "data brokerage and security", "sets": { "sector": "information" } },
+        { "value": "mining and resource extraction", "sets": { "sector": "extraction" } },
+        { "value": "medical and pharmaceutical products", "sets": { "sector": "healthcare" } }
+      ]
+    },
+    {
+      "id": "anomalyTypes",
+      "name": "Space Anomaly Types",
+      "type": "simple",
+      "description": "Strange phenomena encountered in deep space",
+      "resultType": "encounter",
+      "tags": ["space", "anomalies", "phenomena"],
+      "entries": [
+        {
+          "value": "a gravitational eddy that pulls ships off course",
+          "weight": 3,
+          "sets": { "dangerLevel": "low", "visualDesc": "visible only as distorted starlight" }
+        },
+        {
+          "value": "a nebula cloud crackling with exotic radiation",
+          "weight": 3,
+          "sets": { "dangerLevel": "medium", "visualDesc": "swirling colors of violet and gold" }
+        },
+        {
+          "value": "the wreckage of an ancient vessel of unknown design",
+          "weight": 2,
+          "sets": { "dangerLevel": "variable", "visualDesc": "geometric shapes that hurt to look at directly" }
+        },
+        {
+          "value": "a stable wormhole leading to unknown coordinates",
+          "weight": 1,
+          "sets": { "dangerLevel": "high", "visualDesc": "a perfect circle of absolute darkness ringed with light" }
+        },
+        {
+          "value": "a rogue planet drifting through the void",
+          "weight": 2,
+          "sets": { "dangerLevel": "low", "visualDesc": "a dark sphere occluding distant stars" }
+        },
+        {
+          "value": "crystalline structures growing in vacuum defying known physics",
+          "weight": 1,
+          "sets": { "dangerLevel": "unknown", "visualDesc": "impossible geometries refracting starlight" }
+        },
+        {
+          "value": "a region where electronics behave erratically",
+          "weight": 2,
+          "sets": { "dangerLevel": "medium", "visualDesc": "appears normal until you enter" }
+        },
+        {
+          "value": "the ghostly image of ships that aren't really there",
+          "weight": 1,
+          "sets": { "dangerLevel": "low", "visualDesc": "translucent vessels that fade when approached" }
+        }
+      ]
+    },
+    {
+      "id": "cargoCommon",
+      "name": "Common Cargo",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["cargo", "trade", "common"],
+      "defaultSets": {
+        "rarity": "common",
+        "legality": "legal"
+      },
+      "entries": [
+        { "value": "processed foodstuffs", "sets": { "category": "consumables" } },
+        { "value": "water purification supplies", "sets": { "category": "essentials" } },
+        { "value": "textiles and clothing", "sets": { "category": "consumer goods" } },
+        { "value": "basic machinery parts", "sets": { "category": "industrial" } },
+        { "value": "entertainment media chips", "sets": { "category": "data" } },
+        { "value": "agricultural seed stock", "sets": { "category": "colonial" } },
+        { "value": "construction materials", "sets": { "category": "industrial" } },
+        { "value": "medical supplies", "sets": { "category": "essentials" } }
+      ]
+    },
+    {
+      "id": "cargoValuable",
+      "name": "Valuable Cargo",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["cargo", "trade", "valuable"],
+      "defaultSets": {
+        "rarity": "uncommon",
+        "legality": "legal"
+      },
+      "entries": [
+        { "value": "rare earth elements", "sets": { "category": "minerals" } },
+        { "value": "precision scientific instruments", "sets": { "category": "technology" } },
+        { "value": "luxury foods and wines", "sets": { "category": "consumables" } },
+        { "value": "genetic samples from exotic worlds", "sets": { "category": "biotech" } },
+        { "value": "ancient artifacts for collectors", "sets": { "category": "antiquities" } },
+        { "value": "encrypted data cores", "sets": { "category": "data" } }
+      ]
+    },
+    {
+      "id": "cargoRestricted",
+      "name": "Restricted Cargo",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["cargo", "trade", "restricted"],
+      "defaultSets": {
+        "rarity": "rare",
+        "legality": "restricted"
+      },
+      "entries": [
+        { "value": "unregistered AI cores", "sets": { "category": "technology", "legality": "illegal" } },
+        { "value": "military-grade cybernetics", "sets": { "category": "military" } },
+        { "value": "psionic enhancement drugs", "sets": { "category": "pharmaceuticals" } },
+        { "value": "pre-collapse technology", "sets": { "category": "antiquities" } },
+        { "value": "cloned organ shipments", "sets": { "category": "biotech" } },
+        { "value": "xeno-archaeological finds", "sets": { "category": "antiquities", "legality": "permit required" } }
+      ]
+    },
+    {
+      "id": "cargoByRarity",
+      "name": "Cargo by Rarity",
+      "type": "composite",
+      "description": "Select cargo with weighted probability by rarity tier",
+      "resultType": "item",
+      "tags": ["cargo", "trade"],
+      "sources": [
+        { "tableId": "cargoCommon", "weight": 7 },
+        { "tableId": "cargoValuable", "weight": 2 },
+        { "tableId": "cargoRestricted", "weight": 1 }
+      ]
+    },
+    {
+      "id": "allCargo",
+      "name": "All Cargo Types",
+      "type": "collection",
+      "description": "Combined pool of all cargo types",
+      "resultType": "item",
+      "tags": ["cargo", "trade"],
+      "collections": ["cargoCommon", "cargoValuable", "cargoRestricted"]
+    },
+    {
+      "id": "tradeStatus",
+      "name": "Trade Route Status",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "thriving with regular traffic" },
+        { "value": "disrupted by recent pirate activity" },
+        { "value": "newly established and seeking traders" },
+        { "value": "monopolized by a single corporation" },
+        { "value": "dangerous due to unstable jump points" }
+      ]
+    },
+    {
+      "id": "starTypes",
+      "name": "Star Types",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["stars", "astronomy"],
+      "entries": [
+        {
+          "value": "yellow dwarf",
+          "weight": 5,
+          "sets": { "color": "warm yellow", "habitableZone": "moderate distance" }
+        },
+        {
+          "value": "red dwarf",
+          "weight": 6,
+          "sets": { "color": "dim red-orange", "habitableZone": "very close" }
+        },
+        {
+          "value": "orange giant",
+          "weight": 2,
+          "sets": { "color": "brilliant orange", "habitableZone": "distant" }
+        },
+        {
+          "value": "blue supergiant",
+          "weight": 1,
+          "sets": { "color": "blazing blue-white", "habitableZone": "extremely distant" }
+        },
+        {
+          "value": "binary pair",
+          "weight": 2,
+          "sets": { "color": "dancing shadows from two suns", "habitableZone": "complex patterns" }
+        },
+        {
+          "value": "white dwarf",
+          "weight": 1,
+          "sets": { "color": "pale white", "habitableZone": "none - too dim" }
+        }
+      ]
+    },
+    {
+      "id": "systemFeatures",
+      "name": "Star System Features",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["systems", "features"],
+      "entries": [
+        { "value": "A dense asteroid belt rich in minerals." },
+        { "value": "Multiple gas giants with extensive moon systems." },
+        { "value": "An Oort cloud unusually close to the inner system." },
+        { "value": "Evidence of ancient megastructure construction." },
+        { "value": "Unusual electromagnetic emissions from an unknown source." },
+        { "value": "A Lagrange point station serving as a trade hub." },
+        { "value": "Debris from a recent or ancient space battle." },
+        { "value": "A comet with a spectacular multi-colored tail." },
+        { "value": "Tidally locked worlds with extreme temperature gradients." },
+        { "value": "A Dyson swarm in early construction phases." }
+      ]
+    },
+    {
+      "id": "firstNames",
+      "name": "First Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Kira" },
+        { "value": "Marcus" },
+        { "value": "Zara" },
+        { "value": "Jax" },
+        { "value": "Elena" },
+        { "value": "Renn" },
+        { "value": "Thalia" },
+        { "value": "Orion" },
+        { "value": "Sage" },
+        { "value": "Dex" },
+        { "value": "Nova" },
+        { "value": "Cole" },
+        { "value": "Lyra" },
+        { "value": "Kael" },
+        { "value": "Mira" },
+        { "value": "Finn" },
+        { "value": "Vex" },
+        { "value": "Aria" },
+        { "value": "Zeke" },
+        { "value": "Quinn" }
+      ]
+    },
+    {
+      "id": "surnames",
+      "name": "Surnames",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Vance" },
+        { "value": "Reyes" },
+        { "value": "Chen" },
+        { "value": "Okonkwo" },
+        { "value": "Volkov" },
+        { "value": "Tanaka" },
+        { "value": "Blackwood" },
+        { "value": "Santos" },
+        { "value": "Cross" },
+        { "value": "Moreau" },
+        { "value": "Starkiller" },
+        { "value": "Voidwalker" },
+        { "value": "Ashford" },
+        { "value": "Kowalski" },
+        { "value": "Drake" },
+        { "value": "Meridian" },
+        { "value": "Frost" },
+        { "value": "Kaine" },
+        { "value": "Shepherd" },
+        { "value": "Zhao" }
+      ]
+    },
+    {
+      "id": "nicknames",
+      "name": "Nicknames",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Ghost" },
+        { "value": "Wrench" },
+        { "value": "Lucky" },
+        { "value": "Patches" },
+        { "value": "Cipher" },
+        { "value": "Junker" },
+        { "value": "Doc" },
+        { "value": "Ace" },
+        { "value": "Sparks" },
+        { "value": "Twitch" },
+        { "value": "Zero" },
+        { "value": "Raven" }
+      ]
+    },
+    {
+      "id": "professions",
+      "name": "Professions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["characters", "professions"],
+      "entries": [
+        { "value": "independent freighter pilot", "sets": { "skill": "navigation" } },
+        { "value": "station maintenance technician", "sets": { "skill": "repair" } },
+        { "value": "xenobiologist studying alien life", "sets": { "skill": "science" } },
+        { "value": "freelance security contractor", "sets": { "skill": "combat" } },
+        { "value": "data broker specializing in corporate secrets", "sets": { "skill": "information" } },
+        { "value": "salvage operator hunting derelicts", "sets": { "skill": "scavenging" } },
+        { "value": "medical officer on a frontier station", "sets": { "skill": "medicine" } },
+        { "value": "entertainment performer traveling between worlds", "sets": { "skill": "performance" } },
+        { "value": "colonial administrator managing settlements", "sets": { "skill": "leadership" } },
+        { "value": "jump drive engineer keeping ships moving", "sets": { "skill": "engineering" } }
+      ]
+    },
+    {
+      "id": "allCharacterAppearances",
+      "name": "All Character Appearances",
+      "type": "collection",
+      "description": "Combined pool of human and enhanced human appearances",
+      "resultType": "description",
+      "collections": ["humanAppearanceBase", "humanAppearanceEnhanced"]
+    },
+    {
+      "id": "weatherConditions",
+      "name": "Weather Conditions",
+      "type": "simple",
+      "resultType": "environment",
+      "tags": ["environment", "weather"],
+      "entries": [
+        { "value": "Clear skies with excellent visibility", "sets": { "severity": "calm" } },
+        { "value": "Light precipitation falling steadily", "sets": { "severity": "mild" } },
+        { "value": "Heavy cloud cover blocking most sunlight", "sets": { "severity": "moderate" } },
+        { "value": "Violent storm with dangerous lightning", "sets": { "severity": "severe" } },
+        { "value": "Toxic fog requiring sealed environments", "sets": { "severity": "hazardous" } },
+        { "value": "Dust storm reducing visibility to meters", "sets": { "severity": "severe" } },
+        { "value": "Eerily calm before an approaching superstorm", "sets": { "severity": "ominous" } },
+        { "value": "Meteor shower lighting up the night sky", "sets": { "severity": "spectacular" } }
+      ]
+    },
+    {
+      "id": "locationAtmospheres",
+      "name": "Location Atmospheres",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["locations", "atmosphere"],
+      "entries": [
+        { "value": "The air hums with the constant vibration of machinery." },
+        { "value": "A tense silence hangs over everything, broken only by distant echoes." },
+        { "value": "Conversations blend into a warm buzz of activity." },
+        { "value": "Warning lights cast everything in intermittent red flashes." },
+        { "value": "Music from multiple sources creates a chaotic soundscape." },
+        { "value": "The recycled air carries a faint chemical undertone." },
+        { "value": "Footsteps echo sharply on metal grating." },
+        { "value": "The space feels abandoned despite signs of recent activity." }
+      ]
+    },
+    {
+      "id": "plotHooks",
+      "name": "Plot Hooks",
+      "type": "simple",
+      "resultType": "hook",
+      "tags": ["story", "hooks"],
+      "entries": [
+        { "value": "A distress signal repeats from coordinates that don't exist on any chart." },
+        { "value": "Someone is paying triple rates for cargo delivery to a quarantined world." },
+        { "value": "An old friend appears after being declared dead for years." },
+        { "value": "A data chip was slipped into someone's pocket on the station." },
+        { "value": "The local authorities are looking for someone matching a crew member's description." },
+        { "value": "A rival crew claims they own the same ship." },
+        { "value": "The cargo started moving on its own during transit." },
+        { "value": "A wealthy patron wants to be smuggled off-world, no questions asked." },
+        { "value": "The station's AI has been sending encrypted messages to unknown recipients." },
+        { "value": "An alien artifact was accidentally included with legitimate salvage." }
+      ]
+    },
+    {
+      "id": "rumors",
+      "name": "Rumors",
+      "type": "simple",
+      "resultType": "rumor",
+      "tags": ["story", "rumors"],
+      "entries": [
+        { "value": "They say there's a ghost ship that appears before major disasters." },
+        { "value": "I heard the Hegemony found something in the outer systems they're keeping quiet." },
+        { "value": "Word is {{factions}} is recruiting anyone with a pulse." },
+        { "value": "Someone found a working pre-collapse AI, completely intact." },
+        { "value": "There's a planet out there where everyone who lands starts aging backwards." },
+        { "value": "The {{corporationPrefixes}}{{corporationSuffixes}} CEO hasn't been seen in months - replaced by a synth, maybe." },
+        { "value": "Pirates hit another convoy near the {{regionNames}} beacon." },
+        { "value": "Prices on {{cargoCommon}} are about to spike - buy now." },
+        { "value": "That new station? Built on top of alien ruins. Mark my words." },
+        { "value": "The jump point near {{starNames}} is becoming unstable." }
+      ]
+    },
+    {
+      "id": "starNames",
+      "name": "Star Names",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Kepler's Rest" },
+        { "value": "Voidheart" },
+        { "value": "Sanctuary" },
+        { "value": "Duskfall" },
+        { "value": "Meridian" },
+        { "value": "The Beacon" },
+        { "value": "Haven" },
+        { "value": "Terminus" }
+      ]
+    },
+    {
+      "id": "complications",
+      "name": "Complications",
+      "type": "simple",
+      "resultType": "complication",
+      "tags": ["story", "complications"],
+      "entries": [
+        { "value": "The person you need to meet is in custody." },
+        { "value": "A third party is also after the same objective." },
+        { "value": "The promised payment is in a currency no one accepts." },
+        { "value": "Environmental conditions have deteriorated dramatically." },
+        { "value": "The contact has been replaced by someone else." },
+        { "value": "Critical equipment malfunctions at the worst moment." },
+        { "value": "An old debt comes due right now." },
+        { "value": "The objective isn't what it was described as." },
+        { "value": "Someone tipped off the authorities." },
+        { "value": "There's a hidden time limit no one mentioned." },
+        { "value": "Multiple complications emerge: {{2*unique*again|\" Additionally, \"}}.", "weight": 1 }
+      ]
+    },
+    {
+      "id": "sensorReadings",
+      "name": "Sensor Readings",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["space", "ships", "technical"],
+      "entries": [
+        { "value": "Multiple contacts on an intercept course." },
+        { "value": "Unusual energy signature from the asteroid field." },
+        { "value": "Distress beacon, automated, origin unknown." },
+        { "value": "Debris field consistent with recent ship destruction." },
+        { "value": "Gravitational anomaly interfering with navigation." },
+        { "value": "Encrypted transmission on a restricted frequency." },
+        { "value": "Life signs where there shouldn't be any." },
+        { "value": "Radiation spike from the nearby star." },
+        { "value": "Stealth signature - something is trying to hide." },
+        { "value": "Nothing at all - suspiciously empty space." }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "shipDescription",
+      "name": "Complete Ship Description",
+      "description": "Generates a full ship with name, class, condition, and quirks",
+      "resultType": "description",
+      "tags": ["ships", "generator"],
+      "shared": {
+        "$class": "{{shipClasses}}",
+        "$condition": "{{shipConditions}}"
+      },
+      "pattern": "## {{shipPrefixes}} *{{shipNameFirst}} {{shipNameSecond}}*\n\nA **{{$class}}** that is {{$condition}}.\n\n**Silhouette:** {{$class.@silhouette}}\n\n**Crew Complement:** {{$class.@crew}}\n\n**Notable Quirk:** {{shipQuirks}}"
+    },
+    {
+      "id": "planetDescription",
+      "name": "Complete Planet Description",
+      "description": "Generates a full planetary description",
+      "resultType": "description",
+      "tags": ["planets", "generator"],
+      "shared": {
+        "$planet": "{{planetTypes}}",
+        "$settlement": "{{settlementSizes}}"
+      },
+      "pattern": "## {{@self.description}}\n\n**Classification:** {{$planet}}\n\n**Atmosphere:** {{$planet.@atmosphere}}\n\n**Surface:** {{$planet.@surfaceDesc}}\n\n**Sky:** The sky here is {{$planet.@skyColor}}.\n\n**Notable Feature:** {{planetaryFeatures}}\n\n### Primary Settlement\nThe main population center is {{$settlement.@description}} - population approximately {{$settlement.@population}}.",
+      "description": "An unexplored world on the frontier"
+    },
+    {
+      "id": "stationDescription",
+      "name": "Complete Station Description",
+      "description": "Generates a full space station description",
+      "resultType": "location",
+      "tags": ["stations", "generator"],
+      "shared": {
+        "$type": "{{stationTypes}}",
+        "$status": "{{stationConditions}}"
+      },
+      "pattern": "## Space Station: {{shipNameFirst}} {{stationTypes}}\n\n**Type:** {{$type}} - {{$type.@purpose}}\n\n**Status:** Currently {{$status}}\n\n**Architecture:** {{$type.@architecture}}\n\n**Gravity:** {{$type.@gravity}}\n\n**Atmosphere:** {{$type.@atmosphere}}\n\n**Current Buzz:** {{locationAtmospheres}}"
+    },
+    {
+      "id": "alienSpeciesProfile",
+      "name": "Alien Species Profile",
+      "description": "Generates a description of an alien species",
+      "resultType": "description",
+      "tags": ["aliens", "species", "generator"],
+      "shared": {
+        "$appearance": "{{alienSpeciesAppearance}}"
+      },
+      "pattern": "## Species Profile\n\n**Physical Description:** {{$appearance}}\n\n**Body Type:** {{$appearance.@bodyType}}\n\n**Distinctive Trait:** {{$appearance.@distinctFeature}}\n\n**Cultural Note:** Members of this species {{alienCulturalTraits}}"
+    },
+    {
+      "id": "characterProfile",
+      "name": "Complete Character Profile",
+      "description": "Generates a full character description with name, appearance, and personality",
+      "resultType": "npc",
+      "tags": ["characters", "generator"],
+      "shared": {
+        "$appearance": "{{allCharacterAppearances}}",
+        "$demeanor": "{{characterDemeanors}}"
+      },
+      "pattern": "## {{firstNames}} \"{{nicknames}}\" {{surnames}}\n\n**Profession:** {{professions}}\n\n**Physical Description:** They are {{$appearance}}, with {{characterDistinguishingFeatures}}.\n\n**Demeanor:** {{$demeanor}}\n\n**Motivation:** {{characterMotivations}}"
+    },
+    {
+      "id": "corporationProfile",
+      "name": "Corporation Profile",
+      "description": "Generates a corporation with name and specialty",
+      "resultType": "faction",
+      "tags": ["corporations", "factions", "generator"],
+      "shared": {
+        "$specialty": "{{corporationSpecialties}}"
+      },
+      "pattern": "## {{corporationPrefixes}}{{corporationSuffixes}}\n\n**Primary Business:** {{$specialty}}\n\n**Sector:** {{$specialty.@sector}}\n\n**Reputation:** A {{dice:1d6}} on the trust scale (1 = reviled, 6 = respected)"
+    },
+    {
+      "id": "starSystemDescription",
+      "name": "Star System Description",
+      "description": "Generates a complete star system",
+      "resultType": "location",
+      "tags": ["systems", "space", "generator"],
+      "shared": {
+        "$star": "{{starTypes}}",
+        "planetCount": "{{dice:1d6+1}}"
+      },
+      "pattern": "## The {{starNames}} System\n\n**Primary Star:** A {{$star}} casting {{$star.@color}} light across the system.\n\n**Habitable Zone:** {{$star.@habitableZone}}\n\n**Planets:** {{$planetCount}} worlds orbit this star.\n\n**System Age:** Approximately {{$systemAge}} billion years.\n\n**Notable Features:**\n{{2*unique*systemFeatures|\"\\n\"}}\n\n**Dominant Influence:** {{$dominantFaction}}\n\n**Trade Status:** Routes here are {{tradeRouteStatus}}."
+    },
+    {
+      "id": "encounterDescription",
+      "name": "Space Encounter",
+      "description": "Generates what you find in space",
+      "resultType": "encounter",
+      "tags": ["space", "encounters", "generator"],
+      "shared": {
+        "$anomaly": "{{anomalyTypes}}"
+      },
+      "pattern": "## Sensors Detect...\n\n**Initial Reading:** {{sensorReadings}}\n\n**Upon Investigation:** You find {{$anomaly}}.\n\n**Visual:** {{$anomaly.@visualDesc}}\n\n**Threat Assessment:** {{$anomaly.@dangerLevel}}"
+    },
+    {
+      "id": "cargoManifest",
+      "name": "Cargo Manifest",
+      "description": "Generates a ship's cargo hold contents",
+      "resultType": "item",
+      "tags": ["cargo", "trade", "generator"],
+      "shared": {
+        "cargoCount": "{{dice:2d4}}"
+      },
+      "pattern": "## Cargo Manifest\n\n**Number of Lots:** {{$cargoCount}}\n\n**Contents:**\n{{$cargoCount*unique*cargoByRarity|\"\\n\"}}\n\n**Inspection Notes:** Standard customs procedures apply."
+    },
+    {
+      "id": "sessionStarter",
+      "name": "Session Starter",
+      "description": "Generates a complete session opening scenario",
+      "resultType": "description",
+      "tags": ["story", "generator"],
+      "shared": {
+        "$hook": "{{plotHooks}}",
+        "$rumor": "{{rumors}}",
+        "$complication": "{{complications}}"
+      },
+      "pattern": "## Session Opening\n\n### The Hook\n{{$hook}}\n\n### What People Are Saying\n\"{{$rumor}}\"\n\n### Hidden Complication\n{{$complication}}\n\n### Current Weather\n{{weatherConditions}}"
+    },
+    {
+      "id": "factionBriefing",
+      "name": "Faction Briefing",
+      "description": "Generates information about a faction in the setting",
+      "resultType": "faction",
+      "tags": ["factions", "generator"],
+      "shared": {
+        "$faction": "{{factions}}"
+      },
+      "pattern": "## Faction Dossier: {{$faction}}\n\n**Type:** {{$faction.@type}}\n\n**Description:** {{$faction.@description}}\n\n**Identifying Colors:** {{$faction.@colors}}\n\n**Symbol:** {{$faction.@symbol}}\n\n**Current Status:** {{$faction}} is currently {{stationConditions}} in this region."
+    },
+    {
+      "id": "quickNPC",
+      "name": "Quick NPC",
+      "description": "Rapid NPC generation for on-the-fly encounters",
+      "resultType": "npc",
+      "tags": ["characters", "quick"],
+      "pattern": "**{{firstNames}} {{surnames}}** - {{professions}}, {{characterDemeanors}}"
+    },
+    {
+      "id": "multipleNPCs",
+      "name": "Multiple NPCs",
+      "description": "Generates several NPCs at once",
+      "resultType": "npc",
+      "tags": ["characters", "generator"],
+      "shared": {
+        "npcCount": "{{dice:1d4+2}}"
+      },
+      "pattern": "## NPC Group ({{$npcCount}} individuals)\n\n{{$npcCount*quickNPC|\"\\n\\n\"}}"
+    }
+  ],
+  "conditionals": [
+    {
+      "when": "@size.value == 'massive'",
+      "action": "append",
+      "value": "\n\n*This vessel is large enough to be detected from across the system.*"
+    },
+    {
+      "when": "@dangerLevel.value == 'high'",
+      "action": "append",
+      "value": "\n\n⚠️ **Warning: Extreme caution advised.**"
+    },
+    {
+      "when": "@legality.value == 'illegal'",
+      "action": "prepend",
+      "value": "🚫 **CONTRABAND** - "
+    },
+    {
+      "when": "@status.value == 'declining'",
+      "action": "append",
+      "value": "\n\n*Rumors suggest this location may not exist much longer.*"
+    },
+    {
+      "when": "@species.value == 'synthetic'",
+      "action": "append",
+      "value": "\n\n*Note: Synthetic individuals may face legal restrictions in some jurisdictions.*"
+    }
+  ]
+}
