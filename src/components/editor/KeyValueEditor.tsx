@@ -8,6 +8,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { Plus, Trash2, RefreshCw } from 'lucide-react'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
+import { HighlightedInput, type HighlightedInputRef } from './PatternPreview/HighlightedInput'
 import { InsertDropdown } from './InsertDropdown'
 import { cn } from '@/lib/utils'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
@@ -57,7 +58,7 @@ export function KeyValueEditor({
   const [newValue, setNewValue] = useState('')
   const [keyValidationError, setKeyValidationError] = useState<string | null>(null)
   const newKeyInputRef = useRef<HTMLInputElement>(null)
-  const newValueInputRef = useRef<HTMLInputElement>(null)
+  const newValueInputRef = useRef<HighlightedInputRef>(null)
 
   // Track which entry is being edited and its local state
   const [editingKeyIndex, setEditingKeyIndex] = useState<number | null>(null)
@@ -72,7 +73,7 @@ export function KeyValueEditor({
   const [newValueDropdownOpen, setNewValueDropdownOpen] = useState(false)
 
   // Refs for existing value inputs (to handle inserts)
-  const valueInputRefs = useRef<Map<number, HTMLInputElement>>(new Map())
+  const valueInputRefs = useRef<Map<number, HighlightedInputRef>>(new Map())
 
   // Check if insert button should be available
   const hasInsertData = showInsertButton && (
@@ -164,42 +165,25 @@ export function KeyValueEditor({
   // Insert text into existing entry value at cursor position
   const handleInsertExisting = useCallback(
     (index: number, key: string, insertText: string) => {
-      const input = valueInputRefs.current.get(index)
-      if (input) {
-        const start = input.selectionStart ?? input.value.length
-        const end = input.selectionEnd ?? input.value.length
-        const currentVal = value[key]
-        const newVal = currentVal.slice(0, start) + insertText + currentVal.slice(end)
-        updateEntryValue(key, newVal)
-        // Restore focus and position cursor after inserted text
-        setTimeout(() => {
-          input.focus()
-          const newPos = start + insertText.length
-          input.setSelectionRange(newPos, newPos)
-        }, 0)
+      const inputRef = valueInputRefs.current.get(index)
+      if (inputRef) {
+        // Use the insertAtCursor method from HighlightedInputRef
+        inputRef.insertAtCursor(insertText)
       }
     },
-    [value, updateEntryValue]
+    []
   )
 
   // Insert text into new entry value
   const handleInsertNew = useCallback(
     (insertText: string) => {
-      const input = newValueInputRef.current
-      if (input) {
-        const start = input.selectionStart ?? newValue.length
-        const end = input.selectionEnd ?? newValue.length
-        const newVal = newValue.slice(0, start) + insertText + newValue.slice(end)
-        setNewValue(newVal)
-        // Restore focus and position cursor after inserted text
-        setTimeout(() => {
-          input.focus()
-          const newPos = start + insertText.length
-          input.setSelectionRange(newPos, newPos)
-        }, 0)
+      const inputRef = newValueInputRef.current
+      if (inputRef) {
+        // Use the insertAtCursor method from HighlightedInputRef
+        inputRef.insertAtCursor(insertText)
       }
     },
-    [newValue]
+    []
   )
 
   return (
@@ -254,14 +238,13 @@ export function KeyValueEditor({
           <div className="flex-1">
             <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">Value</label>
             <div className="relative">
-              <input
+              <HighlightedInput
                 ref={(el) => {
                   if (el) valueInputRefs.current.set(index, el)
                   else valueInputRefs.current.delete(index)
                 }}
-                type="text"
                 value={val}
-                onChange={(e) => updateEntryValue(key, e.target.value)}
+                onChange={(newVal) => updateEntryValue(key, newVal)}
                 onFocus={() => setFocusedValueIndex(index)}
                 onBlur={() => {
                   // Delay clearing focus to allow clicking insert button
@@ -274,7 +257,7 @@ export function KeyValueEditor({
                 placeholder={valuePlaceholder}
               />
               {hasInsertData && (focusedValueIndex === index || openDropdownIndex === index) && (
-                <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 z-10">
                   <InsertDropdown
                     localTables={localTables}
                     localTemplates={localTemplates}
@@ -335,11 +318,10 @@ export function KeyValueEditor({
           <div className="flex-1">
             <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">New Value</label>
             <div className="relative">
-              <input
+              <HighlightedInput
                 ref={newValueInputRef}
-                type="text"
                 value={newValue}
-                onChange={(e) => setNewValue(e.target.value)}
+                onChange={setNewValue}
                 onFocus={() => setNewValueFocused(true)}
                 onBlur={() => {
                   // Delay clearing focus to allow clicking insert button
@@ -353,7 +335,7 @@ export function KeyValueEditor({
                 placeholder={valuePlaceholder}
               />
               {hasInsertData && (newValueFocused || newValueDropdownOpen) && (
-                <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 z-10">
                   <InsertDropdown
                     localTables={localTables}
                     localTemplates={localTemplates}

@@ -1644,6 +1644,24 @@
   color: transparent;
 }
 
+/* Highlighted input - transparent text for overlay technique */
+.highlighted-input-transparent {
+  color: transparent !important;
+  caret-color: hsl(var(--foreground));
+  -webkit-text-fill-color: transparent;
+}
+
+.highlighted-input-transparent::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.highlighted-input-transparent::-moz-selection {
+  background: hsl(var(--primary) / 0.3);
+  color: transparent;
+}
+
 .editable-pattern-highlight {
   pointer-events: none;
 }

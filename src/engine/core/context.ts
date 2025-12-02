@@ -211,7 +211,7 @@ export function wouldShadowDocumentShared(ctx: GenerationContext, name: string):
 // ============================================================================
 
 /**
- * Get a placeholder value
+ * Get a placeholder value (single property access)
  * @returns The string value, or undefined if not found
  */
 export function getPlaceholder(
@@ -237,6 +237,25 @@ export function getPlaceholder(
     return defaultValue.value
   }
   return defaultValue
+}
+
+/**
+ * Get a placeholder's raw CaptureItem (for chained property access)
+ * @returns The CaptureItem, or undefined if not found or not a CaptureItem
+ */
+export function getPlaceholderCaptureItem(
+  ctx: GenerationContext,
+  name: string,
+  property: string
+): import('../types').CaptureItem | undefined {
+  const sets = ctx.placeholders.get(name)
+  if (!sets) return undefined
+
+  const value = sets[property]
+  if (value && typeof value !== 'string') {
+    return value
+  }
+  return undefined
 }
 
 /**
