@@ -131,7 +131,7 @@ describe('parseExpression', () => {
       expect(token.type).toBe('placeholder')
       if (token.type === 'placeholder') {
         expect(token.name).toBe('race')
-        expect(token.property).toBeUndefined()
+        expect(token.properties).toBeUndefined()
       }
     })
 
@@ -140,7 +140,7 @@ describe('parseExpression', () => {
       expect(token.type).toBe('placeholder')
       if (token.type === 'placeholder') {
         expect(token.name).toBe('race')
-        expect(token.property).toBe('value')
+        expect(token.properties).toEqual(['value'])
       }
     })
 
@@ -149,7 +149,16 @@ describe('parseExpression', () => {
       expect(token.type).toBe('placeholder')
       if (token.type === 'placeholder') {
         expect(token.name).toBe('self')
-        expect(token.property).toBe('description')
+        expect(token.properties).toEqual(['description'])
+      }
+    })
+
+    it('should parse chained placeholder access', () => {
+      const token = parseExpression('@person.culture.@maleName')
+      expect(token.type).toBe('placeholder')
+      if (token.type === 'placeholder') {
+        expect(token.name).toBe('person')
+        expect(token.properties).toEqual(['culture', 'maleName'])
       }
     })
   })

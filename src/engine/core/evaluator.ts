@@ -24,6 +24,8 @@ import {
   decrementRecursion,
   resolveVariable,
   getPlaceholder,
+  getPlaceholderCaptureItem,
+  setPlaceholders,
   setInstance,
   getInstance,
   setSharedVariable,
@@ -167,6 +169,9 @@ export class ExpressionEvaluator {
    * Set values are evaluated at merge time (when entry is selected) to ensure consistency.
    * Only values containing {{}} are evaluated; plain strings are returned as-is.
    * Uses cycle detection to prevent infinite loops from self-referential sets.
+   *
+   * Sets are evaluated in order and immediately merged into context, allowing later
+   * sets to reference earlier ones via @tableId.setKey syntax.
    */
   evaluateSetValues(
     sets: Sets,
@@ -184,6 +189,8 @@ export class ExpressionEvaluator {
         if (!beginSetEvaluation(context, setKey)) {
           // Cycle detected - return raw value to prevent infinite loop
           evaluated[key] = value
+          // Still merge into context so other sets can see it (even as raw value)
+          setPlaceholders(context, tableId, { [key]: evaluated[key] })
           continue
         }
 
@@ -203,6 +210,8 @@ export class ExpressionEvaluator {
                   sets: result.placeholders ?? {},
                   description: undefined,
                 }
+                // Merge immediately so later sets can reference this one
+                setPlaceholders(context, tableId, { [key]: evaluated[key] })
                 continue
               }
             }
@@ -216,6 +225,10 @@ export class ExpressionEvaluator {
         // Plain string value - use as-is
         evaluated[key] = value
       }
+
+      // Merge each evaluated set immediately into context, enabling later sets
+      // to reference earlier ones via @tableId.setKey syntax
+      setPlaceholders(context, tableId, { [key]: evaluated[key] })
     }
 
     return evaluated
@@ -613,13 +626,19 @@ export class ExpressionEvaluator {
   }
 
   private evaluatePlaceholder(
-    token: { name: string; property?: string },
+    token: { name: string; properties?: string[] },
     context: GenerationContext,
     collectionId: string
   ): string {
+    // Build label for trace
+    const label = token.properties && token.properties.length > 0
+      ? `@${token.name}.${token.properties.map(p => p.startsWith('@') ? p : `@${p}`).join('.')}`
+      : `@${token.name}`
+
     // Handle @self placeholder for current entry properties
     if (token.name === 'self') {
-      if (token.property === 'description') {
+      const firstProp = token.properties?.[0]
+      if (firstProp === 'description') {
         const rawDescription = context.currentEntryDescription ?? ''
         // Evaluate any expressions in the description
         const result = rawDescription ? this.evaluatePattern(rawDescription, context, collectionId) : ''
@@ -631,7 +650,7 @@ export class ExpressionEvaluator {
           `@self.description`,
           {
             raw: 'self',
-            parsed: { property: 'description' },
+            parsed: { properties: token.properties },
           },
           {
             value: result,
@@ -650,20 +669,77 @@ export class ExpressionEvaluator {
       return ''
     }
 
-    // Get the placeholder value directly - no implicit table/template resolution
-    // Set values containing {{patterns}} are evaluated at merge time in evaluateSetValues()
-    // If you want a set value to roll a table, use explicit syntax: "nameTable": "{{elfNames}}"
-    const value = getPlaceholder(context, token.name, token.property)
+    // Handle chained property access (e.g., @person.culture.@maleName)
+    if (token.properties && token.properties.length > 1) {
+      // Get the first property as a CaptureItem for traversal
+      const firstProp = token.properties[0]
+      const captureItem = getPlaceholderCaptureItem(context, token.name, firstProp)
+
+      if (captureItem) {
+        // Traverse the rest of the property chain
+        const remainingProps = token.properties.slice(1)
+        const result = this.traversePropertyChain(captureItem, remainingProps, `@${token.name}.@${firstProp}`)
+
+        addTraceLeaf(
+          context,
+          'placeholder_access',
+          label,
+          {
+            raw: token.name,
+            parsed: { properties: token.properties },
+          },
+          {
+            value: result,
+          },
+          {
+            type: 'placeholder',
+            name: token.name,
+            property: token.properties.join('.'),
+            found: result !== '',
+          } as PlaceholderAccessMetadata
+        )
+
+        return result
+      }
+
+      // First property is not a CaptureItem - can't chain
+      console.warn(`Cannot chain through non-CaptureItem property: @${token.name}.${firstProp}`)
+      addTraceLeaf(
+        context,
+        'placeholder_access',
+        label,
+        {
+          raw: token.name,
+          parsed: { properties: token.properties },
+        },
+        {
+          value: '',
+          error: 'Cannot chain through non-CaptureItem',
+        },
+        {
+          type: 'placeholder',
+          name: token.name,
+          property: token.properties.join('.'),
+          found: false,
+        } as PlaceholderAccessMetadata
+      )
+
+      return ''
+    }
+
+    // Simple single-level access
+    const firstProp = token.properties?.[0]
+    const value = getPlaceholder(context, token.name, firstProp)
     const result = value ?? ''
 
     // Add placeholder access trace
     addTraceLeaf(
       context,
       'placeholder_access',
-      `@${token.name}${token.property ? '.' + token.property : ''}`,
+      label,
       {
         raw: token.name,
-        parsed: { property: token.property },
+        parsed: { properties: token.properties },
       },
       {
         value: result,
@@ -671,7 +747,7 @@ export class ExpressionEvaluator {
       {
         type: 'placeholder',
         name: token.name,
-        property: token.property,
+        property: firstProp,
         found: value !== undefined,
       } as PlaceholderAccessMetadata
     )

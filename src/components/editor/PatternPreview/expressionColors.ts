@@ -49,8 +49,8 @@ export const EXPRESSION_COLORS: Record<
     badge: 'bg-lavender/15 text-lavender hover:bg-lavender/25',
   },
   variable: {
-    text: 'text-pink-400 dark:text-pink-300',
-    badge: 'bg-pink-400/15 text-pink-400 dark:text-pink-300 hover:bg-pink-400/25',
+    text: 'text-pink',
+    badge: 'bg-pink/15 text-pink hover:bg-pink/25',
   },
   placeholder: {
     text: 'text-cyan',
@@ -65,12 +65,12 @@ export const EXPRESSION_COLORS: Record<
     badge: 'bg-amber/15 text-amber hover:bg-amber/25',
   },
   capture: {
-    text: 'text-pink-400 dark:text-pink-300',
-    badge: 'bg-pink-400/15 text-pink-400 dark:text-pink-300 hover:bg-pink-400/25',
+    text: 'text-pink',
+    badge: 'bg-pink/15 text-pink hover:bg-pink/25',
   },
   'capture-shared': {
-    text: 'text-pink-400 dark:text-pink-300',
-    badge: 'bg-pink-400/15 text-pink-400 dark:text-pink-300 hover:bg-pink-400/25',
+    text: 'text-pink',
+    badge: 'bg-pink/15 text-pink hover:bg-pink/25',
   },
   collect: {
     text: 'text-blue-500 dark:text-blue-400',

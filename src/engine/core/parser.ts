@@ -55,7 +55,7 @@ export interface VariableToken {
 export interface PlaceholderToken {
   type: 'placeholder'
   name: string
-  property?: string
+  properties?: string[] // chain of properties (without @ prefix), e.g. ["culture", "maleName"]
 }
 
 export interface AgainToken {
@@ -333,16 +333,20 @@ function parseBaseExpression(expr: string): ExpressionToken {
     }
   }
 
-  // Placeholder: @name or @name.property
+  // Placeholder: @name or @name.property or @name.property.@nested (chained access)
   if (trimmed.startsWith('@')) {
     const placeholderExpr = trimmed.slice(1)
     const dotIndex = placeholderExpr.indexOf('.')
 
     if (dotIndex > 0) {
+      const name = placeholderExpr.slice(0, dotIndex)
+      const propPart = placeholderExpr.slice(dotIndex + 1)
+      // Use parsePropertyChain for chained property access (handles @-prefixed properties)
+      const properties = parsePropertyChain(propPart)
       return {
         type: 'placeholder',
-        name: placeholderExpr.slice(0, dotIndex),
-        property: placeholderExpr.slice(dotIndex + 1),
+        name,
+        properties,
       }
     }
 

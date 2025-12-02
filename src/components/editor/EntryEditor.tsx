@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { extractExpressions } from '@/engine/core/parser'
 import { InlineResult } from './PatternPreview/InlineResult'
 import { PatternPreview } from './PatternPreview/PatternPreview'
+import { HighlightedInput, type HighlightedInputRef } from './PatternPreview/HighlightedInput'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
 import { ResultTypeSelector } from './ResultTypeSelector'
 import { KeyValueEditor } from './KeyValueEditor'
@@ -65,8 +66,8 @@ export function EntryEditor({
   const [weightMode, setWeightMode] = useState<'weight' | 'range'>(
     entry.range ? 'range' : 'weight'
   )
-  const desktopInputRef = useRef<HTMLInputElement>(null)
-  const mobileInputRef = useRef<HTMLInputElement>(null)
+  const desktopInputRef = useRef<HighlightedInputRef>(null)
+  const mobileInputRef = useRef<HighlightedInputRef>(null)
 
   // Auto-focus the value input when requested
   // Use setTimeout to ensure the element is fully rendered and visible
@@ -169,14 +170,14 @@ export function EntryEditor({
 
         <span className="text-sm text-muted-foreground w-8">#{index + 1}</span>
 
-        <input
+        <HighlightedInput
           ref={desktopInputRef}
-          type="text"
           value={entry.value}
-          onChange={(e) => updateField('value', e.target.value)}
+          onChange={(value) => updateField('value', value)}
           onKeyDown={handleKeyDown}
           placeholder="Entry value (supports {{...}} templates)"
-          className="flex-1 p-2 border rounded-md bg-background text-sm"
+          wrapperClassName="flex-1 min-w-0"
+          className="w-full p-2 border rounded-md bg-background text-sm"
         />
 
         <div className="flex items-center gap-2">
@@ -286,11 +287,10 @@ export function EntryEditor({
           {/* Value input - full width */}
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1.5">Value</label>
-            <input
+            <HighlightedInput
               ref={mobileInputRef}
-              type="text"
               value={entry.value}
-              onChange={(e) => updateField('value', e.target.value)}
+              onChange={(value) => updateField('value', value)}
               onKeyDown={handleKeyDown}
               placeholder="Entry value (supports {{...}} templates)"
               className="w-full p-3 border rounded-xl bg-background text-base min-h-[48px]"

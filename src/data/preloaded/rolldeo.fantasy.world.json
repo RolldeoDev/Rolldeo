@@ -1549,7 +1549,7 @@
         "$race": "{{characterRaces}}",
         "$job": "{{occupations}}"
       },
-      "pattern": "## {{$race.@firstName}} {{$race.@lastName}}\n\n**Race:** {{$race}} ({{$race.@lifespan}} lifespan)\n\n**Appearance:** {{$race.@physique}}, with {{physicalQuirks}}. They wear {{clothingColors}} {{clothingStyles}}.\n\n**Occupation:** {{$job}}, working at {{$job.@workplace}}.\n\n**Personality:** {{personalityTraits}}. They {{motivations}}.\n\n**Secret:** This person {{secrets}}.{{switch[@socialClass.value==\"upper\":\" They carry themselves with obvious nobility.\"].else[\"\"]}}"
+      "pattern": "## {{$race.@firstName}} {{$race.@lastName}}\n\n**Race:** {{$race}} ({{$race.@lifespan}} lifespan)\n\n**Appearance:** {{$race.@physique}}, with {{physicalQuirks}}. They wear {{clothingColors}} {{clothingStyles}}.\n\n**Occupation:** {{$job}}, working at {{$job.@workplace}}.\n\n**Personality:** {{personalityTraits}}. They {{motivations}}.\n\n**Secret:** This person {{secrets}}."
     },
     {
       "id": "rivalCharacters",
@@ -1589,7 +1589,7 @@
       "description": "Generates an atmospheric wilderness description.",
       "resultType": "description",
       "tags": ["location", "atmosphere"],
-      "pattern": "It is {{$timeOfDay}}, and the sky shows {{$currentWeather}}. Above hangs {{$moonPhase}}.\n\nYou find yourself in {{wildernessLocations}}. The air carries the scent of {{smells}}, and you can hear {{sounds}}.{{switch[@danger.value==\"high\":\"\n\n*⚠️ This area is known to be dangerous. Proceed with caution.*\"].else[\"\"]}}"
+      "pattern": "It is {{$timeOfDay}}, and the sky shows {{$currentWeather}}. Above hangs {{$moonPhase}}.\n\nYou find yourself in {{wildernessLocations}}. The air carries the scent of {{smells}}, and you can hear {{sounds}}"
     },
     {
       "id": "dungeonRoom",
@@ -1634,7 +1634,7 @@
         "$weapon": "{{weaponTypes}}",
         "$condition": "{{itemConditions}}"
       },
-      "pattern": "**{{weaponDescriptors}} {{$weapon}}**\n\nThis {{$weapon.@category}} weapon is {{$condition}} ({{$condition.@quality}} quality). It is made of {{metals}} and features {{inscriptions}}{{switch[@magical.value==\"true\":\" It faintly shimmers with magical energy.\"].else[\"\"]}}"
+      "pattern": "**{{weaponDescriptors}} {{$weapon}}**\n\nThis {{$weapon.@category}} weapon is {{$condition}} ({{$condition.@quality}} quality). It is made of {{metals}} and features {{inscriptions}}"
     },
     {
       "id": "jewelryDescription",
@@ -1646,7 +1646,7 @@
         "$jewel": "{{jewelryTypes}}",
         "$gem": "{{gemstones}}"
       },
-      "pattern": "{{switch[@rarity.value==\"legendary\":\"**✨ LEGENDARY FIND!** \"].else[\"\"]}}A {{metals}} {{$jewel}} worn on the {{$jewel.@placement}}, set with a {{$gem.@color}} {{$gem}} ({{$gem.@rarity}} rarity)."
+      "pattern": "A {{metals}} {{$jewel}} worn on the {{$jewel.@placement}}, set with a {{$gem.@color}} {{$gem}} ({{$gem.@rarity}} rarity)."
     },
     {
       "id": "atmosphericScene",
@@ -1657,7 +1657,7 @@
       "shared": {
         "$weather": "{{weatherConditions}}"
       },
-      "pattern": "The scene is set during {{timesOfDay}}. The weather is {{$weather}}, creating a {{$weather.@mood}} atmosphere.\n\nYou notice the smell of {{smells}} and hear {{sounds}}.{{switch[@mood.value==\"ominous\":\"\n\n*An uneasy feeling settles over you.*\"].else[\"\"]}}"
+      "pattern": "The scene is set during {{timesOfDay}}. The weather is {{$weather}}, creating a {{$weather.@mood}} atmosphere.\n\nYou notice the smell of {{smells}} and hear {{sounds}}"
     },
     {
       "id": "multipleRumors",

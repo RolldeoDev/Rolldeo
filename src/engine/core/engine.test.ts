@@ -3056,3 +3056,336 @@ describe('Switch Expressions', () => {
     })
   })
 })
+
+describe('Intra-set references', () => {
+  let engine: RandomTableEngine
+
+  const createTestDoc = (
+    tables: import('../types').Table[],
+    templates: import('../types').Template[]
+  ): import('../types').RandomTableDocument => ({
+    metadata: {
+      name: 'Test',
+      namespace: 'test.intraset',
+      version: '1.0.0',
+      specVersion: '1.0',
+    },
+    tables,
+    templates,
+  })
+
+  beforeEach(() => {
+    engine = new RandomTableEngine()
+  })
+
+  it('should allow later sets to reference earlier sets via @tableId.setKey', () => {
+    const doc = createTestDoc(
+      [
+        {
+          id: 'myTable',
+          name: 'My Table',
+          type: 'simple',
+          entries: [
+            {
+              value: 'result',
+              sets: {
+                first: 'hello',
+                second: '{{@myTable.first}} world',
+              },
+            },
+          ],
+        },
+      ],
+      [
+        {
+          id: 'test',
+          name: 'Test',
+          pattern: '{{myTable}} - first: {{@myTable.first}}, second: {{@myTable.second}}',
+        },
+      ]
+    )
+
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('result - first: hello, second: hello world')
+  })
+
+  it('should support expression evaluation in sets that reference earlier sets', () => {
+    const doc = createTestDoc(
+      [
+        {
+          id: 'character',
+          name: 'Character',
+          type: 'simple',
+          entries: [
+            {
+              value: 'Hero',
+              sets: {
+                level: '5',
+                bonus: '{{math:@character.level * 2}}',
+              },
+            },
+          ],
+        },
+      ],
+      [
+        {
+          id: 'test',
+          name: 'Test',
+          shared: { _init: '{{character}}' },
+          pattern: 'Level {{@character.level}} with bonus {{@character.bonus}}',
+        },
+      ]
+    )
+
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('Level 5 with bonus 10')
+  })
+
+  it('should support chained intra-set references (a references b, c references a)', () => {
+    const doc = createTestDoc(
+      [
+        {
+          id: 'myTable',
+          name: 'My Table',
+          type: 'simple',
+          entries: [
+            {
+              value: 'output',
+              sets: {
+                base: 'BASE',
+                middle: '[{{@myTable.base}}]',
+                final: '{{@myTable.middle}} END',
+              },
+            },
+          ],
+        },
+      ],
+      [
+        {
+          id: 'test',
+          name: 'Test',
+          shared: { _init: '{{myTable}}' },
+          pattern: '{{@myTable.final}}',
+        },
+      ]
+    )
+
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('[BASE] END')
+  })
+
+  it('should handle self-referential sets gracefully without infinite loop', () => {
+    const doc = createTestDoc(
+      [
+        {
+          id: 'myTable',
+          name: 'My Table',
+          type: 'simple',
+          entries: [
+            {
+              value: 'result',
+              sets: {
+                // Self-referential - should be detected and not cause infinite loop
+                selfRef: '{{@myTable.selfRef}}',
+              },
+            },
+          ],
+        },
+      ],
+      [
+        {
+          id: 'test',
+          name: 'Test',
+          pattern: '{{myTable}} - done',
+        },
+      ]
+    )
+
+    engine.loadCollection(doc, 'test')
+    // Should complete without hanging (cycle detection prevents infinite loop)
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('result - done')
+  })
+
+  it('should support switch expressions that reference earlier sets', () => {
+    const doc = createTestDoc(
+      [
+        {
+          id: 'character',
+          name: 'Character',
+          type: 'simple',
+          entries: [
+            {
+              value: 'Hero',
+              sets: {
+                gender: 'male',
+                title: '{{switch[@character.gender=="male":"King"].else["Queen"]}}',
+              },
+            },
+          ],
+        },
+      ],
+      [
+        {
+          id: 'test',
+          name: 'Test',
+          shared: { _init: '{{character}}' },
+          pattern: '{{@character.title}} Hero',
+        },
+      ]
+    )
+
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('King Hero')
+  })
+
+  it('should support table rolls in sets that reference earlier sets for selection', () => {
+    const doc = createTestDoc(
+      [
+        {
+          id: 'maleNames',
+          name: 'Male Names',
+          type: 'simple',
+          entries: [{ value: 'John' }],
+        },
+        {
+          id: 'femaleNames',
+          name: 'Female Names',
+          type: 'simple',
+          entries: [{ value: 'Jane' }],
+        },
+        {
+          id: 'character',
+          name: 'Character',
+          type: 'simple',
+          entries: [
+            {
+              value: 'Person',
+              sets: {
+                gender: 'male',
+                name: '{{switch[@character.gender=="male":{{maleNames}}].else[{{femaleNames}}]}}',
+              },
+            },
+          ],
+        },
+      ],
+      [
+        {
+          id: 'test',
+          name: 'Test',
+          shared: { _init: '{{character}}' },
+          pattern: '{{@character.name}} ({{@character.gender}})',
+        },
+      ]
+    )
+
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('John (male)')
+  })
+
+  it('should work with defaultSets and entry sets together', () => {
+    const doc = createTestDoc(
+      [
+        {
+          id: 'character',
+          name: 'Character',
+          type: 'simple',
+          defaultSets: {
+            baseHP: '10',
+          },
+          entries: [
+            {
+              value: 'Warrior',
+              sets: {
+                bonus: '5',
+                totalHP: '{{math:@character.baseHP + @character.bonus}}',
+              },
+            },
+          ],
+        },
+      ],
+      [
+        {
+          id: 'test',
+          name: 'Test',
+          shared: { _init: '{{character}}' },
+          pattern: '{{@character}} has {{@character.totalHP}} HP',
+        },
+      ]
+    )
+
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('Warrior has 15 HP')
+  })
+
+  it('should support nested CaptureItem access in switch within sets', () => {
+    // This mirrors the user's test.test.json scenario
+    // Uses chained placeholder access: @person.culture.@maleName
+    const doc = createTestDoc(
+      [
+        {
+          id: 'gender',
+          name: 'Gender',
+          type: 'simple',
+          entries: [{ value: 'male' }], // Fixed to male for deterministic test
+        },
+        {
+          id: 'maleNames',
+          name: 'Male Names',
+          type: 'simple',
+          entries: [{ value: 'Ron' }],
+        },
+        {
+          id: 'femaleNames',
+          name: 'Female Names',
+          type: 'simple',
+          entries: [{ value: 'Jane' }],
+        },
+        {
+          id: 'culture',
+          name: 'Culture',
+          type: 'simple',
+          entries: [
+            {
+              value: 'Big Namer',
+              sets: {
+                maleName: '{{maleNames}}',
+                femaleName: '{{femaleNames}}',
+              },
+            },
+          ],
+        },
+        {
+          id: 'person',
+          name: 'Person',
+          type: 'simple',
+          defaultSets: {
+            gender: '{{gender}}',
+            culture: '{{culture}}',
+            // Chained placeholder access: @person.culture.@maleName
+            name: '{{switch[@person.gender=="male":{{@person.culture.@maleName}}].else[{{@person.culture.@femaleName}}]}}',
+          },
+          entries: [{ value: '{{@person.name}}' }],
+        },
+      ],
+      [
+        {
+          id: 'test',
+          name: 'Test',
+          shared: { '$person': '{{person}}' },
+          pattern: 'Name: {{$person.@name}}, Gender: {{$person.@gender}}, Culture: {{$person.@culture}}',
+        },
+      ]
+    )
+
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('Name: Ron, Gender: male, Culture: Big Namer')
+  })
+})

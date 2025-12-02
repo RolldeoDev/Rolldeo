@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "name": "Test",
+    "namespace": "test.test",
+    "version": "1.0.0",
+    "specVersion": "1.0"
+  },
+  "tables": [
+    {
+      "id": "gender",
+      "name": "Gender",
+      "type": "simple",
+      "entries": [
+        { "value": "male" },
+        { "value": "female" }
+      ]
+    },
+    {
+      "id": "bigMaleNames",
+      "name": "Big Male Names",
+      "type": "simple",
+      "entries": [
+        { "value": "Ron" },
+        { "value": "Tom" },
+        { "value": "Tim" },
+        { "value": "Dan" },
+        { "value": "Rob" }
+      ]
+    },
+    {
+      "id": "littleMaleNames",
+      "name": "Little Male Names",
+      "type": "simple",
+      "entries": [
+        { "value": "Bartholemew" },
+        { "value": "Johnnathan" },
+        { "value": "Garfield" },
+        { "value": "Andrew" },
+        { "value": "Jethro" }
+      ]
+    },
+    {
+      "id": "bigFemaleNames",
+      "name": "Big Female Names",
+      "type": "simple",
+      "entries": [
+        { "value": "Jen" },
+        { "value": "May" },
+        { "value": "Jan" },
+        { "value": "Pat" },
+        { "value": "Rey" }
+      ]
+    },
+    {
+      "id": "littleFemaleNames",
+      "name": "Little Female Names",
+      "type": "simple",
+      "entries": [
+        { "value": "Gertrude" },
+        { "value": "Amanda" },
+        { "value": "Stephanie" },
+        { "value": "Jennifer" },
+        { "value": "Catherine" }
+      ]
+    },
+    {
+      "id": "culture",
+      "name": "Culture",
+      "type": "simple",
+      "entries": [
+        {
+          "value": "Big Namer",
+          "sets": {
+            "maleName": "{{bigMaleNames}}",
+            "femaleName": "{{bigFemaleNames}}"
+          }
+        },
+        {
+          "value": "Little Namer",
+          "sets": {
+            "maleName": "{{littleMaleNames}}",
+            "femaleName": "{{littleFemaleNames}}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "person",
+      "name": "Person",
+      "type": "simple",
+      "defaultSets": {
+        "gender": "{{gender}}",
+        "culture": "{{culture}}",
+        "name": "{{switch[@person.gender==\"male\":{{@person.culture.@maleName}}].else[{{@person.culture.@femaleName}}]}}"
+      },
+      "entries": [
+        { "value": "{{@person.name}}" }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "test",
+      "name": "Test",
+      "shared": {
+        "$person": "{{person}}"
+      },
+      "pattern": "Name: {{$person.@name}}\nGender: {{$person.@gender}}\nCulture: {{$person.@culture}}"
+    }
+  ]
+}
