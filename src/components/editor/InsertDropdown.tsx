@@ -223,14 +223,32 @@ export function InsertDropdown({
     syntax: allItems.filter((item) => item.type === 'syntax').length,
   }), [allItems])
 
-  // Update position when opening
+  // Update position when opening - smart positioning to stay within viewport
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
-      setDropdownPosition({
-        top: rect.bottom + 4,
-        left: rect.left,
-      })
+      const dropdownWidth = 384  // w-96
+      const dropdownHeight = 360 // approximate max height (tabs + search + items + hint)
+      const gap = 4
+      const margin = 8 // minimum margin from viewport edges
+
+      // Horizontal: prefer left-aligned, but flip to right-aligned if needed
+      let left = rect.left
+      if (rect.left + dropdownWidth > window.innerWidth - margin) {
+        left = rect.right - dropdownWidth
+      }
+      // Ensure doesn't go off left edge
+      left = Math.max(margin, left)
+
+      // Vertical: prefer below, but flip to above if needed
+      let top = rect.bottom + gap
+      if (rect.bottom + dropdownHeight > window.innerHeight - margin) {
+        top = rect.top - dropdownHeight - gap
+      }
+      // Ensure doesn't go off top edge
+      top = Math.max(margin, top)
+
+      setDropdownPosition({ top, left })
       // Focus search input
       setTimeout(() => searchInputRef.current?.focus(), 0)
     }

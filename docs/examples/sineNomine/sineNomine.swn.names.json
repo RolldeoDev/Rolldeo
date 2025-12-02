@@ -1542,6 +1542,104 @@
         { "value": "Zahora", "range": [97, 98] },
         { "value": "Zumeta", "range": [99, 100] }
       ]
+    },
+    {
+      "id": "gender",
+      "name": "Gender",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "male" },
+        { "value": "female" }
+      ]
+    },
+    {
+      "id": "culture",
+      "name": "Cultural Background",
+      "type": "simple",
+      "description": "The 10 cultural backgrounds from Stars Without Number, each with associated name tables and birthplaces.",
+      "entries": [
+        {
+          "value": "Arabic",
+          "sets": {
+            "maleName": "{{arabicNameMale}}",
+            "femaleName": "{{arabicNameFemale}}",
+            "birthplace": "{{arabicPlace}}"
+          }
+        },
+        {
+          "value": "Chinese",
+          "sets": {
+            "maleName": "{{chineseNameMale}}",
+            "femaleName": "{{chineseNameFemale}}",
+            "birthplace": "{{chinesePlace}}"
+          }
+        },
+        {
+          "value": "English",
+          "sets": {
+            "maleName": "{{englishNameMale}}",
+            "femaleName": "{{englishNameFemale}}",
+            "birthplace": "{{englishPlace}}"
+          }
+        },
+        {
+          "value": "Greek",
+          "sets": {
+            "maleName": "{{greekNameMale}}",
+            "femaleName": "{{greekNameFemale}}",
+            "birthplace": "{{greekPlace}}"
+          }
+        },
+        {
+          "value": "Indian",
+          "sets": {
+            "maleName": "{{indianNameMale}}",
+            "femaleName": "{{indianNameFemale}}",
+            "birthplace": "{{indianPlace}}"
+          }
+        },
+        {
+          "value": "Japanese",
+          "sets": {
+            "maleName": "{{japaneseNameMale}}",
+            "femaleName": "{{japaneseNameFemale}}",
+            "birthplace": "{{japanesePlace}}"
+          }
+        },
+        {
+          "value": "Latin",
+          "sets": {
+            "maleName": "{{latinNameMale}}",
+            "femaleName": "{{latinNameFemale}}",
+            "birthplace": "{{latinPlace}}"
+          }
+        },
+        {
+          "value": "Nigerian",
+          "sets": {
+            "maleName": "{{nigerianNameMale}}",
+            "femaleName": "{{nigerianNameFemale}}",
+            "birthplace": "{{nigerianPlace}}"
+          }
+        },
+        {
+          "value": "Russian",
+          "sets": {
+            "maleName": "{{russianNameMale}}",
+            "femaleName": "{{russianNameFemale}}",
+            "birthplace": "{{russianPlace}}"
+          }
+        },
+        {
+          "value": "Spanish",
+          "sets": {
+            "maleName": "{{spanishNameMale}}",
+            "femaleName": "{{spanishNameFemale}}",
+            "birthplace": "{{spanishPlace}}"
+          }
+        }
+      ]
     }
   ],
   "templates": [
@@ -1644,6 +1742,17 @@
       "id": "spanishNameFemale",
       "name": "Spanish Name (Female)",
       "pattern": "{{spanishFemale}} {{spanishSurname}}"
+    },
+    {
+      "id": "randomPerson",
+      "name": "Random Person",
+      "description": "Generates a random person with name, gender, cultural background, and birthplace.",
+      "resultType": "npc",
+      "shared": {
+        "gender": "{{gender}}",
+        "$culture": "{{culture}}"
+      },
+      "pattern": "**{{switch[$gender==\"male\":$culture.@maleName].else[$culture.@femaleName]}}**\n\nA {{$gender}} of {{$culture}} descent, born in {{$culture.@birthplace}}."
     }
   ]
 }

@@ -220,7 +220,7 @@ export function KeyValueEditor({
           <div className="flex-1">
             <label className={cn(
               "block md:hidden text-sm font-medium mb-1.5",
-              isCaptureAware ? "text-pink-500 dark:text-pink-300" : "text-muted-foreground"
+              isCaptureAware ? "text-pink" : "text-muted-foreground"
             )}>
               {isCaptureAware ? "Key (capture-aware)" : "Key"}
             </label>
@@ -246,8 +246,8 @@ export function KeyValueEditor({
               title={isCaptureAware ? "Capture-aware: use {{$" + displayKey.slice(1) + ".@property}} to access sets" : undefined}
             />
             {isCaptureAware && (
-              <p className="text-xs text-pink-500 dark:text-pink-300 mt-1">
-                Captures sets. Access with: <code className="px-1 bg-pink-100 dark:bg-pink-900/30 rounded">{`{{${displayKey}.@property}}`}</code>
+              <p className="text-xs text-pink mt-1">
+                Captures sets. Access with: <code className="px-1 bg-pink/20 rounded">{`{{${displayKey}.@property}}`}</code>
               </p>
             )}
           </div>
@@ -312,7 +312,7 @@ export function KeyValueEditor({
           <div className="flex-1">
             <label className={cn(
               "block md:hidden text-sm font-medium mb-1.5",
-              newKeyIsCaptureAware ? "text-pink-500 dark:text-pink-300" : "text-muted-foreground"
+              newKeyIsCaptureAware ? "text-pink" : "text-muted-foreground"
             )}>
               {newKeyIsCaptureAware ? "New Key (capture-aware)" : "New Key"}
             </label>
@@ -394,12 +394,12 @@ export function KeyValueEditor({
             reference earlier ones.
           </p>
           {highlightCaptureAware && (
-            <p className="text-pink-500 dark:text-pink-300">
+            <p className="text-pink">
               <strong>Capture-aware:</strong> Name starting with{' '}
-              <code className="px-1.5 md:px-1 py-0.5 bg-pink-100 dark:bg-pink-900/30 rounded">$</code>{' '}
-              (e.g., <code className="px-1.5 md:px-1 py-0.5 bg-pink-100 dark:bg-pink-900/30 rounded">$hero</code>){' '}
+              <code className="px-1.5 md:px-1 py-0.5 bg-pink/20 rounded">$</code>{' '}
+              (e.g., <code className="px-1.5 md:px-1 py-0.5 bg-pink/20 rounded">$hero</code>){' '}
               captures the full roll including sets. Access properties with{' '}
-              <code className="px-1.5 md:px-1 py-0.5 bg-pink-100 dark:bg-pink-900/30 rounded">{'{{$hero.@property}}'}</code>.
+              <code className="px-1.5 md:px-1 py-0.5 bg-pink/20 rounded">{'{{$hero.@property}}'}</code>.
             </p>
           )}
         </div>
