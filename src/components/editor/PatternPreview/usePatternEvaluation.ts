@@ -26,6 +26,11 @@ function countTraceNodes(trace: RollTrace | null): number {
  * Determine the expression type from a parsed token
  */
 function getExpressionType(token: ExpressionToken): ExpressionType {
+  // Check for switch modifiers on any token
+  if ('switchModifiers' in token && token.switchModifiers) {
+    return 'switch'
+  }
+
   switch (token.type) {
     case 'dice':
       return 'dice'
@@ -49,6 +54,8 @@ function getExpressionType(token: ExpressionToken): ExpressionType {
       return 'variable'
     case 'collect':
       return 'collect'
+    case 'switch':
+      return 'switch'
     default:
       return 'unknown'
   }
@@ -59,6 +66,9 @@ function getExpressionType(token: ExpressionToken): ExpressionType {
  */
 function getExpressionTypeFromString(expr: string): ExpressionType {
   const trimmed = expr.trim()
+
+  // Switch expressions: switch[...] or expr.switch[...]
+  if (trimmed.startsWith('switch[') || trimmed.includes('.switch[')) return 'switch'
 
   if (trimmed.startsWith('collect:')) return 'collect'
   if (trimmed.includes(' >> $') || trimmed.includes('>>$')) return 'capture'

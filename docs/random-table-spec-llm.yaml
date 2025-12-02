@@ -868,6 +868,24 @@ template_syntax:
   capture_collect_unique: "{{collect:$var.@property|unique}}"
   capture_collect_sep: '{{collect:$var.@property|"sep"}}'
 
+  # Switch expressions (inline conditionals)
+  switch_standalone: '{{switch[condition:result].else[fallback]}}'
+  switch_multiple: '{{switch[cond1:res1].switch[cond2:res2].else[fallback]}}'
+  switch_attached: '{{expr.switch[condition:result].else[fallback]}}'
+  switch_implicit_subject: '$' # In attached switch, $ refers to base expression result
+  switch_result_types:
+    - '"literal string"'
+    - '"interpolated {{$var}} string"'  # Quoted strings with {{}} are interpolated
+    - '$var.@property'
+    - '{{tableReference}}'
+    - '@placeholder'
+  switch_examples:
+    pronoun: '{{switch[$gender=="male":"he"].switch[$gender=="female":"she"].else["they"]}}'
+    dice_outcome: '{{dice:1d20.switch[$>=20:"Critical!"].switch[$>=10:"Hit"].else["Miss"]}}'
+    name_selection: '{{switch[$gender=="male":$race.@maleName].else[$race.@femaleName]}}'
+    complex_condition: '{{switch[$class=="wizard" && $level>=5:{{powerSpell}}].else[{{basicSpell}}]}}'
+    interpolation: '{{switch[$color=="none":", no glow"].else[", glowing {{$color}} light"]}}'
+
   # Escape literal braces
   escape: "\\{{ and \\}}"
 

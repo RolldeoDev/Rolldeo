@@ -154,6 +154,13 @@ export function resolveVariable(
     return ctx.sharedVariables.get(name)
   }
 
+  // Check capture-aware shared variables (return the .value string)
+  // This allows $varName in conditions to work for capture-aware shared vars
+  if (ctx.captureSharedVariables.has(name)) {
+    const captureItem = ctx.captureSharedVariables.get(name)
+    return captureItem?.value
+  }
+
   // Then static variables
   if (ctx.staticVariables.has(name)) {
     return ctx.staticVariables.get(name)

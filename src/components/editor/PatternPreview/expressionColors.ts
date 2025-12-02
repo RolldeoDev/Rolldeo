@@ -14,6 +14,7 @@
  * - capture: rose
  * - capture-shared: rose
  * - collect: blue
+ * - switch: purple (control flow)
  * - unknown: gray
  */
 
@@ -75,6 +76,10 @@ export const EXPRESSION_COLORS: Record<
     text: 'text-blue-500 dark:text-blue-400',
     badge: 'bg-blue-500/15 text-blue-500 dark:text-blue-400 hover:bg-blue-500/25',
   },
+  switch: {
+    text: 'text-purple-500 dark:text-purple-400',
+    badge: 'bg-purple-500/15 text-purple-500 dark:text-purple-400 hover:bg-purple-500/25',
+  },
   unknown: {
     text: 'text-gray-500 dark:text-gray-400',
     badge: 'bg-gray-500/15 text-gray-600 dark:text-gray-400 hover:bg-gray-500/25',
@@ -126,6 +131,9 @@ export function getExpressionTypeFromContent(content: string): ExpressionType {
 
   // Unique modifier: {{unique:...}}
   if (content.startsWith('unique:')) return 'unique'
+
+  // Switch expressions: {{switch[...]}} or {{expr.switch[...]}}
+  if (content.startsWith('switch[') || content.includes('.switch[')) return 'switch'
 
   // Default for table references (can't easily distinguish from templates here)
   return 'table'
