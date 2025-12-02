@@ -37,6 +37,12 @@ export interface CollectionMeta {
   isPreloaded: boolean
   /** Source of the collection */
   source: 'preloaded' | 'file' | 'zip' | 'user'
+  /** Author from metadata */
+  author?: string
+  /** Source book name from metadata.source */
+  sourceBook?: string
+  /** Publisher from metadata.source */
+  sourcePublisher?: string
 }
 
 interface CollectionState {
@@ -178,7 +184,7 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
     // Load into engine
     engine.loadCollection(document, id, isPreloaded)
 
-    // Create metadata
+    // Create metadata with author and source info
     const meta: CollectionMeta = {
       id,
       name: document.metadata.name,
@@ -190,6 +196,10 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
       templateCount: document.templates?.length || 0,
       isPreloaded,
       source,
+      // Extract author and source metadata
+      author: document.metadata.author,
+      sourceBook: document.metadata.source?.book,
+      sourcePublisher: document.metadata.source?.publisher,
     }
 
     // Update state

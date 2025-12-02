@@ -6,13 +6,14 @@
  */
 
 import { memo, useState, useCallback, useMemo } from 'react'
-import type { RollResult, EntryDescription } from '@/engine/types'
+import type { RollResult, EntryDescription, Sets } from '@/engine/types'
 import type { StoredRoll } from '@/services/db'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
 import { SelectedItemInfo } from './SelectedItemInfo'
 import { CurrentRollResult } from './CurrentRollResult'
 import { RollHistoryList } from './RollHistoryList'
 import { DescriptionsDrawer } from './DescriptionsDrawer'
+import { SetsDrawer } from './SetsDrawer'
 
 interface ResultsPanelProps {
   selectedItem: BrowserItem | null
@@ -29,7 +30,9 @@ interface ResultsPanelProps {
 
 // Drawer state type
 interface DrawerState {
-  descriptions: EntryDescription[]
+  type: 'descriptions' | 'sets'
+  descriptions?: EntryDescription[]
+  sets?: Sets
   sourceLabel?: string
 }
 
@@ -45,16 +48,21 @@ export const ResultsPanel = memo(function ResultsPanel({
   onDelete,
   onClearHistory,
 }: ResultsPanelProps) {
-  // Drawer state for descriptions
+  // Drawer state for descriptions and sets
   const [drawerState, setDrawerState] = useState<DrawerState | null>(null)
 
   // Open descriptions drawer
   const openDescriptions = useCallback((descriptions: EntryDescription[], sourceLabel?: string) => {
-    setDrawerState({ descriptions, sourceLabel })
+    setDrawerState({ type: 'descriptions', descriptions, sourceLabel })
   }, [])
 
-  // Close descriptions drawer
-  const closeDescriptions = useCallback(() => {
+  // Open sets drawer
+  const openSets = useCallback((sets: Sets, sourceLabel?: string) => {
+    setDrawerState({ type: 'sets', sets, sourceLabel })
+  }, [])
+
+  // Close drawer
+  const closeDrawer = useCallback(() => {
     setDrawerState(null)
   }, [])
 
@@ -93,6 +101,7 @@ export const ResultsPanel = memo(function ResultsPanel({
           error={rollError}
           onReroll={onRoll}
           onShowDescriptions={openDescriptions}
+          onShowSets={openSets}
         />
 
         {/* Roll History */}
@@ -103,14 +112,23 @@ export const ResultsPanel = memo(function ResultsPanel({
           onDelete={onDelete}
           onClearHistory={onClearHistory}
           onShowDescriptions={openDescriptions}
+          onShowSets={openSets}
         />
       </div>
 
       {/* Descriptions Drawer */}
       <DescriptionsDrawer
-        descriptions={drawerState?.descriptions || null}
-        isOpen={drawerState !== null}
-        onClose={closeDescriptions}
+        descriptions={drawerState?.type === 'descriptions' ? drawerState.descriptions || null : null}
+        isOpen={drawerState?.type === 'descriptions'}
+        onClose={closeDrawer}
+        sourceLabel={drawerState?.sourceLabel}
+      />
+
+      {/* Sets Drawer */}
+      <SetsDrawer
+        sets={drawerState?.type === 'sets' ? drawerState.sets || null : null}
+        isOpen={drawerState?.type === 'sets'}
+        onClose={closeDrawer}
         sourceLabel={drawerState?.sourceLabel}
       />
     </div>

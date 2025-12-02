@@ -1,12 +1,15 @@
 /**
  * BrowserPanel Component
  *
- * Left panel containing the collection accordion.
+ * Left panel containing the collection filter bar and accordion.
  * Each collection expands to show its tables/templates.
  */
 
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { CollectionAccordion } from './CollectionAccordion'
+import { CollectionFilterBar } from './CollectionFilterBar'
+import { useCollections } from '@/hooks/useCollections'
+import { useCollectionStore } from '@/stores/collectionStore'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
 
 interface BrowserPanelProps {
@@ -38,6 +41,15 @@ export const BrowserPanel = memo(function BrowserPanel({
   onViewDetails,
   onMobileClose,
 }: BrowserPanelProps) {
+  // Get collections with roller filters
+  const { collections, allNamespaces } = useCollections({ useRollerFilters: true })
+  const storeCollections = useCollectionStore((state) => state.collections)
+
+  // Get total count before filtering
+  const totalCount = useMemo(() => {
+    return Array.from(storeCollections.values()).length
+  }, [storeCollections])
+
   const handleSelectItem = useCallback(
     (item: BrowserItem, collectionId: string) => {
       onSelectItem(item, collectionId)
@@ -90,15 +102,26 @@ export const BrowserPanel = memo(function BrowserPanel({
 
   return (
     <div className="flex flex-col h-full">
-      <CollectionAccordion
-        selectedItemId={selectedItemId}
-        onSelectItem={handleSelectItem}
-        onRollItem={handleRollItem}
-        onEditItem={onEditItem ? handleEditItem : undefined}
-        onCopyResult={onCopyResult ? handleCopyResult : undefined}
-        onRollMultiple={onRollMultiple ? handleRollMultiple : undefined}
-        onViewDetails={onViewDetails ? handleViewDetails : undefined}
+      {/* Collection filter bar */}
+      <CollectionFilterBar
+        allNamespaces={allNamespaces}
+        totalCount={totalCount}
+        filteredCount={collections.length}
       />
+
+      {/* Collection accordion */}
+      <div className="flex-1 overflow-hidden">
+        <CollectionAccordion
+          collections={collections}
+          selectedItemId={selectedItemId}
+          onSelectItem={handleSelectItem}
+          onRollItem={handleRollItem}
+          onEditItem={onEditItem ? handleEditItem : undefined}
+          onCopyResult={onCopyResult ? handleCopyResult : undefined}
+          onRollMultiple={onRollMultiple ? handleRollMultiple : undefined}
+          onViewDetails={onViewDetails ? handleViewDetails : undefined}
+        />
+      </div>
     </div>
   )
 })

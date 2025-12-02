@@ -1159,6 +1159,609 @@ describe('Capture-Aware Shared Variables', () => {
       expect(result.text).toMatch(/^Found: [1-6] Gold$/)
     })
   })
+
+  describe('nested property access (chained CaptureItems)', () => {
+    it('should support chained capture-aware shared variables', () => {
+      // Test: $conflict -> @situation -> @focus chain
+      // When @situation is a table reference, its result should preserve nested sets
+      const doc = createTestDoc(
+        [
+          {
+            id: 'conflictType',
+            name: 'Conflict Type',
+            type: 'simple',
+            entries: [
+              { value: 'Money', sets: { situation: '{{moneyConflict}}' } },
+            ],
+          },
+          {
+            id: 'moneyConflict',
+            name: 'Money Conflict',
+            type: 'simple',
+            entries: [
+              { value: 'Debt', sets: { focus: '{{debtFocus}}' } },
+            ],
+          },
+          {
+            id: 'debtFocus',
+            name: 'Debt Focus',
+            type: 'simple',
+            entries: [{ value: 'Collection Agency' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$conflict': '{{conflictType}}',
+              '$situation': '{{$conflict.@situation}}',
+            },
+            pattern: 'Conflict: {{$conflict}}, Situation: {{$situation}}, Focus: {{$situation.@focus}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Conflict: Money, Situation: Debt, Focus: Collection Agency')
+    })
+
+    it('should handle static strings in nested property access gracefully', () => {
+      // When @situation is a plain string (not a table reference), chaining should still work
+      // but the nested property access should return empty string
+      const doc = createTestDoc(
+        [
+          {
+            id: 'conflictType',
+            name: 'Conflict Type',
+            type: 'simple',
+            entries: [
+              { value: 'Money', sets: { situation: 'Static situation text' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$conflict': '{{conflictType}}',
+              '$situation': '{{$conflict.@situation}}',
+            },
+            pattern: 'Situation: {{$situation}}, Focus: [{{$situation.@focus}}]',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      // @situation is a plain string, so $situation has no nested sets
+      // @focus should return empty string
+      expect(result.text).toBe('Situation: Static situation text, Focus: []')
+    })
+
+    it('should support three levels of nesting', () => {
+      // Test: $a -> @b -> @c -> @d
+      const doc = createTestDoc(
+        [
+          {
+            id: 'levelA',
+            name: 'Level A',
+            type: 'simple',
+            entries: [
+              { value: 'A', sets: { childB: '{{levelB}}' } },
+            ],
+          },
+          {
+            id: 'levelB',
+            name: 'Level B',
+            type: 'simple',
+            entries: [
+              { value: 'B', sets: { childC: '{{levelC}}' } },
+            ],
+          },
+          {
+            id: 'levelC',
+            name: 'Level C',
+            type: 'simple',
+            entries: [
+              { value: 'C', sets: { childD: '{{levelD}}' } },
+            ],
+          },
+          {
+            id: 'levelD',
+            name: 'Level D',
+            type: 'simple',
+            entries: [{ value: 'D-Final' }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$a': '{{levelA}}',
+              '$b': '{{$a.@childB}}',
+              '$c': '{{$b.@childC}}',
+            },
+            pattern: 'A={{$a}}, B={{$b}}, C={{$c}}, D={{$c.@childD}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('A=A, B=B, C=C, D=D-Final')
+    })
+
+    it('should work with multi-roll capture accessing nested properties', () => {
+      // Test that the >> capture operator also captures nested CaptureItems
+      const doc = createTestDoc(
+        [
+          {
+            id: 'enemy',
+            name: 'Enemy',
+            type: 'simple',
+            entries: [
+              { value: 'Orc', sets: { weapon: '{{orcWeapon}}' } },
+              { value: 'Goblin', sets: { weapon: '{{goblinWeapon}}' } },
+            ],
+          },
+          {
+            id: 'orcWeapon',
+            name: 'Orc Weapon',
+            type: 'simple',
+            entries: [
+              { value: 'Axe', sets: { damage: '2d6' } },
+            ],
+          },
+          {
+            id: 'goblinWeapon',
+            name: 'Goblin Weapon',
+            type: 'simple',
+            entries: [
+              { value: 'Dagger', sets: { damage: '1d4' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            pattern: '{{1*enemy >> $foe|silent}}Enemy: {{$foe[0]}}, Weapon: {{$foe[0].@weapon}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      // Should get either "Enemy: Orc, Weapon: Axe" or "Enemy: Goblin, Weapon: Dagger"
+      const isOrcCombo = result.text === 'Enemy: Orc, Weapon: Axe'
+      const isGoblinCombo = result.text === 'Enemy: Goblin, Weapon: Dagger'
+      expect(isOrcCombo || isGoblinCombo).toBe(true)
+    })
+
+    it('should access deeply nested damage property via intermediate captures', () => {
+      // Same as above but accessing the nested damage property
+      const doc = createTestDoc(
+        [
+          {
+            id: 'enemy',
+            name: 'Enemy',
+            type: 'simple',
+            entries: [
+              { value: 'Orc', sets: { weapon: '{{orcWeapon}}' } },
+            ],
+          },
+          {
+            id: 'orcWeapon',
+            name: 'Orc Weapon',
+            type: 'simple',
+            entries: [
+              { value: 'Axe', sets: { damage: '2d6' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$enemy': '{{enemy}}',
+              '$weapon': '{{$enemy.@weapon}}',
+            },
+            pattern: '{{$enemy}} wields {{$weapon}} ({{$weapon.@damage}} damage)',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Orc wields Axe (2d6 damage)')
+    })
+  })
+
+  describe('direct chained property access syntax', () => {
+    // These tests verify the {{$var.@a.@b.@c}} direct syntax without intermediate variables
+
+    it('should support two-level chained access: {{$var.@a.@b}}', () => {
+      // Direct access: $conflict.@situation.@focus
+      const doc = createTestDoc(
+        [
+          {
+            id: 'conflictType',
+            name: 'Conflict Type',
+            type: 'simple',
+            entries: [
+              { value: 'Money', sets: { situation: '{{moneyConflict}}' } },
+            ],
+          },
+          {
+            id: 'moneyConflict',
+            name: 'Money Conflict',
+            type: 'simple',
+            entries: [
+              { value: 'Debt', sets: { focus: 'Collection Agency' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$conflict': '{{conflictType}}',
+            },
+            // Direct chained access: no intermediate $situation variable needed
+            pattern: 'Conflict: {{$conflict}}, Focus: {{$conflict.@situation.@focus}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Conflict: Money, Focus: Collection Agency')
+    })
+
+    it('should support three-level chained access: {{$var.@a.@b.@c}}', () => {
+      // Direct access: $a.@b.@c.@d
+      const doc = createTestDoc(
+        [
+          {
+            id: 'levelA',
+            name: 'Level A',
+            type: 'simple',
+            entries: [
+              { value: 'A', sets: { childB: '{{levelB}}' } },
+            ],
+          },
+          {
+            id: 'levelB',
+            name: 'Level B',
+            type: 'simple',
+            entries: [
+              { value: 'B', sets: { childC: '{{levelC}}' } },
+            ],
+          },
+          {
+            id: 'levelC',
+            name: 'Level C',
+            type: 'simple',
+            entries: [
+              { value: 'C', sets: { deepValue: 'DeepValueHere' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$a': '{{levelA}}',
+            },
+            // Direct three-level chained access
+            pattern: 'A={{$a}}, Deep={{$a.@childB.@childC.@deepValue}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('A=A, Deep=DeepValueHere')
+    })
+
+    it('should support four-level chained access: {{$var.@a.@b.@c.@d}}', () => {
+      // Deep nesting test: $a.@b.@c.@d.@e
+      const doc = createTestDoc(
+        [
+          {
+            id: 'levelA',
+            name: 'Level A',
+            type: 'simple',
+            entries: [
+              { value: 'A', sets: { b: '{{levelB}}' } },
+            ],
+          },
+          {
+            id: 'levelB',
+            name: 'Level B',
+            type: 'simple',
+            entries: [
+              { value: 'B', sets: { c: '{{levelC}}' } },
+            ],
+          },
+          {
+            id: 'levelC',
+            name: 'Level C',
+            type: 'simple',
+            entries: [
+              { value: 'C', sets: { d: '{{levelD}}' } },
+            ],
+          },
+          {
+            id: 'levelD',
+            name: 'Level D',
+            type: 'simple',
+            entries: [
+              { value: 'D', sets: { finalValue: 'FINAL' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$root': '{{levelA}}',
+            },
+            // Four levels deep
+            pattern: 'Result: {{$root.@b.@c.@d.@finalValue}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Result: FINAL')
+    })
+
+    it('should handle chain breaking at string property gracefully', () => {
+      // When @situation is a plain string, attempting to chain further should return empty
+      const doc = createTestDoc(
+        [
+          {
+            id: 'conflictType',
+            name: 'Conflict Type',
+            type: 'simple',
+            entries: [
+              { value: 'Money', sets: { situation: 'Static Text' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$conflict': '{{conflictType}}',
+            },
+            // @situation is a plain string, not a CaptureItem, so @focus should fail
+            pattern: 'Situation: {{$conflict.@situation}}, Focus: [{{$conflict.@situation.@focus}}]',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      // First property returns the string, second property returns empty
+      expect(result.text).toBe('Situation: Static Text, Focus: []')
+    })
+
+    it('should handle missing property in chain gracefully', () => {
+      // When a property doesn't exist in the chain
+      const doc = createTestDoc(
+        [
+          {
+            id: 'item',
+            name: 'Item',
+            type: 'simple',
+            entries: [
+              { value: 'Sword', sets: { damage: '1d8' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$item': '{{item}}',
+            },
+            // @nonexistent doesn't exist
+            pattern: 'Item: {{$item}}, Missing: [{{$item.@nonexistent.@deep}}]',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Item: Sword, Missing: []')
+    })
+
+    it('should work with indexed capture access: {{$var[0].@a.@b}}', () => {
+      // Chained access on indexed item from multi-roll capture
+      const doc = createTestDoc(
+        [
+          {
+            id: 'enemy',
+            name: 'Enemy',
+            type: 'simple',
+            entries: [
+              { value: 'Orc', sets: { weapon: '{{orcWeapon}}' } },
+            ],
+          },
+          {
+            id: 'orcWeapon',
+            name: 'Orc Weapon',
+            type: 'simple',
+            entries: [
+              { value: 'Axe', sets: { damage: '2d6', material: 'Iron' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            // Capture with >> and then access nested properties on indexed item
+            pattern: '{{1*enemy >> $foes|silent}}Enemy: {{$foes[0]}}, Material: {{$foes[0].@weapon.@material}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Enemy: Orc, Material: Iron')
+    })
+
+    it('should still support intermediate variable pattern (backward compatibility)', () => {
+      // Ensure the old pattern still works
+      const doc = createTestDoc(
+        [
+          {
+            id: 'conflictType',
+            name: 'Conflict Type',
+            type: 'simple',
+            entries: [
+              { value: 'Money', sets: { situation: '{{moneyConflict}}' } },
+            ],
+          },
+          {
+            id: 'moneyConflict',
+            name: 'Money Conflict',
+            type: 'simple',
+            entries: [
+              { value: 'Debt', sets: { focus: 'Collection Agency' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$conflict': '{{conflictType}}',
+              '$situation': '{{$conflict.@situation}}', // Intermediate variable (old pattern)
+            },
+            pattern: 'Focus via intermediate: {{$situation.@focus}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Focus via intermediate: Collection Agency')
+    })
+
+    it('should support mixed access patterns in the same template', () => {
+      // Mix direct chained and intermediate variable patterns
+      const doc = createTestDoc(
+        [
+          {
+            id: 'person',
+            name: 'Person',
+            type: 'simple',
+            entries: [
+              { value: 'Alice', sets: { job: '{{jobs}}', hobby: '{{hobbies}}' } },
+            ],
+          },
+          {
+            id: 'jobs',
+            name: 'Jobs',
+            type: 'simple',
+            entries: [
+              { value: 'Engineer', sets: { salary: 'High', field: 'Technology' } },
+            ],
+          },
+          {
+            id: 'hobbies',
+            name: 'Hobbies',
+            type: 'simple',
+            entries: [
+              { value: 'Gaming', sets: { cost: 'Medium' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$person': '{{person}}',
+              '$job': '{{$person.@job}}', // Intermediate for job
+            },
+            // Mix: direct access for hobby.cost, intermediate for job.field
+            pattern: 'Field: {{$job.@field}}, Hobby Cost: {{$person.@hobby.@cost}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Field: Technology, Hobby Cost: Medium')
+    })
+
+    it('should handle .value as terminal in chain', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'item',
+            name: 'Item',
+            type: 'simple',
+            entries: [
+              { value: 'Sword', sets: { child: '{{childItem}}' } },
+            ],
+          },
+          {
+            id: 'childItem',
+            name: 'Child Item',
+            type: 'simple',
+            entries: [
+              { value: 'ChildValue', sets: { deep: 'DeepValue' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: { '$item': '{{item}}' },
+            // Access .value explicitly at end of chain
+            pattern: 'Child value: {{$item.@child.value}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Child value: ChildValue')
+    })
+  })
 })
 
 describe('Explicit Pattern Syntax in Sets', () => {
@@ -1563,5 +2166,297 @@ describe('Explicit Pattern Syntax in Sets', () => {
       // With enough rolls, we should have seen both
       expect(foundWarrior || foundMage).toBe(true)
     })
+  })
+})
+
+describe('Again keyword with separator', () => {
+  it('should use custom separator for again rolls', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: {
+        name: 'Test Again',
+        namespace: 'test',
+        version: '1.0.0',
+        specVersion: '1.0',
+      },
+      tables: [
+        {
+          id: 'colors',
+          name: 'Colors',
+          type: 'simple',
+          entries: [
+            { id: 'red', value: 'Red' },
+            { id: 'blue', value: 'Blue' },
+            { id: 'green', value: 'Green' },
+            { id: 'yellow', value: 'Yellow' },
+            { id: 'combo', value: '{{2*unique*again|" and "}}' },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+
+    // Roll until we get the combo entry
+    let foundCombo = false
+    for (let i = 0; i < 50; i++) {
+      const result = engine.roll('colors', 'test')
+      if (result.text && result.text.includes(' and ')) {
+        foundCombo = true
+        // Should have the " and " separator
+        expect(result.text).toMatch(/(Red|Blue|Green|Yellow) and (Red|Blue|Green|Yellow)/)
+        // Should not have ", " (default separator)
+        expect(result.text).not.toContain(', ')
+        break
+      }
+    }
+    expect(foundCombo).toBe(true)
+  })
+
+  it('should use default separator when none specified', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: {
+        name: 'Test Again Default',
+        namespace: 'test',
+        version: '1.0.0',
+        specVersion: '1.0',
+      },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            { id: 'sword', value: 'Sword' },
+            { id: 'shield', value: 'Shield' },
+            { id: 'helm', value: 'Helm' },
+            { id: 'armor', value: 'Armor' },
+            { id: 'multi', value: '{{2*unique*again}}' },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+
+    // Roll until we get the multi entry
+    let foundMulti = false
+    for (let i = 0; i < 50; i++) {
+      const result = engine.roll('items', 'test')
+      if (result.text && result.text.includes(', ')) {
+        foundMulti = true
+        // Should have the default ", " separator
+        expect(result.text).toMatch(/(Sword|Shield|Helm|Armor), (Sword|Shield|Helm|Armor)/)
+        break
+      }
+    }
+    expect(foundMulti).toBe(true)
+  })
+})
+
+describe('@self.description placeholder', () => {
+  it('should access current entry description', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            {
+              id: 'sword',
+              value: 'Silver Sword ({{@self.description}})',
+              description: 'A gleaming blade of pure silver',
+            },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.roll('items', 'test')
+    expect(result.text).toBe('Silver Sword (A gleaming blade of pure silver)')
+  })
+
+  it('should return empty string when no description', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            {
+              id: 'sword',
+              value: 'Silver Sword{{@self.description}}',
+            },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.roll('items', 'test')
+    expect(result.text).toBe('Silver Sword')
+  })
+
+  it('should evaluate expressions in description', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            {
+              id: 'sword',
+              value: '{{@self.description}}',
+              description: 'Damage: {{dice:1d6}}',
+            },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.roll('items', 'test')
+    // Should match "Damage: X" where X is 1-6
+    expect(result.text).toMatch(/^Damage: [1-6]$/)
+  })
+
+  it('should work with collection tables', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'weapons',
+          name: 'Weapons',
+          type: 'collection',
+          collections: ['swords'],
+        },
+        {
+          id: 'swords',
+          name: 'Swords',
+          type: 'simple',
+          entries: [
+            {
+              id: 'longsword',
+              value: '{{@self.description}} Longsword',
+              description: 'Steel',
+            },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.roll('weapons', 'test')
+    expect(result.text).toBe('Steel Longsword')
+  })
+})
+
+describe('$var.@description access via capture-aware shared variables', () => {
+  it('should access entry description via $var.@description in template', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'worldTag',
+          name: 'World Tag',
+          type: 'simple',
+          entries: [
+            {
+              id: 'abandoned',
+              value: 'Abandoned Colony',
+              description: 'The world once hosted a colony until disaster struck.',
+              sets: {
+                enemy: 'Raiders',
+                friend: 'Survivors',
+              },
+            },
+          ],
+        },
+      ],
+      templates: [
+        {
+          id: 'worldTagTemplate',
+          name: 'World Tag Template',
+          pattern: '# {{$worldTag}}\n\n{{$worldTag.@description}}\n\nFriend: {{$worldTag.@friend}}',
+          shared: {
+            '$worldTag': '{{worldTag}}',
+          },
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('worldTagTemplate', 'test')
+    expect(result.text).toBe('# Abandoned Colony\n\nThe world once hosted a colony until disaster struck.\n\nFriend: Survivors')
+  })
+
+  it('should return empty string when entry has no description', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            {
+              id: 'sword',
+              value: 'Sword',
+            },
+          ],
+        },
+      ],
+      templates: [
+        {
+          id: 'itemTemplate',
+          name: 'Item Template',
+          pattern: '{{$item}} - {{$item.@description}}',
+          shared: {
+            '$item': '{{items}}',
+          },
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('itemTemplate', 'test')
+    expect(result.text).toBe('Sword - ')
+  })
+
+  it('should access description via multi-roll capture with index', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            {
+              id: 'sword',
+              value: 'Sword',
+              description: 'A sharp blade',
+            },
+          ],
+        },
+      ],
+      templates: [
+        {
+          id: 'lootTemplate',
+          name: 'Loot Template',
+          pattern: '{{1*items >> $loot|silent}}Item: {{$loot[0]}} ({{$loot[0].@description}})',
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.rollTemplate('lootTemplate', 'test')
+    expect(result.text).toBe('Item: Sword (A sharp blade)')
   })
 })

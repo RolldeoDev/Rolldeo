@@ -8,8 +8,8 @@
 import { memo, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen } from 'lucide-react'
-import type { RollResult, EntryDescription } from '@/engine/types'
+import { RotateCcw, Activity, Grab, ClipboardCopy, Check, BookOpen, ListOrdered } from 'lucide-react'
+import type { RollResult, EntryDescription, Sets } from '@/engine/types'
 import { TraceViewer } from './TraceViewer'
 import { CaptureInspector } from './CaptureInspector'
 import { getResultTypeIcon } from '@/lib/resultTypeIcons'
@@ -21,6 +21,7 @@ interface CurrentRollResultProps {
   error: string | null
   onReroll: () => void
   onShowDescriptions: (descriptions: EntryDescription[], sourceLabel?: string) => void
+  onShowSets: (sets: Sets, sourceLabel?: string) => void
 }
 
 export const CurrentRollResult = memo(function CurrentRollResult({
@@ -30,6 +31,7 @@ export const CurrentRollResult = memo(function CurrentRollResult({
   error,
   onReroll,
   onShowDescriptions,
+  onShowSets,
 }: CurrentRollResultProps) {
   const [showTrace, setShowTrace] = useState(false)
   const [showCaptures, setShowCaptures] = useState(false)
@@ -40,6 +42,12 @@ export const CurrentRollResult = memo(function CurrentRollResult({
 
   const hasDescriptions = result?.descriptions && result.descriptions.length > 0
   const descriptionCount = hasDescriptions ? result!.descriptions!.length : 0
+
+  // Count sets, excluding 'value' (which is always present as @value)
+  const setsCount = result?.placeholders
+    ? Object.keys(result.placeholders).filter((key) => key !== 'value').length
+    : 0
+  const hasSets = setsCount > 0
 
   const handleCopy = useCallback(async () => {
     if (!result?.text) return
@@ -117,12 +125,26 @@ export const CurrentRollResult = memo(function CurrentRollResult({
         {hasDescriptions && (
           <button
             onClick={() => onShowDescriptions(result!.descriptions!, itemName || undefined)}
-            className="text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-amber-400 border-amber-400/40 bg-amber-400/10 hover:bg-amber-400/20"
+            className="text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 text-muted-foreground border-border/50 hover:text-copper hover:border-copper/50 hover:bg-copper/15 hover:scale-[1.02]"
           >
             <BookOpen className="w-4 h-4" />
             View Descriptions
-            <span className="text-amber-300/60 text-xs">
+            <span className="text-xs opacity-60">
               ({descriptionCount})
+            </span>
+          </button>
+        )}
+
+        {/* Sets button - opens drawer */}
+        {hasSets && (
+          <button
+            onClick={() => onShowSets(result!.placeholders!, itemName || undefined)}
+            className="text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 text-muted-foreground border-border/50 hover:text-rose hover:border-rose/40 hover:bg-rose/10 hover:scale-[1.02]"
+          >
+            <ListOrdered className="w-4 h-4" />
+            View Sets
+            <span className="text-xs opacity-60">
+              ({setsCount})
             </span>
           </button>
         )}

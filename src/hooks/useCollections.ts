@@ -6,7 +6,13 @@
 
 import { useEffect, useMemo } from 'react'
 import { useCollectionStore, type CollectionMeta } from '../stores/collectionStore'
-import { useUIStore } from '../stores/uiStore'
+import { useUIStore, type NamespaceDepth } from '../stores/uiStore'
+import {
+  getUniqueNamespaces,
+  groupCollectionsByNamespace,
+  parseNamespace,
+  collectionMatchesSearch,
+} from '../lib/namespaceUtils'
 
 export interface UseCollectionsReturn {
   // Collections
@@ -14,6 +20,10 @@ export interface UseCollectionsReturn {
   preloaded: CollectionMeta[]
   userCollections: CollectionMeta[]
   allTags: string[]
+
+  // Namespace organization
+  allNamespaces: string[]
+  groupedCollections: Map<string, CollectionMeta[]>
 
   // State
   isLoading: boolean
@@ -25,11 +35,20 @@ export interface UseCollectionsReturn {
   importFiles: (files: File[]) => Promise<import('../services/import').ImportResult>
 }
 
+export interface UseCollectionsOptions {
+  /** Namespace filter (uses library namespace filter if not specified) */
+  namespaceFilter?: string | null
+  /** Namespace depth for grouping (uses library group depth if not specified) */
+  namespaceDepth?: NamespaceDepth
+  /** Use roller filters instead of library filters */
+  useRollerFilters?: boolean
+}
+
 /**
  * Hook for accessing and filtering collections.
  * Automatically initializes the collection store on first use.
  */
-export function useCollections(): UseCollectionsReturn {
+export function useCollections(options: UseCollectionsOptions = {}): UseCollectionsReturn {
   const {
     collections,
     isLoading,
@@ -41,7 +60,22 @@ export function useCollections(): UseCollectionsReturn {
     getAllTags,
   } = useCollectionStore()
 
-  const { searchQuery, selectedTags } = useUIStore()
+  const {
+    searchQuery,
+    selectedTags,
+    libraryNamespaceFilter,
+    libraryGroupDepth,
+    rollerNamespaceFilter,
+    rollerCollectionSearchQuery,
+  } = useUIStore()
+
+  // Determine which filters to use
+  const useRollerFilters = options.useRollerFilters ?? false
+  const effectiveSearchQuery = useRollerFilters ? rollerCollectionSearchQuery : searchQuery
+  const effectiveNamespaceFilter = options.namespaceFilter !== undefined
+    ? options.namespaceFilter
+    : (useRollerFilters ? rollerNamespaceFilter : libraryNamespaceFilter)
+  const effectiveNamespaceDepth = options.namespaceDepth ?? libraryGroupDepth
 
   // Initialize on first use
   useEffect(() => {
@@ -50,24 +84,36 @@ export function useCollections(): UseCollectionsReturn {
     }
   }, [isInitialized, isLoading]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Filter collections based on search and tags
-  const filteredCollections = useMemo(() => {
-    return Array.from(collections.values()).filter((c) => {
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase()
-        const matchesName = c.name.toLowerCase().includes(query)
-        const matchesDescription = c.description?.toLowerCase().includes(query)
-        const matchesNamespace = c.namespace.toLowerCase().includes(query)
-        const matchesTags = c.tags.some((t) => t.toLowerCase().includes(query))
+  // Get all collections as array
+  const allCollections = useMemo(() => {
+    return Array.from(collections.values())
+  }, [collections])
 
-        if (!matchesName && !matchesDescription && !matchesNamespace && !matchesTags) {
+  // Get all unique namespaces (before filtering)
+  const allNamespaces = useMemo(() => {
+    return getUniqueNamespaces(allCollections, effectiveNamespaceDepth)
+  }, [allCollections, effectiveNamespaceDepth])
+
+  // Filter collections based on search, tags, and namespace
+  const filteredCollections = useMemo(() => {
+    return allCollections.filter((c) => {
+      // Namespace filter
+      if (effectiveNamespaceFilter) {
+        const prefix = parseNamespace(c.namespace, effectiveNamespaceDepth)
+        if (prefix !== effectiveNamespaceFilter) {
           return false
         }
       }
 
-      // Tag filter
-      if (selectedTags.length > 0) {
+      // Search filter (includes author and source in search)
+      if (effectiveSearchQuery) {
+        if (!collectionMatchesSearch(c, effectiveSearchQuery)) {
+          return false
+        }
+      }
+
+      // Tag filter (only for library, not roller)
+      if (!useRollerFilters && selectedTags.length > 0) {
         if (!selectedTags.some((t) => c.tags.includes(t))) {
           return false
         }
@@ -75,13 +121,20 @@ export function useCollections(): UseCollectionsReturn {
 
       return true
     })
-  }, [collections, searchQuery, selectedTags])
+  }, [allCollections, effectiveSearchQuery, selectedTags, effectiveNamespaceFilter, effectiveNamespaceDepth, useRollerFilters])
+
+  // Group filtered collections by namespace
+  const groupedCollections = useMemo(() => {
+    return groupCollectionsByNamespace(filteredCollections, effectiveNamespaceDepth)
+  }, [filteredCollections, effectiveNamespaceDepth])
 
   return {
     collections: filteredCollections,
     preloaded: filteredCollections.filter((c) => c.isPreloaded),
     userCollections: filteredCollections.filter((c) => !c.isPreloaded),
     allTags: getAllTags(),
+    allNamespaces,
+    groupedCollections,
     isLoading,
     isInitialized,
     error,

@@ -1,0 +1,159 @@
+/**
+ * CollectionCard Component
+ *
+ * Card display for a collection with metadata, tags, stats, and actions.
+ * Enhanced to show author and source information when available.
+ */
+
+import { memo } from 'react'
+import { Link } from 'react-router-dom'
+import { Dices, Layers, Trash2, User, BookOpen } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import type { CollectionMeta } from '@/stores/collectionStore'
+
+const tagColors = [
+  'pill-mint',
+  'pill-lavender',
+  'pill-amber',
+]
+
+interface CollectionCardProps {
+  collection: CollectionMeta
+  onDelete?: () => void
+  /** Animation delay index for staggered appearance */
+  index?: number
+  /** Whether to show a compact version */
+  compact?: boolean
+}
+
+export const CollectionCard = memo(function CollectionCard({
+  collection,
+  onDelete,
+  index = 0,
+  compact = false,
+}: CollectionCardProps) {
+  const hasMetadata = collection.author || collection.sourceBook || collection.sourcePublisher
+
+  return (
+    <div
+      className={cn(
+        'card-elevated border border-white/5 group transition-all duration-300 hover:border-white/10 hover:scale-[1.01] animate-slide-up',
+        compact ? 'p-4' : 'p-5'
+      )}
+      style={{ animationDelay: `${index * 0.05}s` }}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <h3 className={cn(
+          'font-semibold leading-tight',
+          compact ? 'text-base' : 'text-lg'
+        )}>
+          {collection.name}
+        </h3>
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onDelete()
+            }}
+            className="p-2 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 rounded-lg transition-all -mt-1 -mr-1"
+            title="Delete collection"
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </button>
+        )}
+      </div>
+
+      {/* Description */}
+      <p className={cn(
+        'text-sm text-muted-foreground line-clamp-2',
+        compact ? 'mb-3 min-h-[2rem]' : 'mb-4 min-h-[2.5rem]'
+      )}>
+        {collection.description || `Collection with ${collection.tableCount} tables`}
+      </p>
+
+      {/* Author & Source metadata */}
+      {hasMetadata && !compact && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mb-3 pb-3 border-b border-white/5">
+          {collection.author && (
+            <span className="flex items-center gap-1.5">
+              <User className="h-3 w-3 text-copper/60" />
+              <span className="truncate max-w-[120px]">{collection.author}</span>
+            </span>
+          )}
+          {(collection.sourceBook || collection.sourcePublisher) && (
+            <span className="flex items-center gap-1.5">
+              <BookOpen className="h-3 w-3 text-lavender/60" />
+              <span className="truncate max-w-[150px]">
+                {collection.sourceBook || collection.sourcePublisher}
+              </span>
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Tags */}
+      <div className={cn(
+        'flex flex-wrap gap-1.5',
+        compact ? 'mb-3 min-h-[1.5rem]' : 'mb-4 min-h-[1.75rem]'
+      )}>
+        {collection.tags.slice(0, compact ? 2 : 3).map((tag, tagIndex) => (
+          <span
+            key={tag}
+            className={cn('pill', tagColors[tagIndex % tagColors.length])}
+          >
+            {tag}
+          </span>
+        ))}
+        {collection.tags.length > (compact ? 2 : 3) && (
+          <span className="pill pill-outline">
+            +{collection.tags.length - (compact ? 2 : 3)}
+          </span>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className={cn(
+        'flex items-center gap-4 text-xs text-muted-foreground border-b border-white/5',
+        compact ? 'mb-3 pb-3' : 'mb-4 pb-4'
+      )}>
+        <span className="flex items-center gap-1.5">
+          <Dices className="h-3.5 w-3.5" />
+          {collection.tableCount} table{collection.tableCount !== 1 ? 's' : ''}
+        </span>
+        {collection.templateCount > 0 && (
+          <span className="flex items-center gap-1.5">
+            <Layers className="h-3.5 w-3.5" />
+            {collection.templateCount} template{collection.templateCount !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <Link
+          to={`/roll?collection=${collection.id}`}
+          className={cn(
+            'flex-1 btn-primary flex items-center justify-center gap-2 text-sm',
+            compact ? 'py-2' : 'py-2.5'
+          )}
+        >
+          <Dices className="h-4 w-4" />
+          Roll
+        </Link>
+        <Link
+          to={`/editor/${collection.id}`}
+          className={cn(
+            'flex-1 btn-secondary flex items-center justify-center text-sm',
+            compact ? 'py-2' : 'py-2.5'
+          )}
+        >
+          View
+        </Link>
+      </div>
+    </div>
+  )
+})
+
+export default CollectionCard

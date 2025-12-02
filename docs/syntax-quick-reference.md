@@ -23,6 +23,8 @@
 | `{{2*again}}` | Roll 2 more times |
 | `{{2*unique*again}}` | Roll 2 more times, no duplicates |
 | `{{dice:1d4*again}}` | Roll 1d4 times on this table |
+| `{{2*again\|" and "}}` | Roll 2 more times with custom separator |
+| `{{2*unique*again\|"; "}}` | Roll 2 unique with custom separator |
 
 ## Dice
 
@@ -54,6 +56,7 @@
 | `{{$variableName}}` | Static or shared variable |
 | `{{$alias.variableName}}` | Variable from imported file |
 | `{{@placeholder.property}}` | Placeholder property |
+| `{{@self.description}}` | Current entry's description |
 
 ## Roll Capture
 

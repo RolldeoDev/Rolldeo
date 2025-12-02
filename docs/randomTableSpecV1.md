@@ -793,6 +793,7 @@ The following table lists all supported operations in order of parsing priority:
 | `{{$variableName}}`           | Reference a stored variable (static or shared) | `{{$playerRace}}`             |
 | `{{$alias.variableName}}`     | Reference a variable from imported file        | `{{$core.defaultCurrency}}`   |
 | `{{@placeholder.property}}`   | Lookup property from placeholder context       | `{{@size.buildingCount}}`     |
+| `{{@self.description}}`       | Access current entry's description             | `{{@self.description}}`       |
 | `{{$var*tableId}}`            | Use shared variable as roll count              | `{{$monsterCount*creatures}}` |
 | `{{$var*unique*tableId}}`     | Use shared variable for unique roll count      | `{{$count*unique*loot}}`      |
 | `{{N*table >> $var}}`         | Capture N roll results into variable           | `{{3*items >> $loot}}`        |
@@ -1575,6 +1576,46 @@ When accessed, `{{@race.firstName}}` returns the already-evaluated name (e.g., `
 | `@` | Entry `sets` property (merged with `defaultSets` and inherited) | `{{@placeholder.property}}` | `{{@race.firstName}}` |
 
 This separation prevents naming collisions and clarifies the source of each value.
+
+### 9.4 The `@self` Placeholder
+
+The `@self` placeholder provides access to properties of the current entry being evaluated. This allows an entry's value to reference its own description field.
+
+| Syntax | Description |
+|--------|-------------|
+| `{{@self.description}}` | The current entry's `description` field |
+
+**Example:**
+
+```json
+{
+  "tables": [
+    {
+      "id": "treasures",
+      "type": "simple",
+      "entries": [
+        {
+          "value": "You found {{@self.description}}!",
+          "description": "a gleaming silver sword"
+        },
+        {
+          "value": "The chest contains {{@self.description}}.",
+          "description": "{{dice:3d6*10}} gold coins"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Outputs:**
+- Entry 1: `You found a gleaming silver sword!`
+- Entry 2: `The chest contains 90 gold coins.` (dice rolled)
+
+**Behavior:**
+- If the entry has no `description` field, `{{@self.description}}` returns an empty string
+- Expressions within the description (like `{{dice:1d6}}`) are evaluated when accessed
+- In nested rolls, `@self` refers to the innermost entry being evaluated
 
 ---
 

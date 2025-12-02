@@ -219,6 +219,11 @@ export function TemplateEditor({
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Shared Variables</span>
                 <span className="text-xs text-muted-foreground">(optional)</span>
+                {template.shared && Object.keys(template.shared).length > 0 && (
+                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-rose/15 text-rose">
+                    {Object.keys(template.shared).length}
+                  </span>
+                )}
                 <div className="group relative">
                   <Info className="h-4 w-4 text-muted-foreground cursor-help" />
                   <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 text-xs bg-popover border rounded-md shadow-lg">

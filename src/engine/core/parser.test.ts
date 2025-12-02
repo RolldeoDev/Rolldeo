@@ -143,6 +143,15 @@ describe('parseExpression', () => {
         expect(token.property).toBe('value')
       }
     })
+
+    it('should parse @self.description placeholder', () => {
+      const token = parseExpression('@self.description')
+      expect(token.type).toBe('placeholder')
+      if (token.type === 'placeholder') {
+        expect(token.name).toBe('self')
+        expect(token.property).toBe('description')
+      }
+    })
   })
 
   describe('again keyword', () => {
@@ -169,6 +178,43 @@ describe('parseExpression', () => {
       if (token.type === 'again') {
         expect(token.count).toBe(3)
         expect(token.unique).toBe(true)
+      }
+    })
+
+    it('should parse again with separator', () => {
+      const token = parseExpression('again|" and "')
+      expect(token.type).toBe('again')
+      if (token.type === 'again') {
+        expect(token.separator).toBe(' and ')
+      }
+    })
+
+    it('should parse N*again with separator', () => {
+      const token = parseExpression('3*again|"; "')
+      expect(token.type).toBe('again')
+      if (token.type === 'again') {
+        expect(token.count).toBe(3)
+        expect(token.separator).toBe('; ')
+      }
+    })
+
+    it('should parse N*unique*again with separator', () => {
+      const token = parseExpression('2*unique*again|" combined with "')
+      expect(token.type).toBe('again')
+      if (token.type === 'again') {
+        expect(token.count).toBe(2)
+        expect(token.unique).toBe(true)
+        expect(token.separator).toBe(' combined with ')
+      }
+    })
+
+    it('should parse again with separator with space after pipe', () => {
+      const token = parseExpression('2*unique*again| " combined with "')
+      expect(token.type).toBe('again')
+      if (token.type === 'again') {
+        expect(token.count).toBe(2)
+        expect(token.unique).toBe(true)
+        expect(token.separator).toBe(' combined with ')
       }
     })
   })
@@ -457,7 +503,7 @@ describe('capture access', () => {
     expect(token.type).toBe('captureAccess')
     if (token.type === 'captureAccess') {
       expect(token.varName).toBe('foes')
-      expect(token.property).toBe('count')
+      expect(token.properties).toEqual(['count'])
       expect(token.index).toBeUndefined()
     }
   })
@@ -467,7 +513,7 @@ describe('capture access', () => {
     expect(token.type).toBe('captureAccess')
     if (token.type === 'captureAccess') {
       expect(token.varName).toBe('foes')
-      expect(token.property).toBe('value')
+      expect(token.properties).toEqual(['value'])
     }
   })
 
@@ -477,7 +523,7 @@ describe('capture access', () => {
     if (token.type === 'captureAccess') {
       expect(token.varName).toBe('foes')
       expect(token.index).toBe(0)
-      expect(token.property).toBe('value')
+      expect(token.properties).toEqual(['value'])
     }
   })
 
@@ -487,7 +533,7 @@ describe('capture access', () => {
     if (token.type === 'captureAccess') {
       expect(token.varName).toBe('foes')
       expect(token.index).toBe(0)
-      expect(token.property).toBe('enemy') // stored without @
+      expect(token.properties).toEqual(['enemy']) // stored without @
     }
   })
 
@@ -496,8 +542,37 @@ describe('capture access', () => {
     expect(token.type).toBe('captureAccess')
     if (token.type === 'captureAccess') {
       expect(token.varName).toBe('foes')
-      expect(token.property).toBe('enemy')
+      expect(token.properties).toEqual(['enemy'])
       expect(token.index).toBeUndefined()
+    }
+  })
+
+  it('should parse chained property access', () => {
+    const token = parseExpression('$conflict.@situation.@focus')
+    expect(token.type).toBe('captureAccess')
+    if (token.type === 'captureAccess') {
+      expect(token.varName).toBe('conflict')
+      expect(token.properties).toEqual(['situation', 'focus'])
+      expect(token.index).toBeUndefined()
+    }
+  })
+
+  it('should parse deep chained property access', () => {
+    const token = parseExpression('$root.@a.@b.@c.@d')
+    expect(token.type).toBe('captureAccess')
+    if (token.type === 'captureAccess') {
+      expect(token.varName).toBe('root')
+      expect(token.properties).toEqual(['a', 'b', 'c', 'd'])
+    }
+  })
+
+  it('should parse indexed access with chained properties', () => {
+    const token = parseExpression('$items[0].@weapon.@damage')
+    expect(token.type).toBe('captureAccess')
+    if (token.type === 'captureAccess') {
+      expect(token.varName).toBe('items')
+      expect(token.index).toBe(0)
+      expect(token.properties).toEqual(['weapon', 'damage'])
     }
   })
 })
