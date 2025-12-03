@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 import { useParams, useNavigate, useBlocker, useLocation } from 'react-router-dom'
 import {
   Save,
@@ -55,7 +56,6 @@ export function EditorPage() {
   const [document, setDocument] = useState<RandomTableDocument | null>(null)
   const [jsonContent, setJsonContent] = useState('')
   const [originalJson, setOriginalJson] = useState('')
-  const [isDirty, setIsDirty] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -116,10 +116,9 @@ export function EditorPage() {
     setIsLoading(false)
   }, [collectionId, isInitialized, getCollectionDocument, navigate, setLastEditorCollectionId])
 
-  // Track dirty state
-  useEffect(() => {
-    setIsDirty(jsonContent !== originalJson)
-  }, [jsonContent, originalJson])
+  // Compute dirty state directly (not via useEffect) so it's immediately
+  // accurate when state changes, avoiding race conditions with navigation blocker
+  const isDirty = jsonContent !== originalJson
 
   // Block navigation when dirty
   const blocker = useBlocker(isDirty)
@@ -188,9 +187,13 @@ export function EditorPage() {
       await saveCollection(id, document, 'user')
 
       // Update original JSON to mark as clean
+      // Use flushSync to ensure isDirty becomes false before navigation,
+      // otherwise the navigation blocker will trigger incorrectly
       const savedJson = formatJson(JSON.stringify(document))
-      setOriginalJson(savedJson)
-      setJsonContent(savedJson)
+      flushSync(() => {
+        setOriginalJson(savedJson)
+        setJsonContent(savedJson)
+      })
 
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 2000)

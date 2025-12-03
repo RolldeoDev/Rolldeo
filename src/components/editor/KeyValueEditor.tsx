@@ -270,7 +270,7 @@ export function KeyValueEditor({
                 </div>
               )}
             </div>
-            {valueSupportsExpressions && val.includes('{{') && (
+            {valueSupportsExpressions && val?.includes('{{') && (
               <ExpressionPreview value={val} collectionId={collectionId} />
             )}
           </div>
