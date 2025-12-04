@@ -54,7 +54,7 @@ function renderHighlightedText(text: string): React.ReactNode {
     // Add text before the match
     if (match.start > lastIndex) {
       parts.push(
-        <span key={`text-${lastIndex}`}>
+        <span key={`text-${lastIndex}`} className="whitespace-pre">
           {text.slice(lastIndex, match.start)}
         </span>
       )
@@ -63,7 +63,7 @@ function renderHighlightedText(text: string): React.ReactNode {
     // Add the highlighted expression
     const className = getExpressionClassName(match.expression)
     parts.push(
-      <span key={`expr-${match.start}`} className={className}>
+      <span key={`expr-${match.start}`} className={cn(className, 'whitespace-pre')}>
         {match.raw}
       </span>
     )
@@ -74,7 +74,7 @@ function renderHighlightedText(text: string): React.ReactNode {
   // Add remaining text
   if (lastIndex < text.length) {
     parts.push(
-      <span key={`text-${lastIndex}`}>
+      <span key={`text-${lastIndex}`} className="whitespace-pre">
         {text.slice(lastIndex)}
       </span>
     )
