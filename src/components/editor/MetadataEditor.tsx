@@ -346,6 +346,16 @@ export function MetadataEditor({
               />
             </FormField>
 
+            <FormField label="Pages" description="Page number(s) or range">
+              <input
+                type="text"
+                value={value.source?.pages || ''}
+                onChange={(e) => updateSource('pages', e.target.value)}
+                placeholder="47-89"
+                className="w-full p-2 border rounded-md bg-background"
+              />
+            </FormField>
+
             <FormField label="ISBN" description="ISBN if applicable">
               <input
                 type="text"
