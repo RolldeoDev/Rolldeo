@@ -61,6 +61,8 @@ export interface MetadataSource {
   book?: string
   /** Publisher name */
   publisher?: string
+  /** Page number(s) or range (e.g., '47', '47-89', '12, 45-67') */
+  pages?: string
   /** ISBN */
   isbn?: string
   /** URL to source */

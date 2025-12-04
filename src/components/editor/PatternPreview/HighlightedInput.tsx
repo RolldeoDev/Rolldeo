@@ -54,7 +54,7 @@ function renderHighlightedText(text: string): React.ReactNode {
     // Add text before the match
     if (match.start > lastIndex) {
       parts.push(
-        <span key={`text-${lastIndex}`}>
+        <span key={`text-${lastIndex}`} className="whitespace-pre">
           {text.slice(lastIndex, match.start)}
         </span>
       )
@@ -63,7 +63,7 @@ function renderHighlightedText(text: string): React.ReactNode {
     // Add the highlighted expression
     const className = getExpressionClassName(match.expression)
     parts.push(
-      <span key={`expr-${match.start}`} className={className}>
+      <span key={`expr-${match.start}`} className={cn(className, 'whitespace-pre')}>
         {match.raw}
       </span>
     )
@@ -74,7 +74,7 @@ function renderHighlightedText(text: string): React.ReactNode {
   // Add remaining text
   if (lastIndex < text.length) {
     parts.push(
-      <span key={`text-${lastIndex}`}>
+      <span key={`text-${lastIndex}`} className="whitespace-pre">
         {text.slice(lastIndex)}
       </span>
     )
@@ -121,9 +121,10 @@ export const HighlightedInput = memo(
         const input = inputRef.current
         if (!input) return
 
-        const start = input.selectionStart ?? value.length
-        const end = input.selectionEnd ?? value.length
-        const newValue = value.slice(0, start) + text + value.slice(end)
+        const safeValue = value ?? ''
+        const start = input.selectionStart ?? safeValue.length
+        const end = input.selectionEnd ?? safeValue.length
+        const newValue = safeValue.slice(0, start) + text + safeValue.slice(end)
 
         onChange(newValue)
 
@@ -162,7 +163,7 @@ export const HighlightedInput = memo(
       [insertAtCursor, focus]
     )
 
-    const hasExpressions = value.includes('{{')
+    const hasExpressions = value?.includes('{{') ?? false
 
     return (
       <div className={cn('relative', wrapperClassName)}>
@@ -174,13 +175,16 @@ export const HighlightedInput = memo(
               'absolute top-0 left-0 right-0 bottom-0',
               'pointer-events-none overflow-hidden whitespace-nowrap',
               'flex items-center',
-              // Match input padding and font - must be identical to input
-              'px-3 font-mono text-base md:text-sm',
-              'text-foreground'
+              // Inherit the same styling as the input for perfect alignment
+              // This includes padding, font-size, font-family from className
+              className,
+              'text-foreground',
+              // Remove any background/border that might come from className
+              '!bg-transparent !border-transparent !shadow-none !ring-0'
             )}
             aria-hidden="true"
           >
-            {renderHighlightedText(value)}
+            {renderHighlightedText(value ?? '')}
           </div>
         )}
 
@@ -188,7 +192,7 @@ export const HighlightedInput = memo(
         <input
           ref={inputRef}
           type="text"
-          value={value}
+          value={value ?? ''}
           onChange={handleChange}
           onScroll={syncScroll}
           onFocus={onFocus}
@@ -197,8 +201,6 @@ export const HighlightedInput = memo(
           placeholder={placeholder}
           className={cn(
             className,
-            // Force monospace font to match overlay
-            'font-mono',
             // Make text transparent when there are expressions to show overlay
             hasExpressions && 'highlighted-input-transparent'
           )}
