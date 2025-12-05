@@ -364,9 +364,9 @@ export const InlineResult = memo(function InlineResult({
             code: ({ className: codeClassName, children, ...props }) => {
               let content =
                 typeof children === 'string' ? children : String(children ?? '')
-              // Strip expression markers from code
+              // Strip expression markers from code (just the zero-width characters)
               const markerRegex = new RegExp(
-                `${EXPR_START}\\d+${EXPR_SEP}([^${EXPR_END[0]}]*)${EXPR_END}`,
+                `${EXPR_START}([\\s\\S]*?)${EXPR_END}`,
                 'g'
               )
               content = content.replace(markerRegex, '$1')
