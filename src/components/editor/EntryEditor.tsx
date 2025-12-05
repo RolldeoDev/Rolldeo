@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
-import { ChevronDown, ChevronRight, Trash2, X, Eye, EyeOff } from 'lucide-react'
+import { ChevronDown, ChevronRight, Trash2, X, Eye, EyeOff, Copy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { extractExpressions } from '@/engine/core/parser'
 import { InlineResult } from './PatternPreview/InlineResult'
@@ -26,6 +26,8 @@ export interface EntryEditorProps {
   onDelete: () => void
   /** Called when Enter is pressed on a valid entry to add a new one */
   onAddEntry?: () => void
+  /** Called when entry should be cloned */
+  onClone?: () => void
   /** Index for display */
   index: number
   /** Whether entry is being dragged */
@@ -36,6 +38,10 @@ export interface EntryEditorProps {
   collectionId?: string
   /** Whether to auto-focus the value input on mount */
   autoFocus?: boolean
+  /** Whether to start expanded (used for cloned entries) */
+  defaultExpanded?: boolean
+  /** Whether this entry was just cloned (triggers animation) */
+  isCloned?: boolean
   /** Local tables for insert dropdown */
   localTables?: TableInfo[]
   /** Local templates for insert dropdown */
@@ -51,23 +57,35 @@ export function EntryEditor({
   onChange,
   onDelete,
   onAddEntry,
+  onClone,
   index,
   isDragging,
   canDelete = true,
   collectionId,
   autoFocus = false,
+  defaultExpanded = false,
+  isCloned = false,
   localTables = [],
   localTemplates = [],
   importedTables = [],
   importedTemplates = [],
 }: EntryEditorProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [showPreview, setShowPreview] = useState(false)
   const [weightMode, setWeightMode] = useState<'weight' | 'range'>(
     entry.range ? 'range' : 'weight'
   )
   const desktopInputRef = useRef<HighlightedInputRef>(null)
   const mobileInputRef = useRef<HighlightedInputRef>(null)
+  // Respond to explicit defaultExpanded prop changes (only true/false, not undefined)
+  useEffect(() => {
+    if (defaultExpanded === true) {
+      setIsExpanded(true)
+    } else if (defaultExpanded === false) {
+      setIsExpanded(false)
+    }
+    // Ignore undefined - only react to explicit true/false
+  }, [defaultExpanded])
 
   // Auto-focus the value input when requested
   // Use setTimeout to ensure the element is fully rendered and visible
@@ -149,9 +167,10 @@ export function EntryEditor({
   return (
     <div
       className={cn(
-        'border rounded-xl md:rounded-lg transition-shadow',
+        'border rounded-xl md:rounded-lg transition-all duration-300',
         'md:border md:rounded-lg',
-        isDragging && 'shadow-lg bg-background'
+        isDragging && 'shadow-lg bg-background',
+        isCloned && 'animate-clone-highlight'
       )}
     >
       {/* Entry Header - Desktop: inline, Mobile: stacked card */}
@@ -404,6 +423,20 @@ export function EntryEditor({
       {/* Expanded Details */}
       {isExpanded && (
         <div className="border-t p-4 space-y-4 bg-muted/30">
+          {/* Clone button in top right */}
+          {onClone && (
+            <div className="flex justify-end -mt-1 -mb-2">
+              <button
+                type="button"
+                onClick={onClone}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+                title="Clone entry"
+              >
+                <Copy className="h-4 w-4" />
+                <span className="hidden sm:inline">Clone</span>
+              </button>
+            </div>
+          )}
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium mb-1">Entry ID</label>
