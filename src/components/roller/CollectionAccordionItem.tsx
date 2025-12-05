@@ -192,7 +192,7 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
           )}
 
           {/* Virtualized Item List */}
-          <div className="h-[400px] flex flex-col isolate">
+          <div className="min-h-[150px] max-h-[50vh] flex flex-col isolate">
             <VirtualizedItemList
               items={filteredItems}
               groupedItems={groupedItems}

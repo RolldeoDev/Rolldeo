@@ -54,6 +54,9 @@ interface UIState {
   rollerNamespaceFilter: string | null
   rollerCollectionSearchQuery: string
 
+  // Roller page publisher accordion
+  expandedPublisherId: string | null  // Single expanded publisher group (accordion behavior)
+
   // Editor page state
   lastEditorCollectionId: string | null
   editorActiveTab: EditorTab
@@ -102,6 +105,10 @@ interface UIState {
   setRollerCollectionSearchQuery: (query: string) => void
   clearRollerCollectionFilters: () => void
 
+  // Actions - Roller page publisher accordion
+  togglePublisherExpanded: (publisherId: string) => void
+  setExpandedPublisherId: (publisherId: string | null) => void
+
   // Actions - Editor page
   setLastEditorCollectionId: (id: string | null) => void
   setEditorActiveTab: (tab: EditorTab) => void
@@ -145,6 +152,9 @@ export const useUIStore = create<UIState>()(
       // Roller page namespace filter initial state
       rollerNamespaceFilter: null,
       rollerCollectionSearchQuery: '',
+
+      // Roller page publisher accordion initial state
+      expandedPublisherId: null,
 
       // Editor page initial state
       lastEditorCollectionId: null,
@@ -269,6 +279,19 @@ export const useUIStore = create<UIState>()(
         }),
 
       // ========================================================================
+      // Roller Page Publisher Accordion Actions
+      // ========================================================================
+
+      // Accordion behavior: toggle single publisher, close if already open
+      togglePublisherExpanded: (publisherId) =>
+        set((state) => ({
+          expandedPublisherId: state.expandedPublisherId === publisherId ? null : publisherId,
+        })),
+
+      // Direct setter for programmatic expansion
+      setExpandedPublisherId: (publisherId) => set({ expandedPublisherId: publisherId }),
+
+      // ========================================================================
       // Editor Page Actions
       // ========================================================================
 
@@ -299,6 +322,8 @@ export const useUIStore = create<UIState>()(
         libraryViewMode: state.libraryViewMode,
         libraryGroupDepth: state.libraryGroupDepth,
         libraryExpandedNamespaces: state.libraryExpandedNamespaces,
+        // Roller page publisher accordion
+        expandedPublisherId: state.expandedPublisherId,
         // Editor state persistence
         lastEditorCollectionId: state.lastEditorCollectionId,
         editorActiveTab: state.editorActiveTab,

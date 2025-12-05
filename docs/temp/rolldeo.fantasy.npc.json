@@ -1,0 +1,1154 @@
+{
+  "metadata": {
+    "name": "Complete NPC Generator",
+    "namespace": "rolldeo.fantasy.npc",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rolldeo",
+    "description": "A comprehensive, system-agnostic NPC generator for tabletop roleplaying games. Generates complete character descriptions including appearance, personality, background, and social details.",
+    "instructions": "Roll on the `fullNPC` template for a complete NPC description, or roll individual tables for specific attributes. All generated NPCs have their properties available via the `@npc` placeholder for use in other tables.",
+    "tags": ["npc", "character", "generator", "fantasy", "system-agnostic", "ttrpg"],
+    "source": {
+      "license": "CC0",
+      "copyright": {
+        "year": "2024",
+        "notice": "Free to use, modify, and distribute with or without attribution."
+      }
+    },
+    "rights": {
+      "type": "open-content",
+      "permissions": {
+        "commercialUse": true,
+        "modification": true,
+        "redistribution": true,
+        "derivativeWorks": true,
+        "attributionRequired": true
+      }
+    },
+    "maxRecursionDepth": 50,
+    "maxInheritanceDepth": 5
+  },
+  "variables": {
+    "defaultSeparator": ", "
+  },
+  "tables": [
+    {
+      "id": "race",
+      "name": "Race",
+      "type": "simple",
+      "description": "The character's ancestry or species.",
+      "resultType": "trait",
+      "tags": ["identity", "race", "ancestry"],
+      "entries": [
+        {
+          "id": "human",
+          "value": "Human",
+          "weight": 4,
+          "description": "Versatile and ambitious, humans are found in nearly every corner of the world.",
+          "sets": {
+            "raceId": "human",
+            "lifespan": "average",
+            "typicalHeight": "average"
+          }
+        },
+        {
+          "id": "elf",
+          "value": "Elf",
+          "weight": 2,
+          "description": "Long-lived and graceful, elves possess an innate connection to magic and nature.",
+          "sets": {
+            "raceId": "elf",
+            "lifespan": "very long",
+            "typicalHeight": "tall and slender"
+          }
+        },
+        {
+          "id": "dwarf",
+          "value": "Dwarf",
+          "weight": 2,
+          "description": "Stout and resilient, dwarves are master craftspeople with strong clan ties.",
+          "sets": {
+            "raceId": "dwarf",
+            "lifespan": "long",
+            "typicalHeight": "short and stocky"
+          }
+        },
+        {
+          "id": "halfling",
+          "value": "Halfling",
+          "weight": 1.5,
+          "description": "Small but brave, halflings value comfort, community, and a good meal.",
+          "sets": {
+            "raceId": "halfling",
+            "lifespan": "average",
+            "typicalHeight": "small"
+          }
+        },
+        {
+          "id": "orc",
+          "value": "Orc",
+          "weight": 1,
+          "description": "Powerful and proud, orcs value strength, honor, and tribal loyalty.",
+          "sets": {
+            "raceId": "orc",
+            "lifespan": "short",
+            "typicalHeight": "tall and muscular"
+          }
+        },
+        {
+          "id": "gnome",
+          "value": "Gnome",
+          "weight": 1,
+          "description": "Curious and inventive, gnomes delight in discovery and clever solutions.",
+          "sets": {
+            "raceId": "gnome",
+            "lifespan": "long",
+            "typicalHeight": "small"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gender",
+      "name": "Gender",
+      "type": "simple",
+      "description": "The character's gender identity.",
+      "resultType": "trait",
+      "tags": ["identity", "gender"],
+      "entries": [
+        { "id": "male", "value": "Male", "weight": 1, "sets": { "genderId": "male", "pronoun": "he", "possessive": "his", "object": "him" } },
+        { "id": "female", "value": "Female", "weight": 1, "sets": { "genderId": "female", "pronoun": "she", "possessive": "her", "object": "her" } },
+        { "id": "nonbinary", "value": "Non-binary", "weight": 0.2, "sets": { "genderId": "nonbinary", "pronoun": "they", "possessive": "their", "object": "them" } }
+      ]
+    },
+    {
+      "id": "humanMaleNames",
+      "name": "Human Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "human", "male"],
+      "hidden": true,
+      "entries": [
+        { "value": "Aldric" }, { "value": "Bram" }, { "value": "Cedric" }, { "value": "Darian" },
+        { "value": "Edmund" }, { "value": "Felix" }, { "value": "Gareth" }, { "value": "Henrik" },
+        { "value": "Ivan" }, { "value": "Jasper" }, { "value": "Kellan" }, { "value": "Liam" },
+        { "value": "Marcus" }, { "value": "Nathaniel" }, { "value": "Oliver" }, { "value": "Pierce" },
+        { "value": "Quentin" }, { "value": "Roland" }, { "value": "Sebastian" }, { "value": "Theron" },
+        { "value": "Victor" }, { "value": "William" }, { "value": "Xavier" }, { "value": "Zachariah" },
+        { "value": "Conrad" }, { "value": "Dorian" }, { "value": "Evander" }, { "value": "Finnegan" },
+        { "value": "Gregory" }, { "value": "Harrison" }, { "value": "Isaac" }, { "value": "Julian" }
+      ]
+    },
+    {
+      "id": "humanFemaleNames",
+      "name": "Human Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "human", "female"],
+      "hidden": true,
+      "entries": [
+        { "value": "Adeline" }, { "value": "Beatrice" }, { "value": "Cordelia" }, { "value": "Diana" },
+        { "value": "Eleanor" }, { "value": "Fiona" }, { "value": "Gwendolyn" }, { "value": "Helena" },
+        { "value": "Isolde" }, { "value": "Juliana" }, { "value": "Katherine" }, { "value": "Lydia" },
+        { "value": "Margaret" }, { "value": "Natalia" }, { "value": "Ophelia" }, { "value": "Priscilla" },
+        { "value": "Quinn" }, { "value": "Rosalind" }, { "value": "Seraphina" }, { "value": "Theodora" },
+        { "value": "Ursula" }, { "value": "Victoria" }, { "value": "Willow" }, { "value": "Yolanda" },
+        { "value": "Arabella" }, { "value": "Cassandra" }, { "value": "Evangeline" }, { "value": "Genevieve" },
+        { "value": "Imogen" }, { "value": "Josephine" }, { "value": "Lavinia" }, { "value": "Miriam" }
+      ]
+    },
+    {
+      "id": "elfMaleNames",
+      "name": "Elf Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "elf", "male"],
+      "hidden": true,
+      "entries": [
+        { "value": "Aelindor" }, { "value": "Caelum" }, { "value": "Erevan" }, { "value": "Faelyn" },
+        { "value": "Galadron" }, { "value": "Ilmarin" }, { "value": "Kethryl" }, { "value": "Lorandil" },
+        { "value": "Miravel" }, { "value": "Naeloth" }, { "value": "Orenthal" }, { "value": "Phaeron" },
+        { "value": "Quelindor" }, { "value": "Raelon" }, { "value": "Silvanus" }, { "value": "Thalion" },
+        { "value": "Vaelin" }, { "value": "Aerindel" }, { "value": "Belanor" }, { "value": "Celeborn" },
+        { "value": "Elrohir" }, { "value": "Findarion" }, { "value": "Glorindel" }, { "value": "Haldir" },
+        { "value": "Ithildin" }, { "value": "Luthien" }, { "value": "Melian" }, { "value": "Nimrodel" },
+        { "value": "Oropher" }, { "value": "Thranduil" }, { "value": "Voronwe" }, { "value": "Zephyros" }
+      ]
+    },
+    {
+      "id": "elfFemaleNames",
+      "name": "Elf Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "elf", "female"],
+      "hidden": true,
+      "entries": [
+        { "value": "Aelindra" }, { "value": "Caelindis" }, { "value": "Elowen" }, { "value": "Faelwen" },
+        { "value": "Galadriel" }, { "value": "Ilmariel" }, { "value": "Kethira" }, { "value": "Liriel" },
+        { "value": "Miraviel" }, { "value": "Naelotha" }, { "value": "Orenthia" }, { "value": "Phaeril" },
+        { "value": "Quelindra" }, { "value": "Raelindis" }, { "value": "Silvanesti" }, { "value": "Thalindra" },
+        { "value": "Vaelindis" }, { "value": "Aerindel" }, { "value": "Arwen" }, { "value": "Celebrian" },
+        { "value": "Elerith" }, { "value": "Finduilas" }, { "value": "Gilraen" }, { "value": "Idril" },
+        { "value": "Lothiriel" }, { "value": "Mithrellas" }, { "value": "Nimloth" }, { "value": "Aredhel" },
+        { "value": "Seriniel" }, { "value": "Tinuviel" }, { "value": "Yavanna" }, { "value": "Ithilwen" }
+      ]
+    },
+    {
+      "id": "dwarfMaleNames",
+      "name": "Dwarf Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "dwarf", "male"],
+      "hidden": true,
+      "entries": [
+        { "value": "Balin" }, { "value": "Dain" }, { "value": "Fargrim" }, { "value": "Gundrik" },
+        { "value": "Harbek" }, { "value": "Kildrak" }, { "value": "Morgran" }, { "value": "Orsik" },
+        { "value": "Rurik" }, { "value": "Thoradin" }, { "value": "Ulfgar" }, { "value": "Vondal" },
+        { "value": "Adrik" }, { "value": "Brottor" }, { "value": "Darrak" }, { "value": "Eberk" },
+        { "value": "Gardain" }, { "value": "Hjolman" }, { "value": "Kilvar" }, { "value": "Moradin" },
+        { "value": "Nuraval" }, { "value": "Oskar" }, { "value": "Ragnar" }, { "value": "Tordek" },
+        { "value": "Thrain" }, { "value": "Gimrik" }, { "value": "Brundar" }, { "value": "Dolgrim" },
+        { "value": "Kotri" }, { "value": "Norrak" }, { "value": "Storn" }, { "value": "Beldrak" }
+      ]
+    },
+    {
+      "id": "dwarfFemaleNames",
+      "name": "Dwarf Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "dwarf", "female"],
+      "hidden": true,
+      "entries": [
+        { "value": "Anbera" }, { "value": "Bardryn" }, { "value": "Dagnal" }, { "value": "Diesa" },
+        { "value": "Eldeth" }, { "value": "Falkrunn" }, { "value": "Gunnloda" }, { "value": "Helja" },
+        { "value": "Kathra" }, { "value": "Kristryd" }, { "value": "Liftrasa" }, { "value": "Mardred" },
+        { "value": "Riswynn" }, { "value": "Sannl" }, { "value": "Torbera" }, { "value": "Vistra" },
+        { "value": "Artin" }, { "value": "Brynja" }, { "value": "Dagna" }, { "value": "Embrel" },
+        { "value": "Gretta" }, { "value": "Hlin" }, { "value": "Ilde" }, { "value": "Kira" },
+        { "value": "Lofthild" }, { "value": "Moira" }, { "value": "Nora" }, { "value": "Olga" },
+        { "value": "Runia" }, { "value": "Sigrun" }, { "value": "Thora" }, { "value": "Ulla" }
+      ]
+    },
+    {
+      "id": "halflingMaleNames",
+      "name": "Halfling Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "halfling", "male"],
+      "hidden": true,
+      "entries": [
+        { "value": "Alton" }, { "value": "Bilbo" }, { "value": "Corrin" }, { "value": "Dannad" },
+        { "value": "Eldon" }, { "value": "Finnan" }, { "value": "Garrett" }, { "value": "Hob" },
+        { "value": "Ives" }, { "value": "Jasper" }, { "value": "Kithri" }, { "value": "Lyle" },
+        { "value": "Milo" }, { "value": "Nebin" }, { "value": "Osborn" }, { "value": "Perrin" },
+        { "value": "Roscoe" }, { "value": "Sam" }, { "value": "Tobias" }, { "value": "Wellby" },
+        { "value": "Adelard" }, { "value": "Bungo" }, { "value": "Cade" }, { "value": "Drogo" },
+        { "value": "Erling" }, { "value": "Falco" }, { "value": "Gorbo" }, { "value": "Hamfast" },
+        { "value": "Largo" }, { "value": "Merric" }, { "value": "Pip" }, { "value": "Roderic" }
+      ]
+    },
+    {
+      "id": "halflingFemaleNames",
+      "name": "Halfling Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "halfling", "female"],
+      "hidden": true,
+      "entries": [
+        { "value": "Andry" }, { "value": "Belladonna" }, { "value": "Callie" }, { "value": "Dora" },
+        { "value": "Euphemia" }, { "value": "Floria" }, { "value": "Gilly" }, { "value": "Hildy" },
+        { "value": "Ivy" }, { "value": "Jillian" }, { "value": "Kithri" }, { "value": "Lidda" },
+        { "value": "Marigold" }, { "value": "Nedda" }, { "value": "Paela" }, { "value": "Portia" },
+        { "value": "Rosie" }, { "value": "Seraphina" }, { "value": "Tilly" }, { "value": "Verna" },
+        { "value": "Amaryllis" }, { "value": "Bree" }, { "value": "Charmaine" }, { "value": "Daisy" },
+        { "value": "Esmerelda" }, { "value": "Fern" }, { "value": "Gretchen" }, { "value": "Hanna" },
+        { "value": "Lavinia" }, { "value": "Merla" }, { "value": "Pearl" }, { "value": "Ruby" }
+      ]
+    },
+    {
+      "id": "orcMaleNames",
+      "name": "Orc Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "orc", "male"],
+      "hidden": true,
+      "entries": [
+        { "value": "Azgul" }, { "value": "Brakka" }, { "value": "Dench" }, { "value": "Feng" },
+        { "value": "Gell" }, { "value": "Henk" }, { "value": "Holg" }, { "value": "Imsh" },
+        { "value": "Karash" }, { "value": "Krusk" }, { "value": "Lortar" }, { "value": "Mhurren" },
+        { "value": "Nar" }, { "value": "Ovak" }, { "value": "Ront" }, { "value": "Shump" },
+        { "value": "Thokk" }, { "value": "Urzul" }, { "value": "Varg" }, { "value": "Yurk" },
+        { "value": "Bagrak" }, { "value": "Druuk" }, { "value": "Ghazat" }, { "value": "Gruumsh" },
+        { "value": "Korgak" }, { "value": "Mugdol" }, { "value": "Nargol" }, { "value": "Orog" },
+        { "value": "Ragash" }, { "value": "Skullcrusher" }, { "value": "Tarak" }, { "value": "Zorn" }
+      ]
+    },
+    {
+      "id": "orcFemaleNames",
+      "name": "Orc Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "orc", "female"],
+      "hidden": true,
+      "entries": [
+        { "value": "Baggi" }, { "value": "Emen" }, { "value": "Engong" }, { "value": "Kansif" },
+        { "value": "Myev" }, { "value": "Neega" }, { "value": "Ovak" }, { "value": "Ownka" },
+        { "value": "Shautha" }, { "value": "Sutha" }, { "value": "Vola" }, { "value": "Volen" },
+        { "value": "Yevelda" }, { "value": "Zara" }, { "value": "Brukka" }, { "value": "Drenna" },
+        { "value": "Gorza" }, { "value": "Hrakna" }, { "value": "Krata" }, { "value": "Murook" },
+        { "value": "Narza" }, { "value": "Orsha" }, { "value": "Ragash" }, { "value": "Shelur" },
+        { "value": "Thura" }, { "value": "Umara" }, { "value": "Volga" }, { "value": "Yazga" },
+        { "value": "Zulgha" }, { "value": "Arza" }, { "value": "Bulgha" }, { "value": "Durza" }
+      ]
+    },
+    {
+      "id": "gnomeMaleNames",
+      "name": "Gnome Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "gnome", "male"],
+      "hidden": true,
+      "entries": [
+        { "value": "Alston" }, { "value": "Boddynock" }, { "value": "Brocc" }, { "value": "Burgell" },
+        { "value": "Dimble" }, { "value": "Eldon" }, { "value": "Erky" }, { "value": "Fonkin" },
+        { "value": "Frug" }, { "value": "Gerbo" }, { "value": "Gimble" }, { "value": "Glim" },
+        { "value": "Jebeddo" }, { "value": "Kellen" }, { "value": "Namfoodle" }, { "value": "Orryn" },
+        { "value": "Roondar" }, { "value": "Seebo" }, { "value": "Sindri" }, { "value": "Warryn" },
+        { "value": "Wrenn" }, { "value": "Zook" }, { "value": "Alvyn" }, { "value": "Bimpnottin" },
+        { "value": "Caramip" }, { "value": "Dabbledob" }, { "value": "Fibblestib" }, { "value": "Ningel" },
+        { "value": "Queck" }, { "value": "Torbalt" }, { "value": "Wim" }, { "value": "Zibbo" }
+      ]
+    },
+    {
+      "id": "gnomeFemaleNames",
+      "name": "Gnome Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "gnome", "female"],
+      "hidden": true,
+      "entries": [
+        { "value": "Bimpnottin" }, { "value": "Breena" }, { "value": "Caramip" }, { "value": "Carlin" },
+        { "value": "Donella" }, { "value": "Duvamil" }, { "value": "Ella" }, { "value": "Ellyjobell" },
+        { "value": "Ellywick" }, { "value": "Lilli" }, { "value": "Loopmottin" }, { "value": "Lorilla" },
+        { "value": "Mardnab" }, { "value": "Nissa" }, { "value": "Nyx" }, { "value": "Oda" },
+        { "value": "Orla" }, { "value": "Roywyn" }, { "value": "Shamil" }, { "value": "Tana" },
+        { "value": "Waywocket" }, { "value": "Zanna" }, { "value": "Aripine" }, { "value": "Dabbledob" },
+        { "value": "Felicity" }, { "value": "Ginny" }, { "value": "Helda" }, { "value": "Ivy" },
+        { "value": "Kelda" }, { "value": "Mipsy" }, { "value": "Nipsy" }, { "value": "Sparkle" }
+      ]
+    },
+    {
+      "id": "neutralNames",
+      "name": "Gender-Neutral Names",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "neutral", "nonbinary"],
+      "hidden": true,
+      "description": "Names that work for any gender across most races.",
+      "entries": [
+        { "value": "Ash" }, { "value": "River" }, { "value": "Storm" }, { "value": "Sage" },
+        { "value": "Wren" }, { "value": "Quinn" }, { "value": "Rowan" }, { "value": "Morgan" },
+        { "value": "Ellis" }, { "value": "Avery" }, { "value": "Blair" }, { "value": "Cameron" },
+        { "value": "Dana" }, { "value": "Emery" }, { "value": "Finley" }, { "value": "Harper" },
+        { "value": "Indigo" }, { "value": "Jaden" }, { "value": "Kai" }, { "value": "Lake" },
+        { "value": "Marlowe" }, { "value": "Noel" }, { "value": "Onyx" }, { "value": "Phoenix" },
+        { "value": "Rain" }, { "value": "Skylar" }, { "value": "Tatum" }, { "value": "Winter" },
+        { "value": "Vale" }, { "value": "Zephyr" }, { "value": "Sparrow" }, { "value": "Cedar" }
+      ]
+    },
+    {
+      "id": "surname",
+      "name": "Surnames",
+      "type": "simple",
+      "resultType": "name",
+      "tags": ["name", "surname", "family"],
+      "description": "Family names or descriptive epithets.",
+      "entries": [
+        { "value": "Ashford" }, { "value": "Blackwood" }, { "value": "Brightblade" }, { "value": "Coldwell" },
+        { "value": "Darkholme" }, { "value": "Evenwood" }, { "value": "Farrow" }, { "value": "Goldleaf" },
+        { "value": "Hawthorne" }, { "value": "Ironforge" }, { "value": "Jasperstone" }, { "value": "Kettleburn" },
+        { "value": "Lightfoot" }, { "value": "Moonwhisper" }, { "value": "Nightingale" }, { "value": "Oakheart" },
+        { "value": "Proudfoot" }, { "value": "Quicksilver" }, { "value": "Ravenswood" }, { "value": "Silverstream" },
+        { "value": "Thornwood" }, { "value": "Underhill" }, { "value": "Valeheart" }, { "value": "Winterborn" },
+        { "value": "Stormwind" }, { "value": "Firebrand" }, { "value": "Stonehammer" }, { "value": "Swiftarrow" },
+        { "value": "Duskwalker" }, { "value": "Brightwater" }, { "value": "Grimshaw" }, { "value": "Meadowbrook" }
+      ]
+    },
+    {
+      "id": "age",
+      "name": "Age Category",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "age"],
+      "entries": [
+        { "id": "young", "value": "young", "weight": 1.5, "sets": { "ageDescriptor": "youthful energy", "ageModifier": "fresh-faced" } },
+        { "id": "adult", "value": "adult", "weight": 3, "sets": { "ageDescriptor": "full maturity", "ageModifier": "mature" } },
+        { "id": "middleaged", "value": "middle-aged", "weight": 2, "sets": { "ageDescriptor": "experienced wisdom", "ageModifier": "seasoned" } },
+        { "id": "elderly", "value": "elderly", "weight": 1, "sets": { "ageDescriptor": "venerable age", "ageModifier": "weathered" } }
+      ]
+    },
+    {
+      "id": "height",
+      "name": "Relative Height",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "height", "build"],
+      "entries": [
+        { "value": "unusually short", "weight": 0.5 },
+        { "value": "short", "weight": 1.5 },
+        { "value": "average height", "weight": 3 },
+        { "value": "tall", "weight": 1.5 },
+        { "value": "unusually tall", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "build",
+      "name": "Physical Build",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "build", "body"],
+      "entries": [
+        { "value": "thin and wiry", "weight": 1 },
+        { "value": "slender", "weight": 1.5 },
+        { "value": "average build", "weight": 2 },
+        { "value": "stocky", "weight": 1.5 },
+        { "value": "heavyset", "weight": 1 },
+        { "value": "athletic", "weight": 1.5 },
+        { "value": "muscular", "weight": 1 },
+        { "value": "broad-shouldered", "weight": 1 },
+        { "value": "lean and angular", "weight": 0.8 },
+        { "value": "soft and rounded", "weight": 0.8 }
+      ]
+    },
+    {
+      "id": "hairColor",
+      "name": "Hair Color",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "hair", "color"],
+      "entries": [
+        { "value": "black", "weight": 2 },
+        { "value": "dark brown", "weight": 2 },
+        { "value": "brown", "weight": 2 },
+        { "value": "light brown", "weight": 1.5 },
+        { "value": "auburn", "weight": 1 },
+        { "value": "red", "weight": 0.8 },
+        { "value": "strawberry blonde", "weight": 0.5 },
+        { "value": "blonde", "weight": 1.5 },
+        { "value": "platinum blonde", "weight": 0.3 },
+        { "value": "gray", "weight": 1 },
+        { "value": "white", "weight": 0.5 },
+        { "value": "silver", "weight": 0.3 },
+        { "value": "salt-and-pepper", "weight": 0.8 }
+      ]
+    },
+    {
+      "id": "hairStyle",
+      "name": "Hair Style",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "hair", "style"],
+      "entries": [
+        { "value": "long and flowing", "weight": 1 },
+        { "value": "long and braided", "weight": 1 },
+        { "value": "shoulder-length", "weight": 1.5 },
+        { "value": "short and neat", "weight": 2 },
+        { "value": "cropped close", "weight": 1 },
+        { "value": "wild and untamed", "weight": 0.8 },
+        { "value": "pulled back in a ponytail", "weight": 1 },
+        { "value": "tied in a practical bun", "weight": 1 },
+        { "value": "shaved on the sides", "weight": 0.5 },
+        { "value": "completely bald", "weight": 0.5 },
+        { "value": "receding", "weight": 0.5 },
+        { "value": "curly and thick", "weight": 1 },
+        { "value": "wavy", "weight": 1 },
+        { "value": "straight and fine", "weight": 1 },
+        { "value": "elaborately styled", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "eyeColor",
+      "name": "Eye Color",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "eyes", "color"],
+      "entries": [
+        { "value": "brown", "weight": 3 },
+        { "value": "dark brown", "weight": 2 },
+        { "value": "hazel", "weight": 1.5 },
+        { "value": "green", "weight": 1 },
+        { "value": "blue", "weight": 1.5 },
+        { "value": "gray", "weight": 1 },
+        { "value": "amber", "weight": 0.5 },
+        { "value": "pale blue", "weight": 0.5 },
+        { "value": "violet", "weight": 0.2 },
+        { "value": "golden", "weight": 0.2 },
+        { "value": "mismatched", "weight": 0.1 }
+      ]
+    },
+    {
+      "id": "skinTone",
+      "name": "Skin Tone",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "skin", "appearance"],
+      "entries": [
+        { "value": "pale", "weight": 1 },
+        { "value": "fair", "weight": 1.5 },
+        { "value": "light", "weight": 1.5 },
+        { "value": "olive", "weight": 1.5 },
+        { "value": "tan", "weight": 1.5 },
+        { "value": "brown", "weight": 1.5 },
+        { "value": "dark brown", "weight": 1 },
+        { "value": "deep brown", "weight": 1 },
+        { "value": "weathered", "weight": 0.8 },
+        { "value": "sun-bronzed", "weight": 0.8 },
+        { "value": "freckled", "weight": 0.5 },
+        { "value": "ruddy", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "facialFeature",
+      "name": "Facial Feature",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "face", "feature"],
+      "entries": [
+        { "value": "a strong jawline", "weight": 1 },
+        { "value": "high cheekbones", "weight": 1 },
+        { "value": "a prominent nose", "weight": 1 },
+        { "value": "thin lips", "weight": 1 },
+        { "value": "full lips", "weight": 1 },
+        { "value": "a cleft chin", "weight": 0.5 },
+        { "value": "a broad forehead", "weight": 0.8 },
+        { "value": "deep-set eyes", "weight": 0.8 },
+        { "value": "wide-set eyes", "weight": 0.8 },
+        { "value": "a crooked nose", "weight": 0.5 },
+        { "value": "a dimpled smile", "weight": 0.5 },
+        { "value": "a permanent scowl", "weight": 0.3 },
+        { "value": "laugh lines", "weight": 0.8 },
+        { "value": "a perpetually furrowed brow", "weight": 0.5 },
+        { "value": "sharp, angular features", "weight": 0.8 },
+        { "value": "soft, rounded features", "weight": 0.8 }
+      ]
+    },
+    {
+      "id": "distinguishingMark",
+      "name": "Distinguishing Mark",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["physical", "distinctive", "mark"],
+      "entries": [
+        { "value": "a scar across the cheek", "weight": 1 },
+        { "value": "a scar over one eye", "weight": 0.8 },
+        { "value": "a burn scar on one hand", "weight": 0.5 },
+        { "value": "a birthmark on the neck", "weight": 0.8 },
+        { "value": "a prominent tattoo", "weight": 1 },
+        { "value": "multiple small scars", "weight": 0.8 },
+        { "value": "a missing finger", "weight": 0.3 },
+        { "value": "a chipped tooth", "weight": 0.5 },
+        { "value": "a gold tooth", "weight": 0.3 },
+        { "value": "unusually pointed ears", "weight": 0.3 },
+        { "value": "a distinctive mole", "weight": 0.8 },
+        { "value": "a port-wine birthmark", "weight": 0.3 },
+        { "value": "ritual scarification", "weight": 0.2 },
+        { "value": "numerous piercings", "weight": 0.5 },
+        { "value": "a streak of white in their hair", "weight": 0.3 },
+        { "value": "a noticeable limp", "weight": 0.3 },
+        { "value": "no distinguishing marks", "weight": 2 }
+      ]
+    },
+    {
+      "id": "personalityTrait",
+      "name": "Personality Trait",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["personality", "trait", "behavior"],
+      "entries": [
+        { "value": "cheerful and optimistic", "sets": { "mood": "positive" } },
+        { "value": "serious and focused", "sets": { "mood": "neutral" } },
+        { "value": "cautious and deliberate", "sets": { "mood": "neutral" } },
+        { "value": "impulsive and spontaneous", "sets": { "mood": "energetic" } },
+        { "value": "quiet and observant", "sets": { "mood": "reserved" } },
+        { "value": "loud and boisterous", "sets": { "mood": "energetic" } },
+        { "value": "cynical and world-weary", "sets": { "mood": "negative" } },
+        { "value": "curious and inquisitive", "sets": { "mood": "positive" } },
+        { "value": "kind and compassionate", "sets": { "mood": "positive" } },
+        { "value": "stern and unyielding", "sets": { "mood": "neutral" } },
+        { "value": "charming and persuasive", "sets": { "mood": "positive" } },
+        { "value": "suspicious and paranoid", "sets": { "mood": "negative" } },
+        { "value": "humble and self-deprecating", "sets": { "mood": "reserved" } },
+        { "value": "proud and confident", "sets": { "mood": "energetic" } },
+        { "value": "shy and retiring", "sets": { "mood": "reserved" } },
+        { "value": "ambitious and driven", "sets": { "mood": "energetic" } },
+        { "value": "patient and understanding", "sets": { "mood": "positive" } },
+        { "value": "hot-tempered and quick to anger", "sets": { "mood": "negative" } },
+        { "value": "melancholic and wistful", "sets": { "mood": "negative" } },
+        { "value": "practical and no-nonsense", "sets": { "mood": "neutral" } },
+        { "value": "idealistic and hopeful", "sets": { "mood": "positive" } },
+        { "value": "sarcastic and dry-witted", "sets": { "mood": "neutral" } },
+        { "value": "nurturing and protective", "sets": { "mood": "positive" } },
+        { "value": "competitive and driven", "sets": { "mood": "energetic" } },
+        { "value": "philosophical and contemplative", "sets": { "mood": "reserved" } }
+      ]
+    },
+    {
+      "id": "secondaryTrait",
+      "name": "Secondary Personality Trait",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["personality", "trait", "secondary"],
+      "entries": [
+        { "value": "fiercely loyal to friends" },
+        { "value": "deeply superstitious" },
+        { "value": "obsessed with cleanliness" },
+        { "value": "prone to long silences" },
+        { "value": "quick with a joke or story" },
+        { "value": "constantly hungry or snacking" },
+        { "value": "deeply religious or spiritual" },
+        { "value": "uncomfortable around strangers" },
+        { "value": "compulsively honest" },
+        { "value": "prone to exaggeration" },
+        { "value": "obsessed with a particular hobby" },
+        { "value": "terrible with names" },
+        { "value": "exceptionally polite" },
+        { "value": "blunt to the point of rudeness" },
+        { "value": "constantly worried about money" },
+        { "value": "fascinated by the arcane" },
+        { "value": "deeply nostalgic for the past" },
+        { "value": "always looking to the future" },
+        { "value": "distrustful of authority" },
+        { "value": "respectful of tradition" }
+      ]
+    },
+    {
+      "id": "flaw",
+      "name": "Character Flaw",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["personality", "flaw", "weakness"],
+      "entries": [
+        { "value": "drinks too much", "weight": 1.5 },
+        { "value": "gambles compulsively", "weight": 1 },
+        { "value": "cannot keep a secret", "weight": 1 },
+        { "value": "holds grudges forever", "weight": 1 },
+        { "value": "too trusting of others", "weight": 1 },
+        { "value": "trusts no one", "weight": 1 },
+        { "value": "prone to jealousy", "weight": 1 },
+        { "value": "greedy for wealth", "weight": 1.2 },
+        { "value": "craves recognition and praise", "weight": 1 },
+        { "value": "easily distracted", "weight": 1 },
+        { "value": "terrified of a common thing", "weight": 0.8 },
+        { "value": "chronically late", "weight": 0.8 },
+        { "value": "cannot resist a pretty face", "weight": 0.8 },
+        { "value": "too stubborn to admit being wrong", "weight": 1.2 },
+        { "value": "cripplingly indecisive", "weight": 0.8 },
+        { "value": "lies about small things habitually", "weight": 1 },
+        { "value": "takes unnecessary risks", "weight": 1 },
+        { "value": "overly critical of others", "weight": 1 },
+        { "value": "cannot let go of the past", "weight": 1 },
+        { "value": "avoids conflict at all costs", "weight": 0.8 }
+      ]
+    },
+    {
+      "id": "mannerism",
+      "name": "Mannerism or Habit",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["personality", "mannerism", "habit"],
+      "entries": [
+        { "value": "fidgets with a piece of jewelry" },
+        { "value": "drums fingers when thinking" },
+        { "value": "constantly adjusts their clothing" },
+        { "value": "twirls hair around a finger" },
+        { "value": "cracks knuckles frequently" },
+        { "value": "hums or whistles unconsciously" },
+        { "value": "paces when anxious" },
+        { "value": "strokes their chin when thinking" },
+        { "value": "tilts head when listening" },
+        { "value": "speaks with hands expressively" },
+        { "value": "touches face frequently" },
+        { "value": "stands with arms crossed" },
+        { "value": "leans in close when speaking" },
+        { "value": "maintains uncomfortable eye contact" },
+        { "value": "avoids eye contact" },
+        { "value": "chews on their lip" },
+        { "value": "bounces leg when seated" },
+        { "value": "sniffs frequently" },
+        { "value": "clears throat before speaking" },
+        { "value": "laughs nervously" },
+        { "value": "uses elaborate hand gestures" },
+        { "value": "squints when concentrating" },
+        { "value": "taps foot impatiently" },
+        { "value": "runs hand through hair" }
+      ]
+    },
+    {
+      "id": "voiceStyle",
+      "name": "Voice and Speech Pattern",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["personality", "voice", "speech"],
+      "entries": [
+        { "value": "speaks in a deep, rumbling voice" },
+        { "value": "has a high, reedy voice" },
+        { "value": "speaks softly, almost a whisper" },
+        { "value": "speaks loudly and projects well" },
+        { "value": "has a melodious, pleasant voice" },
+        { "value": "has a harsh, gravelly voice" },
+        { "value": "speaks very quickly" },
+        { "value": "speaks slowly and deliberately" },
+        { "value": "has a noticeable accent" },
+        { "value": "speaks with formal, precise diction" },
+        { "value": "uses simple, direct language" },
+        { "value": "peppers speech with colorful profanity" },
+        { "value": "uses many flowery phrases" },
+        { "value": "stutters slightly when nervous" },
+        { "value": "has a slight lisp" },
+        { "value": "trails off mid-sentence frequently" },
+        { "value": "interrupts others often" },
+        { "value": "pauses dramatically for effect" },
+        { "value": "laughs frequently while talking" },
+        { "value": "sighs heavily between sentences" },
+        { "value": "uses many proverbs and sayings" },
+        { "value": "asks rhetorical questions constantly" }
+      ]
+    },
+    {
+      "id": "motivation",
+      "name": "Primary Motivation",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["personality", "motivation", "goal"],
+      "entries": [
+        { "value": "seeks wealth and financial security", "sets": { "motivationType": "material" } },
+        { "value": "desires power and influence", "sets": { "motivationType": "power" } },
+        { "value": "wants recognition and fame", "sets": { "motivationType": "status" } },
+        { "value": "seeks knowledge and understanding", "sets": { "motivationType": "intellectual" } },
+        { "value": "wants to protect their family", "sets": { "motivationType": "family" } },
+        { "value": "desires revenge against a wrongdoer", "sets": { "motivationType": "revenge" } },
+        { "value": "seeks redemption for past mistakes", "sets": { "motivationType": "redemption" } },
+        { "value": "wants to find true love", "sets": { "motivationType": "love" } },
+        { "value": "desires adventure and excitement", "sets": { "motivationType": "adventure" } },
+        { "value": "seeks spiritual enlightenment", "sets": { "motivationType": "spiritual" } },
+        { "value": "wants to leave a lasting legacy", "sets": { "motivationType": "legacy" } },
+        { "value": "desires simple peace and quiet", "sets": { "motivationType": "peace" } },
+        { "value": "seeks justice for the wronged", "sets": { "motivationType": "justice" } },
+        { "value": "wants to master their craft", "sets": { "motivationType": "mastery" } },
+        { "value": "desires freedom from obligation", "sets": { "motivationType": "freedom" } },
+        { "value": "seeks to restore something lost", "sets": { "motivationType": "restoration" } },
+        { "value": "wants to prove themselves worthy", "sets": { "motivationType": "validation" } },
+        { "value": "desires to help others in need", "sets": { "motivationType": "altruism" } }
+      ]
+    },
+    {
+      "id": "profession",
+      "name": "Profession or Occupation",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["social", "profession", "occupation"],
+      "entries": [
+        { "value": "farmer", "sets": { "professionType": "common", "wealth": "poor" } },
+        { "value": "blacksmith", "sets": { "professionType": "artisan", "wealth": "modest" } },
+        { "value": "merchant", "sets": { "professionType": "trade", "wealth": "comfortable" } },
+        { "value": "innkeeper", "sets": { "professionType": "service", "wealth": "modest" } },
+        { "value": "guard", "sets": { "professionType": "martial", "wealth": "modest" } },
+        { "value": "soldier", "sets": { "professionType": "martial", "wealth": "modest" } },
+        { "value": "sailor", "sets": { "professionType": "maritime", "wealth": "poor" } },
+        { "value": "fisher", "sets": { "professionType": "common", "wealth": "poor" } },
+        { "value": "hunter", "sets": { "professionType": "wilderness", "wealth": "poor" } },
+        { "value": "herbalist", "sets": { "professionType": "specialist", "wealth": "modest" } },
+        { "value": "healer", "sets": { "professionType": "specialist", "wealth": "comfortable" } },
+        { "value": "priest or acolyte", "sets": { "professionType": "religious", "wealth": "modest" } },
+        { "value": "scribe", "sets": { "professionType": "learned", "wealth": "modest" } },
+        { "value": "scholar", "sets": { "professionType": "learned", "wealth": "comfortable" } },
+        { "value": "entertainer", "sets": { "professionType": "artistic", "wealth": "varied" } },
+        { "value": "cook", "sets": { "professionType": "service", "wealth": "poor" } },
+        { "value": "servant", "sets": { "professionType": "service", "wealth": "poor" } },
+        { "value": "carpenter", "sets": { "professionType": "artisan", "wealth": "modest" } },
+        { "value": "mason", "sets": { "professionType": "artisan", "wealth": "modest" } },
+        { "value": "tailor", "sets": { "professionType": "artisan", "wealth": "modest" } },
+        { "value": "jeweler", "sets": { "professionType": "artisan", "wealth": "comfortable" } },
+        { "value": "alchemist", "sets": { "professionType": "specialist", "wealth": "comfortable" } },
+        { "value": "spy or informant", "sets": { "professionType": "criminal", "wealth": "varied" } },
+        { "value": "thief", "sets": { "professionType": "criminal", "wealth": "varied" } },
+        { "value": "beggar", "sets": { "professionType": "outcast", "wealth": "destitute" } },
+        { "value": "noble", "sets": { "professionType": "aristocrat", "wealth": "wealthy" } },
+        { "value": "retired adventurer", "sets": { "professionType": "former", "wealth": "comfortable" } },
+        { "value": "courier or messenger", "sets": { "professionType": "service", "wealth": "poor" } },
+        { "value": "stablehand", "sets": { "professionType": "common", "wealth": "poor" } },
+        { "value": "brewer", "sets": { "professionType": "artisan", "wealth": "modest" } },
+        { "value": "miner", "sets": { "professionType": "labor", "wealth": "poor" } },
+        { "value": "shepherd", "sets": { "professionType": "common", "wealth": "poor" } },
+        { "value": "woodcutter", "sets": { "professionType": "common", "wealth": "poor" } },
+        { "value": "midwife", "sets": { "professionType": "specialist", "wealth": "modest" } },
+        { "value": "gravedigger", "sets": { "professionType": "outcast", "wealth": "poor" } },
+        { "value": "bounty hunter", "sets": { "professionType": "martial", "wealth": "varied" } }
+      ]
+    },
+    {
+      "id": "socialClass",
+      "name": "Social Class",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["social", "class", "status"],
+      "entries": [
+        { "id": "destitute", "value": "destitute", "weight": 0.5, "sets": { "wealthLevel": "none", "socialStanding": "lowest" } },
+        { "id": "poor", "value": "poor", "weight": 2, "sets": { "wealthLevel": "meager", "socialStanding": "low" } },
+        { "id": "common", "value": "common", "weight": 4, "sets": { "wealthLevel": "modest", "socialStanding": "average" } },
+        { "id": "comfortable", "value": "comfortable", "weight": 2, "sets": { "wealthLevel": "comfortable", "socialStanding": "respected" } },
+        { "id": "wealthy", "value": "wealthy", "weight": 0.8, "sets": { "wealthLevel": "substantial", "socialStanding": "influential" } },
+        { "id": "aristocratic", "value": "aristocratic", "weight": 0.3, "sets": { "wealthLevel": "great", "socialStanding": "elite" } }
+      ]
+    },
+    {
+      "id": "relationshipStatus",
+      "name": "Relationship Status",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["social", "relationship", "family"],
+      "entries": [
+        { "id": "single", "value": "single and unattached", "weight": 2 },
+        { "id": "seeking", "value": "single and seeking a partner", "weight": 1.5 },
+        { "id": "courting", "value": "courting someone", "weight": 1 },
+        { "id": "betrothed", "value": "betrothed but not yet married", "weight": 0.5 },
+        { "id": "married", "value": "married", "weight": 2.5 },
+        { "id": "marriedChildren", "value": "married with children", "weight": 2 },
+        { "id": "widowed", "value": "widowed", "weight": 0.8 },
+        { "id": "separated", "value": "separated from a spouse", "weight": 0.3 },
+        { "id": "complicated", "value": "in a complicated relationship", "weight": 0.5 },
+        { "id": "secretAffair", "value": "involved in a secret affair", "weight": 0.3 },
+        { "id": "heartbroken", "value": "recently heartbroken", "weight": 0.5 },
+        { "id": "notInterested", "value": "not interested in relationships", "weight": 0.8 }
+      ]
+    },
+    {
+      "id": "secret",
+      "name": "Secret",
+      "type": "simple",
+      "resultType": "hook",
+      "tags": ["secret", "plot", "background"],
+      "description": "A hidden truth about the NPC that could serve as a plot hook.",
+      "entries": [
+        { "value": "is secretly in debt to dangerous people", "weight": 1.5 },
+        { "value": "has a hidden criminal past", "weight": 1 },
+        { "value": "is not who they claim to be", "weight": 0.8 },
+        { "value": "witnessed a crime and is afraid to speak", "weight": 1 },
+        { "value": "is being blackmailed", "weight": 1 },
+        { "value": "has a forbidden love affair", "weight": 1 },
+        { "value": "possesses something stolen", "weight": 0.8 },
+        { "value": "knows the location of something valuable", "weight": 0.8 },
+        { "value": "is a member of a secret society", "weight": 0.5 },
+        { "value": "has a child no one knows about", "weight": 0.6 },
+        { "value": "committed a terrible deed long ago", "weight": 0.8 },
+        { "value": "is slowly dying of an illness", "weight": 0.5 },
+        { "value": "is plotting against someone powerful", "weight": 0.5 },
+        { "value": "is being haunted by something", "weight": 0.4 },
+        { "value": "has inherited a curse", "weight": 0.3 },
+        { "value": "is searching for a lost family member", "weight": 1 },
+        { "value": "is an informant for someone", "weight": 0.8 },
+        { "value": "has no secrets worth mentioning", "weight": 3 }
+      ]
+    },
+    {
+      "id": "clothingStyle",
+      "name": "Clothing Style",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["appearance", "clothing", "style"],
+      "entries": [
+        { "value": "practical, well-worn work clothes" },
+        { "value": "clean but simple garments" },
+        { "value": "colorful, eye-catching attire" },
+        { "value": "dark, understated clothing" },
+        { "value": "finely tailored garments" },
+        { "value": "religious vestments or symbols" },
+        { "value": "military or guard uniform" },
+        { "value": "travel-worn road clothes" },
+        { "value": "noble finery, slightly outdated" },
+        { "value": "gaudy, mismatched clothing" },
+        { "value": "perfectly coordinated outfit" },
+        { "value": "rugged outdoor gear" },
+        { "value": "apron over simple clothes" },
+        { "value": "robes or flowing garments" },
+        { "value": "leather and practical fabrics" },
+        { "value": "expensive silk and fine materials" },
+        { "value": "clothing with many pockets" },
+        { "value": "patched and mended garments" },
+        { "value": "uniform of their profession" },
+        { "value": "culturally distinctive dress" }
+      ]
+    },
+    {
+      "id": "attitude",
+      "name": "Initial Attitude",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["social", "attitude", "reaction"],
+      "description": "How the NPC initially responds to strangers.",
+      "entries": [
+        { "id": "hostile", "value": "hostile", "weight": 0.5, "sets": { "disposition": "negative", "openness": "closed" } },
+        { "id": "suspicious", "value": "suspicious", "weight": 1.5, "sets": { "disposition": "wary", "openness": "guarded" } },
+        { "id": "indifferent", "value": "indifferent", "weight": 3, "sets": { "disposition": "neutral", "openness": "neutral" } },
+        { "id": "curious", "value": "curious", "weight": 2, "sets": { "disposition": "interested", "openness": "receptive" } },
+        { "id": "friendly", "value": "friendly", "weight": 2, "sets": { "disposition": "positive", "openness": "open" } },
+        { "id": "helpful", "value": "helpful", "weight": 1, "sets": { "disposition": "positive", "openness": "eager" } }
+      ]
+    },
+    {
+      "id": "currentMood",
+      "name": "Current Mood",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["personality", "mood", "emotion"],
+      "entries": [
+        { "value": "anxious and worried" },
+        { "value": "content and satisfied" },
+        { "value": "frustrated and irritable" },
+        { "value": "excited and energetic" },
+        { "value": "melancholic and sad" },
+        { "value": "calm and relaxed" },
+        { "value": "bored and listless" },
+        { "value": "distracted and preoccupied" },
+        { "value": "cheerful and upbeat" },
+        { "value": "tired and weary" },
+        { "value": "angry about something" },
+        { "value": "hopeful and optimistic" },
+        { "value": "fearful of something" },
+        { "value": "contemplative and thoughtful" },
+        { "value": "amused by recent events" }
+      ]
+    },
+    {
+      "id": "quirk",
+      "name": "Memorable Quirk",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["personality", "quirk", "memorable"],
+      "description": "Something unusual that makes the NPC memorable.",
+      "entries": [
+        { "value": "collects something unusual" },
+        { "value": "speaks in the third person" },
+        { "value": "always carries a specific item" },
+        { "value": "has an unusual pet" },
+        { "value": "refers to everyone by nicknames" },
+        { "value": "is obsessed with a particular food" },
+        { "value": "tells the same story repeatedly" },
+        { "value": "has an irrational fear" },
+        { "value": "insists on specific routines" },
+        { "value": "keeps a detailed journal" },
+        { "value": "is overly superstitious" },
+        { "value": "hums or sings constantly" },
+        { "value": "has an unusual laugh" },
+        { "value": "speaks in rhymes occasionally" },
+        { "value": "is obsessed with cleanliness" },
+        { "value": "counts things compulsively" },
+        { "value": "has vivid, recurring dreams" },
+        { "value": "believes in a personal prophecy" },
+        { "value": "has an unusual sleeping habit" },
+        { "value": "makes decisions by coin flip" }
+      ]
+    },
+    {
+      "id": "fullNPC",
+      "name": "Complete NPC",
+      "type": "simple",
+      "resultType": "npc",
+      "tags": ["npc", "complete", "generator"],
+      "description": "A complete NPC combining all elements. Roll this table to generate a full character.",
+      "shared": {
+        "$race": "{{race}}",
+        "$gender": "{{gender}}",
+        "$age": "{{age}}",
+        "$build": "{{build}}",
+        "$height": "{{height}}",
+        "$hairColor": "{{hairColor}}",
+        "$hairStyle": "{{hairStyle}}",
+        "$eyeColor": "{{eyeColor}}",
+        "$skinTone": "{{skinTone}}",
+        "$facialFeature": "{{facialFeature}}",
+        "$distinguishingMark": "{{distinguishingMark}}",
+        "$personality": "{{personalityTrait}}",
+        "$secondaryTrait": "{{secondaryTrait}}",
+        "$flaw": "{{flaw}}",
+        "$mannerism": "{{mannerism}}",
+        "$voice": "{{voiceStyle}}",
+        "$motivation": "{{motivation}}",
+        "$profession": "{{profession}}",
+        "$socialClass": "{{socialClass}}",
+        "$relationship": "{{relationshipStatus}}",
+        "$clothing": "{{clothingStyle}}",
+        "$attitude": "{{attitude}}",
+        "$mood": "{{currentMood}}",
+        "$quirk": "{{quirk}}",
+        "$secret": "{{secret}}",
+        "$surname": "{{surname}}"
+      },
+      "entries": [
+        {
+          "id": "npcEntry",
+          "value": "{{switch[$race.@raceId==\"human\" && $gender.@genderId==\"male\":{{humanMaleNames}}].switch[$race.@raceId==\"human\" && $gender.@genderId==\"female\":{{humanFemaleNames}}].switch[$race.@raceId==\"elf\" && $gender.@genderId==\"male\":{{elfMaleNames}}].switch[$race.@raceId==\"elf\" && $gender.@genderId==\"female\":{{elfFemaleNames}}].switch[$race.@raceId==\"dwarf\" && $gender.@genderId==\"male\":{{dwarfMaleNames}}].switch[$race.@raceId==\"dwarf\" && $gender.@genderId==\"female\":{{dwarfFemaleNames}}].switch[$race.@raceId==\"halfling\" && $gender.@genderId==\"male\":{{halflingMaleNames}}].switch[$race.@raceId==\"halfling\" && $gender.@genderId==\"female\":{{halflingFemaleNames}}].switch[$race.@raceId==\"orc\" && $gender.@genderId==\"male\":{{orcMaleNames}}].switch[$race.@raceId==\"orc\" && $gender.@genderId==\"female\":{{orcFemaleNames}}].switch[$race.@raceId==\"gnome\" && $gender.@genderId==\"male\":{{gnomeMaleNames}}].switch[$race.@raceId==\"gnome\" && $gender.@genderId==\"female\":{{gnomeFemaleNames}}].else[{{neutralNames}}]}} {{$surname}}",
+          "weight": 1,
+          "sets": {
+            "name": "{{switch[$race.@raceId==\"human\" && $gender.@genderId==\"male\":{{humanMaleNames}}].switch[$race.@raceId==\"human\" && $gender.@genderId==\"female\":{{humanFemaleNames}}].switch[$race.@raceId==\"elf\" && $gender.@genderId==\"male\":{{elfMaleNames}}].switch[$race.@raceId==\"elf\" && $gender.@genderId==\"female\":{{elfFemaleNames}}].switch[$race.@raceId==\"dwarf\" && $gender.@genderId==\"male\":{{dwarfMaleNames}}].switch[$race.@raceId==\"dwarf\" && $gender.@genderId==\"female\":{{dwarfFemaleNames}}].switch[$race.@raceId==\"halfling\" && $gender.@genderId==\"male\":{{halflingMaleNames}}].switch[$race.@raceId==\"halfling\" && $gender.@genderId==\"female\":{{halflingFemaleNames}}].switch[$race.@raceId==\"orc\" && $gender.@genderId==\"male\":{{orcMaleNames}}].switch[$race.@raceId==\"orc\" && $gender.@genderId==\"female\":{{orcFemaleNames}}].switch[$race.@raceId==\"gnome\" && $gender.@genderId==\"male\":{{gnomeMaleNames}}].switch[$race.@raceId==\"gnome\" && $gender.@genderId==\"female\":{{gnomeFemaleNames}}].else[{{neutralNames}}]}} {{$surname}}",
+            "race": "{{$race}}",
+            "gender": "{{$gender}}",
+            "pronoun": "{{$gender.@pronoun}}",
+            "possessive": "{{$gender.@possessive}}",
+            "age": "{{$age}}",
+            "build": "{{$build}}",
+            "height": "{{$height}}",
+            "hairColor": "{{$hairColor}}",
+            "hairStyle": "{{$hairStyle}}",
+            "eyeColor": "{{$eyeColor}}",
+            "skinTone": "{{$skinTone}}",
+            "facialFeature": "{{$facialFeature}}",
+            "distinguishingMark": "{{$distinguishingMark}}",
+            "personalityTrait": "{{$personality}}",
+            "secondaryTrait": "{{$secondaryTrait}}",
+            "flaw": "{{$flaw}}",
+            "mannerism": "{{$mannerism}}",
+            "voiceStyle": "{{$voice}}",
+            "motivation": "{{$motivation}}",
+            "profession": "{{$profession}}",
+            "socialClass": "{{$socialClass}}",
+            "relationshipStatus": "{{$relationship}}",
+            "clothingStyle": "{{$clothing}}",
+            "attitude": "{{$attitude}}",
+            "currentMood": "{{$mood}}",
+            "quirk": "{{$quirk}}",
+            "secret": "{{$secret}}"
+          }
+        }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "npcDescription",
+      "name": "NPC Full Description",
+      "resultType": "description",
+      "tags": ["npc", "description", "full"],
+      "description": "Generates a detailed prose description of an NPC.",
+      "shared": {
+        "$race": "{{race}}",
+        "$gender": "{{gender}}",
+        "$age": "{{age}}",
+        "$build": "{{build}}",
+        "$height": "{{height}}",
+        "$hairColor": "{{hairColor}}",
+        "$hairStyle": "{{hairStyle}}",
+        "$eyeColor": "{{eyeColor}}",
+        "$skinTone": "{{skinTone}}",
+        "$facialFeature": "{{facialFeature}}",
+        "$distinguishingMark": "{{distinguishingMark}}",
+        "$personality": "{{personalityTrait}}",
+        "$secondaryTrait": "{{secondaryTrait}}",
+        "$flaw": "{{flaw}}",
+        "$mannerism": "{{mannerism}}",
+        "$voice": "{{voiceStyle}}",
+        "$motivation": "{{motivation}}",
+        "$profession": "{{profession}}",
+        "$socialClass": "{{socialClass}}",
+        "$relationship": "{{relationshipStatus}}",
+        "$clothing": "{{clothingStyle}}",
+        "$attitude": "{{attitude}}",
+        "$mood": "{{currentMood}}",
+        "$quirk": "{{quirk}}",
+        "$secret": "{{secret}}",
+        "$surname": "{{surname}}",
+        "$firstName": "{{switch[$race.@raceId==\"human\" && $gender.@genderId==\"male\":{{humanMaleNames}}].switch[$race.@raceId==\"human\" && $gender.@genderId==\"female\":{{humanFemaleNames}}].switch[$race.@raceId==\"elf\" && $gender.@genderId==\"male\":{{elfMaleNames}}].switch[$race.@raceId==\"elf\" && $gender.@genderId==\"female\":{{elfFemaleNames}}].switch[$race.@raceId==\"dwarf\" && $gender.@genderId==\"male\":{{dwarfMaleNames}}].switch[$race.@raceId==\"dwarf\" && $gender.@genderId==\"female\":{{dwarfFemaleNames}}].switch[$race.@raceId==\"halfling\" && $gender.@genderId==\"male\":{{halflingMaleNames}}].switch[$race.@raceId==\"halfling\" && $gender.@genderId==\"female\":{{halflingFemaleNames}}].switch[$race.@raceId==\"orc\" && $gender.@genderId==\"male\":{{orcMaleNames}}].switch[$race.@raceId==\"orc\" && $gender.@genderId==\"female\":{{orcFemaleNames}}].switch[$race.@raceId==\"gnome\" && $gender.@genderId==\"male\":{{gnomeMaleNames}}].switch[$race.@raceId==\"gnome\" && $gender.@genderId==\"female\":{{gnomeFemaleNames}}].else[{{neutralNames}}]}}"
+      },
+      "pattern": "## {{$firstName}} {{$surname}}\n\n**{{$gender}} {{$race}} {{$profession}}** ({{$socialClass}} class)\n\n### Appearance\n{{$firstName}} is {{switch[$age==\"young\":\"a {{$age}}\"]. switch[$age==\"adult\":\"an {{$age}}\"].switch[$age==\"middle-aged\":\"a {{$age}}\"].else[\"an {{$age}}\"]}}, {{$height}} {{$race}} with a {{$build}} frame. {{switch[$gender.@genderId==\"male\":\"He\"].switch[$gender.@genderId==\"female\":\"She\"].else[\"They\"]}} {{switch[$gender.@genderId==\"nonbinary\":\"have\"].else[\"has\"]}} {{$skinTone}} skin, {{$eyeColor}} eyes, and {{$hairColor}}, {{$hairStyle}} hair. {{switch[$gender.@genderId==\"male\":\"His\"].switch[$gender.@genderId==\"female\":\"Her\"].else[\"Their\"]}} most notable facial feature is {{$facialFeature}}.{{switch[$distinguishingMark!=\"no distinguishing marks\":\" {{switch[$gender.@genderId==\"male\":\"He\"].switch[$gender.@genderId==\"female\":\"She\"].else[\"They\"]}} {{switch[$gender.@genderId==\"nonbinary\":\"have\"].else[\"has\"]}} {{$distinguishingMark}}.\"].else[\"\"]}}\n\n{{switch[$gender.@genderId==\"male\":\"He\"].switch[$gender.@genderId==\"female\":\"She\"].else[\"They\"]}} {{switch[$gender.@genderId==\"nonbinary\":\"wear\"].else[\"wears\"]}} {{$clothing}}.\n\n### Personality\n{{$firstName}} is {{$personality}}, and {{$secondaryTrait}}. {{switch[$gender.@genderId==\"male\":\"His\"].switch[$gender.@genderId==\"female\":\"Her\"].else[\"Their\"]}} greatest flaw is that {{switch[$gender.@genderId==\"male\":\"he\"].switch[$gender.@genderId==\"female\":\"she\"].else[\"they\"]}} {{$flaw}}.\n\nWhen speaking, {{switch[$gender.@genderId==\"male\":\"he\"].switch[$gender.@genderId==\"female\":\"she\"].else[\"they\"]}} {{$voice}}. {{switch[$gender.@genderId==\"male\":\"He\"].switch[$gender.@genderId==\"female\":\"She\"].else[\"They\"]}} {{$mannerism}} and {{$quirk}}.\n\n### Background\n{{$firstName}} is currently {{$relationship}}. {{switch[$gender.@genderId==\"male\":\"He\"].switch[$gender.@genderId==\"female\":\"She\"].else[\"They\"]}} {{$motivation}}.\n\nWhen first encountered, {{$firstName}} appears {{$attitude}} and is currently {{$mood}}.\n\n### Secret\n*{{$firstName}} {{$secret}}.*"
+    },
+    {
+      "id": "quickNPC",
+      "name": "Quick NPC Summary",
+      "resultType": "npc",
+      "tags": ["npc", "quick", "summary"],
+      "description": "Generates a brief NPC summary suitable for quick reference.",
+      "shared": {
+        "$race": "{{race}}",
+        "$gender": "{{gender}}",
+        "$age": "{{age}}",
+        "$profession": "{{profession}}",
+        "$personality": "{{personalityTrait}}",
+        "$attitude": "{{attitude}}",
+        "$surname": "{{surname}}",
+        "$firstName": "{{switch[$race.@raceId==\"human\" && $gender.@genderId==\"male\":{{humanMaleNames}}].switch[$race.@raceId==\"human\" && $gender.@genderId==\"female\":{{humanFemaleNames}}].switch[$race.@raceId==\"elf\" && $gender.@genderId==\"male\":{{elfMaleNames}}].switch[$race.@raceId==\"elf\" && $gender.@genderId==\"female\":{{elfFemaleNames}}].switch[$race.@raceId==\"dwarf\" && $gender.@genderId==\"male\":{{dwarfMaleNames}}].switch[$race.@raceId==\"dwarf\" && $gender.@genderId==\"female\":{{dwarfFemaleNames}}].switch[$race.@raceId==\"halfling\" && $gender.@genderId==\"male\":{{halflingMaleNames}}].switch[$race.@raceId==\"halfling\" && $gender.@genderId==\"female\":{{halflingFemaleNames}}].switch[$race.@raceId==\"orc\" && $gender.@genderId==\"male\":{{orcMaleNames}}].switch[$race.@raceId==\"orc\" && $gender.@genderId==\"female\":{{orcFemaleNames}}].switch[$race.@raceId==\"gnome\" && $gender.@genderId==\"male\":{{gnomeMaleNames}}].switch[$race.@raceId==\"gnome\" && $gender.@genderId==\"female\":{{gnomeFemaleNames}}].else[{{neutralNames}}]}}"
+      },
+      "pattern": "**{{$firstName}} {{$surname}}** — {{$age}} {{$gender}} {{$race}} {{$profession}}. {{$personality}}; initially {{$attitude}}."
+    },
+    {
+      "id": "npcAppearance",
+      "name": "NPC Appearance Only",
+      "resultType": "description",
+      "tags": ["npc", "appearance", "physical"],
+      "description": "Generates only physical description details.",
+      "shared": {
+        "$race": "{{race}}",
+        "$gender": "{{gender}}",
+        "$age": "{{age}}",
+        "$build": "{{build}}",
+        "$height": "{{height}}",
+        "$hairColor": "{{hairColor}}",
+        "$hairStyle": "{{hairStyle}}",
+        "$eyeColor": "{{eyeColor}}",
+        "$skinTone": "{{skinTone}}",
+        "$facialFeature": "{{facialFeature}}",
+        "$distinguishingMark": "{{distinguishingMark}}",
+        "$clothing": "{{clothingStyle}}"
+      },
+      "pattern": "A {{$age}}, {{$height}} {{$race}} ({{$gender}}) with a {{$build}} frame. {{$skinTone}} skin, {{$eyeColor}} eyes, {{$hairColor}} {{$hairStyle}} hair. Notable: {{$facialFeature}}{{switch[$distinguishingMark!=\"no distinguishing marks\":\", {{$distinguishingMark}}\"].else[\".\"]}} Wearing {{$clothing}}."
+    },
+    {
+      "id": "npcPersonality",
+      "name": "NPC Personality Only",
+      "resultType": "description",
+      "tags": ["npc", "personality", "behavior"],
+      "description": "Generates only personality and behavioral details.",
+      "shared": {
+        "$personality": "{{personalityTrait}}",
+        "$secondaryTrait": "{{secondaryTrait}}",
+        "$flaw": "{{flaw}}",
+        "$mannerism": "{{mannerism}}",
+        "$voice": "{{voiceStyle}}",
+        "$motivation": "{{motivation}}",
+        "$quirk": "{{quirk}}"
+      },
+      "pattern": "**Personality:** {{$personality}}; {{$secondaryTrait}}.\n\n**Flaw:** {{$flaw}}.\n\n**Speech:** {{$voice}}.\n\n**Mannerism:** {{$mannerism}}.\n\n**Quirk:** {{$quirk}}.\n\n**Motivation:** {{$motivation}}."
+    },
+    {
+      "id": "npcBackground",
+      "name": "NPC Background Only",
+      "resultType": "description",
+      "tags": ["npc", "background", "social"],
+      "description": "Generates only background and social details.",
+      "shared": {
+        "$profession": "{{profession}}",
+        "$socialClass": "{{socialClass}}",
+        "$relationship": "{{relationshipStatus}}",
+        "$secret": "{{secret}}"
+      },
+      "pattern": "**Profession:** {{$profession}} ({{$socialClass}} class)\n\n**Relationship:** {{$relationship}}\n\n**Secret:** {{$secret}}"
+    },
+    {
+      "id": "npcEncounter",
+      "name": "NPC Encounter Description",
+      "resultType": "encounter",
+      "tags": ["npc", "encounter", "interaction"],
+      "description": "Generates an NPC ready for an immediate encounter.",
+      "shared": {
+        "$race": "{{race}}",
+        "$gender": "{{gender}}",
+        "$profession": "{{profession}}",
+        "$attitude": "{{attitude}}",
+        "$mood": "{{currentMood}}",
+        "$mannerism": "{{mannerism}}",
+        "$voice": "{{voiceStyle}}",
+        "$clothing": "{{clothingStyle}}"
+      },
+      "pattern": "A {{$gender}} {{$race}} {{$profession}} approaches. They appear {{$attitude}} and seem {{$mood}}. They are wearing {{$clothing}}. When they speak, they {{$voice}}, and {{$mannerism}}."
+    }
+  ]
+}

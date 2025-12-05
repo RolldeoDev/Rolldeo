@@ -282,7 +282,7 @@ export class ExpressionEvaluator {
     // Parse the expression to check if it's a simple table reference
     const expressions = extractExpressions(expression)
 
-    // If it's a single expression that's a table reference, capture the full result
+    // If it's a single expression that's a table or template reference, capture the full result
     if (expressions.length === 1) {
       const token = parseExpression(expressions[0].expression)
 
@@ -308,6 +308,19 @@ export class ExpressionEvaluator {
           })
           return
         }
+
+        // Not a table - try template
+        const templateResult = this.deps.resolveTemplateRef(token.tableId, collectionId)
+        if (templateResult) {
+          // Evaluate template and capture its shared variables
+          const result = this.evaluateTemplateWithCapture(
+            templateResult.template,
+            templateResult.collectionId,
+            context
+          )
+          setCaptureSharedVariable(context, varName, result)
+          return
+        }
       }
 
       // Handle capture access with properties - check if it references a nested CaptureItem
@@ -327,6 +340,86 @@ export class ExpressionEvaluator {
               return
             }
           }
+        }
+      }
+
+      // Handle switch expressions - evaluate to find winning result, then check if it's a table
+      if (token.type === 'switch') {
+        const winningResultExpr = this.evaluateSwitchToResultExpr(token, context, collectionId)
+        if (winningResultExpr) {
+          // Try to parse the winning result as a table reference
+          const resultExpr = winningResultExpr.trim()
+
+          // Check if it's an unwrapped table reference (e.g., "wizardTable")
+          if (!resultExpr.startsWith('"') && !resultExpr.startsWith("'") && !resultExpr.includes('{{')) {
+            // Try to resolve as table reference
+            const tableResult = this.deps.resolveTableRef(resultExpr, collectionId)
+            if (tableResult) {
+              // It's a table! Roll it and capture the full result
+              const descCountBefore = context.collectedDescriptions.length
+              const result = this.deps.rollTable(tableResult.table, context, tableResult.collectionId)
+
+              const newDescriptions = context.collectedDescriptions.slice(descCountBefore)
+              const entryDescription = newDescriptions.length > 0 ? newDescriptions[0].description : undefined
+
+              setCaptureSharedVariable(context, varName, {
+                value: result.text,
+                sets: result.placeholders ?? {},
+                description: entryDescription,
+              })
+              return
+            }
+          }
+
+          // Check if it's a wrapped expression like {{maleHairStyle}}
+          if (resultExpr.includes('{{')) {
+            // Extract and parse expressions from the result
+            const resultExpressions = extractExpressions(resultExpr)
+
+            // If it's a single wrapped expression, check if it's a table or template reference
+            if (resultExpressions.length === 1 && resultExpr.trim() === resultExpressions[0].raw) {
+              const resultToken = parseExpression(resultExpressions[0].expression)
+
+              if (resultToken.type === 'table') {
+                // It's a wrapped table reference! Resolve and roll it
+                const tableResult = this.deps.resolveTableRef(resultToken.tableId, collectionId)
+                if (tableResult) {
+                  const descCountBefore = context.collectedDescriptions.length
+                  const result = this.deps.rollTable(tableResult.table, context, tableResult.collectionId)
+
+                  const newDescriptions = context.collectedDescriptions.slice(descCountBefore)
+                  const entryDescription = newDescriptions.length > 0 ? newDescriptions[0].description : undefined
+
+                  setCaptureSharedVariable(context, varName, {
+                    value: result.text,
+                    sets: result.placeholders ?? {},
+                    description: entryDescription,
+                  })
+                  return
+                }
+
+                // Not a table - try template
+                const templateResult = this.deps.resolveTemplateRef(resultToken.tableId, collectionId)
+                if (templateResult) {
+                  const result = this.evaluateTemplateWithCapture(
+                    templateResult.template,
+                    templateResult.collectionId,
+                    context
+                  )
+                  setCaptureSharedVariable(context, varName, result)
+                  return
+                }
+              }
+            }
+          }
+
+          // Not a simple table reference - evaluate the result expression normally
+          const evaluated = this.evaluateSwitchResult(winningResultExpr, context, collectionId)
+          setCaptureSharedVariable(context, varName, {
+            value: evaluated,
+            sets: {},
+          })
+          return
         }
       }
     }
@@ -861,6 +954,94 @@ export class ExpressionEvaluator {
       endTraceNode(context, { value: text })
 
       return text
+    } finally {
+      decrementRecursion(context)
+    }
+  }
+
+  /**
+   * Evaluate a template and capture its shared variables for content-aware access.
+   * Returns a CaptureItem with the template's result and its shared variables as sets.
+   * This enables syntax like {{$npc.@profession}} where $npc references a template.
+   */
+  private evaluateTemplateWithCapture(
+    template: Template,
+    collectionId: string,
+    context: GenerationContext
+  ): CaptureItem {
+    // Check recursion limit
+    if (!incrementRecursion(context)) {
+      throw new Error(`Recursion limit exceeded (${context.config.maxRecursionDepth})`)
+    }
+
+    try {
+      // Get the collection for context
+      const collection = this.deps.getCollection(collectionId)
+      if (!collection) {
+        return { value: '', sets: {} }
+      }
+
+      // Start trace node for template reference evaluation
+      beginTraceNode(context, 'template_ref', `Template: ${template.name || template.id}`, {
+        raw: template.id,
+        parsed: { collectionId, templateId: template.id, pattern: template.pattern },
+      })
+
+      // Create isolated context for template evaluation
+      const isolatedContext: GenerationContext = {
+        ...context,
+        placeholders: new Map(),
+        sharedVariables: new Map(context.sharedVariables),
+        sharedVariableSources: new Map(context.sharedVariableSources),
+        captureSharedVariables: new Map(context.captureSharedVariables),
+      }
+
+      // Evaluate template-level shared variables
+      if (template.shared) {
+        for (const name of Object.keys(template.shared)) {
+          if (name.startsWith('$')) {
+            isolatedContext.captureSharedVariables.delete(name.slice(1))
+          } else {
+            isolatedContext.sharedVariables.delete(name)
+            isolatedContext.sharedVariableSources.delete(name)
+          }
+        }
+        this.evaluateTableLevelShared(template.shared, isolatedContext, collectionId, template.id)
+      }
+
+      // Evaluate the template pattern
+      const text = this.evaluatePattern(template.pattern, isolatedContext, collectionId)
+
+      // Build sets from the template's own shared variables
+      const sets: Record<string, string | CaptureItem> = {}
+
+      if (template.shared) {
+        for (const name of Object.keys(template.shared)) {
+          if (name.startsWith('$')) {
+            // Capture-aware shared variable
+            const varName = name.slice(1)
+            const captureItem = isolatedContext.captureSharedVariables.get(varName)
+            if (captureItem) {
+              sets[varName] = captureItem
+            }
+          } else {
+            // Regular shared variable
+            const value = isolatedContext.sharedVariables.get(name)
+            if (value !== undefined) {
+              sets[name] = String(value)
+            }
+          }
+        }
+      }
+
+      // End trace node
+      endTraceNode(context, { value: text })
+
+      return {
+        value: text,
+        sets,
+        description: undefined,
+      }
     } finally {
       decrementRecursion(context)
     }
@@ -1816,6 +1997,31 @@ export class ExpressionEvaluator {
 
     console.warn('Switch expression: no clause matched and no else provided')
     return ''
+  }
+
+  /**
+   * Evaluate a switch expression to determine the winning result expression (unevaluated).
+   * Returns the raw result expression string of the first matching clause, or undefined if no match.
+   * Used by capture-aware shared variables to detect if the result is a table reference.
+   */
+  private evaluateSwitchToResultExpr(
+    token: SwitchToken,
+    context: GenerationContext,
+    collectionId: string
+  ): string | undefined {
+    // Evaluate each clause in order
+    for (const clause of token.clauses) {
+      if (this.evaluateSwitchCondition(clause.condition, undefined, context, collectionId)) {
+        return clause.resultExpr
+      }
+    }
+
+    // No clause matched - use else if provided
+    if (token.elseExpr !== undefined) {
+      return token.elseExpr
+    }
+
+    return undefined
   }
 
   /**
