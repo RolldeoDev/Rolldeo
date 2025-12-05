@@ -1236,6 +1236,208 @@ Switch expressions are the primary mechanism for conditional logic in templates.
 
 This pattern appends conditional text when the condition is met, or nothing when it's not.
 
+#### 5.10.7 Common Pattern: Conditional Sub-Selection
+
+One of the most powerful and common patterns in table design is selecting sub-tables based on multiple rolled factors. This applies to many scenarios:
+
+- **Names:** Gender + culture → appropriate first name, surname
+- **Encounters:** Terrain + time of day → appropriate creature/event tables
+- **Loot:** Enemy type + difficulty → appropriate reward tables
+- **Military:** Region (land/air/sea) → appropriate units, attacks, defenses
+- **NPCs:** Faction + role → appropriate names, traits, equipment
+
+The core concept:
+1. Roll one or more "selector" tables (e.g., region, gender, faction)
+2. Use switch expressions to pick sub-tables based on selector values
+3. Store results in variables for reuse throughout the template
+4. Each selector entry can contain sets pointing to its own sub-tables
+
+**Example: Region-Based Military Units**
+
+A simple example where region type determines available units:
+
+```
+{{switch[$region=="Land":{{landUnits}}].switch[$region=="Air":{{airUnits}}].switch[$region=="Sea":{{seaUnits}}].else[{{genericUnits}}]}}
+```
+
+**Example: Character Names (Gender + Culture)**
+
+A more complex example generating names that depend on multiple factors:
+
+**Example Setup:**
+
+First, define your helper tables:
+
+```json
+{
+  "tables": [
+    {
+      "id": "gender",
+      "name": "Gender",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "male" },
+        { "value": "female" }
+      ]
+    },
+    {
+      "id": "culture",
+      "name": "Culture",
+      "type": "simple",
+      "entries": [
+        { "id": "dragonborn", "value": "Dragonborn" },
+        { "id": "elf", "value": "Elf" },
+        { "id": "dwarf", "value": "Dwarf" }
+      ]
+    },
+    {
+      "id": "maleDragonbornNames",
+      "name": "Male Dragonborn Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Arjhan" },
+        { "value": "Balasar" },
+        { "value": "Kriv" }
+      ]
+    },
+    {
+      "id": "femaleDragonbornNames",
+      "name": "Female Dragonborn Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Akra" },
+        { "value": "Biri" },
+        { "value": "Kava" }
+      ]
+    },
+    {
+      "id": "dragonbornSurnames",
+      "name": "Dragonborn Surnames",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Clethtinthiallor" },
+        { "value": "Daardendrian" },
+        { "value": "Kerrhylon" }
+      ]
+    }
+  ]
+}
+```
+
+**Basic Pattern:** Use switch to select the gender-appropriate name table:
+
+```
+{{switch[$gender=="male":{{maleDragonbornNames}}].else[{{femaleDragonbornNames}}]}} {{dragonbornSurnames}}
+```
+
+This produces results like "Balasar Daardendrian" or "Akra Kerrhylon".
+
+**Advanced Pattern with Variables:** Store each name part for later reference:
+
+```json
+{
+  "id": "dragonbornCharacter",
+  "name": "Dragonborn Character",
+  "resultType": "npc",
+  "shared": {
+    "$gender": "{{gender}}",
+    "$firstName": "{{switch[$gender==\"male\":{{maleDragonbornNames}}].else[{{femaleDragonbornNames}}]}}",
+    "$surname": "{{dragonbornSurnames}}",
+    "$fullName": "{{$firstName}} {{$surname}}"
+  },
+  "pattern": "**{{$fullName}}** is a {{$gender}} Dragonborn.\n\nRefer to {{$firstName}} by first name, or the {{$surname}} clan by surname."
+}
+```
+
+This allows you to:
+- Use `{{$fullName}}` anywhere you need the complete name
+- Use `{{$firstName}}` or `{{$surname}}` individually
+- Reference `{{$gender}}` for pronouns or other gender-specific content
+
+**Multi-Culture Pattern:** When you have many cultures, chain switches or use culture-specific sets:
+
+```json
+{
+  "shared": {
+    "$gender": "{{gender}}",
+    "$culture": "{{culture}}",
+    "$firstName": "{{switch[$culture==\"Dragonborn\" && $gender==\"male\":{{maleDragonbornNames}}].switch[$culture==\"Dragonborn\" && $gender==\"female\":{{femaleDragonbornNames}}].switch[$culture==\"Elf\" && $gender==\"male\":{{maleElfNames}}].switch[$culture==\"Elf\" && $gender==\"female\":{{femaleElfNames}}].else[{{genericNames}}]}}",
+    "$surname": "{{switch[$culture==\"Dragonborn\":{{dragonbornSurnames}}].switch[$culture==\"Elf\":{{elfSurnames}}].else[{{genericSurnames}}]}}",
+    "$fullName": "{{$firstName}} {{$surname}}"
+  },
+  "pattern": "**{{$fullName}}** is a {{$gender}} {{$culture}}."
+}
+```
+
+**Alternative: Using Sets for Cleaner Multi-Culture Support:**
+
+For many cultures, consider putting name table references in the culture entry's sets:
+
+```json
+{
+  "id": "culture",
+  "name": "Culture",
+  "type": "simple",
+  "entries": [
+    {
+      "id": "dragonborn",
+      "value": "Dragonborn",
+      "sets": {
+        "maleNames": "{{maleDragonbornNames}}",
+        "femaleNames": "{{femaleDragonbornNames}}",
+        "surnames": "{{dragonbornSurnames}}"
+      }
+    },
+    {
+      "id": "elf",
+      "value": "Elf",
+      "sets": {
+        "maleNames": "{{maleElfNames}}",
+        "femaleNames": "{{femaleElfNames}}",
+        "surnames": "{{elfSurnames}}"
+      }
+    }
+  ]
+}
+```
+
+Then use capture-aware shared variables:
+
+```json
+{
+  "shared": {
+    "$gender": "{{gender}}",
+    "$culture": "{{culture}}",
+    "$firstName": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}",
+    "$surname": "{{$culture.@surnames}}",
+    "$fullName": "{{$firstName}} {{$surname}}"
+  },
+  "pattern": "**{{$fullName}}** is a {{$gender}} {{$culture}}."
+}
+```
+
+This approach scales better—adding a new culture means adding one entry with its name table references, rather than updating multiple switch chains.
+
+**More Examples of This Pattern:**
+
+| Scenario | Selector(s) | Sets Contain | Template Access |
+|----------|-------------|--------------|-----------------|
+| Military units | `region` (Land/Air/Sea) | `attacks`, `defenses`, `units` | `{{$region.@units}}` |
+| Encounters | `terrain`, `timeOfDay` | `dayEncounters`, `nightEncounters` | `{{switch[$time=="day":$terrain.@dayEncounters].else[...]}}` |
+| Loot drops | `enemyType`, `difficulty` | `easyLoot`, `hardLoot` | `{{switch[$difficulty=="hard":$enemy.@hardLoot].else[...]}}` |
+| Faction NPCs | `faction`, `role` | `leaderNames`, `soldierNames`, `spyNames` | `{{switch[$role=="leader":$faction.@leaderNames].else[...]}}` |
+| Spells | `school`, `level` | `cantripSpells`, `lowSpells`, `highSpells` | `{{switch[$level=="cantrip":$school.@cantripSpells].else[...]}}` |
+
+**Decision Guide:**
+- **Few options per factor (2-3):** Use switch expressions directly
+- **Many options, one factor:** Put sub-table refs in that factor's entry sets
+- **Many options, multiple factors:** Combine sets approach with switch for remaining factors
+- **Need extensibility:** Always prefer sets approach—adding entries is easier than updating switches
+
 ---
 
 ## 6. Variables Object

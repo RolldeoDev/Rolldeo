@@ -478,6 +478,221 @@ decision_guide:
         template: "{{titles}} {{firstNames}} {{lastNames}}"
       race_specific: "Use sets with {{raceFirstNames}} pattern, or capture-aware for race→name chain"
 
+    # -------------------------------------------------------------------------
+    # CONDITIONAL SUB-SELECTION PATTERN
+    # -------------------------------------------------------------------------
+    # One of the most common and powerful patterns in table design.
+    # Use whenever you need to select sub-tables or values based on
+    # one or more previously rolled factors.
+    # -------------------------------------------------------------------------
+    conditional_sub_selection:
+      description: |
+        Select different sub-tables or values based on multiple rolled factors.
+        This pattern combines switch expressions with capture-aware variables
+        to route to appropriate sub-content based on earlier rolls.
+
+      core_concept: |
+        1. Roll one or more "selector" tables (e.g., region, gender, faction)
+        2. Use switch expressions to pick sub-tables based on selector values
+        3. Store results in variables for reuse throughout the template
+        4. Each selector entry can contain sets pointing to its own sub-tables
+
+      use_when:
+        - "Output depends on 2+ independent factors"
+        - "Each category has its own pool of related sub-tables"
+        - "You need to reuse selected values multiple times in the template"
+        - "Different combinations require different sub-table selections"
+
+      # =======================================================================
+      # APPROACH 1: SWITCH-BASED (Good for few options)
+      # =======================================================================
+      switch_approach:
+        description: "Use switch expressions to route based on variable values"
+        when_to_use: "2-3 options per factor, simple routing logic"
+
+        basic_syntax: |
+          {{switch[$factor=="value1":{{subTable1}}].switch[$factor=="value2":{{subTable2}}].else[{{defaultTable}}]}}
+
+        multi_factor_syntax: |
+          {{switch[$factorA=="X" && $factorB=="Y":{{tableXY}}].switch[$factorA=="X" && $factorB=="Z":{{tableXZ}}].else[{{defaultTable}}]}}
+
+        example_region_attack:
+          description: "Select attack capabilities based on region type"
+          shared: |
+            "$region": "{{regionTable}}",
+            "$attackVector": "{{switch[$region==\"Land\":{{landAttacks}}].switch[$region==\"Air\":{{airAttacks}}].switch[$region==\"Sea\":{{seaAttacks}}].else[{{genericAttacks}}]}}"
+          pattern: '"The {{$region}} forces deploy: {{$attackVector}}"'
+
+        example_gender_names:
+          description: "Select names based on gender"
+          shared: |
+            "$gender": "{{gender}}",
+            "$firstName": "{{switch[$gender==\"male\":{{maleNames}}].else[{{femaleNames}}]}}"
+          pattern: '"Meet {{$firstName}}, a {{$gender}} warrior."'
+
+      # =======================================================================
+      # APPROACH 2: SETS-BASED (Preferred for many options)
+      # =======================================================================
+      sets_approach:
+        description: "Embed sub-table references in entry sets for cleaner scaling"
+        when_to_use: "4+ options, complex sub-table relationships, extensibility needed"
+
+        concept: |
+          Instead of giant switch chains, each entry in the "selector" table
+          contains sets that reference its own sub-tables. The template then
+          accesses these via capture-aware variables: $selector.@propertyName
+
+        example_region_with_sets:
+          description: "Region table with embedded sub-table references"
+          table: |
+            {
+              "id": "region",
+              "entries": [
+                {
+                  "value": "Land",
+                  "sets": {
+                    "attacks": "{{landAttacks}}",
+                    "defenses": "{{landDefenses}}",
+                    "units": "{{landUnits}}"
+                  }
+                },
+                {
+                  "value": "Air",
+                  "sets": {
+                    "attacks": "{{airAttacks}}",
+                    "defenses": "{{airDefenses}}",
+                    "units": "{{airUnits}}"
+                  }
+                },
+                {
+                  "value": "Sea",
+                  "sets": {
+                    "attacks": "{{seaAttacks}}",
+                    "defenses": "{{seaDefenses}}",
+                    "units": "{{seaUnits}}"
+                  }
+                }
+              ]
+            }
+          template: |
+            {
+              "shared": {
+                "$region": "{{region}}"
+              },
+              "pattern": "The {{$region}} theater deploys {{$region.@units}} using {{$region.@attacks}}. Defense: {{$region.@defenses}}."
+            }
+          benefit: "Adding 'Space' region = one new entry. No template changes needed."
+
+        example_culture_gender_names:
+          description: "Culture table with gender-specific name sub-tables"
+          table: |
+            {
+              "id": "culture",
+              "entries": [
+                {
+                  "value": "Dragonborn",
+                  "sets": {
+                    "maleNames": "{{maleDragonbornNames}}",
+                    "femaleNames": "{{femaleDragonbornNames}}",
+                    "surnames": "{{dragonbornSurnames}}"
+                  }
+                },
+                {
+                  "value": "Elf",
+                  "sets": {
+                    "maleNames": "{{maleElfNames}}",
+                    "femaleNames": "{{femaleElfNames}}",
+                    "surnames": "{{elfSurnames}}"
+                  }
+                }
+              ]
+            }
+          template: |
+            {
+              "shared": {
+                "$gender": "{{gender}}",
+                "$culture": "{{culture}}",
+                "$firstName": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}",
+                "$surname": "{{$culture.@surnames}}",
+                "$fullName": "{{$firstName}} {{$surname}}"
+              },
+              "pattern": "**{{$fullName}}** is a {{$gender}} {{$culture}}."
+            }
+          note: "Switch handles binary gender choice; sets handle culture routing."
+
+      # =======================================================================
+      # STORING PARTS FOR LATER REFERENCE
+      # =======================================================================
+      variable_storage:
+        description: "Store individual components and composites for reuse"
+        concept: |
+          Capture each rolled part in its own shared variable, then compose
+          them into combined variables. Reference any level of detail.
+
+        example: |
+          "shared": {
+            "$gender": "{{gender}}",
+            "$culture": "{{culture}}",
+            "$firstName": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}",
+            "$surname": "{{$culture.@surnames}}",
+            "$fullName": "{{$firstName}} {{$surname}}",
+            "$title": "{{titles}}",
+            "$formalName": "{{$title}} {{$fullName}}"
+          }
+
+        access_patterns:
+          - "{{$firstName}} - just first name"
+          - "{{$surname}} - just surname"
+          - "{{$fullName}} - first + surname"
+          - "{{$formalName}} - title + first + surname"
+          - "{{$gender}} - for pronouns or conditionals"
+
+      # =======================================================================
+      # MORE EXAMPLES
+      # =======================================================================
+      more_examples:
+        encounter_by_terrain_and_time:
+          factors: ["terrain (forest/desert/mountain)", "timeOfDay (day/night)"]
+          approach: "Sets on terrain entries with dayEncounters/nightEncounters"
+          template_snippet: |
+            "$terrain": "{{terrain}}",
+            "$encounter": "{{switch[$time==\"day\":$terrain.@dayEncounters].else[$terrain.@nightEncounters]}}"
+
+        loot_by_enemy_and_difficulty:
+          factors: ["enemyType (undead/beast/humanoid)", "difficulty (easy/hard)"]
+          approach: "Sets on enemy entries with easyLoot/hardLoot tables"
+          template_snippet: |
+            "$enemy": "{{enemyType}}",
+            "$loot": "{{switch[$difficulty==\"hard\":$enemy.@hardLoot].else[$enemy.@easyLoot]}}"
+
+        npc_by_faction_and_role:
+          factors: ["faction (empire/rebels/merchants)", "role (leader/soldier/spy)"]
+          approach: "Faction entries have sets for each role's name/trait tables"
+          template_snippet: |
+            "$faction": "{{faction}}",
+            "$role": "{{role}}",
+            "$name": "{{switch[$role==\"leader\":$faction.@leaderNames].switch[$role==\"spy\":$faction.@spyNames].else[$faction.@soldierNames]}}"
+
+        vehicle_by_environment:
+          factors: ["environment (land/air/sea/space)"]
+          approach: "Environment entries have sets for vehicles/weapons/crew tables"
+          template_snippet: |
+            "$env": "{{environment}}",
+            "pattern": "A {{$env.@vehicles}} armed with {{$env.@weapons}}, crewed by {{$env.@crew}}"
+
+        spell_by_school_and_level:
+          factors: ["school (evocation/illusion/necromancy)", "level (cantrip/low/high)"]
+          approach: "School entries have sets for level-appropriate spell tables"
+
+      # =======================================================================
+      # DECISION GUIDE
+      # =======================================================================
+      decision_guide:
+        few_options_per_factor: "Use switch expressions directly"
+        many_options_one_factor: "Put sub-table refs in that factor's entry sets"
+        many_options_multiple_factors: "Combine sets approach with switch for remaining factors"
+        need_extensibility: "Always prefer sets approach - adding entries is easier than updating switches"
+
     npc_generator:
       structure: "Multiple trait tables + template"
       tables: [race, occupation, personality, secret, appearance, motivation]
@@ -601,6 +816,7 @@ decision_guide:
     step5_conditional_output:
       simple_conditions: "Use inline switch expressions"
       type_specific_subtables: "Use child_table_references in sets instead (see categorized_generator pattern)"
+      multi_factor_routing: "Use conditional_sub_selection pattern (switch + sets + capture-aware variables)"
 
     step6_variant_table:
       yes: "Use extends inheritance"
@@ -861,6 +1077,8 @@ template_syntax:
     name_selection: '{{switch[$gender=="male":$race.@maleName].else[$race.@femaleName]}}'
     complex_condition: '{{switch[$class=="wizard" && $level>=5:{{powerSpell}}].else[{{basicSpell}}]}}'
     interpolation: '{{switch[$color=="none":", no glow"].else[", glowing {{$color}} light"]}}'
+    # For multi-factor routing patterns, see conditional_sub_selection in ttrpg_patterns
+    multi_factor_routing: '{{switch[$region=="Land":{{landAttacks}}].switch[$region=="Air":{{airAttacks}}].else[{{seaAttacks}}]}}'
 
   # Escape literal braces
   escape: "\\{{ and \\}}"

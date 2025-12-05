@@ -1210,6 +1210,98 @@ describe('Capture-Aware Shared Variables', () => {
     })
   })
 
+  describe('math expressions with capture access', () => {
+    it('should support capture access syntax in math expressions', () => {
+      // Test case matching the user's scenario:
+      // $dexRoll => {{dice:4d6k3}}
+      // $dexterity => {{math:$dexRoll + $race.@dexBonus}}
+      const doc = createTestDoc(
+        [
+          {
+            id: 'race',
+            name: 'Race',
+            type: 'simple',
+            entries: [
+              { value: 'Elf', sets: { dexBonus: '2' } },
+              { value: 'Dwarf', sets: { dexBonus: '0' } },
+              { value: 'Human', sets: { dexBonus: '1' } },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'character',
+            name: 'Character',
+            shared: {
+              '$race': '{{race}}',
+              'dexRoll': '10', // Fixed value for testing
+              'dexterity': '{{math:$dexRoll + $race.@dexBonus}}',
+            },
+            pattern: '{{$race}} with DEX {{$dexterity}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('character', 'test')
+
+      // The result should be "Elf with DEX 12", "Dwarf with DEX 10", or "Human with DEX 11"
+      expect(result.text).toMatch(/^(Elf with DEX 12|Dwarf with DEX 10|Human with DEX 11)$/)
+    })
+
+    it('should handle missing capture variable in math expression', () => {
+      const doc = createTestDoc(
+        [],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              'result': '{{math:$missing.@prop + 5}}',
+            },
+            pattern: 'Result: {{$result}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      // Missing variable should resolve to 0, so result is 5
+      expect(result.text).toBe('Result: 5')
+    })
+
+    it('should handle missing property in capture access math expression', () => {
+      const doc = createTestDoc(
+        [
+          {
+            id: 'item',
+            name: 'Item',
+            type: 'simple',
+            entries: [{ value: 'Sword', sets: { damage: '5' } }],
+          },
+        ],
+        [
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$weapon': '{{item}}',
+              'total': '{{math:$weapon.@nonexistent + 10}}',
+            },
+            pattern: 'Total: {{$total}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      // Missing property should resolve to 0, so result is 10
+      expect(result.text).toBe('Total: 10')
+    })
+  })
+
   describe('nested property access (chained CaptureItems)', () => {
     it('should support chained capture-aware shared variables', () => {
       // Test: $conflict -> @situation -> @focus chain

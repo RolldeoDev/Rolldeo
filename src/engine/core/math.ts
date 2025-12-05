@@ -6,7 +6,7 @@
  */
 
 import type { GenerationContext } from './context'
-import { resolveVariable, getPlaceholder } from './context'
+import { resolveVariable, getPlaceholder, getCaptureSharedVariable } from './context'
 import { rollDice } from '../dice'
 
 // ============================================================================
@@ -20,6 +20,7 @@ type TokenType =
   | 'RPAREN'
   | 'VARIABLE'
   | 'PLACEHOLDER'
+  | 'CAPTURE_ACCESS'
   | 'DICE'
   | 'EOF'
 
@@ -79,7 +80,7 @@ function tokenize(expr: string): Token[] {
       continue
     }
 
-    // Variable: $varName
+    // Variable or Capture Access: $varName or $varName.@property
     if (char === '$') {
       let name = ''
       i++ // Skip $
@@ -87,6 +88,31 @@ function tokenize(expr: string): Token[] {
         name += expr[i]
         i++
       }
+
+      // Check for capture access syntax: .@property or .@property.@nested
+      if (i < expr.length - 1 && expr[i] === '.' && expr[i + 1] === '@') {
+        const properties: string[] = []
+
+        // Parse all .@property chains
+        while (i < expr.length - 1 && expr[i] === '.' && expr[i + 1] === '@') {
+          i += 2 // Skip .@
+          let prop = ''
+          while (i < expr.length && /[a-zA-Z0-9_]/.test(expr[i])) {
+            prop += expr[i]
+            i++
+          }
+          if (prop) {
+            properties.push(prop)
+          }
+        }
+
+        if (properties.length > 0) {
+          // Store as "varName:prop1:prop2" for parsing
+          tokens.push({ type: 'CAPTURE_ACCESS', value: `${name}:${properties.join(':')}` })
+          continue
+        }
+      }
+
       tokens.push({ type: 'VARIABLE', value: name })
       continue
     }
@@ -260,6 +286,52 @@ class MathParser {
           maxExplodingDice: this.context.config.maxExplodingDice,
         })
         return result.total
+      }
+
+      case 'CAPTURE_ACCESS': {
+        // Format: "varName:prop1:prop2"
+        const parts = (token.value as string).split(':')
+        const varName = parts[0]
+        const properties = parts.slice(1)
+
+        const captureItem = getCaptureSharedVariable(this.context, varName)
+        if (!captureItem) {
+          console.warn(`Capture variable not found: $${varName}`)
+          return 0
+        }
+
+        // Traverse the property chain
+        let current = captureItem
+        for (let i = 0; i < properties.length; i++) {
+          const prop = properties[i]
+          const propValue = current.sets[prop]
+
+          if (propValue === undefined) {
+            console.warn(`Property not found: $${varName}.@${properties.slice(0, i + 1).join('.@')}`)
+            return 0
+          }
+
+          // If this is the last property, coerce to number
+          if (i === properties.length - 1) {
+            if (typeof propValue === 'string') {
+              return this.coerceToNumber(propValue, `$${varName}.@${properties.join('.@')}`)
+            } else {
+              // Nested CaptureItem - return its value
+              return this.coerceToNumber(propValue.value, `$${varName}.@${properties.join('.@')}`)
+            }
+          }
+
+          // Need to continue traversing - must be a nested CaptureItem
+          if (typeof propValue === 'string') {
+            console.warn(`Cannot chain through string property: $${varName}.@${properties.slice(0, i + 1).join('.@')}`)
+            return 0
+          }
+
+          current = propValue
+        }
+
+        // Shouldn't reach here
+        return 0
       }
 
       default:
