@@ -43,6 +43,8 @@ export interface CollectionMeta {
   sourceBook?: string
   /** Publisher from metadata.source */
   sourcePublisher?: string
+  /** If true, hidden from Library and Browser panels but available for rolling */
+  hiddenFromUI?: boolean
 }
 
 interface CollectionState {
@@ -59,7 +61,8 @@ interface CollectionState {
     id: string,
     document: RandomTableDocument,
     isPreloaded?: boolean,
-    source?: 'preloaded' | 'file' | 'zip' | 'user'
+    source?: 'preloaded' | 'file' | 'zip' | 'user',
+    hiddenFromUI?: boolean
   ) => void
   saveCollection: (
     id: string,
@@ -83,6 +86,7 @@ interface CollectionState {
   getPreloadedCollections: () => CollectionMeta[]
   getUserCollections: () => CollectionMeta[]
   getAllCollections: () => CollectionMeta[]
+  getVisibleCollections: () => CollectionMeta[]
   getTableList: (collectionId: string) => TableInfo[]
   getTemplateList: (collectionId: string) => TemplateInfo[]
   getImportedTableList: (collectionId: string, includeHidden?: boolean) => ImportedTableInfo[]
@@ -142,8 +146,8 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
       )
 
       // Load all preloaded collections into engine
-      for (const { id, document } of preloadedCollections) {
-        get().loadCollection(id, document, true, 'preloaded')
+      for (const { id, document, hiddenFromUI } of preloadedCollections) {
+        get().loadCollection(id, document, true, 'preloaded', hiddenFromUI)
       }
 
       // Load user collections from database (already fetched above)
@@ -178,7 +182,7 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
   /**
    * Load a collection into the engine and update state.
    */
-  loadCollection: (id, document, isPreloaded = false, source = 'file') => {
+  loadCollection: (id, document, isPreloaded = false, source = 'file', hiddenFromUI = false) => {
     const { engine, collections } = get()
 
     // Load into engine
@@ -200,6 +204,7 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
       author: document.metadata.author,
       sourceBook: document.metadata.source?.book,
       sourcePublisher: document.metadata.source?.publisher,
+      hiddenFromUI,
     }
 
     // Update state
@@ -339,6 +344,9 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
     Array.from(get().collections.values()).filter((c) => !c.isPreloaded),
 
   getAllCollections: () => Array.from(get().collections.values()),
+
+  getVisibleCollections: () =>
+    Array.from(get().collections.values()).filter((c) => !c.hiddenFromUI),
 
   getTableList: (collectionId) => {
     try {

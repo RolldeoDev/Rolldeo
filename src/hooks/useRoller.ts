@@ -84,7 +84,7 @@ export function useRoller(
     clearHistory,
   } = useRollStore()
 
-  const { getAllCollections, getTableList, getTemplateList, isInitialized } =
+  const { getVisibleCollections, getTableList, getTemplateList, isInitialized } =
     useCollectionStore()
 
   const { showHiddenTables } = useUIStore()
@@ -107,8 +107,8 @@ export function useRoller(
     loadHistory()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Get available collections
-  const collections = useMemo(() => getAllCollections(), [getAllCollections])
+  // Get available collections (excluding hidden ones)
+  const collections = useMemo(() => getVisibleCollections(), [getVisibleCollections])
 
   // Get tables for selected collection
   const tables = useMemo(() => {
