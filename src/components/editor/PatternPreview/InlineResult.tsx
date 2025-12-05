@@ -112,14 +112,20 @@ function parseTextWithExpressions(
     if (startIdx === -1) {
       // No more markers, add remaining text
       if (remaining) {
-        parts.push(remaining)
+        parts.push(
+          <span key={`${keyPrefix}-text-${keyIndex++}`}>{remaining}</span>
+        )
       }
       break
     }
 
     // Add text before the marker
     if (startIdx > 0) {
-      parts.push(remaining.slice(0, startIdx))
+      parts.push(
+        <span key={`${keyPrefix}-text-${keyIndex++}`}>
+          {remaining.slice(0, startIdx)}
+        </span>
+      )
     }
 
     // Find the separator and end marker
@@ -128,7 +134,11 @@ function parseTextWithExpressions(
 
     if (sepIdx === -1 || endIdx === -1) {
       // Malformed marker, add rest as text
-      parts.push(remaining.slice(startIdx))
+      parts.push(
+        <span key={`${keyPrefix}-text-${keyIndex++}`}>
+          {remaining.slice(startIdx)}
+        </span>
+      )
       break
     }
 
@@ -154,7 +164,9 @@ function parseTextWithExpressions(
       )
     } else {
       // Fallback: just show the text
-      parts.push(exprText)
+      parts.push(
+        <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
+      )
     }
 
     remaining = remaining.slice(endIdx + EXPR_END.length)

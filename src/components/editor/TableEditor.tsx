@@ -599,6 +599,9 @@ function SimpleTableEditor({
   importedTemplates = [],
 }: SimpleTableEditorProps) {
   const [focusedEntryIndex, setFocusedEntryIndex] = useState<number | null>(null)
+  const [expandedEntryIndex, setExpandedEntryIndex] = useState<number | null>(null)
+  const [collapsedEntryIndex, setCollapsedEntryIndex] = useState<number | null>(null)
+  const [clonedEntryIndex, setClonedEntryIndex] = useState<number | null>(null)
 
   // Clear focus state after it's been applied
   useEffect(() => {
@@ -607,6 +610,25 @@ function SimpleTableEditor({
       return () => clearTimeout(timer)
     }
   }, [focusedEntryIndex])
+
+  // Clear expanded/collapsed state after it's been applied
+  useEffect(() => {
+    if (expandedEntryIndex !== null || collapsedEntryIndex !== null) {
+      const timer = setTimeout(() => {
+        setExpandedEntryIndex(null)
+        setCollapsedEntryIndex(null)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [expandedEntryIndex, collapsedEntryIndex])
+
+  // Clear cloned animation state after animation completes
+  useEffect(() => {
+    if (clonedEntryIndex !== null) {
+      const timer = setTimeout(() => setClonedEntryIndex(null), 600)
+      return () => clearTimeout(timer)
+    }
+  }, [clonedEntryIndex])
 
   const addEntry = useCallback(() => {
     const newIndex = table.entries.length
@@ -634,6 +656,28 @@ function SimpleTableEditor({
         ...table,
         entries: table.entries.filter((_, i) => i !== index),
       })
+    },
+    [table, onChange]
+  )
+
+  const cloneEntry = useCallback(
+    (index: number) => {
+      const entryToClone = table.entries[index]
+      // Deep clone the entry
+      const clonedEntry: Entry = JSON.parse(JSON.stringify(entryToClone))
+      // Clear the ID so it gets a new one (or mark it as a clone)
+      if (clonedEntry.id) {
+        clonedEntry.id = `${clonedEntry.id}_copy`
+      }
+      // Insert the clone after the original
+      const newEntries = [...table.entries]
+      newEntries.splice(index + 1, 0, clonedEntry)
+      onChange({ ...table, entries: newEntries })
+      // Set the cloned entry to be expanded and the original to be collapsed
+      setExpandedEntryIndex(index + 1)
+      setCollapsedEntryIndex(index)
+      // Trigger clone animation
+      setClonedEntryIndex(index + 1)
     },
     [table, onChange]
   )
@@ -672,7 +716,7 @@ function SimpleTableEditor({
         <div className="space-y-3 md:space-y-2">
           {table.entries.map((entry, index) => (
             <SortableItem
-              key={getEntryId(entry, index)}
+              key={`entry-${index}`}
               id={getEntryId(entry, index)}
             >
               <EntryEditor
@@ -680,10 +724,13 @@ function SimpleTableEditor({
                 onChange={(updated) => updateEntry(index, updated)}
                 onDelete={() => deleteEntry(index)}
                 onAddEntry={addEntry}
+                onClone={() => cloneEntry(index)}
                 index={index}
                 canDelete={table.entries.length > 1}
                 collectionId={collectionId}
                 autoFocus={focusedEntryIndex === index}
+                defaultExpanded={expandedEntryIndex === index ? true : collapsedEntryIndex === index ? false : undefined}
+                isCloned={clonedEntryIndex === index}
                 localTables={localTables}
                 localTemplates={localTemplates}
                 importedTables={importedTables}

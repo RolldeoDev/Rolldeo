@@ -1,0 +1,1465 @@
+{
+  "metadata": {
+    "name": "D&D 5th Edition Character Sheet Generator",
+    "namespace": "rolldeo.character.fifthedition",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "",
+    "description": "A comprehensive character sheet generator for Dungeons & Dragons Fifth Edition. Automatically rolls ability scores, calculates modifiers, and generates a complete character ready for play.",
+    "tags": ["dnd", "5e", "character", "generator", "ttrpg", "dungeons-and-dragons"],
+    "instructions": "Roll on the `characterSheet` template to generate a complete character. The name field is left blank for you to fill in. All ability scores are rolled using 4d6 drop lowest.",
+    "source": {
+      "book": "Player's Handbook",
+      "publisher": "Wizards of the Coast",
+      "license": "Fan Content Policy"
+    },
+    "maxRecursionDepth": 50,
+    "maxExplodingDice": 100,
+    "maxInheritanceDepth": 5
+  },
+
+  "variables": {
+    "defaultSeparator": ", ",
+    "edition": "5th Edition"
+  },
+
+  "tables": [
+    {
+      "id": "levels",
+      "name": "Character Level",
+      "type": "simple",
+      "hidden": true,
+      "description": "Character levels 1-20",
+      "entries": [
+        { "id": "lvl1", "value": "1", "sets": { "level": "1", "profBonus": "2", "profBonusDisplay": "+2" } },
+        { "id": "lvl2", "value": "2", "sets": { "level": "2", "profBonus": "2", "profBonusDisplay": "+2" } },
+        { "id": "lvl3", "value": "3", "sets": { "level": "3", "profBonus": "2", "profBonusDisplay": "+2" } },
+        { "id": "lvl4", "value": "4", "sets": { "level": "4", "profBonus": "2", "profBonusDisplay": "+2" } },
+        { "id": "lvl5", "value": "5", "sets": { "level": "5", "profBonus": "3", "profBonusDisplay": "+3" } },
+        { "id": "lvl6", "value": "6", "sets": { "level": "6", "profBonus": "3", "profBonusDisplay": "+3" } },
+        { "id": "lvl7", "value": "7", "sets": { "level": "7", "profBonus": "3", "profBonusDisplay": "+3" } },
+        { "id": "lvl8", "value": "8", "sets": { "level": "8", "profBonus": "3", "profBonusDisplay": "+3" } },
+        { "id": "lvl9", "value": "9", "sets": { "level": "9", "profBonus": "4", "profBonusDisplay": "+4" } },
+        { "id": "lvl10", "value": "10", "sets": { "level": "10", "profBonus": "4", "profBonusDisplay": "+4" } },
+        { "id": "lvl11", "value": "11", "sets": { "level": "11", "profBonus": "4", "profBonusDisplay": "+4" } },
+        { "id": "lvl12", "value": "12", "sets": { "level": "12", "profBonus": "4", "profBonusDisplay": "+4" } },
+        { "id": "lvl13", "value": "13", "sets": { "level": "13", "profBonus": "5", "profBonusDisplay": "+5" } },
+        { "id": "lvl14", "value": "14", "sets": { "level": "14", "profBonus": "5", "profBonusDisplay": "+5" } },
+        { "id": "lvl15", "value": "15", "sets": { "level": "15", "profBonus": "5", "profBonusDisplay": "+5" } },
+        { "id": "lvl16", "value": "16", "sets": { "level": "16", "profBonus": "5", "profBonusDisplay": "+5" } },
+        { "id": "lvl17", "value": "17", "sets": { "level": "17", "profBonus": "6", "profBonusDisplay": "+6" } },
+        { "id": "lvl18", "value": "18", "sets": { "level": "18", "profBonus": "6", "profBonusDisplay": "+6" } },
+        { "id": "lvl19", "value": "19", "sets": { "level": "19", "profBonus": "6", "profBonusDisplay": "+6" } },
+        { "id": "lvl20", "value": "20", "sets": { "level": "20", "profBonus": "6", "profBonusDisplay": "+6" } }
+      ]
+    },
+
+    {
+      "id": "levelOne",
+      "name": "Level One",
+      "type": "simple",
+      "hidden": true,
+      "description": "Fixed level 1 for new characters",
+      "entries": [
+        { "value": "1", "sets": { "level": "1", "profBonus": "2", "profBonusDisplay": "+2" } }
+      ]
+    },
+
+    {
+      "id": "alignments",
+      "name": "Alignment",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["alignment", "morality"],
+      "entries": [
+        { "id": "lg", "value": "Lawful Good", "sets": { "alignmentShort": "LG", "moral": "Good", "ethical": "Lawful" } },
+        { "id": "ng", "value": "Neutral Good", "sets": { "alignmentShort": "NG", "moral": "Good", "ethical": "Neutral" } },
+        { "id": "cg", "value": "Chaotic Good", "sets": { "alignmentShort": "CG", "moral": "Good", "ethical": "Chaotic" } },
+        { "id": "ln", "value": "Lawful Neutral", "sets": { "alignmentShort": "LN", "moral": "Neutral", "ethical": "Lawful" } },
+        { "id": "tn", "value": "True Neutral", "sets": { "alignmentShort": "TN", "moral": "Neutral", "ethical": "Neutral" } },
+        { "id": "cn", "value": "Chaotic Neutral", "sets": { "alignmentShort": "CN", "moral": "Neutral", "ethical": "Chaotic" } },
+        { "id": "le", "value": "Lawful Evil", "sets": { "alignmentShort": "LE", "moral": "Evil", "ethical": "Lawful" } },
+        { "id": "ne", "value": "Neutral Evil", "sets": { "alignmentShort": "NE", "moral": "Evil", "ethical": "Neutral" } },
+        { "id": "ce", "value": "Chaotic Evil", "sets": { "alignmentShort": "CE", "moral": "Evil", "ethical": "Chaotic" } }
+      ]
+    },
+
+    {
+      "id": "races",
+      "name": "Race",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["race", "ancestry"],
+      "entries": [
+        {
+          "id": "hillDwarf",
+          "value": "Hill Dwarf",
+          "sets": {
+            "raceName": "Dwarf",
+            "subrace": "Hill",
+            "speed": "25",
+            "size": "Medium",
+            "strBonus": "0",
+            "dexBonus": "0",
+            "conBonus": "2",
+            "intBonus": "0",
+            "wisBonus": "1",
+            "chaBonus": "0",
+            "languages": "Common, Dwarvish",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Dwarven Resilience.** Advantage on saves vs. poison; resistance to poison damage.\n**Stonecunning.** +2× proficiency on History checks related to stonework.\n**Dwarven Toughness.** HP maximum increases by 1 per level.",
+            "weaponProficiencies": "Battleaxe, Handaxe, Light Hammer, Warhammer",
+            "toolProficiencies": "Smith's tools, Brewer's supplies, or Mason's tools",
+            "firstName": "{{dwarfFirstNames}}",
+            "lastName": "{{dwarfClanNames}}"
+          }
+        },
+        {
+          "id": "mountainDwarf",
+          "value": "Mountain Dwarf",
+          "sets": {
+            "raceName": "Dwarf",
+            "subrace": "Mountain",
+            "speed": "25",
+            "size": "Medium",
+            "strBonus": "2",
+            "dexBonus": "0",
+            "conBonus": "2",
+            "intBonus": "0",
+            "wisBonus": "0",
+            "chaBonus": "0",
+            "languages": "Common, Dwarvish",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Dwarven Resilience.** Advantage on saves vs. poison; resistance to poison damage.\n**Stonecunning.** +2× proficiency on History checks related to stonework.\n**Dwarven Armor Training.** Proficiency with light and medium armor.",
+            "weaponProficiencies": "Battleaxe, Handaxe, Light Hammer, Warhammer",
+            "toolProficiencies": "Smith's tools, Brewer's supplies, or Mason's tools",
+            "armorProficiencies": "Light Armor, Medium Armor",
+            "firstName": "{{dwarfFirstNames}}",
+            "lastName": "{{dwarfClanNames}}"
+          }
+        },
+        {
+          "id": "highElf",
+          "value": "High Elf",
+          "sets": {
+            "raceName": "Elf",
+            "subrace": "High",
+            "speed": "30",
+            "size": "Medium",
+            "strBonus": "0",
+            "dexBonus": "2",
+            "conBonus": "0",
+            "intBonus": "1",
+            "wisBonus": "0",
+            "chaBonus": "0",
+            "languages": "Common, Elvish, one extra language",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Keen Senses.** Proficiency in Perception.\n**Fey Ancestry.** Advantage on saves vs. charm; immune to magical sleep.\n**Trance.** 4 hours of meditation instead of 8 hours sleep.\n**Cantrip.** One wizard cantrip (Intelligence).",
+            "weaponProficiencies": "Longsword, Shortsword, Shortbow, Longbow",
+            "skillProficiencies": "Perception",
+            "firstName": "{{elfFirstNames}}",
+            "lastName": "{{elfFamilyNames}}"
+          }
+        },
+        {
+          "id": "woodElf",
+          "value": "Wood Elf",
+          "sets": {
+            "raceName": "Elf",
+            "subrace": "Wood",
+            "speed": "35",
+            "size": "Medium",
+            "strBonus": "0",
+            "dexBonus": "2",
+            "conBonus": "0",
+            "intBonus": "0",
+            "wisBonus": "1",
+            "chaBonus": "0",
+            "languages": "Common, Elvish",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Keen Senses.** Proficiency in Perception.\n**Fey Ancestry.** Advantage on saves vs. charm; immune to magical sleep.\n**Trance.** 4 hours of meditation instead of 8 hours sleep.\n**Fleet of Foot.** Base speed is 35 feet.\n**Mask of the Wild.** Can hide when lightly obscured by natural phenomena.",
+            "weaponProficiencies": "Longsword, Shortsword, Shortbow, Longbow",
+            "skillProficiencies": "Perception",
+            "firstName": "{{elfFirstNames}}",
+            "lastName": "{{elfFamilyNames}}"
+          }
+        },
+        {
+          "id": "darkElf",
+          "value": "Dark Elf (Drow)",
+          "sets": {
+            "raceName": "Elf",
+            "subrace": "Drow",
+            "speed": "30",
+            "size": "Medium",
+            "strBonus": "0",
+            "dexBonus": "2",
+            "conBonus": "0",
+            "intBonus": "0",
+            "wisBonus": "0",
+            "chaBonus": "1",
+            "languages": "Common, Elvish",
+            "racialTraits": "**Superior Darkvision.** 120 ft.\n**Keen Senses.** Proficiency in Perception.\n**Fey Ancestry.** Advantage on saves vs. charm; immune to magical sleep.\n**Trance.** 4 hours of meditation instead of 8 hours sleep.\n**Sunlight Sensitivity.** Disadvantage on attacks and Perception in direct sunlight.\n**Drow Magic.** *Dancing lights* cantrip; *faerie fire* at 3rd level; *darkness* at 5th level (Charisma).",
+            "weaponProficiencies": "Rapier, Shortsword, Hand Crossbow",
+            "skillProficiencies": "Perception",
+            "firstName": "{{elfFirstNames}}",
+            "lastName": "{{elfFamilyNames}}"
+          }
+        },
+        {
+          "id": "lightfootHalfling",
+          "value": "Lightfoot Halfling",
+          "sets": {
+            "raceName": "Halfling",
+            "subrace": "Lightfoot",
+            "speed": "25",
+            "size": "Small",
+            "strBonus": "0",
+            "dexBonus": "2",
+            "conBonus": "0",
+            "intBonus": "0",
+            "wisBonus": "0",
+            "chaBonus": "1",
+            "languages": "Common, Halfling",
+            "racialTraits": "**Lucky.** Reroll 1s on d20 attacks, checks, and saves.\n**Brave.** Advantage on saves vs. frightened.\n**Halfling Nimbleness.** Move through space of larger creatures.\n**Naturally Stealthy.** Can hide behind creatures one size larger.",
+            "firstName": "{{halflingFirstNames}}",
+            "lastName": "{{halflingFamilyNames}}"
+          }
+        },
+        {
+          "id": "stoutHalfling",
+          "value": "Stout Halfling",
+          "sets": {
+            "raceName": "Halfling",
+            "subrace": "Stout",
+            "speed": "25",
+            "size": "Small",
+            "strBonus": "0",
+            "dexBonus": "2",
+            "conBonus": "1",
+            "intBonus": "0",
+            "wisBonus": "0",
+            "chaBonus": "0",
+            "languages": "Common, Halfling",
+            "racialTraits": "**Lucky.** Reroll 1s on d20 attacks, checks, and saves.\n**Brave.** Advantage on saves vs. frightened.\n**Halfling Nimbleness.** Move through space of larger creatures.\n**Stout Resilience.** Advantage on saves vs. poison; resistance to poison damage.",
+            "firstName": "{{halflingFirstNames}}",
+            "lastName": "{{halflingFamilyNames}}"
+          }
+        },
+        {
+          "id": "human",
+          "value": "Human",
+          "weight": 2,
+          "sets": {
+            "raceName": "Human",
+            "subrace": "",
+            "speed": "30",
+            "size": "Medium",
+            "strBonus": "1",
+            "dexBonus": "1",
+            "conBonus": "1",
+            "intBonus": "1",
+            "wisBonus": "1",
+            "chaBonus": "1",
+            "languages": "Common, one extra language",
+            "racialTraits": "**Versatile.** +1 to all ability scores.\n**Extra Language.** One additional language of your choice.",
+            "firstName": "{{humanFirstNames}}",
+            "lastName": "{{humanLastNames}}"
+          }
+        },
+        {
+          "id": "dragonborn",
+          "value": "Dragonborn",
+          "sets": {
+            "raceName": "Dragonborn",
+            "subrace": "{{dragonbornAncestry}}",
+            "speed": "30",
+            "size": "Medium",
+            "strBonus": "2",
+            "dexBonus": "0",
+            "conBonus": "0",
+            "intBonus": "0",
+            "wisBonus": "0",
+            "chaBonus": "1",
+            "languages": "Common, Draconic",
+            "racialTraits": "**Draconic Ancestry.** Choose a dragon type for breath weapon and resistance.\n**Breath Weapon.** Exhale destructive energy (2d6 damage, scales at 6th/11th/16th level).\n**Damage Resistance.** Resistance to your ancestry's damage type.",
+            "firstName": "{{dragonbornFirstNames}}",
+            "lastName": "{{dragonbornClanNames}}"
+          }
+        },
+        {
+          "id": "forestGnome",
+          "value": "Forest Gnome",
+          "sets": {
+            "raceName": "Gnome",
+            "subrace": "Forest",
+            "speed": "25",
+            "size": "Small",
+            "strBonus": "0",
+            "dexBonus": "1",
+            "conBonus": "0",
+            "intBonus": "2",
+            "wisBonus": "0",
+            "chaBonus": "0",
+            "languages": "Common, Gnomish",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Gnome Cunning.** Advantage on INT/WIS/CHA saves vs. magic.\n**Natural Illusionist.** *Minor illusion* cantrip (Intelligence).\n**Speak with Small Beasts.** Simple communication with Small or smaller beasts.",
+            "firstName": "{{gnomeFirstNames}}",
+            "lastName": "{{gnomeNicknames}}"
+          }
+        },
+        {
+          "id": "rockGnome",
+          "value": "Rock Gnome",
+          "sets": {
+            "raceName": "Gnome",
+            "subrace": "Rock",
+            "speed": "25",
+            "size": "Small",
+            "strBonus": "0",
+            "dexBonus": "0",
+            "conBonus": "1",
+            "intBonus": "2",
+            "wisBonus": "0",
+            "chaBonus": "0",
+            "languages": "Common, Gnomish",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Gnome Cunning.** Advantage on INT/WIS/CHA saves vs. magic.\n**Artificer's Lore.** +2× proficiency on History checks for magic items and technology.\n**Tinker.** Proficiency with tinker's tools; can create clockwork devices.",
+            "toolProficiencies": "Tinker's Tools",
+            "firstName": "{{gnomeFirstNames}}",
+            "lastName": "{{gnomeNicknames}}"
+          }
+        },
+        {
+          "id": "halfElf",
+          "value": "Half-Elf",
+          "sets": {
+            "raceName": "Half-Elf",
+            "subrace": "",
+            "speed": "30",
+            "size": "Medium",
+            "strBonus": "0",
+            "dexBonus": "0",
+            "conBonus": "0",
+            "intBonus": "0",
+            "wisBonus": "0",
+            "chaBonus": "2",
+            "bonusAbilities": "+1 to two other abilities",
+            "languages": "Common, Elvish, one extra language",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Fey Ancestry.** Advantage on saves vs. charm; immune to magical sleep.\n**Skill Versatility.** Proficiency in two skills of your choice.\n**Ability Score Increase.** +2 Charisma, +1 to two other abilities of choice.",
+            "bonusSkills": "2",
+            "firstName": "{{switch[dice:1d2==1:{{humanFirstNames}}].else[{{elfFirstNames}}]}}",
+            "lastName": "{{switch[dice:1d2==1:{{humanLastNames}}].else[{{elfFamilyNames}}]}}"
+          }
+        },
+        {
+          "id": "halfOrc",
+          "value": "Half-Orc",
+          "sets": {
+            "raceName": "Half-Orc",
+            "subrace": "",
+            "speed": "30",
+            "size": "Medium",
+            "strBonus": "2",
+            "dexBonus": "0",
+            "conBonus": "1",
+            "intBonus": "0",
+            "wisBonus": "0",
+            "chaBonus": "0",
+            "languages": "Common, Orc",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Menacing.** Proficiency in Intimidation.\n**Relentless Endurance.** Drop to 1 HP instead of 0 once per long rest.\n**Savage Attacks.** Extra damage die on critical melee hits.",
+            "skillProficiencies": "Intimidation",
+            "firstName": "{{halfOrcFirstNames}}",
+            "lastName": ""
+          }
+        },
+        {
+          "id": "tiefling",
+          "value": "Tiefling",
+          "sets": {
+            "raceName": "Tiefling",
+            "subrace": "",
+            "speed": "30",
+            "size": "Medium",
+            "strBonus": "0",
+            "dexBonus": "0",
+            "conBonus": "0",
+            "intBonus": "1",
+            "wisBonus": "0",
+            "chaBonus": "2",
+            "languages": "Common, Infernal",
+            "racialTraits": "**Darkvision.** 60 ft.\n**Hellish Resistance.** Resistance to fire damage.\n**Infernal Legacy.** *Thaumaturgy* cantrip; *hellish rebuke* at 3rd level; *darkness* at 5th level (Charisma).",
+            "firstName": "{{switch[dice:1d2==1:{{tieflingFirstNames}}].else[{{tieflingVirtueNames}}]}}",
+            "lastName": ""
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "dragonbornAncestry",
+      "name": "Draconic Ancestry",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Black (Acid)", "sets": { "damageType": "Acid", "breathWeapon": "5×30 ft. line (Dex save)" } },
+        { "value": "Blue (Lightning)", "sets": { "damageType": "Lightning", "breathWeapon": "5×30 ft. line (Dex save)" } },
+        { "value": "Brass (Fire)", "sets": { "damageType": "Fire", "breathWeapon": "5×30 ft. line (Dex save)" } },
+        { "value": "Bronze (Lightning)", "sets": { "damageType": "Lightning", "breathWeapon": "5×30 ft. line (Dex save)" } },
+        { "value": "Copper (Acid)", "sets": { "damageType": "Acid", "breathWeapon": "5×30 ft. line (Dex save)" } },
+        { "value": "Gold (Fire)", "sets": { "damageType": "Fire", "breathWeapon": "15 ft. cone (Dex save)" } },
+        { "value": "Green (Poison)", "sets": { "damageType": "Poison", "breathWeapon": "15 ft. cone (Con save)" } },
+        { "value": "Red (Fire)", "sets": { "damageType": "Fire", "breathWeapon": "15 ft. cone (Dex save)" } },
+        { "value": "Silver (Cold)", "sets": { "damageType": "Cold", "breathWeapon": "15 ft. cone (Con save)" } },
+        { "value": "White (Cold)", "sets": { "damageType": "Cold", "breathWeapon": "15 ft. cone (Con save)" } }
+      ]
+    },
+
+    {
+      "id": "classes",
+      "name": "Class",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["class", "profession"],
+      "entries": [
+        {
+          "id": "barbarian",
+          "value": "Barbarian",
+          "sets": {
+            "className": "Barbarian",
+            "hitDie": "d12",
+            "hitDieNum": "12",
+            "primaryAbility": "Strength",
+            "savingThrows": "Strength, Constitution",
+            "strSave": "1",
+            "dexSave": "0",
+            "conSave": "1",
+            "intSave": "0",
+            "wisSave": "0",
+            "chaSave": "0",
+            "armorProficiencies": "Light Armor, Medium Armor, Shields",
+            "weaponProficiencies": "Simple Weapons, Martial Weapons",
+            "skillChoices": "Choose 2: Animal Handling, Athletics, Intimidation, Nature, Perception, Survival",
+            "numSkillChoices": "2",
+            "classFeatures": "**Rage.** Bonus damage, resistance to physical damage, advantage on STR checks/saves. {{$level}} rages per long rest.\n**Unarmored Defense.** AC = 10 + DEX + CON when not wearing armor.",
+            "startingEquipment": "Greataxe or martial melee weapon, 2 handaxes or simple weapon, explorer's pack, 4 javelins",
+            "startingGold": "{{dice:2d4*10}}",
+            "spellcaster": "no",
+            "spellcastingAbility": ""
+          }
+        },
+        {
+          "id": "bard",
+          "value": "Bard",
+          "sets": {
+            "className": "Bard",
+            "hitDie": "d8",
+            "hitDieNum": "8",
+            "primaryAbility": "Charisma",
+            "savingThrows": "Dexterity, Charisma",
+            "strSave": "0",
+            "dexSave": "1",
+            "conSave": "0",
+            "intSave": "0",
+            "wisSave": "0",
+            "chaSave": "1",
+            "armorProficiencies": "Light Armor",
+            "weaponProficiencies": "Simple Weapons, Hand Crossbows, Longswords, Rapiers, Shortswords",
+            "toolProficiencies": "Three musical instruments",
+            "skillChoices": "Choose any 3 skills",
+            "numSkillChoices": "3",
+            "classFeatures": "**Spellcasting.** Charisma-based; 2 cantrips, 4 spells known at 1st level.\n**Bardic Inspiration.** {{$chaMod}} uses per long rest; bonus die (d6) to ally's roll.",
+            "startingEquipment": "Rapier, diplomat's pack or entertainer's pack, lute or any instrument, leather armor, dagger",
+            "startingGold": "{{dice:5d4*10}}",
+            "spellcaster": "yes",
+            "spellcastingAbility": "Charisma",
+            "cantripsKnown": "2",
+            "spellsKnown": "4"
+          }
+        },
+        {
+          "id": "cleric",
+          "value": "Cleric",
+          "sets": {
+            "className": "Cleric",
+            "hitDie": "d8",
+            "hitDieNum": "8",
+            "primaryAbility": "Wisdom",
+            "savingThrows": "Wisdom, Charisma",
+            "strSave": "0",
+            "dexSave": "0",
+            "conSave": "0",
+            "intSave": "0",
+            "wisSave": "1",
+            "chaSave": "1",
+            "armorProficiencies": "Light Armor, Medium Armor, Shields",
+            "weaponProficiencies": "Simple Weapons",
+            "skillChoices": "Choose 2: History, Insight, Medicine, Persuasion, Religion",
+            "numSkillChoices": "2",
+            "classFeatures": "**Spellcasting.** Wisdom-based; 3 cantrips, prepare WIS mod + level spells.\n**Divine Domain.** Choose domain; gain domain spells and feature.",
+            "startingEquipment": "Mace or warhammer (if proficient), scale mail or leather armor or chain mail (if proficient), light crossbow and 20 bolts or simple weapon, priest's pack or explorer's pack, shield, holy symbol",
+            "startingGold": "{{dice:5d4*10}}",
+            "spellcaster": "yes",
+            "spellcastingAbility": "Wisdom",
+            "cantripsKnown": "3"
+          }
+        },
+        {
+          "id": "druid",
+          "value": "Druid",
+          "sets": {
+            "className": "Druid",
+            "hitDie": "d8",
+            "hitDieNum": "8",
+            "primaryAbility": "Wisdom",
+            "savingThrows": "Intelligence, Wisdom",
+            "strSave": "0",
+            "dexSave": "0",
+            "conSave": "0",
+            "intSave": "1",
+            "wisSave": "1",
+            "chaSave": "0",
+            "armorProficiencies": "Light Armor, Medium Armor, Shields (nonmetal)",
+            "weaponProficiencies": "Clubs, Daggers, Darts, Javelins, Maces, Quarterstaffs, Scimitars, Sickles, Slings, Spears",
+            "toolProficiencies": "Herbalism Kit",
+            "skillChoices": "Choose 2: Arcana, Animal Handling, Insight, Medicine, Nature, Perception, Religion, Survival",
+            "numSkillChoices": "2",
+            "classFeatures": "**Druidic.** Secret language known only to druids.\n**Spellcasting.** Wisdom-based; 2 cantrips, prepare WIS mod + level spells.",
+            "startingEquipment": "Wooden shield or simple weapon, scimitar or simple melee weapon, leather armor, explorer's pack, druidic focus",
+            "startingGold": "{{dice:2d4*10}}",
+            "spellcaster": "yes",
+            "spellcastingAbility": "Wisdom",
+            "cantripsKnown": "2"
+          }
+        },
+        {
+          "id": "fighter",
+          "value": "Fighter",
+          "weight": 1.5,
+          "sets": {
+            "className": "Fighter",
+            "hitDie": "d10",
+            "hitDieNum": "10",
+            "primaryAbility": "Strength or Dexterity",
+            "savingThrows": "Strength, Constitution",
+            "strSave": "1",
+            "dexSave": "0",
+            "conSave": "1",
+            "intSave": "0",
+            "wisSave": "0",
+            "chaSave": "0",
+            "armorProficiencies": "All Armor, Shields",
+            "weaponProficiencies": "Simple Weapons, Martial Weapons",
+            "skillChoices": "Choose 2: Acrobatics, Animal Handling, Athletics, History, Insight, Intimidation, Perception, Survival",
+            "numSkillChoices": "2",
+            "classFeatures": "**Fighting Style.** Choose one fighting style.\n**Second Wind.** Bonus action to regain 1d10 + level HP once per short rest.",
+            "startingEquipment": "Chain mail or leather armor + longbow + 20 arrows, martial weapon + shield or two martial weapons, light crossbow + 20 bolts or two handaxes, dungeoneer's pack or explorer's pack",
+            "startingGold": "{{dice:5d4*10}}",
+            "spellcaster": "no",
+            "spellcastingAbility": ""
+          }
+        },
+        {
+          "id": "monk",
+          "value": "Monk",
+          "sets": {
+            "className": "Monk",
+            "hitDie": "d8",
+            "hitDieNum": "8",
+            "primaryAbility": "Dexterity & Wisdom",
+            "savingThrows": "Strength, Dexterity",
+            "strSave": "1",
+            "dexSave": "1",
+            "conSave": "0",
+            "intSave": "0",
+            "wisSave": "0",
+            "chaSave": "0",
+            "armorProficiencies": "None",
+            "weaponProficiencies": "Simple Weapons, Shortswords",
+            "toolProficiencies": "One artisan's tool or musical instrument",
+            "skillChoices": "Choose 2: Acrobatics, Athletics, History, Insight, Religion, Stealth",
+            "numSkillChoices": "2",
+            "classFeatures": "**Unarmored Defense.** AC = 10 + DEX + WIS when not wearing armor.\n**Martial Arts.** Use DEX for unarmed/monk weapons (d4 damage); bonus action unarmed strike.",
+            "startingEquipment": "Shortsword or any simple weapon, dungeoneer's pack or explorer's pack, 10 darts",
+            "startingGold": "{{dice:5d4}}",
+            "spellcaster": "no",
+            "spellcastingAbility": ""
+          }
+        },
+        {
+          "id": "paladin",
+          "value": "Paladin",
+          "sets": {
+            "className": "Paladin",
+            "hitDie": "d10",
+            "hitDieNum": "10",
+            "primaryAbility": "Strength & Charisma",
+            "savingThrows": "Wisdom, Charisma",
+            "strSave": "0",
+            "dexSave": "0",
+            "conSave": "0",
+            "intSave": "0",
+            "wisSave": "1",
+            "chaSave": "1",
+            "armorProficiencies": "All Armor, Shields",
+            "weaponProficiencies": "Simple Weapons, Martial Weapons",
+            "skillChoices": "Choose 2: Athletics, Insight, Intimidation, Medicine, Persuasion, Religion",
+            "numSkillChoices": "2",
+            "classFeatures": "**Divine Sense.** Detect celestials, fiends, undead within 60 ft. CHA mod + 1 uses per long rest.\n**Lay on Hands.** Pool of HP equal to level × 5 to heal or cure disease/poison.",
+            "startingEquipment": "Martial weapon + shield or two martial weapons, 5 javelins or any simple melee weapon, priest's pack or explorer's pack, chain mail, holy symbol",
+            "startingGold": "{{dice:5d4*10}}",
+            "spellcaster": "half",
+            "spellcastingAbility": "Charisma"
+          }
+        },
+        {
+          "id": "ranger",
+          "value": "Ranger",
+          "sets": {
+            "className": "Ranger",
+            "hitDie": "d10",
+            "hitDieNum": "10",
+            "primaryAbility": "Dexterity & Wisdom",
+            "savingThrows": "Strength, Dexterity",
+            "strSave": "1",
+            "dexSave": "1",
+            "conSave": "0",
+            "intSave": "0",
+            "wisSave": "0",
+            "chaSave": "0",
+            "armorProficiencies": "Light Armor, Medium Armor, Shields",
+            "weaponProficiencies": "Simple Weapons, Martial Weapons",
+            "skillChoices": "Choose 3: Animal Handling, Athletics, Insight, Investigation, Nature, Perception, Stealth, Survival",
+            "numSkillChoices": "3",
+            "classFeatures": "**Favored Enemy.** Choose a type; advantage on tracking and INT checks.\n**Natural Explorer.** Choose terrain; travel and foraging benefits.",
+            "startingEquipment": "Scale mail or leather armor, two shortswords or two simple melee weapons, dungeoneer's pack or explorer's pack, longbow + quiver + 20 arrows",
+            "startingGold": "{{dice:5d4*10}}",
+            "spellcaster": "half",
+            "spellcastingAbility": "Wisdom"
+          }
+        },
+        {
+          "id": "rogue",
+          "value": "Rogue",
+          "weight": 1.5,
+          "sets": {
+            "className": "Rogue",
+            "hitDie": "d8",
+            "hitDieNum": "8",
+            "primaryAbility": "Dexterity",
+            "savingThrows": "Dexterity, Intelligence",
+            "strSave": "0",
+            "dexSave": "1",
+            "conSave": "0",
+            "intSave": "1",
+            "wisSave": "0",
+            "chaSave": "0",
+            "armorProficiencies": "Light Armor",
+            "weaponProficiencies": "Simple Weapons, Hand Crossbows, Longswords, Rapiers, Shortswords",
+            "toolProficiencies": "Thieves' Tools",
+            "skillChoices": "Choose 4: Acrobatics, Athletics, Deception, Insight, Intimidation, Investigation, Perception, Performance, Persuasion, Sleight of Hand, Stealth",
+            "numSkillChoices": "4",
+            "classFeatures": "**Expertise.** Double proficiency in two skills or one skill and thieves' tools.\n**Sneak Attack.** +1d6 damage when you have advantage or ally is adjacent.\n**Thieves' Cant.** Secret language and signs.",
+            "startingEquipment": "Rapier or shortsword, shortbow + quiver + 20 arrows or shortsword, burglar's pack or dungeoneer's pack or explorer's pack, leather armor, two daggers, thieves' tools",
+            "startingGold": "{{dice:4d4*10}}",
+            "spellcaster": "no",
+            "spellcastingAbility": ""
+          }
+        },
+        {
+          "id": "sorcerer",
+          "value": "Sorcerer",
+          "sets": {
+            "className": "Sorcerer",
+            "hitDie": "d6",
+            "hitDieNum": "6",
+            "primaryAbility": "Charisma",
+            "savingThrows": "Constitution, Charisma",
+            "strSave": "0",
+            "dexSave": "0",
+            "conSave": "1",
+            "intSave": "0",
+            "wisSave": "0",
+            "chaSave": "1",
+            "armorProficiencies": "None",
+            "weaponProficiencies": "Daggers, Darts, Slings, Quarterstaffs, Light Crossbows",
+            "skillChoices": "Choose 2: Arcana, Deception, Insight, Intimidation, Persuasion, Religion",
+            "numSkillChoices": "2",
+            "classFeatures": "**Spellcasting.** Charisma-based; 4 cantrips, 2 spells known at 1st level.\n**Sorcerous Origin.** Choose origin; gain origin feature.",
+            "startingEquipment": "Light crossbow + 20 bolts or any simple weapon, component pouch or arcane focus, dungeoneer's pack or explorer's pack, two daggers",
+            "startingGold": "{{dice:3d4*10}}",
+            "spellcaster": "yes",
+            "spellcastingAbility": "Charisma",
+            "cantripsKnown": "4",
+            "spellsKnown": "2"
+          }
+        },
+        {
+          "id": "warlock",
+          "value": "Warlock",
+          "sets": {
+            "className": "Warlock",
+            "hitDie": "d8",
+            "hitDieNum": "8",
+            "primaryAbility": "Charisma",
+            "savingThrows": "Wisdom, Charisma",
+            "strSave": "0",
+            "dexSave": "0",
+            "conSave": "0",
+            "intSave": "0",
+            "wisSave": "1",
+            "chaSave": "1",
+            "armorProficiencies": "Light Armor",
+            "weaponProficiencies": "Simple Weapons",
+            "skillChoices": "Choose 2: Arcana, Deception, History, Intimidation, Investigation, Nature, Religion",
+            "numSkillChoices": "2",
+            "classFeatures": "**Otherworldly Patron.** Choose patron; gain patron feature.\n**Pact Magic.** Charisma-based; 2 cantrips, 2 spells known; spell slots recover on short rest.",
+            "startingEquipment": "Light crossbow + 20 bolts or any simple weapon, component pouch or arcane focus, scholar's pack or dungeoneer's pack, leather armor, any simple weapon, two daggers",
+            "startingGold": "{{dice:4d4*10}}",
+            "spellcaster": "pact",
+            "spellcastingAbility": "Charisma",
+            "cantripsKnown": "2",
+            "spellsKnown": "2"
+          }
+        },
+        {
+          "id": "wizard",
+          "value": "Wizard",
+          "sets": {
+            "className": "Wizard",
+            "hitDie": "d6",
+            "hitDieNum": "6",
+            "primaryAbility": "Intelligence",
+            "savingThrows": "Intelligence, Wisdom",
+            "strSave": "0",
+            "dexSave": "0",
+            "conSave": "0",
+            "intSave": "1",
+            "wisSave": "1",
+            "chaSave": "0",
+            "armorProficiencies": "None",
+            "weaponProficiencies": "Daggers, Darts, Slings, Quarterstaffs, Light Crossbows",
+            "skillChoices": "Choose 2: Arcana, History, Insight, Investigation, Medicine, Religion",
+            "numSkillChoices": "2",
+            "classFeatures": "**Spellcasting.** Intelligence-based; 3 cantrips, 6 spells in spellbook.\n**Arcane Recovery.** Recover spell slot levels = half wizard level (rounded up) on short rest once per day.",
+            "startingEquipment": "Quarterstaff or dagger, component pouch or arcane focus, scholar's pack or explorer's pack, spellbook",
+            "startingGold": "{{dice:4d4*10}}",
+            "spellcaster": "yes",
+            "spellcastingAbility": "Intelligence",
+            "cantripsKnown": "3",
+            "spellsInBook": "6"
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "backgrounds",
+      "name": "Background",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["background", "history"],
+      "entries": [
+        {
+          "id": "acolyte",
+          "value": "Acolyte",
+          "sets": {
+            "backgroundName": "Acolyte",
+            "skillProficiencies": "Insight, Religion",
+            "toolProficiencies": "None",
+            "languages": "Two of your choice",
+            "equipment": "Holy symbol, prayer book or wheel, 5 sticks incense, vestments, common clothes, 15 gp",
+            "feature": "**Shelter of the Faithful.** You and your companions can receive free healing at temples of your faith.",
+            "personalityTable": "acolytePersonality",
+            "idealTable": "acolyteIdeals",
+            "bondTable": "acolyteBonds",
+            "flawTable": "acolyteFlaws"
+          }
+        },
+        {
+          "id": "charlatan",
+          "value": "Charlatan",
+          "sets": {
+            "backgroundName": "Charlatan",
+            "skillProficiencies": "Deception, Sleight of Hand",
+            "toolProficiencies": "Disguise kit, Forgery kit",
+            "languages": "None",
+            "equipment": "Fine clothes, disguise kit, tools of the con, 15 gp",
+            "feature": "**False Identity.** You have a second identity with documentation and established acquaintances.",
+            "personalityTable": "charlatanPersonality",
+            "idealTable": "charlatanIdeals",
+            "bondTable": "charlatanBonds",
+            "flawTable": "charlatanFlaws"
+          }
+        },
+        {
+          "id": "criminal",
+          "value": "Criminal",
+          "sets": {
+            "backgroundName": "Criminal",
+            "skillProficiencies": "Deception, Stealth",
+            "toolProficiencies": "One gaming set, Thieves' tools",
+            "languages": "None",
+            "equipment": "Crowbar, dark common clothes with hood, 15 gp",
+            "feature": "**Criminal Contact.** You have a reliable contact in the criminal underworld.",
+            "personalityTable": "criminalPersonality",
+            "idealTable": "criminalIdeals",
+            "bondTable": "criminalBonds",
+            "flawTable": "criminalFlaws"
+          }
+        },
+        {
+          "id": "entertainer",
+          "value": "Entertainer",
+          "sets": {
+            "backgroundName": "Entertainer",
+            "skillProficiencies": "Acrobatics, Performance",
+            "toolProficiencies": "Disguise kit, One musical instrument",
+            "languages": "None",
+            "equipment": "Musical instrument, favor of an admirer, costume, 15 gp",
+            "feature": "**By Popular Demand.** You can always find a place to perform for free lodging and food.",
+            "personalityTable": "entertainerPersonality",
+            "idealTable": "entertainerIdeals",
+            "bondTable": "entertainerBonds",
+            "flawTable": "entertainerFlaws"
+          }
+        },
+        {
+          "id": "folkHero",
+          "value": "Folk Hero",
+          "sets": {
+            "backgroundName": "Folk Hero",
+            "skillProficiencies": "Animal Handling, Survival",
+            "toolProficiencies": "One artisan's tools, Vehicles (land)",
+            "languages": "None",
+            "equipment": "Artisan's tools, shovel, iron pot, common clothes, 10 gp",
+            "feature": "**Rustic Hospitality.** Common folk will hide you and shield you from the law.",
+            "personalityTable": "folkHeroPersonality",
+            "idealTable": "folkHeroIdeals",
+            "bondTable": "folkHeroBonds",
+            "flawTable": "folkHeroFlaws"
+          }
+        },
+        {
+          "id": "guildArtisan",
+          "value": "Guild Artisan",
+          "sets": {
+            "backgroundName": "Guild Artisan",
+            "skillProficiencies": "Insight, Persuasion",
+            "toolProficiencies": "One artisan's tools",
+            "languages": "One of your choice",
+            "equipment": "Artisan's tools, letter of introduction from guild, traveler's clothes, 15 gp",
+            "feature": "**Guild Membership.** Guild members provide lodging, support, and political connections.",
+            "personalityTable": "guildArtisanPersonality",
+            "idealTable": "guildArtisanIdeals",
+            "bondTable": "guildArtisanBonds",
+            "flawTable": "guildArtisanFlaws"
+          }
+        },
+        {
+          "id": "hermit",
+          "value": "Hermit",
+          "sets": {
+            "backgroundName": "Hermit",
+            "skillProficiencies": "Medicine, Religion",
+            "toolProficiencies": "Herbalism kit",
+            "languages": "One of your choice",
+            "equipment": "Scroll case with notes, winter blanket, common clothes, herbalism kit, 5 gp",
+            "feature": "**Discovery.** You have discovered a unique truth—a fact, location, or secret with significant implications.",
+            "personalityTable": "hermitPersonality",
+            "idealTable": "hermitIdeals",
+            "bondTable": "hermitBonds",
+            "flawTable": "hermitFlaws"
+          }
+        },
+        {
+          "id": "noble",
+          "value": "Noble",
+          "sets": {
+            "backgroundName": "Noble",
+            "skillProficiencies": "History, Persuasion",
+            "toolProficiencies": "One gaming set",
+            "languages": "One of your choice",
+            "equipment": "Fine clothes, signet ring, scroll of pedigree, 25 gp",
+            "feature": "**Position of Privilege.** You are welcome in high society and can secure audiences with nobles.",
+            "personalityTable": "noblePersonality",
+            "idealTable": "nobleIdeals",
+            "bondTable": "nobleBonds",
+            "flawTable": "nobleFlaws"
+          }
+        },
+        {
+          "id": "outlander",
+          "value": "Outlander",
+          "sets": {
+            "backgroundName": "Outlander",
+            "skillProficiencies": "Athletics, Survival",
+            "toolProficiencies": "One musical instrument",
+            "languages": "One of your choice",
+            "equipment": "Staff, hunting trap, trophy from animal, traveler's clothes, 10 gp",
+            "feature": "**Wanderer.** You have excellent memory for maps and can always find food and water for yourself and five others.",
+            "personalityTable": "outlanderPersonality",
+            "idealTable": "outlanderIdeals",
+            "bondTable": "outlanderBonds",
+            "flawTable": "outlanderFlaws"
+          }
+        },
+        {
+          "id": "sage",
+          "value": "Sage",
+          "sets": {
+            "backgroundName": "Sage",
+            "skillProficiencies": "Arcana, History",
+            "toolProficiencies": "None",
+            "languages": "Two of your choice",
+            "equipment": "Bottle of black ink, quill, small knife, letter from dead colleague, common clothes, 10 gp",
+            "feature": "**Researcher.** If you don't know information, you often know where to find it.",
+            "personalityTable": "sagePersonality",
+            "idealTable": "sageIdeals",
+            "bondTable": "sageBonds",
+            "flawTable": "sageFlaws"
+          }
+        },
+        {
+          "id": "sailor",
+          "value": "Sailor",
+          "sets": {
+            "backgroundName": "Sailor",
+            "skillProficiencies": "Athletics, Perception",
+            "toolProficiencies": "Navigator's tools, Vehicles (water)",
+            "languages": "None",
+            "equipment": "Belaying pin (club), 50 ft silk rope, lucky charm, common clothes, 10 gp",
+            "feature": "**Ship's Passage.** You can secure free passage on ships for yourself and companions.",
+            "personalityTable": "sailorPersonality",
+            "idealTable": "sailorIdeals",
+            "bondTable": "sailorBonds",
+            "flawTable": "sailorFlaws"
+          }
+        },
+        {
+          "id": "soldier",
+          "value": "Soldier",
+          "sets": {
+            "backgroundName": "Soldier",
+            "skillProficiencies": "Athletics, Intimidation",
+            "toolProficiencies": "One gaming set, Vehicles (land)",
+            "languages": "None",
+            "equipment": "Insignia of rank, trophy from fallen enemy, bone dice or deck of cards, common clothes, 10 gp",
+            "feature": "**Military Rank.** Soldiers of your former organization recognize your authority.",
+            "personalityTable": "soldierPersonality",
+            "idealTable": "soldierIdeals",
+            "bondTable": "soldierBonds",
+            "flawTable": "soldierFlaws"
+          }
+        },
+        {
+          "id": "urchin",
+          "value": "Urchin",
+          "sets": {
+            "backgroundName": "Urchin",
+            "skillProficiencies": "Sleight of Hand, Stealth",
+            "toolProficiencies": "Disguise kit, Thieves' tools",
+            "languages": "None",
+            "equipment": "Small knife, map of your home city, pet mouse, token of your parents, common clothes, 10 gp",
+            "feature": "**City Secrets.** You can travel twice as fast through cities and find secret passages.",
+            "personalityTable": "urchinPersonality",
+            "idealTable": "urchinIdeals",
+            "bondTable": "urchinBonds",
+            "flawTable": "urchinFlaws"
+          }
+        }
+      ]
+    },
+
+    {
+      "id": "humanFirstNames",
+      "name": "Human First Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Aldric" }, { "value": "Bran" }, { "value": "Cedric" }, { "value": "Doran" },
+        { "value": "Edmund" }, { "value": "Finn" }, { "value": "Gareth" }, { "value": "Hugo" },
+        { "value": "Ivan" }, { "value": "Jasper" }, { "value": "Kira" }, { "value": "Lyra" },
+        { "value": "Mira" }, { "value": "Nadia" }, { "value": "Ophelia" }, { "value": "Petra" },
+        { "value": "Quinn" }, { "value": "Roland" }, { "value": "Seraphina" }, { "value": "Theron" },
+        { "value": "Ursula" }, { "value": "Vera" }, { "value": "Willem" }, { "value": "Xander" },
+        { "value": "Yara" }, { "value": "Zara" }, { "value": "Marcus" }, { "value": "Elena" },
+        { "value": "Darius" }, { "value": "Freya" }
+      ]
+    },
+
+    {
+      "id": "humanLastNames",
+      "name": "Human Last Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Ashford" }, { "value": "Blackwood" }, { "value": "Cromwell" }, { "value": "Dunmore" },
+        { "value": "Everhart" }, { "value": "Fairfax" }, { "value": "Greystone" }, { "value": "Hawthorne" },
+        { "value": "Ironside" }, { "value": "Kingsley" }, { "value": "Langley" }, { "value": "Mercer" },
+        { "value": "Northbrook" }, { "value": "Oakenshield" }, { "value": "Pemberton" }, { "value": "Ravencroft" },
+        { "value": "Silverhand" }, { "value": "Thornwood" }, { "value": "Underhill" }, { "value": "Winterbourne" }
+      ]
+    },
+
+    {
+      "id": "elfFirstNames",
+      "name": "Elf First Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Aelar" }, { "value": "Berrian" }, { "value": "Caelynn" }, { "value": "Daeris" },
+        { "value": "Enna" }, { "value": "Feyrith" }, { "value": "Galinndan" }, { "value": "Hadarai" },
+        { "value": "Ielenia" }, { "value": "Jelenneth" }, { "value": "Keyleth" }, { "value": "Leshanna" },
+        { "value": "Mindartis" }, { "value": "Naivara" }, { "value": "Orilynne" }, { "value": "Paelias" },
+        { "value": "Quarion" }, { "value": "Riardon" }, { "value": "Shanairra" }, { "value": "Theren" },
+        { "value": "Uthemar" }, { "value": "Valanthe" }, { "value": "Varis" }, { "value": "Xiloscient" }
+      ]
+    },
+
+    {
+      "id": "elfFamilyNames",
+      "name": "Elf Family Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Amakiir (Gemflower)" }, { "value": "Amastacia (Starflower)" }, { "value": "Galanodel (Moonwhisper)" },
+        { "value": "Holimion (Diamonddew)" }, { "value": "Ilphelkiir (Gemblossom)" }, { "value": "Liadon (Silverfrond)" },
+        { "value": "Meliamne (Oakenheel)" }, { "value": "Naïlo (Nightbreeze)" }, { "value": "Siannodel (Moonbrook)" },
+        { "value": "Xiloscient (Goldpetal)" }
+      ]
+    },
+
+    {
+      "id": "dwarfFirstNames",
+      "name": "Dwarf First Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Adrik" }, { "value": "Baern" }, { "value": "Dain" }, { "value": "Eberk" },
+        { "value": "Fargrim" }, { "value": "Gardain" }, { "value": "Harbek" }, { "value": "Kildrak" },
+        { "value": "Morgran" }, { "value": "Orsik" }, { "value": "Thoradin" }, { "value": "Tordek" },
+        { "value": "Ulfgar" }, { "value": "Vondal" }, { "value": "Amber" }, { "value": "Bardryn" },
+        { "value": "Diesa" }, { "value": "Eldeth" }, { "value": "Gunnloda" }, { "value": "Helja" },
+        { "value": "Kathra" }, { "value": "Mardred" }, { "value": "Riswynn" }, { "value": "Torgga" }
+      ]
+    },
+
+    {
+      "id": "dwarfClanNames",
+      "name": "Dwarf Clan Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Balderk" }, { "value": "Battlehammer" }, { "value": "Brawnanvil" }, { "value": "Dankil" },
+        { "value": "Fireforge" }, { "value": "Frostbeard" }, { "value": "Gorunn" }, { "value": "Holderhek" },
+        { "value": "Ironfist" }, { "value": "Loderr" }, { "value": "Lutgehr" }, { "value": "Rumnaheim" },
+        { "value": "Strakeln" }, { "value": "Torunn" }, { "value": "Ungart" }
+      ]
+    },
+
+    {
+      "id": "halflingFirstNames",
+      "name": "Halfling First Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Alton" }, { "value": "Beau" }, { "value": "Cade" }, { "value": "Corrin" },
+        { "value": "Eldon" }, { "value": "Finnan" }, { "value": "Garret" }, { "value": "Lyle" },
+        { "value": "Merric" }, { "value": "Osborn" }, { "value": "Perrin" }, { "value": "Reed" },
+        { "value": "Roscoe" }, { "value": "Wellby" }, { "value": "Andry" }, { "value": "Bree" },
+        { "value": "Cora" }, { "value": "Euphemia" }, { "value": "Jillian" }, { "value": "Kithri" },
+        { "value": "Lavinia" }, { "value": "Lidda" }, { "value": "Paela" }, { "value": "Seraphina" },
+        { "value": "Trym" }, { "value": "Vani" }
+      ]
+    },
+
+    {
+      "id": "halflingFamilyNames",
+      "name": "Halfling Family Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Brushgather" }, { "value": "Goodbarrel" }, { "value": "Greenbottle" }, { "value": "Highhill" },
+        { "value": "Hilltopple" }, { "value": "Leagallow" }, { "value": "Tealeaf" }, { "value": "Thorngage" },
+        { "value": "Tosscobble" }, { "value": "Underbough" }
+      ]
+    },
+
+    {
+      "id": "dragonbornFirstNames",
+      "name": "Dragonborn First Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Arjhan" }, { "value": "Balasar" }, { "value": "Bharash" }, { "value": "Donaar" },
+        { "value": "Ghesh" }, { "value": "Heskan" }, { "value": "Kriv" }, { "value": "Medrash" },
+        { "value": "Mehen" }, { "value": "Nadarr" }, { "value": "Pandjed" }, { "value": "Patrin" },
+        { "value": "Rhogar" }, { "value": "Shamash" }, { "value": "Shedinn" }, { "value": "Tarhun" },
+        { "value": "Torinn" }, { "value": "Akra" }, { "value": "Biri" }, { "value": "Daar" },
+        { "value": "Farideh" }, { "value": "Harann" }, { "value": "Jheri" }, { "value": "Kava" },
+        { "value": "Korinn" }, { "value": "Mishann" }, { "value": "Nala" }, { "value": "Perra" },
+        { "value": "Raiann" }, { "value": "Sora" }, { "value": "Surina" }, { "value": "Thava" }
+      ]
+    },
+
+    {
+      "id": "dragonbornClanNames",
+      "name": "Dragonborn Clan Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Clethtinthiallor" }, { "value": "Daardendrian" }, { "value": "Delmirev" },
+        { "value": "Drachedandion" }, { "value": "Fenkenkabradon" }, { "value": "Kepeshkmolik" },
+        { "value": "Kerrhylon" }, { "value": "Kimbatuul" }, { "value": "Linxakasendalor" },
+        { "value": "Myastan" }, { "value": "Nemmonis" }, { "value": "Norixius" },
+        { "value": "Ophinshtalajiir" }, { "value": "Prexijandilin" }, { "value": "Shestendeliath" },
+        { "value": "Turnuroth" }, { "value": "Verthisathurgiesh" }, { "value": "Yarjerit" }
+      ]
+    },
+
+    {
+      "id": "gnomeFirstNames",
+      "name": "Gnome First Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Alston" }, { "value": "Alvyn" }, { "value": "Boddynock" }, { "value": "Brocc" },
+        { "value": "Burgell" }, { "value": "Dimble" }, { "value": "Eldon" }, { "value": "Erky" },
+        { "value": "Fonkin" }, { "value": "Frug" }, { "value": "Gerbo" }, { "value": "Gimble" },
+        { "value": "Glim" }, { "value": "Jebeddo" }, { "value": "Kellen" }, { "value": "Namfoodle" },
+        { "value": "Orryn" }, { "value": "Roondar" }, { "value": "Seebo" }, { "value": "Sindri" },
+        { "value": "Warryn" }, { "value": "Wrenn" }, { "value": "Zook" }, { "value": "Bimpnottin" },
+        { "value": "Breena" }, { "value": "Caramip" }, { "value": "Carlin" }, { "value": "Donella" },
+        { "value": "Duvamil" }, { "value": "Ella" }, { "value": "Ellyjobell" }, { "value": "Ellywick" },
+        { "value": "Lilli" }, { "value": "Loopmottin" }, { "value": "Lorilla" }, { "value": "Mardnab" },
+        { "value": "Nissa" }, { "value": "Nyx" }, { "value": "Oda" }, { "value": "Orla" },
+        { "value": "Roywyn" }, { "value": "Shamil" }, { "value": "Tana" }, { "value": "Zanna" }
+      ]
+    },
+
+    {
+      "id": "gnomeNicknames",
+      "name": "Gnome Nicknames",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Aleslosh" }, { "value": "Ashhearth" }, { "value": "Badger" }, { "value": "Cloak" },
+        { "value": "Doublelock" }, { "value": "Filchbatter" }, { "value": "Fnipper" }, { "value": "Ku" },
+        { "value": "Nim" }, { "value": "Oneshoe" }, { "value": "Pock" }, { "value": "Sparklegem" },
+        { "value": "Stumbleduck" }
+      ]
+    },
+
+    {
+      "id": "halfOrcFirstNames",
+      "name": "Half-Orc First Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Dench" }, { "value": "Feng" }, { "value": "Gell" }, { "value": "Henk" },
+        { "value": "Holg" }, { "value": "Imsh" }, { "value": "Keth" }, { "value": "Krusk" },
+        { "value": "Mhurren" }, { "value": "Ront" }, { "value": "Shump" }, { "value": "Thokk" },
+        { "value": "Baggi" }, { "value": "Emen" }, { "value": "Engong" }, { "value": "Kansif" },
+        { "value": "Myev" }, { "value": "Neega" }, { "value": "Ovak" }, { "value": "Ownka" },
+        { "value": "Shautha" }, { "value": "Sutha" }, { "value": "Vola" }, { "value": "Volen" },
+        { "value": "Yevelda" }
+      ]
+    },
+
+    {
+      "id": "tieflingFirstNames",
+      "name": "Tiefling First Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Akmenos" }, { "value": "Amnon" }, { "value": "Barakas" }, { "value": "Damakos" },
+        { "value": "Ekemon" }, { "value": "Iados" }, { "value": "Kairon" }, { "value": "Leucis" },
+        { "value": "Melech" }, { "value": "Mordai" }, { "value": "Morthos" }, { "value": "Pelaios" },
+        { "value": "Skamos" }, { "value": "Therai" }, { "value": "Akta" }, { "value": "Anakis" },
+        { "value": "Bryseis" }, { "value": "Criella" }, { "value": "Damaia" }, { "value": "Ea" },
+        { "value": "Kallista" }, { "value": "Lerissa" }, { "value": "Makaria" }, { "value": "Nemeia" },
+        { "value": "Orianna" }, { "value": "Phelaia" }, { "value": "Rieta" }
+      ]
+    },
+
+    {
+      "id": "tieflingVirtueNames",
+      "name": "Tiefling Virtue Names",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "Art" }, { "value": "Carrion" }, { "value": "Chant" }, { "value": "Creed" },
+        { "value": "Despair" }, { "value": "Excellence" }, { "value": "Fear" }, { "value": "Glory" },
+        { "value": "Hope" }, { "value": "Ideal" }, { "value": "Music" }, { "value": "Nowhere" },
+        { "value": "Open" }, { "value": "Poetry" }, { "value": "Quest" }, { "value": "Random" },
+        { "value": "Reverence" }, { "value": "Sorrow" }, { "value": "Temerity" }, { "value": "Torment" },
+        { "value": "Weary" }
+      ]
+    },
+
+    {
+      "id": "physicalTraits",
+      "name": "Physical Traits",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "tall and imposing" }, { "value": "short but sturdy" }, { "value": "lithe and graceful" },
+        { "value": "broad-shouldered" }, { "value": "wiry and quick" }, { "value": "heavyset and strong" },
+        { "value": "lean and athletic" }, { "value": "average build" }
+      ]
+    },
+
+    {
+      "id": "distinguishingFeatures",
+      "name": "Distinguishing Features",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a prominent scar across the face" }, { "value": "striking, unusual eye color" },
+        { "value": "an elaborate tattoo" }, { "value": "a missing finger or ear" },
+        { "value": "prematurely grey hair" }, { "value": "a birthmark shaped like a symbol" },
+        { "value": "unusually pale skin" }, { "value": "a perpetual squint" },
+        { "value": "calloused, work-worn hands" }, { "value": "an ever-present smile" }
+      ]
+    },
+
+    {
+      "id": "ages",
+      "name": "Character Age Description",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "young and eager" }, { "value": "in the prime of life" },
+        { "value": "middle-aged and experienced" }, { "value": "weathered by years of adventure" }
+      ]
+    },
+
+    {
+      "id": "genericPersonality",
+      "name": "Generic Personality Traits",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "I always have a plan for what to do when things go wrong." },
+        { "value": "I am always calm, no matter what the situation." },
+        { "value": "I am incredibly slow to trust. Those who seem the fairest often have the most to hide." },
+        { "value": "I fall in and out of love easily, always looking for the next romance." },
+        { "value": "I have a strong sense of fair play and always try to find the most equitable solution." },
+        { "value": "I'm always polite and respectful." },
+        { "value": "I can find common ground between the fiercest enemies." },
+        { "value": "I never pass up a friendly wager." }
+      ]
+    },
+
+    {
+      "id": "genericIdeals",
+      "name": "Generic Ideals",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "**Greater Good.** It is each person's responsibility to better the world. (Good)" },
+        { "value": "**Logic.** Emotions must not cloud our sense of what is right. (Lawful)" },
+        { "value": "**Free Thinking.** Inquiry and curiosity are the pillars of progress. (Chaotic)" },
+        { "value": "**Power.** Knowledge is the path to power and domination. (Evil)" },
+        { "value": "**Independence.** I must prove that I can handle myself without help. (Any)" },
+        { "value": "**Honor.** I don't steal from others in the trade. (Lawful)" },
+        { "value": "**Freedom.** Chains are meant to be broken. (Chaotic)" },
+        { "value": "**Aspiration.** I work hard to be the best at my craft. (Any)" }
+      ]
+    },
+
+    {
+      "id": "genericBonds",
+      "name": "Generic Bonds",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "I have a family that I haven't seen in years. I wonder if they think about me." },
+        { "value": "Someone I loved died because of a mistake I made. I will never make that mistake again." },
+        { "value": "I will do anything to prove myself superior to my hated rival." },
+        { "value": "I owe a debt I can never repay to the person who took me in when my parents died." },
+        { "value": "Everything I do is for the common people." },
+        { "value": "I'm trying to pay off an old debt." },
+        { "value": "I want to be famous, whatever it takes." },
+        { "value": "Someone saved my life on a battlefield. I will never leave a friend behind." }
+      ]
+    },
+
+    {
+      "id": "genericFlaws",
+      "name": "Generic Flaws",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "I have a weakness for the vices of the city, especially strong drink." },
+        { "value": "I am dogmatic in my thoughts and philosophy." },
+        { "value": "I let my need to win arguments overshadow friendships and harmony." },
+        { "value": "I can't resist a pretty face." },
+        { "value": "A scandal prevents me from ever going home again." },
+        { "value": "I'm convinced of the significance of my destiny and blind to my shortcomings." },
+        { "value": "I turn tail and run when things look bad." },
+        { "value": "My pride will probably lead to my destruction." }
+      ]
+    },
+
+    {
+      "id": "trinkets",
+      "name": "Trinkets",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "a mummified goblin hand" },
+        { "value": "a piece of crystal that glows faintly in moonlight" },
+        { "value": "a gold coin minted in an unknown land" },
+        { "value": "a diary written in a language you don't know" },
+        { "value": "a brass ring that never tarnishes" },
+        { "value": "an old chess piece made from glass" },
+        { "value": "a pair of knucklebone dice with skull faces" },
+        { "value": "a small idol depicting a nightmarish creature" },
+        { "value": "four mummified elf fingers on a necklace" },
+        { "value": "a blank book whose pages refuse to hold ink" }
+      ]
+    }
+  ],
+
+  "templates": [
+    {
+      "id": "characterSheet",
+      "name": "Complete Character Sheet",
+      "resultType": "character",
+      "description": "Generates a complete D&D 5th Edition character sheet with all statistics, features, and equipment.",
+      "tags": ["character", "sheet", "complete"],
+      "shared": {
+        "$level": "{{levelOne}}",
+        "$race": "{{races}}",
+        "$class": "{{classes}}",
+        "$background": "{{backgrounds}}",
+        "$alignment": "{{alignments}}",
+
+        "$strRoll": "{{dice:4d6k3}}",
+        "$dexRoll": "{{dice:4d6k3}}",
+        "$conRoll": "{{dice:4d6k3}}",
+        "$intRoll": "{{dice:4d6k3}}",
+        "$wisRoll": "{{dice:4d6k3}}",
+        "$chaRoll": "{{dice:4d6k3}}",
+
+        "$strength": "{{math:$strRoll + $race.@strBonus}}",
+        "$dexterity": "{{math:$dexRoll + $race.@dexBonus}}",
+        "$constitution": "{{math:$conRoll + $race.@conBonus}}",
+        "$intelligence": "{{math:$intRoll + $race.@intBonus}}",
+        "$wisdom": "{{math:$wisRoll + $race.@wisBonus}}",
+        "$charisma": "{{math:$chaRoll + $race.@chaBonus}}",
+
+        "$strMod": "{{math:($strength - 10) / 2}}",
+        "$dexMod": "{{math:($dexterity - 10) / 2}}",
+        "$conMod": "{{math:($constitution - 10) / 2}}",
+        "$intMod": "{{math:($intelligence - 10) / 2}}",
+        "$wisMod": "{{math:($wisdom - 10) / 2}}",
+        "$chaMod": "{{math:($charisma - 10) / 2}}",
+
+        "$profBonus": "{{$level.@profBonus}}",
+
+        "$hitDieNum": "{{$class.@hitDieNum}}",
+        "$maxHP": "{{math:$hitDieNum + $conMod}}",
+
+        "$armorClass": "{{math:10 + $dexMod}}",
+        "$initiative": "{{$dexMod}}",
+        "$speed": "{{$race.@speed}}",
+
+        "$strSaveProf": "{{$class.@strSave}}",
+        "$dexSaveProf": "{{$class.@dexSave}}",
+        "$conSaveProf": "{{$class.@conSave}}",
+        "$intSaveProf": "{{$class.@intSave}}",
+        "$wisSaveProf": "{{$class.@wisSave}}",
+        "$chaSaveProf": "{{$class.@chaSave}}",
+
+        "$strSave": "{{math:$strMod + ($strSaveProf * $profBonus)}}",
+        "$dexSave": "{{math:$dexMod + ($dexSaveProf * $profBonus)}}",
+        "$conSave": "{{math:$conMod + ($conSaveProf * $profBonus)}}",
+        "$intSave": "{{math:$intMod + ($intSaveProf * $profBonus)}}",
+        "$wisSave": "{{math:$wisMod + ($wisSaveProf * $profBonus)}}",
+        "$chaSave": "{{math:$chaMod + ($chaSaveProf * $profBonus)}}",
+
+        "$passivePerception": "{{math:10 + $wisMod}}",
+
+        "$personality": "{{genericPersonality}}",
+        "$ideal": "{{genericIdeals}}",
+        "$bond": "{{genericBonds}}",
+        "$flaw": "{{genericFlaws}}",
+
+        "$physicalDesc": "{{physicalTraits}}",
+        "$feature": "{{distinguishingFeatures}}",
+        "$age": "{{ages}}",
+        "$trinket": "{{trinkets}}"
+      },
+      "pattern": "# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n# D&D 5th Edition Character Sheet\n# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## 📜 Basic Information\n\n| | |\n|:---|:---|\n| **Name** | _______________________________ |\n| **Race** | {{$race}} |\n| **Class** | {{$class}} |\n| **Level** | {{$level}} |\n| **Background** | {{$background}} |\n| **Alignment** | {{$alignment}} |\n| **Experience** | 0 XP |\n\n---\n\n## 💪 Ability Scores\n\n| Ability | Score | Modifier |\n|:---:|:---:|:---:|\n| **STR** | {{$strength}} | {{switch[$strMod>=0:\"+{{$strMod}}\"].else[\"{{$strMod}}\"]}} |\n| **DEX** | {{$dexterity}} | {{switch[$dexMod>=0:\"+{{$dexMod}}\"].else[\"{{$dexMod}}\"]}} |\n| **CON** | {{$constitution}} | {{switch[$conMod>=0:\"+{{$conMod}}\"].else[\"{{$conMod}}\"]}} |\n| **INT** | {{$intelligence}} | {{switch[$intMod>=0:\"+{{$intMod}}\"].else[\"{{$intMod}}\"]}} |\n| **WIS** | {{$wisdom}} | {{switch[$wisMod>=0:\"+{{$wisMod}}\"].else[\"{{$wisMod}}\"]}} |\n| **CHA** | {{$charisma}} | {{switch[$chaMod>=0:\"+{{$chaMod}}\"].else[\"{{$chaMod}}\"]}} |\n\n---\n\n## ⚔️ Combat Statistics\n\n| Stat | Value |\n|:---|:---:|\n| **Armor Class** | {{$armorClass}} |\n| **Initiative** | {{switch[$initiative>=0:\"+{{$initiative}}\"].else[\"{{$initiative}}\"]}} |\n| **Speed** | {{$speed}} ft. |\n| **Hit Points** | {{$maxHP}} |\n| **Hit Dice** | 1{{$class.@hitDie}} |\n| **Proficiency Bonus** | {{$level.@profBonusDisplay}} |\n\n---\n\n## 🛡️ Saving Throws\n\n| Save | Modifier | Proficient |\n|:---|:---:|:---:|\n| **Strength** | {{switch[$strSave>=0:\"+{{$strSave}}\"].else[\"{{$strSave}}\"]}} | {{switch[$strSaveProf==1:\"●\"].else[\"○\"]}} |\n| **Dexterity** | {{switch[$dexSave>=0:\"+{{$dexSave}}\"].else[\"{{$dexSave}}\"]}} | {{switch[$dexSaveProf==1:\"●\"].else[\"○\"]}} |\n| **Constitution** | {{switch[$conSave>=0:\"+{{$conSave}}\"].else[\"{{$conSave}}\"]}} | {{switch[$conSaveProf==1:\"●\"].else[\"○\"]}} |\n| **Intelligence** | {{switch[$intSave>=0:\"+{{$intSave}}\"].else[\"{{$intSave}}\"]}} | {{switch[$intSaveProf==1:\"●\"].else[\"○\"]}} |\n| **Wisdom** | {{switch[$wisSave>=0:\"+{{$wisSave}}\"].else[\"{{$wisSave}}\"]}} | {{switch[$wisSaveProf==1:\"●\"].else[\"○\"]}} |\n| **Charisma** | {{switch[$chaSave>=0:\"+{{$chaSave}}\"].else[\"{{$chaSave}}\"]}} | {{switch[$chaSaveProf==1:\"●\"].else[\"○\"]}} |\n\n---\n\n## 🎯 Skills\n\n*Mark proficiencies based on class ({{$class.@numSkillChoices}} choices) and background.*\n\n| Skill | Ability | Modifier |\n|:---|:---:|:---:|\n| Acrobatics | DEX | {{switch[$dexMod>=0:\"+{{$dexMod}}\"].else[\"{{$dexMod}}\"]}} |\n| Animal Handling | WIS | {{switch[$wisMod>=0:\"+{{$wisMod}}\"].else[\"{{$wisMod}}\"]}} |\n| Arcana | INT | {{switch[$intMod>=0:\"+{{$intMod}}\"].else[\"{{$intMod}}\"]}} |\n| Athletics | STR | {{switch[$strMod>=0:\"+{{$strMod}}\"].else[\"{{$strMod}}\"]}} |\n| Deception | CHA | {{switch[$chaMod>=0:\"+{{$chaMod}}\"].else[\"{{$chaMod}}\"]}} |\n| History | INT | {{switch[$intMod>=0:\"+{{$intMod}}\"].else[\"{{$intMod}}\"]}} |\n| Insight | WIS | {{switch[$wisMod>=0:\"+{{$wisMod}}\"].else[\"{{$wisMod}}\"]}} |\n| Intimidation | CHA | {{switch[$chaMod>=0:\"+{{$chaMod}}\"].else[\"{{$chaMod}}\"]}} |\n| Investigation | INT | {{switch[$intMod>=0:\"+{{$intMod}}\"].else[\"{{$intMod}}\"]}} |\n| Medicine | WIS | {{switch[$wisMod>=0:\"+{{$wisMod}}\"].else[\"{{$wisMod}}\"]}} |\n| Nature | INT | {{switch[$intMod>=0:\"+{{$intMod}}\"].else[\"{{$intMod}}\"]}} |\n| Perception | WIS | {{switch[$wisMod>=0:\"+{{$wisMod}}\"].else[\"{{$wisMod}}\"]}} |\n| Performance | CHA | {{switch[$chaMod>=0:\"+{{$chaMod}}\"].else[\"{{$chaMod}}\"]}} |\n| Persuasion | CHA | {{switch[$chaMod>=0:\"+{{$chaMod}}\"].else[\"{{$chaMod}}\"]}} |\n| Religion | INT | {{switch[$intMod>=0:\"+{{$intMod}}\"].else[\"{{$intMod}}\"]}} |\n| Sleight of Hand | DEX | {{switch[$dexMod>=0:\"+{{$dexMod}}\"].else[\"{{$dexMod}}\"]}} |\n| Stealth | DEX | {{switch[$dexMod>=0:\"+{{$dexMod}}\"].else[\"{{$dexMod}}\"]}} |\n| Survival | WIS | {{switch[$wisMod>=0:\"+{{$wisMod}}\"].else[\"{{$wisMod}}\"]}} |\n\n**Passive Perception:** {{$passivePerception}}\n\n---\n\n## 📋 Proficiencies\n\n### Armor\n{{$class.@armorProficiencies}}\n\n### Weapons\n{{$class.@weaponProficiencies}}\n\n### Tools\n{{switch[$class.@toolProficiencies!=\"\":\"{{$class.@toolProficiencies}}\"].else[\"None from class\"]}}{{switch[$background.@toolProficiencies!=\"None\":\"\\n{{$background.@toolProficiencies}} (background)\"].else[\"\"]}}\n\n### Languages\n{{$race.@languages}}\n{{switch[$background.@languages!=\"None\":\"{{$background.@languages}} (background)\"].else[\"\"]}}\n\n### Skill Proficiencies\n- **Class:** {{$class.@skillChoices}}\n- **Background:** {{$background.@skillProficiencies}}\n\n---\n\n## ✨ Features & Traits\n\n### Racial Traits ({{$race}})\n{{$race.@racialTraits}}\n\n### Class Features ({{$class}})\n{{$class.@classFeatures}}\n\n### Background Feature ({{$background}})\n{{$background.@feature}}\n\n---\n\n## 🎒 Equipment\n\n### Starting Equipment\n{{$class.@startingEquipment}}\n\n### Background Equipment\n{{$background.@equipment}}\n\n### Trinket\n*{{$trinket}}*\n\n---\n\n## 🎭 Personality\n\n**Personality Trait:** {{$personality}}\n\n**Ideal:** {{$ideal}}\n\n**Bond:** {{$bond}}\n\n**Flaw:** {{$flaw}}\n\n---\n\n## 📝 Appearance & Backstory\n\n**Physical Description:** This character is {{$physicalDesc}}, {{$age}}, with {{$feature}}.\n\n**Backstory:** *(Write your character's backstory here)*\n\n_______________________________________________\n\n_______________________________________________\n\n_______________________________________________\n\n---\n\n## 📊 Character Summary\n\n```\n┌─────────────────────────────────────────────┐\n│  LEVEL {{$level}} {{$race}} {{$class}}              \n│  {{$background}} • {{$alignment}}                   \n├─────────────────────────────────────────────┤\n│  STR {{$strength}} ({{switch[$strMod>=0:\"+{{$strMod}}\"].else[\"{{$strMod}}\"]}})  DEX {{$dexterity}} ({{switch[$dexMod>=0:\"+{{$dexMod}}\"].else[\"{{$dexMod}}\"]}})  CON {{$constitution}} ({{switch[$conMod>=0:\"+{{$conMod}}\"].else[\"{{$conMod}}\"]}})  \n│  INT {{$intelligence}} ({{switch[$intMod>=0:\"+{{$intMod}}\"].else[\"{{$intMod}}\"]}})  WIS {{$wisdom}} ({{switch[$wisMod>=0:\"+{{$wisMod}}\"].else[\"{{$wisMod}}\"]}})  CHA {{$charisma}} ({{switch[$chaMod>=0:\"+{{$chaMod}}\"].else[\"{{$chaMod}}\"]}})  \n├─────────────────────────────────────────────┤\n│  AC {{$armorClass}}  │  HP {{$maxHP}}  │  Speed {{$speed}} ft.  │  Prof {{$level.@profBonusDisplay}}\n└─────────────────────────────────────────────┘\n```\n\n---\n\n{{switch[$class.@spellcaster==\"yes\" || $class.@spellcaster==\"pact\":\"## 📖 Spellcasting\\n\\n| | |\\n|:---|:---|\\n| **Spellcasting Ability** | {{$class.@spellcastingAbility}} |\\n| **Spell Save DC** | {{math:8 + $profBonus + {{switch[$class.@spellcastingAbility==\\\"Intelligence\\\":$intMod].switch[$class.@spellcastingAbility==\\\"Wisdom\\\":$wisMod].else[$chaMod]}}}} |\\n| **Spell Attack Bonus** | +{{math:$profBonus + {{switch[$class.@spellcastingAbility==\\\"Intelligence\\\":$intMod].switch[$class.@spellcastingAbility==\\\"Wisdom\\\":$wisMod].else[$chaMod]}}}} |\\n\\n### Cantrips Known\\n- _________________\\n- _________________\\n- _________________\\n\\n### 1st Level Spells (Slots: __ / __)\\n- _________________\\n- _________________\\n- _________________\\n- _________________\\n\\n---\\n\"].else[\"\"]}}\n\n*Character sheet generated using the D&D 5e Character Generator*\n*Ability scores rolled using 4d6 drop lowest method*"
+    },
+
+    {
+      "id": "quickCharacter",
+      "name": "Quick Character Summary",
+      "resultType": "character",
+      "description": "Generates a condensed character summary card.",
+      "tags": ["character", "quick", "summary"],
+      "shared": {
+        "$level": "{{levelOne}}",
+        "$race": "{{races}}",
+        "$class": "{{classes}}",
+        "$background": "{{backgrounds}}",
+        "$alignment": "{{alignments}}",
+
+        "$strRoll": "{{dice:4d6k3}}",
+        "$dexRoll": "{{dice:4d6k3}}",
+        "$conRoll": "{{dice:4d6k3}}",
+        "$intRoll": "{{dice:4d6k3}}",
+        "$wisRoll": "{{dice:4d6k3}}",
+        "$chaRoll": "{{dice:4d6k3}}",
+
+        "$strength": "{{math:$strRoll + $race.@strBonus}}",
+        "$dexterity": "{{math:$dexRoll + $race.@dexBonus}}",
+        "$constitution": "{{math:$conRoll + $race.@conBonus}}",
+        "$intelligence": "{{math:$intRoll + $race.@intBonus}}",
+        "$wisdom": "{{math:$wisRoll + $race.@wisBonus}}",
+        "$charisma": "{{math:$chaRoll + $race.@chaBonus}}",
+
+        "$strMod": "{{math:($strength - 10) / 2}}",
+        "$dexMod": "{{math:($dexterity - 10) / 2}}",
+        "$conMod": "{{math:($constitution - 10) / 2}}",
+        "$intMod": "{{math:($intelligence - 10) / 2}}",
+        "$wisMod": "{{math:($wisdom - 10) / 2}}",
+        "$chaMod": "{{math:($charisma - 10) / 2}}",
+
+        "$profBonus": "{{$level.@profBonus}}",
+        "$hitDieNum": "{{$class.@hitDieNum}}",
+        "$maxHP": "{{math:$hitDieNum + $conMod}}",
+        "$armorClass": "{{math:10 + $dexMod}}",
+        "$initiative": "{{$dexMod}}"
+      },
+      "pattern": "## ⚔️ Quick Character Card\n\n**Level {{$level}} {{$race}} {{$class}}**\n*{{$background}} • {{$alignment}}*\n\n| STR | DEX | CON | INT | WIS | CHA |\n|:---:|:---:|:---:|:---:|:---:|:---:|\n| **{{$strength}}** | **{{$dexterity}}** | **{{$constitution}}** | **{{$intelligence}}** | **{{$wisdom}}** | **{{$charisma}}** |\n| {{switch[$strMod>=0:\"+{{$strMod}}\"].else[\"{{$strMod}}\"]}} | {{switch[$dexMod>=0:\"+{{$dexMod}}\"].else[\"{{$dexMod}}\"]}} | {{switch[$conMod>=0:\"+{{$conMod}}\"].else[\"{{$conMod}}\"]}} | {{switch[$intMod>=0:\"+{{$intMod}}\"].else[\"{{$intMod}}\"]}} | {{switch[$wisMod>=0:\"+{{$wisMod}}\"].else[\"{{$wisMod}}\"]}} | {{switch[$chaMod>=0:\"+{{$chaMod}}\"].else[\"{{$chaMod}}\"]}} |\n\n**AC** {{$armorClass}} | **HP** {{$maxHP}} | **Initiative** {{switch[$initiative>=0:\"+{{$initiative}}\"].else[\"{{$initiative}}\"]}} | **Speed** {{$race.@speed}} ft.\n\n**Proficiency Bonus:** {{$level.@profBonusDisplay}} | **Hit Dice:** 1{{$class.@hitDie}}\n\n**Saving Throws:** {{$class.@savingThrows}}\n\n**Background Feature:** {{$background.@feature}}"
+    },
+
+    {
+      "id": "randomNPC",
+      "name": "Random NPC Generator",
+      "resultType": "npc",
+      "description": "Generates a quick NPC with basic stats and personality.",
+      "tags": ["npc", "quick", "generator"],
+      "shared": {
+        "$race": "{{races}}",
+        "$class": "{{classes}}",
+        "$background": "{{backgrounds}}",
+        "$alignment": "{{alignments}}",
+        "$personality": "{{genericPersonality}}",
+        "$ideal": "{{genericIdeals}}",
+        "$physicalDesc": "{{physicalTraits}}",
+        "$feature": "{{distinguishingFeatures}}",
+        "$age": "{{ages}}"
+      },
+      "pattern": "## 👤 NPC: {{$race.@firstName}}{{switch[$race.@lastName!=\"\":\" {{$race.@lastName}}\"].else[\"\"]}}\n\n**{{$race}} {{$class}}** | {{$alignment}}\n*{{$background}}*\n\n**Appearance:** {{$physicalDesc}}, {{$age}}, with {{$feature}}.\n\n**Personality:** {{$personality}}\n\n**Ideal:** {{$ideal}}\n\n**Notable:** {{$background.@feature}}"
+    },
+
+    {
+      "id": "abilityScoreArray",
+      "name": "Roll Ability Scores",
+      "resultType": "statistic",
+      "description": "Rolls a complete set of ability scores using 4d6 drop lowest.",
+      "tags": ["stats", "abilities", "rolling"],
+      "pattern": "## 🎲 Ability Score Rolls\n\n*Rolled using 4d6, drop lowest die*\n\n| Roll | Result |\n|:---:|:---:|\n| 1 | **{{dice:4d6k3}}** |\n| 2 | **{{dice:4d6k3}}** |\n| 3 | **{{dice:4d6k3}}** |\n| 4 | **{{dice:4d6k3}}** |\n| 5 | **{{dice:4d6k3}}** |\n| 6 | **{{dice:4d6k3}}** |\n\n*Assign these scores to abilities as desired.*"
+    }
+  ]
+}
