@@ -1,0 +1,907 @@
+{
+  "metadata": {
+    "name": "Rolldeo Homepage Example",
+    "namespace": "rolldeo.example.core",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rolldeo",
+    "description": "A comprehensive generator for **NPCs**, **treasure**, and **monster encounters** suitable for any fantasy tabletop RPG.",
+    "tags": ["fantasy", "npc", "treasure", "encounters", "monsters"],
+    "maxRecursionDepth": 50,
+    "maxInheritanceDepth": 5,
+    "uniqueOverflowBehavior": "stop"
+  },
+  "variables": {
+    "defaultSeparator": ", ",
+    "setting": "fantasy"
+  },
+  "tables": [
+    {
+      "id": "gender",
+      "name": "Gender",
+      "type": "simple",
+      "resultType": "trait",
+      "hidden": true,
+      "tags": ["npc", "gender"],
+      "entries": [
+        { "id": "male", "value": "male" },
+        { "id": "female", "value": "female" }
+      ]
+    },
+    {
+      "id": "race",
+      "name": "Race",
+      "type": "simple",
+      "resultType": "trait",
+      "tags": ["npc", "race"],
+      "entries": [
+        { "id": "human", "value": "Human", "weight": 4 },
+        { "id": "elf", "value": "Elf", "weight": 2 },
+        { "id": "dwarf", "value": "Dwarf", "weight": 2 },
+        { "id": "halfling", "value": "Halfling", "weight": 2 }
+      ]
+    },
+    {
+      "id": "humanMaleNames",
+      "name": "Human Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "human", "male"],
+      "entries": [
+        { "value": "Aldric" },
+        { "value": "Bertram" },
+        { "value": "Conrad" },
+        { "value": "Darian" },
+        { "value": "Edmund" },
+        { "value": "Felix" },
+        { "value": "Gareth" },
+        { "value": "Harold" },
+        { "value": "Ivan" },
+        { "value": "Jasper" },
+        { "value": "Klaus" },
+        { "value": "Leopold" },
+        { "value": "Marcus" },
+        { "value": "Nolan" },
+        { "value": "Oswald" }
+      ]
+    },
+    {
+      "id": "humanFemaleNames",
+      "name": "Human Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "human", "female"],
+      "entries": [
+        { "value": "Adelina" },
+        { "value": "Beatrice" },
+        { "value": "Cordelia" },
+        { "value": "Diana" },
+        { "value": "Eleanor" },
+        { "value": "Fiona" },
+        { "value": "Gwendolyn" },
+        { "value": "Helena" },
+        { "value": "Isolde" },
+        { "value": "Juliana" },
+        { "value": "Katherine" },
+        { "value": "Lydia" },
+        { "value": "Margaret" },
+        { "value": "Natalia" },
+        { "value": "Ophelia" }
+      ]
+    },
+    {
+      "id": "humanSurnames",
+      "name": "Human Surnames",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "human", "surname"],
+      "entries": [
+        { "value": "Ashford" },
+        { "value": "Blackwood" },
+        { "value": "Cromwell" },
+        { "value": "Dunmore" },
+        { "value": "Fairfax" },
+        { "value": "Grayson" },
+        { "value": "Hartwell" },
+        { "value": "Ironside" },
+        { "value": "Kingsley" },
+        { "value": "Lancaster" },
+        { "value": "Mercer" },
+        { "value": "Northcott" },
+        { "value": "Pemberton" },
+        { "value": "Ravencroft" },
+        { "value": "Stonebridge" }
+      ]
+    },
+    {
+      "id": "elfMaleNames",
+      "name": "Elf Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "elf", "male"],
+      "entries": [
+        { "value": "Aerindel" },
+        { "value": "Caelum" },
+        { "value": "Eryndor" },
+        { "value": "Faelar" },
+        { "value": "Galadon" },
+        { "value": "Ithilion" },
+        { "value": "Lorindel" },
+        { "value": "Mirethil" },
+        { "value": "Naeloran" },
+        { "value": "Silvanor" },
+        { "value": "Thalion" },
+        { "value": "Vaelorn" }
+      ]
+    },
+    {
+      "id": "elfFemaleNames",
+      "name": "Elf Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "elf", "female"],
+      "entries": [
+        { "value": "Aelindra" },
+        { "value": "Caelynn" },
+        { "value": "Elowen" },
+        { "value": "Faeleth" },
+        { "value": "Galadria" },
+        { "value": "Ilyana" },
+        { "value": "Liriel" },
+        { "value": "Mirathel" },
+        { "value": "Naelith" },
+        { "value": "Silvara" },
+        { "value": "Thalindra" },
+        { "value": "Vaelora" }
+      ]
+    },
+    {
+      "id": "elfSurnames",
+      "name": "Elf Surnames",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "elf", "surname"],
+      "entries": [
+        { "value": "Brightleaf" },
+        { "value": "Dawnwhisper" },
+        { "value": "Evenstar" },
+        { "value": "Goldenbough" },
+        { "value": "Moonbrook" },
+        { "value": "Nighthollow" },
+        { "value": "Silverwind" },
+        { "value": "Starweaver" },
+        { "value": "Sunfire" },
+        { "value": "Twilightmere" },
+        { "value": "Willowshade" },
+        { "value": "Wintersong" }
+      ]
+    },
+    {
+      "id": "dwarfMaleNames",
+      "name": "Dwarf Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "dwarf", "male"],
+      "entries": [
+        { "value": "Balin" },
+        { "value": "Dain" },
+        { "value": "Dolgrim" },
+        { "value": "Fargrim" },
+        { "value": "Gardain" },
+        { "value": "Harbek" },
+        { "value": "Kildrak" },
+        { "value": "Morgran" },
+        { "value": "Orsik" },
+        { "value": "Rurik" },
+        { "value": "Thoradin" },
+        { "value": "Vondal" }
+      ]
+    },
+    {
+      "id": "dwarfFemaleNames",
+      "name": "Dwarf Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "dwarf", "female"],
+      "entries": [
+        { "value": "Amber" },
+        { "value": "Bardryn" },
+        { "value": "Dagnal" },
+        { "value": "Diesa" },
+        { "value": "Gunnloda" },
+        { "value": "Hlin" },
+        { "value": "Kathra" },
+        { "value": "Liftrasa" },
+        { "value": "Mardred" },
+        { "value": "Riswynn" },
+        { "value": "Torbera" },
+        { "value": "Vistra" }
+      ]
+    },
+    {
+      "id": "dwarfSurnames",
+      "name": "Dwarf Surnames",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "dwarf", "surname"],
+      "entries": [
+        { "value": "Battlehammer" },
+        { "value": "Brawnanvil" },
+        { "value": "Fireforge" },
+        { "value": "Frostbeard" },
+        { "value": "Goldenshield" },
+        { "value": "Ironfist" },
+        { "value": "Rumnaheim" },
+        { "value": "Stonehelm" },
+        { "value": "Strongarm" },
+        { "value": "Thunderstone" },
+        { "value": "Torunn" },
+        { "value": "Ungart" }
+      ]
+    },
+    {
+      "id": "halflingMaleNames",
+      "name": "Halfling Male Names",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "halfling", "male"],
+      "entries": [
+        { "value": "Alton" },
+        { "value": "Cade" },
+        { "value": "Corrin" },
+        { "value": "Eldon" },
+        { "value": "Finnan" },
+        { "value": "Garret" },
+        { "value": "Lindal" },
+        { "value": "Merric" },
+        { "value": "Osborn" },
+        { "value": "Perrin" },
+        { "value": "Reed" },
+        { "value": "Roscoe" }
+      ]
+    },
+    {
+      "id": "halflingFemaleNames",
+      "name": "Halfling Female Names",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "halfling", "female"],
+      "entries": [
+        { "value": "Andry" },
+        { "value": "Bree" },
+        { "value": "Callie" },
+        { "value": "Cora" },
+        { "value": "Euphemia" },
+        { "value": "Jillian" },
+        { "value": "Kithri" },
+        { "value": "Lavinia" },
+        { "value": "Lidda" },
+        { "value": "Merla" },
+        { "value": "Nedda" },
+        { "value": "Seraphina" }
+      ]
+    },
+    {
+      "id": "halflingSurnames",
+      "name": "Halfling Surnames",
+      "type": "simple",
+      "resultType": "name",
+      "hidden": true,
+      "tags": ["npc", "names", "halfling", "surname"],
+      "entries": [
+        { "value": "Brushgather" },
+        { "value": "Goodbarrel" },
+        { "value": "Greenbottle" },
+        { "value": "Highhill" },
+        { "value": "Hilltopple" },
+        { "value": "Leagallow" },
+        { "value": "Tealeaf" },
+        { "value": "Thorngage" },
+        { "value": "Tosscobble" },
+        { "value": "Underbough" },
+        { "value": "Warmwater" },
+        { "value": "Whispermouse" }
+      ]
+    },
+    {
+      "id": "magicWeapons",
+      "name": "Magic Weapons",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["treasure", "weapons", "magic"],
+      "entries": [
+        {
+          "id": "flametongueSword",
+          "value": "**Flametongue Longsword**",
+          "weight": 1,
+          "description": "A longsword that bursts into flame on command, dealing extra fire damage.",
+          "sets": { "rarity": "rare", "itemType": "weapon", "element": "fire" }
+        },
+        {
+          "id": "frostbrand",
+          "value": "**Frostbrand Greatsword**",
+          "weight": 1,
+          "description": "A greatsword wreathed in bitter cold, granting resistance to fire.",
+          "sets": { "rarity": "very rare", "itemType": "weapon", "element": "cold" }
+        },
+        {
+          "id": "vorpalSword",
+          "value": "**Vorpal Sword**",
+          "weight": 0.5,
+          "description": "A legendary blade capable of severing heads with a lucky strike.",
+          "sets": { "rarity": "legendary", "itemType": "weapon", "element": "none" }
+        },
+        {
+          "id": "dancingSword",
+          "value": "**Dancing Sword**",
+          "weight": 1,
+          "description": "A sword that fights on its own, hovering in the air beside its wielder.",
+          "sets": { "rarity": "very rare", "itemType": "weapon", "element": "none" }
+        },
+        {
+          "id": "sunBlade",
+          "value": "**Sun Blade**",
+          "weight": 1,
+          "description": "A blade of pure radiance, especially deadly against undead.",
+          "sets": { "rarity": "rare", "itemType": "weapon", "element": "radiant" }
+        },
+        {
+          "id": "oathbow",
+          "value": "**Oathbow**",
+          "weight": 1,
+          "description": "A longbow that lets you swear vengeance against a foe, gaining bonuses against them.",
+          "sets": { "rarity": "very rare", "itemType": "weapon", "element": "none" }
+        },
+        {
+          "id": "dwarvenThrower",
+          "value": "**Dwarven Thrower**",
+          "weight": 1.5,
+          "description": "A warhammer that returns to the wielder's hand after being thrown.",
+          "sets": { "rarity": "very rare", "itemType": "weapon", "element": "none" }
+        },
+        {
+          "id": "lightningJavelin",
+          "value": "**Javelin of Lightning**",
+          "weight": 2,
+          "description": "A javelin that transforms into a bolt of lightning when thrown.",
+          "sets": { "rarity": "uncommon", "itemType": "weapon", "element": "lightning" }
+        },
+        {
+          "id": "maceOfDisruption",
+          "value": "**Mace of Disruption**",
+          "weight": 1.5,
+          "description": "A holy mace that shines with radiant light, devastating to fiends and undead.",
+          "sets": { "rarity": "rare", "itemType": "weapon", "element": "radiant" }
+        },
+        {
+          "id": "luckyBlade",
+          "value": "**Luck Blade**",
+          "weight": 0.5,
+          "description": "A sword containing stored wishes, also granting a bonus to saving throws.",
+          "sets": { "rarity": "legendary", "itemType": "weapon", "element": "none" }
+        }
+      ]
+    },
+    {
+      "id": "magicArmor",
+      "name": "Magic Armor",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["treasure", "armor", "magic"],
+      "entries": [
+        {
+          "id": "plateOfEthereal",
+          "value": "**Plate Armor of Etherealness**",
+          "weight": 0.5,
+          "description": "Gleaming plate that allows the wearer to become ethereal.",
+          "sets": { "rarity": "legendary", "itemType": "armor", "armorType": "heavy" }
+        },
+        {
+          "id": "dragonScaleMail",
+          "value": "**Dragon Scale Mail**",
+          "weight": 1,
+          "description": "Scale armor made from dragon scales, granting resistance to the dragon's damage type.",
+          "sets": { "rarity": "very rare", "itemType": "armor", "armorType": "medium" }
+        },
+        {
+          "id": "adamantineArmor",
+          "value": "**Adamantine Plate Armor**",
+          "weight": 2,
+          "description": "Armor reinforced with adamantine, turning critical hits into normal hits.",
+          "sets": { "rarity": "uncommon", "itemType": "armor", "armorType": "heavy" }
+        },
+        {
+          "id": "elvenChain",
+          "value": "**Elven Chain**",
+          "weight": 1.5,
+          "description": "Finely wrought chain mail that can be worn under normal clothes.",
+          "sets": { "rarity": "rare", "itemType": "armor", "armorType": "medium" }
+        },
+        {
+          "id": "mithralArmor",
+          "value": "**Mithral Half Plate**",
+          "weight": 2,
+          "description": "Lightweight half plate that doesn't impose disadvantage on stealth.",
+          "sets": { "rarity": "uncommon", "itemType": "armor", "armorType": "medium" }
+        },
+        {
+          "id": "demonArmor",
+          "value": "**Demon Armor**",
+          "weight": 0.5,
+          "description": "Plate armor of demonic origin with clawed gauntlets. _Cursed._",
+          "sets": { "rarity": "very rare", "itemType": "armor", "armorType": "heavy" }
+        },
+        {
+          "id": "armorOfInvulnerability",
+          "value": "**Armor of Invulnerability**",
+          "weight": 0.5,
+          "description": "Plate armor that grants immunity to nonmagical damage for a short time.",
+          "sets": { "rarity": "legendary", "itemType": "armor", "armorType": "heavy" }
+        },
+        {
+          "id": "glamouredLeather",
+          "value": "**Glamoured Studded Leather**",
+          "weight": 2,
+          "description": "Armor that can change its appearance to look like normal clothing.",
+          "sets": { "rarity": "rare", "itemType": "armor", "armorType": "light" }
+        }
+      ]
+    },
+    {
+      "id": "wondrousItems",
+      "name": "Wondrous Items",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["treasure", "wondrous", "magic"],
+      "entries": [
+        {
+          "id": "cloakOfDisplacement",
+          "value": "**Cloak of Displacement**",
+          "weight": 1.5,
+          "description": "A cloak that projects an illusion of the wearer standing slightly away from their actual location.",
+          "sets": { "rarity": "rare", "itemType": "wondrous" }
+        },
+        {
+          "id": "bootsOfSpeed",
+          "value": "**Boots of Speed**",
+          "weight": 1.5,
+          "description": "Boots that double the wearer's walking speed when activated.",
+          "sets": { "rarity": "rare", "itemType": "wondrous" }
+        },
+        {
+          "id": "bagOfHolding",
+          "value": "**Bag of Holding**",
+          "weight": 3,
+          "description": "A bag with an interior far larger than its outside dimensions.",
+          "sets": { "rarity": "uncommon", "itemType": "wondrous" }
+        },
+        {
+          "id": "portableHole",
+          "value": "**Portable Hole**",
+          "weight": 1,
+          "description": "A circle of black cloth that creates an extradimensional space when placed on a surface.",
+          "sets": { "rarity": "rare", "itemType": "wondrous" }
+        },
+        {
+          "id": "cloakOfInvisibility",
+          "value": "**Cloak of Invisibility**",
+          "weight": 0.5,
+          "description": "A legendary cloak that renders the wearer invisible.",
+          "sets": { "rarity": "legendary", "itemType": "wondrous" }
+        },
+        {
+          "id": "amuletOfProof",
+          "value": "**Amulet of Proof Against Detection**",
+          "weight": 2,
+          "description": "An amulet that hides the wearer from divination magic.",
+          "sets": { "rarity": "uncommon", "itemType": "wondrous" }
+        },
+        {
+          "id": "robeOfStars",
+          "value": "**Robe of Stars**",
+          "weight": 0.5,
+          "description": "A dark robe embroidered with stars that grants enhanced saving throws and can launch magic missiles.",
+          "sets": { "rarity": "very rare", "itemType": "wondrous" }
+        },
+        {
+          "id": "gauntletsOfOgrePower",
+          "value": "**Gauntlets of Ogre Power**",
+          "weight": 2,
+          "description": "Gauntlets that set the wearer's Strength score to 19.",
+          "sets": { "rarity": "uncommon", "itemType": "wondrous" }
+        },
+        {
+          "id": "beltOfGiantStrength",
+          "value": "**Belt of Hill Giant Strength**",
+          "weight": 1,
+          "description": "A belt that sets the wearer's Strength score to 21.",
+          "sets": { "rarity": "rare", "itemType": "wondrous" }
+        },
+        {
+          "id": "robeOfTheArchmagi",
+          "value": "**Robe of the Archmagi**",
+          "weight": 0.5,
+          "description": "A legendary robe providing enhanced AC, saving throws, and spell DC.",
+          "sets": { "rarity": "legendary", "itemType": "wondrous" }
+        }
+      ]
+    },
+    {
+      "id": "magicRings",
+      "name": "Magic Rings",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["treasure", "rings", "magic"],
+      "entries": [
+        {
+          "id": "ringOfProtection",
+          "value": "**Ring of Protection**",
+          "weight": 2,
+          "description": "A ring that provides a bonus to AC and saving throws.",
+          "sets": { "rarity": "rare", "itemType": "ring" }
+        },
+        {
+          "id": "ringOfInvisibility",
+          "value": "**Ring of Invisibility**",
+          "weight": 0.5,
+          "description": "A ring that grants invisibility at will.",
+          "sets": { "rarity": "legendary", "itemType": "ring" }
+        },
+        {
+          "id": "ringOfSpellStoring",
+          "value": "**Ring of Spell Storing**",
+          "weight": 1,
+          "description": "A ring that can hold up to 5 levels of spells for later casting.",
+          "sets": { "rarity": "rare", "itemType": "ring" }
+        },
+        {
+          "id": "ringOfRegeneration",
+          "value": "**Ring of Regeneration**",
+          "weight": 1,
+          "description": "A ring that slowly heals the wearer over time.",
+          "sets": { "rarity": "very rare", "itemType": "ring" }
+        },
+        {
+          "id": "ringOfTelekinesis",
+          "value": "**Ring of Telekinesis**",
+          "weight": 1,
+          "description": "A ring that allows the wearer to cast telekinesis at will.",
+          "sets": { "rarity": "very rare", "itemType": "ring" }
+        },
+        {
+          "id": "ringOfFeatherFalling",
+          "value": "**Ring of Feather Falling**",
+          "weight": 2,
+          "description": "A ring that slows falls, preventing falling damage.",
+          "sets": { "rarity": "rare", "itemType": "ring" }
+        },
+        {
+          "id": "ringOfWishes",
+          "value": "**Ring of Three Wishes**",
+          "weight": 0.25,
+          "description": "A legendary ring containing three _wish_ spells.",
+          "sets": { "rarity": "legendary", "itemType": "ring" }
+        },
+        {
+          "id": "ringOfElementalCommand",
+          "value": "**Ring of Elemental Command (Fire)**",
+          "weight": 0.5,
+          "description": "A ring granting power over fire elementals and fire resistance.",
+          "sets": { "rarity": "legendary", "itemType": "ring" }
+        }
+      ]
+    },
+    {
+      "id": "magicPotions",
+      "name": "Magic Potions",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["treasure", "potions", "magic", "consumable"],
+      "entries": [
+        {
+          "id": "potionOfHealing",
+          "value": "**Potion of Healing**",
+          "weight": 5,
+          "description": "A red potion that restores 2d4+2 hit points.",
+          "sets": { "rarity": "common", "itemType": "potion" }
+        },
+        {
+          "id": "potionOfGreaterHealing",
+          "value": "**Potion of Greater Healing**",
+          "weight": 3,
+          "description": "A red potion that restores 4d4+4 hit points.",
+          "sets": { "rarity": "uncommon", "itemType": "potion" }
+        },
+        {
+          "id": "potionOfInvisibility",
+          "value": "**Potion of Invisibility**",
+          "weight": 1.5,
+          "description": "A potion that renders the drinker invisible for 1 hour.",
+          "sets": { "rarity": "very rare", "itemType": "potion" }
+        },
+        {
+          "id": "potionOfFlying",
+          "value": "**Potion of Flying**",
+          "weight": 1.5,
+          "description": "A potion that grants a flying speed for 1 hour.",
+          "sets": { "rarity": "very rare", "itemType": "potion" }
+        },
+        {
+          "id": "potionOfSpeed",
+          "value": "**Potion of Speed**",
+          "weight": 1.5,
+          "description": "A potion that grants the effects of _haste_ for 1 minute.",
+          "sets": { "rarity": "very rare", "itemType": "potion" }
+        },
+        {
+          "id": "potionOfGiantStrength",
+          "value": "**Potion of Hill Giant Strength**",
+          "weight": 2,
+          "description": "A potion that raises Strength to 21 for 1 hour.",
+          "sets": { "rarity": "uncommon", "itemType": "potion" }
+        },
+        {
+          "id": "potionOfResistance",
+          "value": "**Potion of Fire Resistance**",
+          "weight": 2,
+          "description": "A potion granting resistance to fire damage for 1 hour.",
+          "sets": { "rarity": "uncommon", "itemType": "potion" }
+        },
+        {
+          "id": "potionOfHeroism",
+          "value": "**Potion of Heroism**",
+          "weight": 2,
+          "description": "A potion granting temporary hit points and the _bless_ effect for 1 hour.",
+          "sets": { "rarity": "rare", "itemType": "potion" }
+        }
+      ]
+    },
+    {
+      "id": "magicItems",
+      "name": "All Magic Items",
+      "type": "composite",
+      "resultType": "item",
+      "tags": ["treasure", "magic", "all"],
+      "description": "Selects from all categories of magic items with weighted distribution.",
+      "sources": [
+        { "tableId": "magicWeapons", "weight": 2 },
+        { "tableId": "magicArmor", "weight": 1.5 },
+        { "tableId": "wondrousItems", "weight": 3 },
+        { "tableId": "magicRings", "weight": 1 },
+        { "tableId": "magicPotions", "weight": 4 }
+      ]
+    },
+    {
+      "id": "monsters",
+      "name": "Monsters",
+      "type": "simple",
+      "resultType": "creature",
+      "tags": ["encounter", "monsters", "combat"],
+      "entries": [
+        {
+          "id": "goblins",
+          "value": "goblins",
+          "weight": 4,
+          "sets": { "size": "small", "type": "humanoid", "threat": "low", "singular": "goblin" }
+        },
+        {
+          "id": "orcs",
+          "value": "orcs",
+          "weight": 3,
+          "sets": { "size": "medium", "type": "humanoid", "threat": "medium", "singular": "orc" }
+        },
+        {
+          "id": "skeletons",
+          "value": "skeletons",
+          "weight": 3,
+          "sets": { "size": "medium", "type": "undead", "threat": "low", "singular": "skeleton" }
+        },
+        {
+          "id": "zombies",
+          "value": "zombies",
+          "weight": 2.5,
+          "sets": { "size": "medium", "type": "undead", "threat": "low", "singular": "zombie" }
+        },
+        {
+          "id": "wolves",
+          "value": "dire wolves",
+          "weight": 2,
+          "sets": { "size": "large", "type": "beast", "threat": "medium", "singular": "dire wolf" }
+        },
+        {
+          "id": "gnolls",
+          "value": "gnolls",
+          "weight": 2,
+          "sets": { "size": "medium", "type": "humanoid", "threat": "medium", "singular": "gnoll" }
+        },
+        {
+          "id": "bugbears",
+          "value": "bugbears",
+          "weight": 1.5,
+          "sets": { "size": "medium", "type": "humanoid", "threat": "medium", "singular": "bugbear" }
+        },
+        {
+          "id": "ogres",
+          "value": "ogres",
+          "weight": 1,
+          "sets": { "size": "large", "type": "giant", "threat": "high", "singular": "ogre" }
+        },
+        {
+          "id": "trolls",
+          "value": "trolls",
+          "weight": 0.75,
+          "sets": { "size": "large", "type": "giant", "threat": "high", "singular": "troll" }
+        },
+        {
+          "id": "ghouls",
+          "value": "ghouls",
+          "weight": 1.5,
+          "sets": { "size": "medium", "type": "undead", "threat": "medium", "singular": "ghoul" }
+        },
+        {
+          "id": "wights",
+          "value": "wights",
+          "weight": 1,
+          "sets": { "size": "medium", "type": "undead", "threat": "high", "singular": "wight" }
+        },
+        {
+          "id": "hobgoblins",
+          "value": "hobgoblins",
+          "weight": 2,
+          "sets": { "size": "medium", "type": "humanoid", "threat": "medium", "singular": "hobgoblin" }
+        },
+        {
+          "id": "bandits",
+          "value": "bandits",
+          "weight": 3,
+          "sets": { "size": "medium", "type": "humanoid", "threat": "low", "singular": "bandit" }
+        },
+        {
+          "id": "cultists",
+          "value": "cultists",
+          "weight": 2,
+          "sets": { "size": "medium", "type": "humanoid", "threat": "low", "singular": "cultist" }
+        },
+        {
+          "id": "elementals",
+          "value": "fire elementals",
+          "weight": 0.5,
+          "sets": { "size": "large", "type": "elemental", "threat": "high", "singular": "fire elemental" }
+        }
+      ]
+    },
+    {
+      "id": "environmentalHazards",
+      "name": "Environmental Hazards",
+      "type": "simple",
+      "resultType": "environment",
+      "tags": ["encounter", "hazards", "environment"],
+      "entries": [
+        {
+          "id": "difficultTerrain",
+          "value": "difficult terrain (rubble and debris) that hampers movement",
+          "weight": 3,
+          "sets": { "hazardType": "terrain", "severity": "minor" }
+        },
+        {
+          "id": "pitTrap",
+          "value": "a concealed pit trap in the center of the area",
+          "weight": 2,
+          "sets": { "hazardType": "trap", "severity": "moderate" }
+        },
+        {
+          "id": "poisonGas",
+          "value": "pockets of poisonous gas seeping from cracks in the ground",
+          "weight": 1,
+          "sets": { "hazardType": "environmental", "severity": "severe" }
+        },
+        {
+          "id": "unstableFloor",
+          "value": "an unstable floor that threatens to collapse",
+          "weight": 1.5,
+          "sets": { "hazardType": "structural", "severity": "moderate" }
+        },
+        {
+          "id": "magicalDarkness",
+          "value": "an area of magical darkness that normal light cannot penetrate",
+          "weight": 1,
+          "sets": { "hazardType": "magical", "severity": "moderate" }
+        },
+        {
+          "id": "flashFlood",
+          "value": "a flash flood that periodically surges through the area",
+          "weight": 0.75,
+          "sets": { "hazardType": "environmental", "severity": "severe" }
+        },
+        {
+          "id": "thornedVines",
+          "value": "thorned vines that grasp at anyone who moves through them",
+          "weight": 2,
+          "sets": { "hazardType": "terrain", "severity": "minor" }
+        },
+        {
+          "id": "fallingRocks",
+          "value": "unstable rocks that periodically fall from above",
+          "weight": 1.5,
+          "sets": { "hazardType": "environmental", "severity": "moderate" }
+        },
+        {
+          "id": "slipperyIce",
+          "value": "a layer of slippery ice covering the ground",
+          "weight": 1.5,
+          "sets": { "hazardType": "terrain", "severity": "minor" }
+        },
+        {
+          "id": "arcaneWard",
+          "value": "an arcane ward that triggers a spell effect when crossed",
+          "weight": 1,
+          "sets": { "hazardType": "magical", "severity": "moderate" }
+        },
+        {
+          "id": "fireJets",
+          "value": "jets of flame that periodically erupt from the walls",
+          "weight": 1,
+          "sets": { "hazardType": "trap", "severity": "severe" }
+        },
+        {
+          "id": "webs",
+          "value": "thick webs that restrain creatures who enter them",
+          "weight": 2,
+          "sets": { "hazardType": "terrain", "severity": "moderate" }
+        }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "npc",
+      "name": "NPC Generator",
+      "resultType": "npc",
+      "tags": ["npc", "character", "generator"],
+      "description": "Generates a random NPC with name, race, gender, and age appropriate to their race.",
+      "shared": {
+        "$gender": "{{gender}}",
+        "$race": "{{race}}",
+        "$firstName": "{{switch[$race==\"Human\" && $gender==\"male\":{{humanMaleNames}}].switch[$race==\"Human\" && $gender==\"female\":{{humanFemaleNames}}].switch[$race==\"Elf\" && $gender==\"male\":{{elfMaleNames}}].switch[$race==\"Elf\" && $gender==\"female\":{{elfFemaleNames}}].switch[$race==\"Dwarf\" && $gender==\"male\":{{dwarfMaleNames}}].switch[$race==\"Dwarf\" && $gender==\"female\":{{dwarfFemaleNames}}].switch[$race==\"Halfling\" && $gender==\"male\":{{halflingMaleNames}}].else[{{halflingFemaleNames}}]}}",
+        "$surname": "{{switch[$race==\"Human\":{{humanSurnames}}].switch[$race==\"Elf\":{{elfSurnames}}].switch[$race==\"Dwarf\":{{dwarfSurnames}}].else[{{halflingSurnames}}]}}",
+        "$age": "{{switch[$race==\"Human\":{{dice:1d60+18}}].switch[$race==\"Elf\":{{dice:1d400+100}}].switch[$race==\"Dwarf\":{{dice:1d200+50}}].else[{{dice:1d80+20}}]}}"
+      },
+      "pattern": "## {{$firstName}} {{$surname}}\n\n**Race:** {{$race}}  \n**Gender:** {{$gender}}  \n**Age:** {{$age}} years old"
+    },
+    {
+      "id": "treasure",
+      "name": "Treasure Generator",
+      "resultType": "loot",
+      "tags": ["treasure", "loot", "magic items", "generator"],
+      "description": "Generates a random magic item with its description and rarity.",
+      "shared": {
+        "$item": "{{magicItems}}"
+      },
+      "pattern": "## Treasure Found\n\nYou discover {{$item}}.\n\n_{{$item.@description}}_\n\n**Rarity:** {{switch[$item.@rarity==\"common\":\"Common\"].switch[$item.@rarity==\"uncommon\":\"Uncommon\"].switch[$item.@rarity==\"rare\":\"Rare\"].switch[$item.@rarity==\"very rare\":\"Very Rare\"].else[\"Legendary\"]}}"
+    },
+    {
+      "id": "monsterEncounter",
+      "name": "Monster Encounter",
+      "resultType": "encounter",
+      "tags": ["encounter", "monsters", "combat", "generator"],
+      "description": "Generates a monster encounter with a group of creatures and an environmental hazard.",
+      "shared": {
+        "$monsterCount": "{{dice:1d4+1}}",
+        "$monsterType": "{{monsters}}",
+        "$hazard": "{{environmentalHazards}}"
+      },
+      "pattern": "## Monster Encounter\n\n**Enemies:** {{$monsterCount}} {{$monsterType}}\n\n**Threat Level:** {{switch[@threat==\"low\":\"Low\"].switch[@threat==\"medium\":\"Medium\"].else[\"High\"]}}\n\n**Creature Type:** {{@type}}\n\n---\n\n**Environmental Hazard:** The area contains {{$hazard}}.\n\n**Hazard Severity:** {{switch[@severity==\"minor\":\"Minor\"].switch[@severity==\"moderate\":\"Moderate\"].else[\"Severe\"]}}"
+    }
+  ]
+}

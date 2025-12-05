@@ -55,10 +55,10 @@ function getExpressionLabel(type: ExpressionType): string {
   return labels[type]
 }
 
-// Unique marker for expression boundaries - use HTML-safe markers
-const EXPR_START = '\u2060\u200B' // Word joiner + zero-width space
-const EXPR_END = '\u200B\u2060'
-const EXPR_SEP = '\u200D' // Zero-width joiner
+// Unique marker for expression boundaries - use only zero-width characters
+// No visible index numbers to avoid display issues when markdown splits text
+const EXPR_START = '\u2060\u200B\u200D' // Word joiner + zero-width space + zero-width joiner
+const EXPR_END = '\u200D\u200B\u2060' // Zero-width joiner + zero-width space + word joiner
 
 interface ExpressionInfo {
   text: string
@@ -80,14 +80,13 @@ function buildMarkedText(segments: EvaluatedSegment[]): {
     if (segment.type === 'literal') {
       text += segment.text
     } else {
-      // Mark expression with unique markers and index
-      const idx = expressions.length
+      // Mark expression with unique markers (no visible index)
       expressions.push({
         text: segment.text,
         type: segment.expressionType || 'unknown',
         original: segment.originalExpression || '',
       })
-      text += `${EXPR_START}${idx}${EXPR_SEP}${segment.text}${EXPR_END}`
+      text += `${EXPR_START}${segment.text}${EXPR_END}`
     }
   }
 
@@ -95,12 +94,15 @@ function buildMarkedText(segments: EvaluatedSegment[]): {
 }
 
 /**
- * Parse text nodes to find and highlight expression markers
+ * Parse text nodes to find and highlight expression markers.
+ * Uses a counter object to track expression index across multiple text nodes
+ * (since markdown can split an expression across multiple elements).
  */
 function parseTextWithExpressions(
   text: string,
   expressions: ExpressionInfo[],
-  keyPrefix: string
+  keyPrefix: string,
+  exprCounter: { current: number } = { current: 0 }
 ): ReactNode[] {
   const parts: ReactNode[] = []
   let remaining = text
@@ -108,9 +110,10 @@ function parseTextWithExpressions(
 
   while (remaining.length > 0) {
     const startIdx = remaining.indexOf(EXPR_START)
+    const endIdx = remaining.indexOf(EXPR_END)
 
-    if (startIdx === -1) {
-      // No more markers, add remaining text
+    // Case 1: No markers at all - just text
+    if (startIdx === -1 && endIdx === -1) {
       if (remaining) {
         parts.push(
           <span key={`${keyPrefix}-text-${keyIndex++}`}>{remaining}</span>
@@ -119,78 +122,120 @@ function parseTextWithExpressions(
       break
     }
 
-    // Add text before the marker
+    // Case 2: Only end marker (continuation from previous element due to markdown split)
+    if (startIdx === -1 || (endIdx !== -1 && endIdx < startIdx)) {
+      // Text before end marker is part of current expression
+      const exprText = remaining.slice(0, endIdx)
+      if (exprText) {
+        const exprIdx = exprCounter.current
+        if (expressions[exprIdx]) {
+          const expr = expressions[exprIdx]
+          const classes = getExpressionClasses(expr.type)
+          const label = getExpressionLabel(expr.type)
+          const tooltip = expr.original ? `${label}: ${expr.original}` : label
+
+          parts.push(
+            <span key={`${keyPrefix}-expr-${keyIndex++}`} className={classes} title={tooltip}>
+              {exprText}
+            </span>
+          )
+        } else {
+          parts.push(
+            <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
+          )
+        }
+      }
+      exprCounter.current++
+      remaining = remaining.slice(endIdx + EXPR_END.length)
+      continue
+    }
+
+    // Case 3: Start marker found - add text before it
     if (startIdx > 0) {
       parts.push(
         <span key={`${keyPrefix}-text-${keyIndex++}`}>
           {remaining.slice(0, startIdx)}
         </span>
       )
+      remaining = remaining.slice(startIdx)
+      continue
     }
 
-    // Find the separator and end marker
-    const sepIdx = remaining.indexOf(EXPR_SEP, startIdx)
-    const endIdx = remaining.indexOf(EXPR_END, sepIdx)
+    // Case 4: Start marker at beginning
+    // Check if end marker is also in this text
+    const contentStart = EXPR_START.length
+    const localEndIdx = remaining.indexOf(EXPR_END, contentStart)
 
-    if (sepIdx === -1 || endIdx === -1) {
-      // Malformed marker, add rest as text
-      parts.push(
-        <span key={`${keyPrefix}-text-${keyIndex++}`}>
-          {remaining.slice(startIdx)}
-        </span>
-      )
+    if (localEndIdx !== -1) {
+      // Complete expression in this text node
+      const exprText = remaining.slice(contentStart, localEndIdx)
+      const exprIdx = exprCounter.current
+
+      if (expressions[exprIdx]) {
+        const expr = expressions[exprIdx]
+        const classes = getExpressionClasses(expr.type)
+        const label = getExpressionLabel(expr.type)
+        const tooltip = expr.original ? `${label}: ${expr.original}` : label
+
+        parts.push(
+          <span key={`${keyPrefix}-expr-${keyIndex++}`} className={classes} title={tooltip}>
+            {exprText}
+          </span>
+        )
+      } else {
+        parts.push(
+          <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
+        )
+      }
+
+      exprCounter.current++
+      remaining = remaining.slice(localEndIdx + EXPR_END.length)
+    } else {
+      // Start marker but no end marker - expression continues in next element
+      const exprText = remaining.slice(contentStart)
+      const exprIdx = exprCounter.current
+
+      if (exprText && expressions[exprIdx]) {
+        const expr = expressions[exprIdx]
+        const classes = getExpressionClasses(expr.type)
+        const label = getExpressionLabel(expr.type)
+        const tooltip = expr.original ? `${label}: ${expr.original}` : label
+
+        parts.push(
+          <span key={`${keyPrefix}-expr-${keyIndex++}`} className={classes} title={tooltip}>
+            {exprText}
+          </span>
+        )
+      } else if (exprText) {
+        parts.push(
+          <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
+        )
+      }
       break
     }
-
-    // Extract expression index and text
-    const exprIdxStr = remaining.slice(startIdx + EXPR_START.length, sepIdx)
-    const exprIdx = parseInt(exprIdxStr, 10)
-    const exprText = remaining.slice(sepIdx + EXPR_SEP.length, endIdx)
-
-    if (!isNaN(exprIdx) && expressions[exprIdx]) {
-      const expr = expressions[exprIdx]
-      const classes = getExpressionClasses(expr.type)
-      const label = getExpressionLabel(expr.type)
-      const tooltip = expr.original ? `${label}: ${expr.original}` : label
-
-      parts.push(
-        <span
-          key={`${keyPrefix}-expr-${keyIndex++}`}
-          className={classes}
-          title={tooltip}
-        >
-          {exprText}
-        </span>
-      )
-    } else {
-      // Fallback: just show the text
-      parts.push(
-        <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
-      )
-    }
-
-    remaining = remaining.slice(endIdx + EXPR_END.length)
   }
 
   return parts
 }
 
 /**
- * Process children recursively to handle expression markers
+ * Process children recursively to handle expression markers.
+ * Shares an expression counter across all children to handle markdown splits.
  */
 function processChildren(
   children: ReactNode,
   expressions: ExpressionInfo[],
-  keyPrefix: string
+  keyPrefix: string,
+  exprCounter: { current: number } = { current: 0 }
 ): ReactNode {
   if (typeof children === 'string') {
-    const parsed = parseTextWithExpressions(children, expressions, keyPrefix)
+    const parsed = parseTextWithExpressions(children, expressions, keyPrefix, exprCounter)
     return parsed.length === 1 ? parsed[0] : <>{parsed}</>
   }
 
   if (Array.isArray(children)) {
     return children.map((child, idx) =>
-      processChildren(child, expressions, `${keyPrefix}-${idx}`)
+      processChildren(child, expressions, `${keyPrefix}-${idx}`, exprCounter)
     )
   }
 
@@ -319,9 +364,9 @@ export const InlineResult = memo(function InlineResult({
             code: ({ className: codeClassName, children, ...props }) => {
               let content =
                 typeof children === 'string' ? children : String(children ?? '')
-              // Strip expression markers from code
+              // Strip expression markers from code (just the zero-width characters)
               const markerRegex = new RegExp(
-                `${EXPR_START}\\d+${EXPR_SEP}([^${EXPR_END[0]}]*)${EXPR_END}`,
+                `${EXPR_START}([\\s\\S]*?)${EXPR_END}`,
                 'g'
               )
               content = content.replace(markerRegex, '$1')

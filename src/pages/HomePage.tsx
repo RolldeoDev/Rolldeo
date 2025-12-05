@@ -2,10 +2,10 @@ import { useState, useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Dices, Library, PenSquare, Sparkles, Wifi, Clock, ArrowRight, Scale, BookOpen } from 'lucide-react'
 import { DropZone, ImportDialog } from '../components/upload'
+import { QuickRoll } from '../components/home'
 import { useCollectionStore } from '../stores/collectionStore'
 import { generateUniqueId } from '../services/import'
 import type { ImportResult, ImportedCollection } from '../services/import'
-import rollifyLogo from '@/assets/rollifyLogo.png'
 
 const quickActions = [
   {
@@ -164,28 +164,21 @@ export function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero Section */}
-      <section className="text-center space-y-6 py-8">
-        <div className="flex justify-center animate-fade-in">
-          <img
-            src={rollifyLogo}
-            alt="Rolldeo logo"
-            className="h-24 w-24 sm:h-32 sm:w-32 rounded-2xl shadow-lg shadow-primary/20"
-          />
-        </div>
+      <section className="text-center space-y-4 py-4">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium animate-fade-in">
           <Sparkles className="h-4 w-4" />
           Random Table Engine
         </div>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight animate-slide-up">
-          Find the Perfect
-          <br />
-          <span className="gradient-text">Random Roll</span>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight animate-slide-up">
+          Find the Perfect <span className="gradient-text">Random Roll</span>
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-slide-up stagger-1">
-          An offline first, open source, CC0 application built with the intent to share your tables with fellow GMs. 
-          Download once, use forever!
+        <p className="text-muted-foreground max-w-2xl mx-auto animate-slide-up stagger-1">
+          An offline-first, open source, CC0 application built with the intent to share your tables with fellow GMs.
         </p>
       </section>
+
+      {/* Quick Roll Section */}
+      <QuickRoll />
 
       {/* Quick Actions - Card Grid */}
       <section className="grid gap-4 md:grid-cols-3">

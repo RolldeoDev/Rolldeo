@@ -97,6 +97,11 @@ export function useCollections(options: UseCollectionsOptions = {}): UseCollecti
   // Filter collections based on search, tags, and namespace
   const filteredCollections = useMemo(() => {
     return allCollections.filter((c) => {
+      // Hide collections marked as hiddenFromUI
+      if (c.hiddenFromUI) {
+        return false
+      }
+
       // Namespace filter
       if (effectiveNamespaceFilter) {
         const prefix = parseNamespace(c.namespace, effectiveNamespaceDepth)
