@@ -3054,6 +3054,353 @@ describe('Switch Expressions', () => {
       const result = engine.rollTemplate('greeting', 'test')
       expect(result.text).toBe('mischievous - Beware!')
     })
+
+    it('should capture full table result with sets when switch result is a table reference', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'wizardTable',
+            name: 'Wizard',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Wizard',
+                sets: { spell: 'Fireball', weapon: 'Staff' },
+              },
+            ],
+          },
+          {
+            id: 'warriorTable',
+            name: 'Warrior',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Warrior',
+                sets: { skill: 'Sword Strike', weapon: 'Sword' },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'character',
+            name: 'Character',
+            shared: {
+              class: 'wizard',
+              // This switch should capture the full table result including sets
+              '$chosen': '{{switch[$class=="wizard":wizardTable].else[warriorTable]}}',
+            },
+            pattern: 'Class: {{$chosen}}, Weapon: {{$chosen.@weapon}}, Special: {{$chosen.@spell}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('character', 'test')
+      // Should access @weapon and @spell from the captured table's sets
+      expect(result.text).toBe('Class: Wizard, Weapon: Staff, Special: Fireball')
+    })
+
+    it('should capture full table result when switch result is a table (else branch)', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'wizardTable',
+            name: 'Wizard',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Wizard',
+                sets: { spell: 'Fireball', weapon: 'Staff' },
+              },
+            ],
+          },
+          {
+            id: 'warriorTable',
+            name: 'Warrior',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Warrior',
+                sets: { skill: 'Sword Strike', weapon: 'Sword' },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'character',
+            name: 'Character',
+            shared: {
+              class: 'warrior',
+              // This should fall through to else and capture the full warriorTable result
+              '$chosen': '{{switch[$class=="wizard":wizardTable].else[warriorTable]}}',
+            },
+            pattern: 'Class: {{$chosen}}, Weapon: {{$chosen.@weapon}}, Special: {{$chosen.@skill}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('character', 'test')
+      // Should access @weapon and @skill from the captured table's sets
+      expect(result.text).toBe('Class: Warrior, Weapon: Sword, Special: Sword Strike')
+    })
+
+    it('should capture full table result when switch uses wrapped {{table}} syntax', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'maleHairStyle',
+            name: 'Male Hair',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Short',
+                sets: { hairStyleDesc: 'Cropped short', hairColor: 'brown' },
+              },
+            ],
+          },
+          {
+            id: 'femaleHairStyle',
+            name: 'Female Hair',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Long',
+                sets: { hairStyleDesc: 'Flowing long locks', hairColor: 'blonde' },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'character',
+            name: 'Character',
+            shared: {
+              gender: 'male',
+              // Using wrapped {{table}} syntax in switch results
+              '$hairStyle': '{{switch[$gender=="male":{{maleHairStyle}}].else[{{femaleHairStyle}}]}}',
+            },
+            pattern: 'Hair: {{$hairStyle}}, Description: {{$hairStyle.@hairStyleDesc}}, Color: {{$hairStyle.@hairColor}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('character', 'test')
+      // Should access @hairStyleDesc and @hairColor from the captured table's sets
+      expect(result.text).toBe('Hair: Short, Description: Cropped short, Color: brown')
+    })
+
+    it('should capture full table result when switch uses wrapped {{table}} syntax (else branch)', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'maleHairStyle',
+            name: 'Male Hair',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Short',
+                sets: { hairStyleDesc: 'Cropped short', hairColor: 'brown' },
+              },
+            ],
+          },
+          {
+            id: 'femaleHairStyle',
+            name: 'Female Hair',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Long',
+                sets: { hairStyleDesc: 'Flowing long locks', hairColor: 'blonde' },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'character',
+            name: 'Character',
+            shared: {
+              gender: 'female',
+              // Using wrapped {{table}} syntax in switch results, should fall through to else
+              '$hairStyle': '{{switch[$gender=="male":{{maleHairStyle}}].else[{{femaleHairStyle}}]}}',
+            },
+            pattern: 'Hair: {{$hairStyle}}, Description: {{$hairStyle.@hairStyleDesc}}, Color: {{$hairStyle.@hairColor}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('character', 'test')
+      // Should access @hairStyleDesc and @hairColor from the captured table's sets
+      expect(result.text).toBe('Hair: Long, Description: Flowing long locks, Color: blonde')
+    })
+  })
+
+  describe('template variable capture', () => {
+    it('should capture template shared variables for property access', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'npcComplete',
+            name: 'NPC Complete',
+            shared: {
+              profession: 'Blacksmith',
+              age: '45',
+              hometown: 'Riverdale',
+            },
+            pattern: 'A {{$age}} year old {{$profession}} from {{$hometown}}',
+          },
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$npc': '{{npcComplete}}',
+            },
+            pattern: 'NPC: {{$npc}}, Profession: {{$npc.@profession}}, Age: {{$npc.@age}}, Hometown: {{$npc.@hometown}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      // Should access shared variables from the captured template
+      expect(result.text).toBe('NPC: A 45 year old Blacksmith from Riverdale, Profession: Blacksmith, Age: 45, Hometown: Riverdale')
+    })
+
+    it('should capture template with capture-aware shared variables', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [
+          {
+            id: 'race',
+            name: 'Race',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Elf',
+                sets: { bonus: 'Dexterity', penalty: 'Constitution' },
+              },
+            ],
+          },
+        ],
+        templates: [
+          {
+            id: 'character',
+            name: 'Character',
+            shared: {
+              name: 'Legolas',
+              '$race': '{{race}}',
+            },
+            pattern: '{{$name}} the {{$race}}',
+          },
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              '$npc': '{{character}}',
+            },
+            pattern: 'Character: {{$npc}}, Name: {{$npc.@name}}, Race: {{$npc.@race}}, Bonus: {{$npc.@race.@bonus}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      // Should access nested capture-aware shared variables
+      expect(result.text).toBe('Character: Legolas the Elf, Name: Legolas, Race: Elf, Bonus: Dexterity')
+    })
+
+    it('should work with switch expressions that resolve to templates', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'wizardNpc',
+            name: 'Wizard NPC',
+            shared: {
+              profession: 'Wizard',
+              power: 'Arcane Magic',
+            },
+            pattern: 'A {{$profession}} wielding {{$power}}',
+          },
+          {
+            id: 'warriorNpc',
+            name: 'Warrior NPC',
+            shared: {
+              profession: 'Warrior',
+              power: 'Brute Strength',
+            },
+            pattern: 'A {{$profession}} wielding {{$power}}',
+          },
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              class: 'wizard',
+              '$npc': '{{switch[$class=="wizard":{{wizardNpc}}].else[{{warriorNpc}}]}}',
+            },
+            pattern: 'Character: {{$npc}}, Profession: {{$npc.@profession}}, Power: {{$npc.@power}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      // Should access shared variables from the template resolved by switch
+      expect(result.text).toBe('Character: A Wizard wielding Arcane Magic, Profession: Wizard, Power: Arcane Magic')
+    })
+
+    it('should work with switch else branch resolving to templates', () => {
+      const engine = new RandomTableEngine()
+      const doc: RandomTableDocument = {
+        metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+        tables: [],
+        templates: [
+          {
+            id: 'wizardNpc',
+            name: 'Wizard NPC',
+            shared: {
+              profession: 'Wizard',
+              power: 'Arcane Magic',
+            },
+            pattern: 'A {{$profession}} wielding {{$power}}',
+          },
+          {
+            id: 'warriorNpc',
+            name: 'Warrior NPC',
+            shared: {
+              profession: 'Warrior',
+              power: 'Brute Strength',
+            },
+            pattern: 'A {{$profession}} wielding {{$power}}',
+          },
+          {
+            id: 'test',
+            name: 'Test',
+            shared: {
+              class: 'warrior',
+              '$npc': '{{switch[$class=="wizard":{{wizardNpc}}].else[{{warriorNpc}}]}}',
+            },
+            pattern: 'Character: {{$npc}}, Profession: {{$npc.@profession}}, Power: {{$npc.@power}}',
+          },
+        ],
+      }
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+      // Should access shared variables from the template resolved by switch else
+      expect(result.text).toBe('Character: A Warrior wielding Brute Strength, Profession: Warrior, Power: Brute Strength')
+    })
   })
 })
 

@@ -1,0 +1,1301 @@
+# PDF-to-Rolldeo JSON Random Table Extraction Pipeline
+# Version: 1.0
+# Purpose: LLM-driven extraction of random tables from TTRPG PDFs into Rolldeo JSON format
+#
+# IMPORTANT: This file covers EXTRACTION STRATEGY only.
+# For OUTPUT FORMAT (JSON structure, types, syntax), see: docs/random-table-spec-llm.yaml
+
+meta:
+  version: "1.0"
+  purpose: "Extraction strategy and workflow for PDF-to-JSON conversion"
+
+  # AUTHORITATIVE SPEC REFERENCE - consult for all structure questions
+  spec_reference:
+    file: "docs/random-table-spec-llm.yaml"
+    use_for:
+      - "Table type selection (simple/composite/collection)"
+      - "Entry format (value, weight, range, sets)"
+      - "Template syntax ({{tableId}}, {{dice:XdY}}, etc.)"
+      - "Metadata requirements"
+      - "Validation rules"
+
+  schema_validation: "https://rolldeo.com/schemas/random-table-spec-v1.0.json"
+  example_files:
+    - "docs/examples/sineNomine/sineNomine.swn.worldTags.json"
+    - "docs/examples/fantasyExample/Monsters.json"
+    - "docs/examples/sineNomine/sineNomine.swn.names.json"
+
+# =============================================================================
+# ARCHITECTURE
+# =============================================================================
+architecture:
+  principles:
+    - "Never load full JSON into context - build table-by-table, assemble programmatically"
+    - "Small chunks, many passes - prefer 10 fast calls over 1 slow call"
+    - "Manifest-driven processing - create indexes first, extract second"
+    - "Fail gracefully - mark uncertain extractions for human review"
+    - "Stateless operations - each LLM call is self-contained"
+
+  token_economy:
+    page_classification: {max_pages: 5, rationale: "Minimal processing, fast"}
+    table_boundary_detection: {max_pages: 8, rationale: "Needs context for headers"}
+    table_extraction: {max_pages: "variable", rationale: "Depends on table type"}
+    definition_matching: {max_pages: 3, rationale: "Focused, targeted extraction"}
+
+  file_naming:
+    convention: "[publisher].[sourcebook].[contents].json"
+    examples:
+      - "koboldPress.tomeOfBeasts.oozes.json"
+      - "sineNomine.swn.worldTags.json"
+      - "wizardsOfTheCoast.monsterManual.dragons.json"
+
+# =============================================================================
+# FILE STRUCTURE
+# =============================================================================
+file_structure:
+  input:
+    source_pdf: "Original PDF"
+    source_txt: "Extracted text (page-delimited)"
+    books_dir: "Additional PDFs for batch processing"
+  config:
+    spec_file: "random-table-spec-llm.yaml"
+    examples_dir: "Reference Rolldeo JSON files"
+  working:
+    per_book:
+      - "summary.json (Phase 0 output)"
+      - "page_classification.json (Phase 1 output)"
+      - "manifest.json (Phase 2 output)"
+      - "tables/ (Phase 3 outputs, one file per table)"
+      - "review_queue.json (Tables needing human review)"
+  output: "{publisher}.{sourcebook}.{contents}.json"
+  logs: "{book_id}_processing.log"
+
+# =============================================================================
+# PHASE 0: BOOK ANALYSIS
+# =============================================================================
+phase_0:
+  name: "Book Analysis & Summary Generation"
+  purpose: "Create persistent context summary for subsequent processing"
+
+  input:
+    pages: "First 10-15 pages"
+    optional: "Table of contents if present"
+
+  output_schema:
+    book_id: "string"
+    title: "string"
+    publisher: "string"
+    system: "string (D&D 5e, OSR, Pathfinder 2e, System-agnostic, etc.)"
+    genre: ["string"]
+    table_terminology: ["string (Oracle, Generator, Roll Table, etc.)"]
+    tone_keywords: ["string (3-5 adjectives)"]
+    structural_notes: "string"
+    generated_at: "ISO8601"
+    rolldeo_metadata:
+      namespace: "publisher.sourcebook (camelCase)"
+      suggested_tags: ["string"]
+      source_info:
+        book: "string"
+        publisher: "string"
+        license: "OGL 1.0a | CC BY 4.0 | CC0 | Original"
+
+  prompt: |
+    Analyze this TTRPG book introduction. Extract:
+    1. **Title**: The book's full title
+    2. **Publisher**: Publishing company or author
+    3. **System**: Game system (D&D 5e, OSR/B/X, Pathfinder 2e, System-agnostic, Custom)
+    4. **Genre**: Primary genres as array (e.g., ["fantasy", "horror"])
+    5. **Table Terminology**: Words used for random tables (Oracle, Generator, Roll Table, Spark Table)
+    6. **Tone Keywords**: 3-5 adjectives (grimdark, whimsical, procedural, deadly)
+    7. **Structural Notes**: How the book organizes content
+
+    Output as JSON.
+
+    PAGES:
+    ---
+    {page_content}
+    ---
+
+  token_budget:
+    input: 8000
+    output: 300
+    total_per_book: 8500
+
+# =============================================================================
+# PHASE 1: PAGE CLASSIFICATION
+# =============================================================================
+phase_1:
+  name: "Page Classification"
+  purpose: "Create lightweight map identifying where table content exists"
+  parallelizable: true
+
+  input:
+    source: "Full extracted text in 5-page chunks"
+    context: "Book summary from Phase 0"
+
+  classification_codes:
+    T: "Table - contains rollable table structure"
+    D: "Definition - descriptions/definitions for table entries"
+    M: "Mixed - both table and definitions"
+    R: "Rules - mechanics only, no table content"
+    N: "Narrative - fiction, flavor text, examples"
+    X: "Other - front matter, index, character sheets"
+
+  output_schema:
+    book_id: "string"
+    total_pages: "integer"
+    classification:
+      "{page_number}":
+        code: "T|D|M|R|N|X"
+        reason: "string (brief)"
+    summary:
+      T: ["page numbers"]
+      D: ["page numbers"]
+      M: ["page numbers"]
+      R: ["page numbers"]
+      N: ["page numbers"]
+      X: ["page numbers"]
+
+  prompt: |
+    You are classifying TTRPG book pages for table extraction.
+
+    Book context:
+    - Title: {title}
+    - System: {system}
+    - Table terminology: {table_terminology}
+    - Tone: {tone_keywords}
+
+    Classify each page using ONLY these codes:
+    - T = Contains rollable table (dice notation like d4, d6, d20, d100, or numbered list for random selection)
+    - D = Contains descriptions/definitions that expand on table entries
+    - M = Mixed (both table structure AND substantial descriptions)
+    - R = Rules, mechanics, procedures (no random table content)
+    - N = Narrative, fiction, flavor text, examples of play
+    - X = Other (title page, credits, index, character sheet, blank, art-only)
+
+    GUIDELINES:
+    - "d20" or "roll 1d6" strongly suggests T or M
+    - Numbered entries (1-20) without descriptions = T
+    - Sequential paragraphs explaining list items = D
+    - When uncertain between T and D, choose D
+    - Brief 1-sentence results ARE part of T, not D
+
+    Output format (one line per page):
+    PAGE {number}: {code} | {brief_reason_max_10_words}
+
+    PAGES {start_page}-{end_page}:
+    ---
+    {page_content}
+    ---
+
+  token_budget:
+    input_per_chunk: 4500
+    output_per_chunk: 150
+    total_320_pages: 292500
+
+# =============================================================================
+# PHASE 2: MANIFEST CREATION
+# =============================================================================
+phase_2:
+  name: "Table Boundary Detection & Manifest Creation"
+  purpose: "Identify distinct tables and their page boundaries"
+
+  table_type_detection:
+    single_column:
+      indicators:
+        - "Single dice notation (d20, 1d6)"
+        - "Sequential numbered entries in one column"
+        - "No column headers beyond dice/result"
+      typical_span: "1-2 pages"
+      rolldeo_type: "simple"
+
+    multi_column:
+      indicators:
+        - "Multiple dice notations or column headers"
+        - "Parallel numbered entries"
+        - "Headers like 'Forest | Desert | Mountain'"
+      typical_span: "1-3 pages"
+      rolldeo_type: "composite or collection + hidden simple tables"
+
+    parent_child:
+      indicators:
+        - "Table followed by pages classified as 'D'"
+        - "Entries reference things defined later"
+        - "Headers like 'Roll result, then see description below'"
+      typical_span: "2-20+ pages"
+      rolldeo_type: "simple with sets referencing hidden child tables"
+
+  rolldeo_type_mapping:
+    single_list_with_dice: {type: "simple", notes: "Most common - flat list of entries"}
+    multi_column_same_dice: {type: "multiple simple + composite/collection", notes: "Split into separate tables"}
+    parent_with_child_subtables: {type: "simple with sets", notes: "See categorized_generator pattern in spec"}
+    tiered_weighted_selection: {type: "composite", notes: "Weighted selection between tables"}
+    merged_lists: {type: "collection", notes: "Flattens multiple tables into one pool"}
+
+  output_schema:
+    book_id: "string"
+    tables:
+      - table_id: "001"
+        name: "string"
+        rolldeo_id: "camelCase"
+        dice_type: "d4|d6|d8|d10|d12|d20|d100|choice"
+        source_table_type: "single_column|multi_column|parent_child"
+        rolldeo_type: "simple|composite|collection"
+        pages:
+          table_start: "integer"
+          table_end: "integer"
+          definition_start: "integer|null"
+          definition_end: "integer|null"
+        entry_count_estimate: "integer"
+        has_descriptions: "boolean"
+        has_sets: "boolean"
+        hidden: "boolean"
+        child_tables: ["tableId"] # for parent_child
+        extraction_strategy: "simple|split_columns|skeleton_first"
+        confidence: "high|medium|low"
+    statistics:
+      total_tables: "integer"
+      by_source_type: {single_column: 0, multi_column: 0, parent_child: 0}
+      by_rolldeo_type: {simple: 0, composite: 0, collection: 0}
+      low_confidence_count: "integer"
+
+  prompt_small_region: |
+    Identify all distinct rollable tables in these pages.
+    For each table provide:
+    - name (as it appears in the text)
+    - dice_type (d4, d6, d8, d10, d12, d20, d100, or 'choice')
+    - table_type (single_column, multi_column, parent_child)
+    - start_page, end_page
+    - column_count (for multi_column)
+    - entry_count (approximate)
+    - has_descriptions (boolean)
+
+    Output as JSON array.
+
+  prompt_large_region_headers: |
+    List all table NAMES and their DICE TYPES found on these pages.
+    Do not extract content.
+    Format: 'Table Name | dice_type | page'
+
+  token_budget:
+    estimate_320_pages: "50000-100000"
+
+# =============================================================================
+# PHASE 3: TABLE EXTRACTION
+# =============================================================================
+phase_3:
+  name: "Table Extraction"
+  purpose: "Extract each table into Rolldeo JSON format"
+
+  pre_extraction:
+    load:
+      - "random-table-spec-llm.yaml"
+      - "manifest.json"
+      - "book_summary.json"
+    select: "2-3 relevant examples from examples/ based on table_type"
+
+  # ---------------------------------------------------------------------------
+  # STRATEGY A: Simple Extraction
+  # ---------------------------------------------------------------------------
+  strategy_a:
+    name: "Simple Extraction"
+    applies_to: "single_column, confidence: high"
+    description: "Straightforward tables that fit on 1-2 pages"
+
+    prompt: |
+      Extract this random table into Rolldeo JSON format.
+
+      ROLLDEO FORMAT REQUIREMENTS:
+      - type: 'simple' (required)
+      - entries array with objects containing:
+        - value (required): the display text
+        - weight OR range (optional, not both)
+        - description (optional): extended text if present
+        - sets (optional): key-value properties
+
+      WEIGHT VS RANGE:
+      - If source has dice ranges (e.g., '1-50'), use 'range': [1, 50]
+      - If source has no explicit ranges, use 'weight' for relative probability
+      - Default weight is 1 if not specified
+
+      Example of correct Rolldeo output:
+      {
+        "id": "randomWeather",
+        "name": "Random Weather",
+        "type": "simple",
+        "description": "Weather conditions for outdoor encounters.",
+        "resultType": "environment",
+        "tags": ["weather"],
+        "source": {"page": 10},
+        "entries": [
+          {"value": "Clear skies", "weight": 2},
+          {"value": "Light rain", "weight": 1, "sets": {"visibility": "reduced"}}
+        ]
+      }
+
+      Table name: {table_name}
+      Dice type: {dice_type}
+      Source page: {page_number}
+
+      SOURCE CONTENT:
+      ---
+      {page_content}
+      ---
+
+      IMPORTANT:
+      - Preserve original text exactly (no paraphrasing)
+      - Use camelCase for id (e.g., 'randomWeather' not 'random_weather')
+      - If 'Roll twice' or similar, use: {"value": "{{2*unique*again}}"}
+
+      Output the complete JSON for this single table.
+
+    token_budget: {input: "2000-4000", output: "500-1500", total: "2500-5500"}
+
+  # ---------------------------------------------------------------------------
+  # STRATEGY B: Split Columns
+  # ---------------------------------------------------------------------------
+  strategy_b:
+    name: "Split Columns"
+    applies_to: "multi_column"
+    description: "Multiple hidden simple tables + one composite/collection parent"
+
+    output_structure:
+      - "Hidden simple tables for each column"
+      - "One composite table (if weighted) OR collection table (if equal probability)"
+
+    naming_convention:
+      parent: "{originalName}"
+      children: "{originalName}{ColumnName}"
+
+    prompt: |
+      This page contains multiple related tables in columns.
+      Column headers: {column_names}
+
+      Create Rolldeo JSON with:
+      1. HIDDEN simple tables for each column
+      2. ONE composite table that selects between them (if weighted) OR
+         ONE collection table that merges them (if equal probability)
+
+      Naming convention:
+      - Parent: '{originalName}' (e.g., 'regionalEncounters')
+      - Children: '{originalName}{ColumnName}' (e.g., 'regionalEncountersForest')
+
+      Example output structure:
+      [
+        {
+          "id": "regionalEncountersForest",
+          "name": "Regional Encounters - Forest",
+          "type": "simple",
+          "hidden": true,
+          "resultType": "encounter",
+          "entries": [...]
+        },
+        {
+          "id": "regionalEncounters",
+          "name": "Regional Encounters",
+          "type": "composite",
+          "description": "Roll for regional encounters. Weighted by terrain commonality.",
+          "sources": [
+            {"tableId": "regionalEncountersForest", "weight": 1},
+            {"tableId": "regionalEncountersDesert", "weight": 1}
+          ]
+        }
+      ]
+
+      If columns should be merged (no weighting), use 'collection' type instead:
+      {"type": "collection", "collections": ["regionalEncountersForest", "regionalEncountersDesert"]}
+
+      SOURCE CONTENT:
+      ---
+      {page_content}
+      ---
+
+      Output as JSON array of all tables (children + parent).
+
+    token_budget: {input: "3000-6000", output: "1500-4000", total: "4500-10000"}
+
+  # ---------------------------------------------------------------------------
+  # STRATEGY C: Skeleton First (Parent/Child)
+  # ---------------------------------------------------------------------------
+  strategy_c:
+    name: "Skeleton First"
+    applies_to: "parent_child"
+    description: "Tables with extended definitions spanning many pages"
+    reference: "sineNomine.swn.worldTags.json"
+
+    output_structure:
+      - "ONE parent simple table with entries containing sets that reference child tables"
+      - "MULTIPLE hidden simple child tables (one per entry's related content)"
+
+    step_1:
+      name: "Extract Skeleton"
+      input: "table_start to table_end pages only"
+      prompt: |
+        Extract the table structure and identify what child tables each entry will need.
+
+        This is a PARENT/CHILD table where each entry has related sub-content.
+
+        Output Rolldeo skeleton format:
+        {
+          "id": "worldTags",
+          "name": "World Tags",
+          "type": "simple",
+          "description": "World tags for sector generation...",
+          "resultType": "worldTag",
+          "entries": [
+            {
+              "id": "abandonedColony",
+              "value": "Abandoned Colony",
+              "description": null,
+              "sets": {
+                "enemy": "{{abandonedColonyEnemies}}",
+                "friend": "{{abandonedColonyFriends}}",
+                "complication": "{{abandonedColonyComplications}}",
+                "thing": "{{abandonedColonyThings}}",
+                "place": "{{abandonedColonyPlaces}}"
+              }
+            }
+          ],
+          "child_table_categories": ["enemies", "friends", "complications", "things", "places"]
+        }
+
+        IMPORTANT:
+        - Each entry gets an 'id' in camelCase
+        - Sets contain {{childTableId}} references
+        - Child table IDs follow pattern: {entryId}{Category}
+        - Leave 'description' as null for now
+
+        SOURCE CONTENT:
+        ---
+        {page_content}
+        ---
+      output: "working/{book_id}/tables/{table_id}_skeleton.json"
+
+    step_2:
+      name: "Fill Descriptions & Extract Child Tables"
+      input: "2 pages at a time from definition_start to definition_end"
+      prompt: |
+        Extract descriptions and child table content for these entries.
+
+        Parent table: {table_name}
+        Entries being processed: {current_entry_names}
+        Child table categories: {child_table_categories}
+
+        Output format - for EACH entry found on these pages:
+        {
+          "entry_id": "abandonedColony",
+          "description": "A planet that was colonized but later abandoned...",
+          "child_tables": [
+            {
+              "id": "abandonedColonyEnemies",
+              "name": "Abandoned Colony - Enemies",
+              "type": "simple",
+              "hidden": true,
+              "resultType": "npc",
+              "tags": ["enemy", "abandonedColony"],
+              "entries": [
+                {"value": "Crazed survivors"},
+                {"value": "Ruthless plunderers of the ruins"},
+                {"value": "Automated defense system"}
+              ]
+            }
+          ]
+        }
+
+        IMPORTANT:
+        - Child tables must be 'hidden': true
+        - Preserve exact text from source
+        - If entry continues from previous page, note: 'CONTINUES: entry_id'
+
+        SOURCE CONTENT:
+        ---
+        {page_content}
+        ---
+
+    step_3:
+      name: "Assemble Final Output"
+      process:
+        - "Merge descriptions into skeleton"
+        - "Collect all child_tables"
+        - "final_output = [parent_table] + all_child_tables"
+        - "Validate all {{tableId}} references resolve"
+        - "Add to review_queue if unfilled entries or missing child tables"
+
+    token_budget: {input: "8000-20000", output: "3000-8000", total: "11000-28000"}
+
+  # ---------------------------------------------------------------------------
+  # STRATEGY D: Iterative Tag Extraction (Sine Nomine Pattern)
+  # ---------------------------------------------------------------------------
+  strategy_d:
+    name: "Iterative Tag Extraction"
+    applies_to: "parent_child with E/F/C/T/P pattern (Sine Nomine tags)"
+    description: "Extract tags ONE AT A TIME, saving after each to avoid token overflow"
+    reference: "sineNomine.swn.worldTags.json"
+
+    why_needed: |
+      Enclave Tags (80 entries) and Encounter Site Tags (60 entries) each span 15-22 pages.
+      Each tag has 5 child categories (E/F/C/T/P) with 3 entries each = 15 child entries per tag.
+      Total: 80 tags × 15 = 1,200 child entries + 400 hidden tables.
+      Processing all at once would exceed token limits. Must process incrementally.
+
+    output_structure:
+      - "ONE parent simple table with entries containing sets referencing child tables"
+      - "5 hidden child tables PER TAG (enemies, friends, complications, things, places)"
+      - "Progress tracker file to enable resume"
+
+    state_files:
+      skeleton: "working/{book_id}/tables/{table_id}_skeleton.json"
+      progress: "working/{book_id}/tables/{table_id}_progress.json"
+      children_dir: "working/{book_id}/tables/{table_id}_children/"
+      final: "working/{book_id}/tables/{table_id}_complete.json"
+
+    # -------------------------------------------------------------------------
+    # STEP 1: Extract skeleton (tag names + index table)
+    # -------------------------------------------------------------------------
+    step_1:
+      name: "Extract Tag Index"
+      input: "table_start page ONLY (the d8×d10 or d6×d10 grid)"
+      token_budget: {input: 2000, output: 3000, total: 5000}
+
+      prompt: |
+        Extract ONLY the tag names from this index table.
+        Do NOT extract descriptions or E/F/C/T/P content yet.
+
+        Output format:
+        {
+          "table_id": "enclaveTags",
+          "total_tags": 80,
+          "dice_grid": "d8×d10",
+          "tags": [
+            {"index": 1, "id": "aliens", "name": "Aliens", "status": "pending"},
+            {"index": 2, "id": "ancientHate", "name": "Ancient Hate", "status": "pending"},
+            ...
+          ]
+        }
+
+        Rules:
+        - id is camelCase version of name
+        - status is always "pending" initially
+        - Include ALL tags from the grid
+
+        SOURCE (index page only):
+        ---
+        {page_content}
+        ---
+
+      output: "{skeleton}"
+
+      post_process: |
+        SAVE skeleton to file
+        CREATE empty progress tracker:
+        {
+          "table_id": "enclaveTags",
+          "total_tags": 80,
+          "completed": 0,
+          "last_completed_index": 0,
+          "last_completed_id": null,
+          "current_page": {definition_start},
+          "tags_on_current_page": []
+        }
+        CREATE children directory
+
+    # -------------------------------------------------------------------------
+    # STEP 2: Process ONE tag at a time
+    # -------------------------------------------------------------------------
+    step_2:
+      name: "Extract Single Tag (REPEAT FOR EACH TAG)"
+      iteration: "FOR EACH tag WHERE status == 'pending'"
+      token_budget_per_tag: {input: 1500, output: 1000, total: 2500}
+
+      input_selection: |
+        1. READ progress.json to get current_page
+        2. EXTRACT current_page content
+        3. SCAN for next pending tag name in page content
+        4. IF tag not found on current_page:
+           - INCREMENT current_page
+           - REPEAT until tag found or definition_end reached
+        5. EXTRACT only the section for THIS ONE TAG (usually ~20-40 lines)
+
+      prompt: |
+        Extract this SINGLE tag entry with all its E/F/C/T/P content.
+
+        Tag to extract: {tag_name} (id: {tag_id})
+
+        Output format:
+        {
+          "tag_id": "{tag_id}",
+          "description": "Full description paragraph...",
+          "enemies": [
+            {"value": "First enemy example"},
+            {"value": "Second enemy example"},
+            {"value": "Third enemy example"}
+          ],
+          "friends": [
+            {"value": "First friend example"},
+            {"value": "Second friend example"},
+            {"value": "Third friend example"}
+          ],
+          "complications": [
+            {"value": "First complication"},
+            {"value": "Second complication"},
+            {"value": "Third complication"}
+          ],
+          "things": [
+            {"value": "First thing"},
+            {"value": "Second thing"},
+            {"value": "Third thing"}
+          ],
+          "places": [
+            {"value": "First place"},
+            {"value": "Second place"},
+            {"value": "Third place"}
+          ]
+        }
+
+        IMPORTANT:
+        - Extract ONLY the tag named "{tag_name}"
+        - Preserve exact text (no paraphrasing)
+        - E/F/C/T/P sections are abbreviated in source as single letters
+        - Each category has exactly 3 entries (comma-separated in source)
+
+        SOURCE SECTION:
+        ---
+        {tag_section_content}
+        ---
+
+      post_process: |
+        1. VALIDATE response has all 5 categories with 3 entries each
+        2. GENERATE 5 hidden child table JSON files:
+           - {tag_id}Enemies.json
+           - {tag_id}Friends.json
+           - {tag_id}Complications.json
+           - {tag_id}Things.json
+           - {tag_id}Places.json
+        3. SAVE each to children_dir
+        4. UPDATE skeleton:
+           - Set tag status to "completed"
+           - Add description to entry
+           - Add sets with {{childTableId}} references
+        5. UPDATE progress.json:
+           - INCREMENT completed count
+           - SET last_completed_index and last_completed_id
+           - UPDATE current_page if needed
+        6. SAVE skeleton and progress files
+        7. LOG: "Completed tag {index}/{total}: {tag_name}"
+
+      child_table_template: |
+        {
+          "id": "{tag_id}{Category}",
+          "name": "{Tag Name} - {Category}",
+          "type": "simple",
+          "hidden": true,
+          "resultType": "{category_result_type}",
+          "tags": ["{category_lowercase}", "{tag_id}"],
+          "source": {"page": "{page_number}"},
+          "entries": [
+            {"value": "{entry_1}"},
+            {"value": "{entry_2}"},
+            {"value": "{entry_3}"}
+          ]
+        }
+
+      category_result_types:
+        enemies: "npc"
+        friends: "npc"
+        complications: "complication"
+        things: "thing"
+        places: "place"
+
+      resume_logic: |
+        IF progress.json exists:
+          READ last_completed_index
+          SKIP all tags with index <= last_completed_index
+          CONTINUE from next pending tag
+        ELSE:
+          START from index 1
+
+    # -------------------------------------------------------------------------
+    # STEP 3: Assemble final output
+    # -------------------------------------------------------------------------
+    step_3:
+      name: "Assemble Complete Table"
+      trigger: "WHEN progress.completed == progress.total_tags"
+      llm_usage: "NONE - purely programmatic"
+
+      process: |
+        1. LOAD skeleton (now has all descriptions and sets populated)
+        2. COLLECT all child table files from children_dir
+        3. BUILD parent table:
+           {
+             "id": "{table_id}",
+             "name": "{Table Name}",
+             "type": "simple",
+             "description": "...",
+             "resultType": "tag",
+             "entries": [skeleton entries with descriptions and sets]
+           }
+        4. COMBINE: final_tables = [parent_table] + all_child_tables
+        5. VALIDATE:
+           - All 80 (or 60) parent entries have descriptions
+           - All {{tableId}} references resolve to existing child tables
+           - No duplicate IDs
+        6. SAVE to {final}
+        7. DELETE progress.json (extraction complete)
+        8. OPTIONALLY delete children_dir (files now in final output)
+        9. MERGE into main Rolldeo output file (Phase 4 auto-assembly)
+
+    # -------------------------------------------------------------------------
+    # STEP 4: Auto-merge to main Rolldeo output (REQUIRED)
+    # -------------------------------------------------------------------------
+    step_4:
+      name: "Merge to Final Rolldeo Output"
+      trigger: "IMMEDIATELY after step_3 completes"
+      llm_usage: "NONE - purely programmatic"
+
+      process: |
+        1. LOAD main Rolldeo output: working/{book_id}/../{namespace}.generators.json
+        2. LOAD completed table from {final}
+        3. LOAD all child tables from children_dir (if not deleted)
+        4. APPEND parent table to main output's "tables" array
+        5. APPEND all child tables to main output's "tables" array
+        6. ADD template for this table type to "templates" array
+        7. UPDATE metadata.source.page to include new page range
+        8. UPDATE metadata.description to include new table type
+        9. SAVE updated main Rolldeo output
+        10. LOG: "Added {count} tables to {namespace}.generators.json"
+
+      important: |
+        This step MUST run automatically after Strategy D completes.
+        Do NOT wait for user instruction.
+        The extraction is not complete until the final Rolldeo file is updated.
+
+    # -------------------------------------------------------------------------
+    # Token budget summary for full extraction
+    # -------------------------------------------------------------------------
+    token_budget_total:
+      step_1: {calls: 1, tokens: 5000}
+      step_2_per_tag: {tokens: 2500}
+      step_2_80_tags: {calls: 80, tokens: 200000}
+      step_2_60_tags: {calls: 60, tokens: 150000}
+      step_3: {calls: 0, tokens: 0}
+      total_80_tags: "~205,000 tokens spread across 81 API calls"
+      total_60_tags: "~155,000 tokens spread across 61 API calls"
+
+    time_estimate:
+      per_tag: "~3-5 seconds"
+      total_80_tags: "~4-7 minutes"
+      total_60_tags: "~3-5 minutes"
+
+    error_handling:
+      tag_not_found: "Flag in progress.json, skip to next, add to review_queue"
+      missing_category: "Save partial, flag for review, continue"
+      api_timeout: "Retry 3 times with exponential backoff"
+      interrupt: "Progress saved after each tag, resume from last_completed"
+
+    # -------------------------------------------------------------------------
+    # STEP 5: Cleanup temporary files (REQUIRED)
+    # -------------------------------------------------------------------------
+    step_5:
+      name: "Cleanup Temporary Files"
+      trigger: "IMMEDIATELY after step_4 (merge) completes successfully"
+      llm_usage: "NONE - purely programmatic"
+
+      process: |
+        1. VERIFY merge was successful (check final output file exists and is valid JSON)
+        2. DELETE skeleton file: working/{book_id}/tables/{table_id}_skeleton.json
+        3. DELETE progress file: working/{book_id}/tables/{table_id}_progress.json
+        4. DELETE complete file: working/{book_id}/tables/{table_id}_complete.json
+        5. DELETE all child table files: working/{book_id}/tables/{table_id}_children/*.json
+        6. DELETE children directory: working/{book_id}/tables/{table_id}_children/
+        7. DELETE any generation scripts: working/{book_id}/*.cjs, working/{book_id}/*.js
+        8. LOG: "Cleaned up {count} temporary files for {table_id}"
+
+      files_to_delete:
+        - "{table_id}_skeleton.json"
+        - "{table_id}_progress.json"
+        - "{table_id}_complete.json"
+        - "{table_id}_children/" # entire directory
+        - "generate-children.cjs"
+        - "merge-to-final.cjs"
+
+      safety_checks:
+        - "NEVER delete the main Rolldeo output file"
+        - "NEVER delete the extracted text source file"
+        - "NEVER delete manifest.json, summary.json, or page_classification.json"
+        - "ONLY delete files matching the patterns above"
+        - "IF any delete fails, log warning but continue with remaining cleanup"
+
+  # ---------------------------------------------------------------------------
+  # Sub-Tables in Descriptions
+  # ---------------------------------------------------------------------------
+  sub_tables_pattern:
+    description: "When a description contains its own rollable table"
+    approach: "Create as separate hidden table and reference via sets"
+    example:
+      parent_entry:
+        id: "mysteriousStranger"
+        value: "Mysterious Stranger"
+        description: "A cloaked figure approaches the party..."
+        sets:
+          motivation: "{{mysteriousStrangerMotivation}}"
+      child_table:
+        id: "mysteriousStrangerMotivation"
+        name: "Mysterious Stranger - Motivation"
+        type: "simple"
+        hidden: true
+        resultType: "motivation"
+        entries:
+          - {value: "Seeks information about the party"}
+          - {value: "Offers a deal too good to be true"}
+    template_access: "{{$npc.@motivation}} after capturing with \"$npc\": \"{{encounters}}\""
+
+# =============================================================================
+# PHASE 4: ASSEMBLY & VALIDATION
+# =============================================================================
+phase_4:
+  name: "Assembly & Validation"
+  purpose: "Combine individual table JSONs into final Rolldeo output"
+  llm_usage: "Minimal - primarily programmatic"
+
+  process:
+    - "Load summary.json, manifest.json"
+    - "Collect all table files from tables/ (exclude skeletons)"
+    - "Validate each against Rolldeo schema"
+    - "Build final structure with metadata + tables array"
+    - "Run post-assembly validation checks"
+
+  validation_checks:
+    - "No duplicate table names"
+    - "No empty descriptions where expected"
+    - "Dice/entry count alignment (d6 should have ~6 entries)"
+    - "All {{tableId}} references resolve"
+    - "specVersion is '1.0'"
+
+  final_output_schema:
+    metadata:
+      name: "string (required)"
+      namespace: "publisher.sourcebook (required)"
+      version: "1.0.0 (required, semver)"
+      specVersion: "1.0 (required, must be exactly '1.0')"
+      author: "string"
+      description: "markdown (2-5 sentences)"
+      tags: ["string"]
+      source:
+        book: "string"
+        publisher: "string"
+        page: "string or integer"
+        license: "string"
+      rights:
+        type: "open-content|proprietary|fan-content|licensed"
+        permissions:
+          commercialUse: "boolean"
+          modification: "boolean"
+          redistribution: "boolean"
+          derivativeWorks: "boolean"
+          attributionRequired: "boolean"
+    tables: "array of table objects"
+    templates: "array of template objects (optional)"
+
+  key_requirements:
+    - "metadata.specVersion must be '1.0'"
+    - "metadata.namespace format: publisher.product or publisher.product.category"
+    - "Table type must be: simple, composite, or collection"
+    - "Entry value is required; use weight OR range, not both"
+    - "Use sets for properties accessible via {{@property}} syntax"
+    - "Use hidden: true for helper/child tables"
+    - "Description supports markdown"
+
+# =============================================================================
+# PHASE 5: HUMAN REVIEW
+# =============================================================================
+phase_5:
+  name: "Human Review Queue Processing"
+  purpose: "Handle tables flagged with low confidence or validation errors"
+
+  review_queue_schema:
+    book_id: "string"
+    items:
+      - table_id: "string"
+        table_name: "string"
+        reason: "string"
+        source_pages: ["integer"]
+        current_file: "path"
+        unmatched_entries: ["string"]
+        suggested_action: "manual_description_match|reextract|merge_entries"
+        priority: "high|medium|low"
+
+  review_prompt: |
+    Here is a partially extracted table that needs review.
+
+    Table: {table_name}
+    Issue: {reason}
+
+    Current state:
+    {current_json}
+
+    Relevant source pages:
+    {page_content}
+
+    Please:
+    1. Identify what went wrong
+    2. Provide the corrected JSON for the problematic entries only
+
+    Output format:
+    {
+      "corrections": [
+        {"entry_id": "7", "field": "description", "value": "..."}
+      ],
+      "notes": "Why the automatic extraction failed"
+    }
+
+# =============================================================================
+# BATCH PROCESSING
+# =============================================================================
+batch_processing:
+  states:
+    - PENDING
+    - PHASE_0_SUMMARY
+    - PHASE_1_CLASSIFICATION
+    - PHASE_2_MANIFEST
+    - PHASE_3_EXTRACTION
+    - PHASE_4_ASSEMBLY
+    - NEEDS_REVIEW
+    - COMPLETE
+    - ERROR
+
+  checkpointing:
+    description: "Each phase saves output before next begins"
+    resume_logic:
+      no_summary: "Start from PENDING"
+      no_classification: "Start from PHASE_0"
+      no_manifest: "Start from PHASE_1"
+      incomplete_tables: "Start from PHASE_2, resume from last complete table"
+      all_tables_exist: "Start from PHASE_3"
+
+  concurrency:
+    max_concurrent: 3
+    parallelizable_phases: ["phase_1", "phase_3"]
+
+# =============================================================================
+# ERROR HANDLING
+# =============================================================================
+error_handling:
+  edge_cases:
+    table_spans_page_break:
+      detection: "Entry appears incomplete"
+      handling: "Merge with next page content before extraction"
+
+    non_standard_dice:
+      detection: "Pattern matching fails ('roll two dice', 'percentile')"
+      handling: "Flag for review, attempt inference from entry count"
+
+    uneven_multi_column:
+      detection: "Column count mismatch"
+      handling: "Extract as-is, note discrepancy"
+
+    nested_sub_sub_tables:
+      detection: "Depth > 2 detected"
+      handling: "Flatten with reference notation"
+
+    no_dice_table:
+      detection: "No dice notation found"
+      handling: "Use 'choice' as dice_type"
+
+    duplicate_names:
+      detection: "Name collision on save"
+      handling: "Append page number to filename"
+
+    ocr_artifacts:
+      detection: "Garbled text patterns"
+      handling: "Flag for review, include raw text"
+
+  confidence_thresholds:
+    high: {score: 0.9, action: "Proceed automatically"}
+    medium: {score: 0.7, action: "Proceed but flag for spot-check"}
+    low: {score: 0.5, action: "Add to review queue"}
+    reject: {score: 0.0, action: "Require human intervention"}
+
+  confidence_scoring:
+    entry_count_penalty: "score -= 0.3 if actual < expected * 0.8"
+    empty_descriptions_penalty: "score -= (empty_count / total) * 0.4"
+    schema_violations_penalty: "score -= error_count * 0.1"
+
+# =============================================================================
+# PERFORMANCE ESTIMATES
+# =============================================================================
+performance:
+  token_usage_per_book:
+    phase_0: {min: 8000, max: 12000, notes: "Fixed, small"}
+    phase_1: {min: 200000, max: 350000, notes: "Scales with page count"}
+    phase_2: {min: 30000, max: 100000, notes: "Scales with table regions"}
+    phase_3: {min: 50000, max: 500000, notes: "Highly variable by table complexity"}
+    phase_4: {min: 0, max: 5000, notes: "Mostly code, minimal LLM"}
+    total: {min: 288000, max: 967000, notes: "Per 320-page book"}
+
+  time_estimates_api:
+    phase_0: {time: "30 seconds", parallelizable: false}
+    phase_1: {time: "10-15 minutes", parallelizable: true}
+    phase_2: {time: "5-10 minutes", parallelizable: "partially"}
+    phase_3: {time: "15-45 minutes", parallelizable: true}
+    phase_4: {time: "30 seconds", parallelizable: false}
+    total: "30-70 minutes"
+
+  batch_100_books:
+    concurrent_streams: 3
+    best_case: "17 hours"
+    worst_case: "39 hours"
+    expected: "24-28 hours"
+
+# =============================================================================
+# SUCCESS METRICS
+# =============================================================================
+success_metrics:
+  targets:
+    tables_extracted_vs_manifest: {target: "100%", acceptable: "95%"}
+    entries_vs_expected: {target: "100%", acceptable: "98%"}
+    descriptions_filled: {target: "100%", acceptable: "90%"}
+    schema_validation_pass: {target: "100%", acceptable: "98%"}
+    tables_requiring_review: {target: "<5%", acceptable: "<10%"}
+
+# =============================================================================
+# ROLLDEO SPEC REFERENCE
+# =============================================================================
+# For ALL questions about Rolldeo JSON structure, table types, entry format,
+# template syntax, and validation rules, refer to the authoritative spec file:
+#
+#   docs/random-table-spec-llm.yaml
+#
+# This pipeline document covers EXTRACTION STRATEGY only.
+# The spec file covers OUTPUT FORMAT.
+#
+# Key sections in the spec file:
+#   - decision_guide.table_type_selection: When to use simple/composite/collection
+#   - decision_guide.weight_vs_range: When to use weight vs range
+#   - templates: How to create output templates
+#   - patterns: Common patterns (parent/child, generators, etc.)
+#   - validation: Schema and validation rules
+#
+rolldeo_spec_reference:
+  spec_file: "docs/random-table-spec-llm.yaml"
+  schema_url: "https://rolldeo.com/schemas/random-table-spec-v1.0.json"
+
+  # CRITICAL extraction-specific rules (not in spec file)
+  extraction_type_rules:
+    - "If extracted content has 'entries' with 'value' fields → type MUST be 'simple'"
+    - "If entries reference child tables via 'sets' → type is STILL 'simple'"
+    - "NEVER use 'collection' or 'composite' type with an 'entries' array"
+    - "Parent/child tables (like Enclave Tags) are ALWAYS type 'simple'"
+
+  when_to_consult_spec:
+    - "Unsure which table type to use → spec: decision_guide.table_type_selection"
+    - "Formatting entries → spec: entries section"
+    - "Creating templates → spec: templates section"
+    - "Weight vs range decision → spec: decision_guide.weight_vs_range"
+    - "Parent/child patterns → spec: patterns.categorized_generator"
+
+# =============================================================================
+# TROUBLESHOOTING
+# =============================================================================
+troubleshooting:
+  collection_table_validation_error:
+    symptom: "Collection table must reference at least one table"
+    cause: "Table has type 'collection' or 'composite' but uses 'entries' array instead of 'collections' or 'sources'"
+    solution: |
+      Change the table type to 'simple'. The 'collection' and 'composite' types are ONLY for
+      tables that have NO entries and exist solely to reference other tables.
+      - If table has 'entries' array → type must be 'simple'
+      - If table references child tables via 'sets' in entries → type is STILL 'simple'
+      - Parent/child patterns (like Enclave Tags) use type 'simple' with sets containing {{childTableId}}
+
+  llm_output_truncated:
+    symptom: "JSON ends mid-object"
+    solution: "Reduce pages per chunk; use skeleton approach"
+
+  mismatched_descriptions:
+    symptom: "Wrong description assigned to entry"
+    solution: "Verify entry names match exactly; check for OCR errors"
+
+  missing_tables_in_manifest:
+    symptom: "Table count lower than expected"
+    solution: "Review 'R' classified pages for missed tables"
+
+  duplicate_extractions:
+    symptom: "Same table appears twice"
+    solution: "Check for multi-column misidentification"
+
+  sub_tables_missed:
+    symptom: "Flat entries where nesting expected"
+    solution: "Add 'look for dice notation in descriptions' to prompt"
+
+  slow_processing:
+    symptom: "Individual calls taking >60 seconds"
+    solution: "Reduce chunk size; check for very large single pages"
+
+# =============================================================================
+# AGENT HANDOFF NOTES
+# =============================================================================
+agent_handoff:
+  critical_files:
+    spec: "docs/random-table-spec-llm.yaml"
+    examples:
+      - "docs/examples/sineNomine/sineNomine.swn.worldTags.json (parent/child pattern)"
+      - "docs/examples/fantasyExample/Monsters.json (sets, defaultSets, composite/collection)"
+      - "docs/examples/sineNomine/sineNomine.swn.names.json (name generator pattern)"
+
+  # IMPORTANT: For structure/format questions, ALWAYS consult the spec file
+  spec_file_guidance: |
+    This pipeline covers EXTRACTION STRATEGY (how to process PDFs).
+    For OUTPUT FORMAT questions (JSON structure, types, syntax), consult:
+      docs/random-table-spec-llm.yaml
+
+  pipeline_specific_notes:
+    - "Token sensitivity: stick to 3-5 pages for classification"
+    - "Build for resumability - save state after every phase"
+    - "When uncertain, flag for review - better than silently wrong data"
+    - "Preserve original text - no paraphrasing or cleanup"
+    - "Tables with entries array → type MUST be 'simple' (extraction rule)"
+
+  validation_checklist:
+    - "All {{tableId}} references point to existing tables"
+    - "Hidden helper tables have hidden: true"
+    - "For format rules, see spec: validation section"
+
+# =============================================================================
+# PHASE 6: CLEANUP (REQUIRED - RUNS AFTER SUCCESSFUL EXTRACTION)
+# =============================================================================
+phase_6:
+  name: "Cleanup Temporary Files"
+  purpose: "Remove all intermediate files after successful merge to final output"
+  trigger: "AUTOMATICALLY after Phase 4 assembly completes successfully"
+
+  # ---------------------------------------------------------------------------
+  # Pre-cleanup verification
+  # ---------------------------------------------------------------------------
+  verification:
+    required_before_cleanup:
+      - "Final Rolldeo output file exists and is valid JSON"
+      - "Final output contains all expected tables from manifest"
+      - "No tables in review_queue with priority: high"
+      - "All Strategy D extractions have completed step_4 (merge)"
+
+    verification_script: |
+      1. LOAD final output: working/{book_id}/../{namespace}.generators.json
+      2. PARSE as JSON (must succeed)
+      3. COUNT tables in output
+      4. COMPARE to manifest.tables.length
+      5. IF count >= expected * 0.95: PROCEED with cleanup
+      6. ELSE: ABORT cleanup, log warning
+
+  # ---------------------------------------------------------------------------
+  # Files to DELETE (temporary/intermediate)
+  # ---------------------------------------------------------------------------
+  cleanup_targets:
+    working_directory: "working/{book_id}/"
+
+    delete_files:
+      # Strategy D temporary files (per table)
+      - pattern: "tables/*_skeleton.json"
+        description: "Skeleton files with tag structure"
+      - pattern: "tables/*_progress.json"
+        description: "Progress tracking files"
+      - pattern: "tables/*_complete.json"
+        description: "Assembled complete tables (already merged)"
+
+      # Child table directories
+      - pattern: "tables/*_children/"
+        description: "Directories containing child table JSON files"
+        recursive: true
+
+      # Generation scripts
+      - pattern: "*.cjs"
+        description: "CommonJS generation scripts"
+      - pattern: "*.js"
+        description: "JavaScript generation/merge scripts"
+        exclude: ["node_modules/"]
+
+      # Merge scripts
+      - pattern: "merge-*.cjs"
+        description: "Merge scripts for combining tables"
+      - pattern: "generate-*.cjs"
+        description: "Child table generation scripts"
+
+  # ---------------------------------------------------------------------------
+  # Files to KEEP (do not delete)
+  # ---------------------------------------------------------------------------
+  preserve_files:
+    always_keep:
+      - "summary.json"           # Phase 0 output - book metadata
+      - "page_classification.json"  # Phase 1 output - useful for re-runs
+      - "manifest.json"          # Phase 2 output - table index
+      - "review_queue.json"      # Any items needing review
+
+    keep_in_parent_directory:
+      - "{namespace}.generators.json"  # Final Rolldeo output
+      - "{book_id}_extracted.txt"      # Source text (may be needed for re-extraction)
+
+    optional_keep:
+      - "tables/*.json"  # Individual table files (if not using Strategy D)
+      description: "Keep if you want to preserve individual table files for reference"
+
+  # ---------------------------------------------------------------------------
+  # Cleanup execution
+  # ---------------------------------------------------------------------------
+  execution:
+    order:
+      1: "Verify final output is valid"
+      2: "Delete child table directories (recursive)"
+      3: "Delete skeleton, progress, complete files"
+      4: "Delete generation scripts"
+      5: "Log cleanup summary"
+      6: "Optionally delete working directory if empty"
+
+    safety_rules:
+      - "NEVER delete final Rolldeo output file"
+      - "NEVER delete source extracted text file"
+      - "NEVER delete files outside working/{book_id}/ directory"
+      - "NEVER delete review_queue.json if it contains items"
+      - "If file deletion fails, log warning and continue"
+      - "Require explicit confirmation for deleting entire working directory"
+
+    logging:
+      on_success: "Cleaned up {count} files ({size} bytes) from {book_id}"
+      on_partial: "Cleanup completed with {warning_count} warnings"
+      on_skip: "Cleanup skipped: {reason}"
+
+  # ---------------------------------------------------------------------------
+  # Manual cleanup command
+  # ---------------------------------------------------------------------------
+  manual_cleanup:
+    description: "Run cleanup manually after verifying extraction success"
+    command: |
+      # Verify first
+      cat working/{book_id}/../{namespace}.generators.json | jq '.tables | length'
+
+      # Then cleanup
+      rm -rf working/{book_id}/tables/*_children/
+      rm -f working/{book_id}/tables/*_skeleton.json
+      rm -f working/{book_id}/tables/*_progress.json
+      rm -f working/{book_id}/tables/*_complete.json
+      rm -f working/{book_id}/*.cjs
+      rm -f working/{book_id}/*.js
+
+      # Verify what remains
+      ls -la working/{book_id}/
+      ls -la working/{book_id}/tables/
+
+  # ---------------------------------------------------------------------------
+  # Full working directory cleanup (optional)
+  # ---------------------------------------------------------------------------
+  full_cleanup:
+    description: "Remove entire working directory after extraction complete"
+    warning: "Only do this if you're certain extraction is complete and verified"
+    requires_confirmation: true
+    command: |
+      # Final verification
+      jq '.tables | length' working/{book_id}/../{namespace}.generators.json
+
+      # If satisfied, remove working directory
+      rm -rf working/{book_id}/
+
+      # Keep only the final output and source text
+      ls -la working/

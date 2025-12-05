@@ -8,6 +8,10 @@
 import eldritchHorror from './rolldeo.horror.eldritch.json'
 import fantasyWorld from './rolldeo.fantasy.world.json'
 import scifiFrontier from './rolldeo.scifi.frontier.json'
+import fantasyNpc from './rolldeo.fantasy.npc.json'
+import horrorNpc from './rolldeo.horror.npc.json'
+import scifiNpc from './rolldeo.scifi.npc.json'
+import wh40kNpc from './rolldeo.wh40k.npc.json'
 import type { RandomTableDocument } from '../../engine/types'
 
 export interface PreloadedCollection {
@@ -32,6 +36,22 @@ export const preloadedCollections: PreloadedCollection[] = [
   {
     id: 'rolldeo.scifi.frontier',
     document: scifiFrontier as unknown as RandomTableDocument,
+  },
+  {
+    id: 'rolldeo.fantasy.npc',
+    document: fantasyNpc as unknown as RandomTableDocument,
+  },
+  {
+    id: 'rolldeo.horror.npc',
+    document: horrorNpc as unknown as RandomTableDocument,
+  },
+  {
+    id: 'rolldeo.scifi.npc',
+    document: scifiNpc as unknown as RandomTableDocument,
+  },
+  {
+    id: 'rolldeo.wh40k.npc',
+    document: wh40kNpc as unknown as RandomTableDocument,
   },
 ]
 

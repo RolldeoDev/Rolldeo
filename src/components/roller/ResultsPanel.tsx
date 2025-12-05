@@ -5,7 +5,7 @@
  * Manages the shared descriptions drawer for both current result and history items.
  */
 
-import { memo, useState, useCallback, useMemo } from 'react'
+import { memo, useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import type { RollResult, EntryDescription, EvaluatedSets } from '@/engine/types'
 import type { StoredRoll } from '@/services/db'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
@@ -48,6 +48,12 @@ export const ResultsPanel = memo(function ResultsPanel({
   onDelete,
   onClearHistory,
 }: ResultsPanelProps) {
+  // Ref to scrollable content for scroll-to-top on roll
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // Track the name of the item that was rolled (so it doesn't change when selection changes)
+  const [rolledItemName, setRolledItemName] = useState<string | null>(null)
+
   // Drawer state for descriptions and sets
   const [drawerState, setDrawerState] = useState<DrawerState | null>(null)
 
@@ -65,6 +71,20 @@ export const ResultsPanel = memo(function ResultsPanel({
   const closeDrawer = useCallback(() => {
     setDrawerState(null)
   }, [])
+
+  // Capture the item name when rolling starts
+  useEffect(() => {
+    if (isRolling && selectedItem) {
+      setRolledItemName(selectedItem.name)
+    }
+  }, [isRolling, selectedItem])
+
+  // Handle roll with scroll-to-top
+  const handleRoll = useCallback(() => {
+    onRoll()
+    // Scroll to top of the results area
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [onRoll])
 
   // Get the current roll's ID from history (first item after a roll)
   // This is used to filter it out of the history list
@@ -87,19 +107,19 @@ export const ResultsPanel = memo(function ResultsPanel({
           selectedItem={selectedItem}
           isRolling={isRolling}
           canRoll={canRoll}
-          onRoll={onRoll}
+          onRoll={handleRoll}
         />
       </div>
 
       {/* Scrollable content area for result and history */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto">
         {/* Current Roll Result */}
         <CurrentRollResult
           result={currentResult}
-          itemName={selectedItem?.name || null}
+          itemName={rolledItemName}
           isRolling={isRolling}
           error={rollError}
-          onReroll={onRoll}
+          onReroll={handleRoll}
           onShowDescriptions={openDescriptions}
           onShowSets={openSets}
         />

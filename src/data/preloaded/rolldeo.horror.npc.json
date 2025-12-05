@@ -1,0 +1,2007 @@
+{
+  "metadata": {
+    "name": "Eldritch NPC Generator",
+    "namespace": "rolldeo.horror.npc",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Eldritch Designs",
+    "description": "A comprehensive NPC generator for 1920s Lovecraftian horror TTRPGs. Creates investigators, witnesses, cultists, and everyday citizens of Arkham and beyond. All content is **system-agnostic** and focuses on narrative descriptions rather than mechanical statistics.",
+    "instructions": "Use the `npcComplete` template for a full NPC description. Individual tables can be rolled separately for specific details. The `npcCompact` template provides a briefer summary suitable for quick reference.\n\n**Key Tables:**\n- `npcComplete` - Full detailed NPC\n- `npcCompact` - Brief NPC summary\n- `profession` - 1920s occupations\n- `darkSecret` - Mythos-related secrets\n- `motivation` - Character drives",
+    "tags": ["npc", "1920s", "arkham", "lovecraft", "horror", "cthulhu", "investigator", "character"],
+    "source": {
+      "license": "CC BY 4.0",
+      "copyright": {
+        "year": "2024",
+        "holder": "Public Domain Content",
+        "notice": "This generator structure and content is released under Creative Commons Attribution 4.0"
+      }
+    },
+    "rights": {
+      "type": "open-content",
+      "official": false,
+      "permissions": {
+        "commercialUse": true,
+        "modification": true,
+        "redistribution": true,
+        "derivativeWorks": true,
+        "attributionRequired": true
+      }
+    },
+    "maxRecursionDepth": 50,
+    "maxExplodingDice": 100,
+    "maxInheritanceDepth": 5,
+    "uniqueOverflowBehavior": "stop"
+  },
+  "variables": {
+    "defaultSeparator": ", ",
+    "era": "1920s",
+    "setting": "Arkham"
+  },
+  "tables": [
+    {
+      "id": "gender",
+      "name": "Gender",
+      "type": "simple",
+      "description": "Character gender for 1920s setting",
+      "tags": ["core", "identity"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "male", "value": "male", "weight": 1, "sets": { "pronoun": "he", "pronounObj": "him", "pronounPoss": "his", "honorific": "Mr." } },
+        { "id": "female", "value": "female", "weight": 1, "sets": { "pronoun": "she", "pronounObj": "her", "pronounPoss": "her", "honorific": "Ms." } }
+      ]
+    },
+    {
+      "id": "ageRange",
+      "name": "Age Range",
+      "type": "simple",
+      "description": "Character age category with descriptive details",
+      "tags": ["core", "physical"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "young", "value": "young adult", "weight": 2, "sets": { "ageDesc": "in their early twenties", "ageYears": "{{dice:1d8+18}}", "agePhysical": "youthful features", "ageEnergy": "energetic" } },
+        { "id": "adult", "value": "adult", "weight": 3, "sets": { "ageDesc": "in their late twenties to early thirties", "ageYears": "{{dice:1d10+25}}", "agePhysical": "mature features", "ageEnergy": "capable" } },
+        { "id": "middleAged", "value": "middle-aged", "weight": 3, "sets": { "ageDesc": "in their forties", "ageYears": "{{dice:1d10+40}}", "agePhysical": "lines of experience around their eyes", "ageEnergy": "measured" } },
+        { "id": "older", "value": "older", "weight": 2, "sets": { "ageDesc": "in their fifties", "ageYears": "{{dice:1d10+50}}", "agePhysical": "silver-streaked hair and weathered features", "ageEnergy": "deliberate" } },
+        { "id": "elderly", "value": "elderly", "weight": 1, "sets": { "ageDesc": "in their sixties or beyond", "ageYears": "{{dice:1d20+60}}", "agePhysical": "deeply lined face and careful movements", "ageEnergy": "unhurried" } }
+      ]
+    },
+    {
+      "id": "socialClass",
+      "name": "Social Class",
+      "type": "simple",
+      "description": "Economic and social standing in 1920s society",
+      "tags": ["core", "social"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "upper", "value": "upper class", "weight": 1, "sets": { "classDesc": "wealthy and privileged", "housing": "a stately manor or penthouse apartment", "income": "substantial family wealth or lucrative profession", "socialCircle": "the social elite" } },
+        { "id": "upperMiddle", "value": "upper-middle class", "weight": 2, "sets": { "classDesc": "prosperous and respectable", "housing": "a comfortable townhouse or well-appointed apartment", "income": "a respected profession", "socialCircle": "professionals and academics" } },
+        { "id": "middle", "value": "middle class", "weight": 3, "sets": { "classDesc": "respectable and hardworking", "housing": "a modest but comfortable home", "income": "steady employment", "socialCircle": "fellow professionals and neighbors" } },
+        { "id": "working", "value": "working class", "weight": 3, "sets": { "classDesc": "honest and struggling", "housing": "a cramped apartment or boarding house", "income": "wages from manual labor", "socialCircle": "fellow workers and family" } },
+        { "id": "poor", "value": "impoverished", "weight": 1, "sets": { "classDesc": "destitute and desperate", "housing": "a decrepit tenement or worse", "income": "day labor or charity", "socialCircle": "others on the margins of society" } }
+      ]
+    },
+    {
+      "id": "primaryTrait",
+      "name": "Primary Personality Trait",
+      "type": "simple",
+      "description": "The dominant aspect of the character's personality",
+      "tags": ["personality", "core"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "curious", "value": "curious", "sets": { "traitBehavior": "constantly asking questions and investigating oddities", "traitRisk": "may pry into dangerous secrets" } },
+        { "id": "cautious", "value": "cautious", "sets": { "traitBehavior": "carefully considering every action before committing", "traitRisk": "may hesitate at crucial moments" } },
+        { "id": "brave", "value": "brave", "sets": { "traitBehavior": "facing danger without flinching", "traitRisk": "may rush into peril recklessly" } },
+        { "id": "scholarly", "value": "scholarly", "sets": { "traitBehavior": "approaching problems with academic rigor", "traitRisk": "may overlook practical solutions" } },
+        { "id": "pragmatic", "value": "pragmatic", "sets": { "traitBehavior": "focusing on what works rather than what's proper", "traitRisk": "may compromise ethics for results" } },
+        { "id": "compassionate", "value": "compassionate", "sets": { "traitBehavior": "showing genuine concern for others' suffering", "traitRisk": "may be manipulated through sympathy" } },
+        { "id": "suspicious", "value": "suspicious", "sets": { "traitBehavior": "questioning everyone's motives and stories", "traitRisk": "may alienate potential allies" } },
+        { "id": "charming", "value": "charming", "sets": { "traitBehavior": "putting others at ease with wit and grace", "traitRisk": "may rely too heavily on social skills" } },
+        { "id": "determined", "value": "determined", "sets": { "traitBehavior": "pursuing goals with unwavering focus", "traitRisk": "may become obsessive" } },
+        { "id": "resourceful", "value": "resourceful", "sets": { "traitBehavior": "finding creative solutions with limited means", "traitRisk": "may take unnecessary shortcuts" } },
+        { "id": "stoic", "value": "stoic", "sets": { "traitBehavior": "maintaining composure under extreme pressure", "traitRisk": "may suppress emotions unhealthily" } },
+        { "id": "analytical", "value": "analytical", "sets": { "traitBehavior": "breaking down problems into logical components", "traitRisk": "may dismiss intuition and emotion" } }
+      ]
+    },
+    {
+      "id": "secondaryTrait",
+      "name": "Secondary Personality Trait",
+      "type": "simple",
+      "description": "A supporting aspect of the character's personality",
+      "tags": ["personality"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "witty", "value": "witty", "sets": { "secondaryBehavior": "often makes clever observations or jokes" } },
+        { "id": "reserved", "value": "reserved", "sets": { "secondaryBehavior": "keeps thoughts and feelings private" } },
+        { "id": "artistic", "value": "artistic", "sets": { "secondaryBehavior": "appreciates and creates beauty" } },
+        { "id": "methodical", "value": "methodical", "sets": { "secondaryBehavior": "follows careful routines and procedures" } },
+        { "id": "impulsive", "value": "impulsive", "sets": { "secondaryBehavior": "acts on instinct rather than planning" } },
+        { "id": "nostalgic", "value": "nostalgic", "sets": { "secondaryBehavior": "frequently references the past" } },
+        { "id": "spiritual", "value": "spiritual", "sets": { "secondaryBehavior": "draws strength from faith or belief" } },
+        { "id": "cynical", "value": "cynical", "sets": { "secondaryBehavior": "expects the worst from people and situations" } },
+        { "id": "idealistic", "value": "idealistic", "sets": { "secondaryBehavior": "believes in higher principles and better futures" } },
+        { "id": "protective", "value": "protective", "sets": { "secondaryBehavior": "shields others from harm or distress" } },
+        { "id": "ambitious", "value": "ambitious", "sets": { "secondaryBehavior": "always striving for advancement and recognition" } },
+        { "id": "humble", "value": "humble", "sets": { "secondaryBehavior": "downplays achievements and avoids attention" } }
+      ]
+    },
+    {
+      "id": "virtue",
+      "name": "Virtue",
+      "type": "simple",
+      "description": "The character's greatest strength of character",
+      "tags": ["personality", "positive"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "honest", "value": "honesty", "sets": { "virtueBehavior": "always tells the truth, even when difficult" } },
+        { "id": "loyal", "value": "loyalty", "sets": { "virtueBehavior": "stands by friends and principles no matter the cost" } },
+        { "id": "courageous", "value": "courage", "sets": { "virtueBehavior": "faces fears and dangers for the greater good" } },
+        { "id": "generous", "value": "generosity", "sets": { "virtueBehavior": "freely shares resources and time with those in need" } },
+        { "id": "patient", "value": "patience", "sets": { "virtueBehavior": "waits calmly for the right moment" } },
+        { "id": "just", "value": "justice", "sets": { "virtueBehavior": "ensures fairness and fights wrongdoing" } },
+        { "id": "merciful", "value": "mercy", "sets": { "virtueBehavior": "shows compassion even to those who may not deserve it" } },
+        { "id": "diligent", "value": "diligence", "sets": { "virtueBehavior": "works tirelessly toward goals" } },
+        { "id": "wise", "value": "wisdom", "sets": { "virtueBehavior": "applies experience and knowledge thoughtfully" } },
+        { "id": "hopeful", "value": "hope", "sets": { "virtueBehavior": "maintains optimism even in darkest times" } }
+      ]
+    },
+    {
+      "id": "flaw",
+      "name": "Character Flaw",
+      "type": "simple",
+      "description": "The character's greatest weakness or failing",
+      "tags": ["personality", "negative"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "prideful", "value": "pride", "sets": { "flawBehavior": "refuses to admit mistakes or ask for help", "flawTrigger": "having their competence questioned" } },
+        { "id": "greedy", "value": "greed", "sets": { "flawBehavior": "cannot resist opportunities for wealth or power", "flawTrigger": "promises of riches or advancement" } },
+        { "id": "cowardly", "value": "cowardice", "sets": { "flawBehavior": "flees or freezes when danger becomes real", "flawTrigger": "direct physical threats" } },
+        { "id": "wrathful", "value": "wrath", "sets": { "flawBehavior": "responds to provocation with disproportionate anger", "flawTrigger": "insults or injustice" } },
+        { "id": "envious", "value": "envy", "sets": { "flawBehavior": "resents others' success and possessions", "flawTrigger": "witnessing others' good fortune" } },
+        { "id": "obsessive", "value": "obsession", "sets": { "flawBehavior": "cannot let go of certain ideas or pursuits", "flawTrigger": "anything related to their fixation" } },
+        { "id": "deceitful", "value": "deceitfulness", "sets": { "flawBehavior": "lies even when the truth would serve better", "flawTrigger": "situations where honesty feels risky" } },
+        { "id": "addicted", "value": "addiction", "sets": { "flawBehavior": "cannot resist their vice (alcohol, gambling, laudanum, etc.)", "flawTrigger": "stress or availability of their vice" } },
+        { "id": "paranoid", "value": "paranoia", "sets": { "flawBehavior": "sees threats and conspiracies everywhere", "flawTrigger": "unexplained events or coincidences" } },
+        { "id": "reckless", "value": "recklessness", "sets": { "flawBehavior": "takes unnecessary risks without considering consequences", "flawTrigger": "exciting or dangerous opportunities" } },
+        { "id": "naive", "value": "naivety", "sets": { "flawBehavior": "trusts too easily and misses obvious deceptions", "flawTrigger": "sob stories and appeals to emotion" } },
+        { "id": "bitter", "value": "bitterness", "sets": { "flawBehavior": "holds grudges and dwells on past wrongs", "flawTrigger": "reminders of past failures or betrayals" } }
+      ]
+    },
+    {
+      "id": "motivation",
+      "name": "Motivation",
+      "type": "simple",
+      "description": "What drives the character, particularly relevant to Mythos investigations",
+      "tags": ["personality", "drive", "mythos"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "truth", "value": "seeking truth", "weight": 2, "sets": { "motivationDesc": "needs to understand the reality behind strange events", "motivationRisk": "may pursue dangerous knowledge too far" } },
+        { "id": "revenge", "value": "revenge", "weight": 1, "sets": { "motivationDesc": "seeks retribution against those who wronged them or their loved ones", "motivationRisk": "may sacrifice everything for vengeance" } },
+        { "id": "protection", "value": "protection", "weight": 2, "sets": { "motivationDesc": "determined to shield loved ones or innocents from harm", "motivationRisk": "may be manipulated through threats to those they protect" } },
+        { "id": "redemption", "value": "redemption", "weight": 1, "sets": { "motivationDesc": "trying to atone for past sins or mistakes", "motivationRisk": "may take on impossible burdens out of guilt" } },
+        { "id": "duty", "value": "duty", "weight": 2, "sets": { "motivationDesc": "bound by professional, religious, or personal obligation", "motivationRisk": "may follow orders against their better judgment" } },
+        { "id": "curiosity", "value": "curiosity", "weight": 2, "sets": { "motivationDesc": "driven by an insatiable need to know and understand", "motivationRisk": "may read things that should stay unread" } },
+        { "id": "faith", "value": "faith", "weight": 1, "sets": { "motivationDesc": "believes they serve a higher power against the darkness", "motivationRisk": "may have their faith shattered by cosmic revelations" } },
+        { "id": "survival", "value": "survival", "weight": 1, "sets": { "motivationDesc": "simply trying to stay alive in a world gone mad", "motivationRisk": "may abandon others to save themselves" } },
+        { "id": "legacy", "value": "legacy", "weight": 1, "sets": { "motivationDesc": "wants to leave something meaningful behind", "motivationRisk": "may make rash decisions to secure their memory" } },
+        { "id": "love", "value": "love", "weight": 1, "sets": { "motivationDesc": "acting out of devotion to another person", "motivationRisk": "may be blinded by emotion" } },
+        { "id": "power", "value": "power", "weight": 1, "sets": { "motivationDesc": "seeks to gain influence, knowledge, or supernatural abilities", "motivationRisk": "may bargain with forces beyond comprehension" } },
+        { "id": "justice", "value": "justice", "weight": 1, "sets": { "motivationDesc": "determined to see wrongdoers punished and victims vindicated", "motivationRisk": "may become what they fight against" } }
+      ]
+    },
+    {
+      "id": "darkSecret",
+      "name": "Dark Secret",
+      "type": "simple",
+      "description": "A hidden connection to the Mythos or other dark past",
+      "tags": ["background", "mythos", "secret"],
+      "resultType": "hook",
+      "entries": [
+        { "id": "witnessed", "value": "witnessed something unnatural", "weight": 2, "sets": { "secretDesc": "once saw something that defied all rational explanation", "secretDetail": "{{witnessedEvent}}", "secretEffect": "still has nightmares about it" } },
+        { "id": "lostLoved", "value": "lost someone to the unknown", "weight": 2, "sets": { "secretDesc": "a loved one vanished under mysterious circumstances", "secretDetail": "They disappeared {{lostCircumstance}}", "secretEffect": "driven to discover what happened" } },
+        { "id": "formerCultist", "value": "former cult member", "weight": 1, "sets": { "secretDesc": "once belonged to a cult worshipping something terrible", "secretDetail": "They escaped after {{cultEscape}}", "secretEffect": "fears recognition by former associates" } },
+        { "id": "forbiddenKnowledge", "value": "possesses forbidden knowledge", "weight": 1, "sets": { "secretDesc": "has read or learned something mortals were not meant to know", "secretDetail": "They discovered {{forbiddenSource}}", "secretEffect": "the knowledge haunts their dreams" } },
+        { "id": "cursedInheritance", "value": "inherited something cursed", "weight": 1, "sets": { "secretDesc": "received a troubling inheritance from a deceased relative", "secretDetail": "The inheritance includes {{cursedItem}}", "secretEffect": "strange events have occurred since taking possession" } },
+        { "id": "taintedBlood", "value": "has tainted bloodline", "weight": 1, "sets": { "secretDesc": "descends from a family with unnatural connections", "secretDetail": "Family history includes {{taintedHistory}}", "secretEffect": "fears what they might become" } },
+        { "id": "survivor", "value": "survived an encounter", "weight": 2, "sets": { "secretDesc": "barely escaped a deadly supernatural encounter", "secretDetail": "They survived {{survivalEvent}}", "secretEffect": "carries physical or psychological scars" } },
+        { "id": "visions", "value": "plagued by visions", "weight": 1, "sets": { "secretDesc": "receives disturbing visions of things to come or things that are", "secretDetail": "The visions often show {{visionContent}}", "secretEffect": "cannot tell if they are prophecy or madness" } },
+        { "id": "guilty", "value": "responsible for a tragedy", "weight": 1, "sets": { "secretDesc": "their actions inadvertently caused terrible harm", "secretDetail": "They are responsible for {{guiltyEvent}}", "secretEffect": "tormented by guilt and fear of discovery" } },
+        { "id": "bargain", "value": "made a dark bargain", "weight": 1, "sets": { "secretDesc": "once struck a deal with something not of this world", "secretDetail": "In exchange for {{bargainReceived}}, they promised {{bargainOwed}}", "secretEffect": "dreads the day payment comes due" } },
+        { "id": "none", "value": "no supernatural connections yet", "weight": 3, "sets": { "secretDesc": "has lived a relatively normal life until now", "secretDetail": "Nothing unusual in their past", "secretEffect": "blissfully unaware of the true nature of reality" } }
+      ]
+    },
+    {
+      "id": "witnessedEvent",
+      "name": "Witnessed Event Detail",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "a corpse rise and walk away from the morgue" },
+        { "value": "a figure that cast no shadow in the moonlight" },
+        { "value": "something massive moving beneath the harbor waters" },
+        { "value": "a door open onto a place that couldn't exist" },
+        { "value": "a person transform into something inhuman" },
+        { "value": "lights in the sky that moved with terrible purpose" },
+        { "value": "a ritual in the woods that summoned something" },
+        { "value": "the stars arrange themselves into an impossible pattern" },
+        { "value": "their own reflection move independently in a mirror" },
+        { "value": "a painting whose subject changed when no one was looking" }
+      ]
+    },
+    {
+      "id": "lostCircumstance",
+      "name": "Lost Person Circumstance",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "after investigating strange sounds in the basement" },
+        { "value": "during a voyage that returned with an empty ship" },
+        { "value": "following receipt of a letter with no return address" },
+        { "value": "after purchasing an antique from a mysterious dealer" },
+        { "value": "in the wake of recurring nightmares about a flooded city" },
+        { "value": "while researching family genealogy" },
+        { "value": "after accepting an invitation to a private gathering" },
+        { "value": "during an expedition to a remote location" },
+        { "value": "following a bout of sleepwalking that grew increasingly severe" },
+        { "value": "after claiming to have found something in an old book" }
+      ]
+    },
+    {
+      "id": "cultEscape",
+      "name": "Cult Escape Detail",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "witnessing a sacrifice that went wrong" },
+        { "value": "realizing what they were truly worshipping" },
+        { "value": "being chosen for an 'honor' they couldn't accept" },
+        { "value": "a police raid that they barely survived" },
+        { "value": "intervention by a concerned outsider" },
+        { "value": "the leader's true nature was revealed" },
+        { "value": "a moment of clarity during a ritual" },
+        { "value": "discovering what happened to previous initiates" }
+      ]
+    },
+    {
+      "id": "forbiddenSource",
+      "name": "Forbidden Knowledge Source",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "a moldering tome in a restricted library section" },
+        { "value": "inscriptions in an ancient ruin" },
+        { "value": "the dying words of a condemned man" },
+        { "value": "a coded message in their family papers" },
+        { "value": "dreams that revealed geometric impossibilities" },
+        { "value": "an artifact that whispered secrets" },
+        { "value": "a mentor's hidden research notes" },
+        { "value": "patterns in astronomical data that should not exist" }
+      ]
+    },
+    {
+      "id": "cursedItem",
+      "name": "Cursed Inheritance Item",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "item",
+      "entries": [
+        { "value": "an antique mirror that shows reflections from other times" },
+        { "value": "a key that fits no known lock" },
+        { "value": "a painting whose subject seems to age" },
+        { "value": "a music box that plays impossible harmonies" },
+        { "value": "a journal written in an unknown language" },
+        { "value": "a family estate with sealed rooms" },
+        { "value": "jewelry that feels warm regardless of temperature" },
+        { "value": "a collection of photographs showing impossible places" }
+      ]
+    },
+    {
+      "id": "taintedHistory",
+      "name": "Tainted Bloodline History",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "unexplained disappearances every generation" },
+        { "value": "a town that drove their ancestors out" },
+        { "value": "marriages to outsiders who came from the sea" },
+        { "value": "a family curse dating back centuries" },
+        { "value": "ancestors who practiced strange rites" },
+        { "value": "physical traits that skip generations but always return" },
+        { "value": "a family home that no one will enter" },
+        { "value": "records that were deliberately destroyed" }
+      ]
+    },
+    {
+      "id": "survivalEvent",
+      "name": "Survival Event Detail",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "a shipwreck on an island that wasn't on any chart" },
+        { "value": "being trapped in a building during a summoning" },
+        { "value": "an attack by something that shouldn't exist" },
+        { "value": "a cave-in that revealed ancient chambers" },
+        { "value": "a storm that brought things from the deep" },
+        { "value": "a seance that contacted something terrible" },
+        { "value": "an asylum where the inmates knew too much" },
+        { "value": "a night in a house where time moved strangely" }
+      ]
+    },
+    {
+      "id": "visionContent",
+      "name": "Vision Content",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "cities beneath the waves where beings still dwell" },
+        { "value": "the spaces between stars where things wait" },
+        { "value": "future catastrophes that may yet be prevented" },
+        { "value": "the true faces of people they know" },
+        { "value": "places of power that call to them" },
+        { "value": "the moment of their own death" },
+        { "value": "geometric shapes that hurt to remember" },
+        { "value": "a throne in darkness and what sits upon it" }
+      ]
+    },
+    {
+      "id": "guiltyEvent",
+      "name": "Guilty Event Detail",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "releasing something that was safely contained" },
+        { "value": "leading others into a trap they barely escaped" },
+        { "value": "translating a text that drove someone mad" },
+        { "value": "opening a door that should have stayed closed" },
+        { "value": "speaking a name that should never be spoken" },
+        { "value": "failing to heed warnings about a dangerous place" },
+        { "value": "bringing an artifact back from an expedition" },
+        { "value": "teaching someone knowledge that destroyed them" }
+      ]
+    },
+    {
+      "id": "bargainReceived",
+      "name": "Bargain Received",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "knowledge that saved their life" },
+        { "value": "power to defeat an enemy" },
+        { "value": "wealth beyond expectation" },
+        { "value": "the life of someone they loved" },
+        { "value": "escape from certain death" },
+        { "value": "answers to questions that haunted them" },
+        { "value": "protection from other supernatural threats" },
+        { "value": "revenge upon those who wronged them" }
+      ]
+    },
+    {
+      "id": "bargainOwed",
+      "name": "Bargain Owed",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "a service to be named later" },
+        { "value": "to open a door when the stars are right" },
+        { "value": "their firstborn child" },
+        { "value": "to bring others into the fold" },
+        { "value": "a portion of their sanity" },
+        { "value": "their body as a vessel when summoned" },
+        { "value": "to guard a location until released" },
+        { "value": "to speak the final words of a ritual at their death" }
+      ]
+    },
+    {
+      "id": "build",
+      "name": "Physical Build",
+      "type": "simple",
+      "description": "Character's body type and stature",
+      "tags": ["physical", "appearance"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "slight", "value": "slight", "sets": { "buildDesc": "thin and small-framed", "buildDetail": "looking as though a strong wind might carry them away" } },
+        { "id": "lean", "value": "lean", "sets": { "buildDesc": "slim but wiry", "buildDetail": "with a runner's physique" } },
+        { "id": "average", "value": "average", "weight": 2, "sets": { "buildDesc": "of ordinary build", "buildDetail": "neither particularly imposing nor slight" } },
+        { "id": "athletic", "value": "athletic", "sets": { "buildDesc": "fit and muscular", "buildDetail": "clearly accustomed to physical activity" } },
+        { "id": "stocky", "value": "stocky", "sets": { "buildDesc": "short and solidly built", "buildDetail": "with broad shoulders and thick limbs" } },
+        { "id": "heavyset", "value": "heavyset", "sets": { "buildDesc": "large and heavy", "buildDetail": "carrying considerable weight on their frame" } },
+        { "id": "tall", "value": "tall", "sets": { "buildDesc": "notably tall", "buildDetail": "standing head and shoulders above most" } },
+        { "id": "imposing", "value": "imposing", "sets": { "buildDesc": "large and powerfully built", "buildDetail": "commanding attention through sheer physical presence" } }
+      ]
+    },
+    {
+      "id": "hairColor",
+      "name": "Hair Color",
+      "type": "simple",
+      "description": "Character's hair color, with age-appropriate variations",
+      "tags": ["physical", "appearance"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "black", "value": "black", "weight": 2, "sets": { "hairColorDesc": "raven-black" } },
+        { "id": "darkBrown", "value": "dark brown", "weight": 2, "sets": { "hairColorDesc": "deep brown" } },
+        { "id": "brown", "value": "brown", "weight": 2, "sets": { "hairColorDesc": "chestnut brown" } },
+        { "id": "lightBrown", "value": "light brown", "sets": { "hairColorDesc": "sandy brown" } },
+        { "id": "auburn", "value": "auburn", "sets": { "hairColorDesc": "rich auburn" } },
+        { "id": "red", "value": "red", "sets": { "hairColorDesc": "fiery red" } },
+        { "id": "blonde", "value": "blonde", "sets": { "hairColorDesc": "golden blonde" } },
+        { "id": "strawberry", "value": "strawberry blonde", "sets": { "hairColorDesc": "strawberry blonde" } },
+        { "id": "gray", "value": "gray", "sets": { "hairColorDesc": "steel gray" } },
+        { "id": "white", "value": "white", "sets": { "hairColorDesc": "snow white" } },
+        { "id": "graying", "value": "graying", "sets": { "hairColorDesc": "salt-and-pepper" } },
+        { "id": "bald", "value": "bald", "sets": { "hairColorDesc": "completely bald" } }
+      ]
+    },
+    {
+      "id": "maleHairStyle",
+      "name": "Male Hair Style",
+      "type": "simple",
+      "description": "1920s-appropriate men's hairstyles",
+      "tags": ["physical", "appearance", "male"],
+      "resultType": "trait",
+      "entries": [
+        { "value": "slicked back with pomade", "sets": { "hairStyleDesc": "slicked back in the modern fashion" } },
+        { "value": "neatly parted to the side", "sets": { "hairStyleDesc": "precisely parted and combed" } },
+        { "value": "short and tidy", "sets": { "hairStyleDesc": "cropped short and practical" } },
+        { "value": "slightly disheveled", "sets": { "hairStyleDesc": "somewhat unkempt despite attempts at control" } },
+        { "value": "brilliantined waves", "sets": { "hairStyleDesc": "fashionably waved with brilliantine" } },
+        { "value": "thinning on top", "sets": { "hairStyleDesc": "noticeably thinning at the crown" } },
+        { "value": "close-cropped", "sets": { "hairStyleDesc": "cut very close to the scalp" } },
+        { "value": "receding at the temples", "sets": { "hairStyleDesc": "retreating from the forehead" } }
+      ]
+    },
+    {
+      "id": "femaleHairStyle",
+      "name": "Female Hair Style",
+      "type": "simple",
+      "description": "1920s-appropriate women's hairstyles",
+      "tags": ["physical", "appearance", "female"],
+      "resultType": "trait",
+      "entries": [
+        { "value": "a fashionable bob", "sets": { "hairStyleDesc": "cut in the daring new bobbed style" } },
+        { "value": "finger waves", "sets": { "hairStyleDesc": "styled in elegant finger waves" } },
+        { "value": "pinned up in a chignon", "sets": { "hairStyleDesc": "swept up in a classic chignon" } },
+        { "value": "a shingle cut", "sets": { "hairStyleDesc": "cropped daringly short in back" } },
+        { "value": "long and pinned up", "sets": { "hairStyleDesc": "kept long and pinned up traditionally" } },
+        { "value": "Marcel waves", "sets": { "hairStyleDesc": "set in fashionable Marcel waves" } },
+        { "value": "an Eton crop", "sets": { "hairStyleDesc": "cut scandalously short like a man's" } },
+        { "value": "loose and wavy", "sets": { "hairStyleDesc": "worn loose with natural waves" } }
+      ]
+    },
+    {
+      "id": "eyeColor",
+      "name": "Eye Color",
+      "type": "simple",
+      "description": "Character's eye color",
+      "tags": ["physical", "appearance"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "brown", "value": "brown", "weight": 3, "sets": { "eyeColorDesc": "warm brown" } },
+        { "id": "darkBrown", "value": "dark brown", "weight": 2, "sets": { "eyeColorDesc": "deep, almost black" } },
+        { "id": "hazel", "value": "hazel", "sets": { "eyeColorDesc": "changeable hazel" } },
+        { "id": "green", "value": "green", "sets": { "eyeColorDesc": "striking green" } },
+        { "id": "blue", "value": "blue", "weight": 2, "sets": { "eyeColorDesc": "clear blue" } },
+        { "id": "gray", "value": "gray", "sets": { "eyeColorDesc": "cool gray" } },
+        { "id": "paleBlue", "value": "pale blue", "sets": { "eyeColorDesc": "pale, almost colorless blue" } },
+        { "id": "amber", "value": "amber", "sets": { "eyeColorDesc": "unusual amber" } }
+      ]
+    },
+    {
+      "id": "distinguishingFeature",
+      "name": "Distinguishing Feature",
+      "type": "simple",
+      "description": "A notable physical characteristic",
+      "tags": ["physical", "appearance"],
+      "resultType": "trait",
+      "entries": [
+        { "value": "a prominent scar", "sets": { "featureDesc": "a notable scar", "featureLocation": "across {{scarLocation}}" } },
+        { "value": "a distinctive nose", "sets": { "featureDesc": "a distinctive nose", "featureLocation": "that dominates their face" } },
+        { "value": "a birthmark", "sets": { "featureDesc": "an unusual birthmark", "featureLocation": "visible on their {{birthmarkLocation}}" } },
+        { "value": "spectacles", "sets": { "featureDesc": "{{spectacleType}} spectacles", "featureLocation": "perched on their nose" } },
+        { "value": "a limp", "sets": { "featureDesc": "a noticeable limp", "featureLocation": "from an old injury" } },
+        { "value": "callused hands", "sets": { "featureDesc": "heavily callused hands", "featureLocation": "showing years of hard work" } },
+        { "value": "an intense gaze", "sets": { "featureDesc": "an unsettlingly intense gaze", "featureLocation": "that makes others uncomfortable" } },
+        { "value": "a nervous tic", "sets": { "featureDesc": "a nervous tic", "featureLocation": "that manifests when stressed" } },
+        { "value": "a memorable voice", "sets": { "featureDesc": "a distinctive {{voiceType}} voice", "featureLocation": "immediately recognizable" } },
+        { "value": "unusual pallor", "sets": { "featureDesc": "an unusual pallor", "featureLocation": "as if they rarely see sunlight" } },
+        { "value": "weathered features", "sets": { "featureDesc": "deeply weathered features", "featureLocation": "from years of outdoor exposure" } },
+        { "value": "delicate features", "sets": { "featureDesc": "notably delicate features", "featureLocation": "that draw attention" } },
+        { "value": "a facial scar", "sets": { "featureDesc": "a thin scar", "featureLocation": "running across their {{facialScarLocation}}" } },
+        { "value": "missing fingers", "sets": { "featureDesc": "missing fingers", "featureLocation": "on their {{hand}} hand" } },
+        { "value": "a tattoo", "sets": { "featureDesc": "an old tattoo", "featureLocation": "visible on their {{tattooLocation}}" } }
+      ]
+    },
+    {
+      "id": "scarLocation",
+      "name": "Scar Location",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail"],
+      "resultType": "description",
+      "entries": [
+        { "value": "their left cheek" },
+        { "value": "their right cheek" },
+        { "value": "their forehead" },
+        { "value": "their chin" },
+        { "value": "their neck" },
+        { "value": "the back of one hand" },
+        { "value": "their forearm" }
+      ]
+    },
+    {
+      "id": "birthmarkLocation",
+      "name": "Birthmark Location",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail"],
+      "resultType": "description",
+      "entries": [
+        { "value": "neck" },
+        { "value": "cheek" },
+        { "value": "temple" },
+        { "value": "hand" },
+        { "value": "forearm" }
+      ]
+    },
+    {
+      "id": "spectacleType",
+      "name": "Spectacle Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail"],
+      "resultType": "item",
+      "entries": [
+        { "value": "round wire-rimmed" },
+        { "value": "thick-lensed" },
+        { "value": "pince-nez" },
+        { "value": "horn-rimmed" },
+        { "value": "gold-rimmed" },
+        { "value": "small rectangular" }
+      ]
+    },
+    {
+      "id": "voiceType",
+      "name": "Voice Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail"],
+      "resultType": "description",
+      "entries": [
+        { "value": "deep, resonant" },
+        { "value": "high-pitched" },
+        { "value": "raspy" },
+        { "value": "soft, almost whispering" },
+        { "value": "booming" },
+        { "value": "melodious" },
+        { "value": "nasal" },
+        { "value": "gravelly" }
+      ]
+    },
+    {
+      "id": "facialScarLocation",
+      "name": "Facial Scar Location",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail"],
+      "resultType": "description",
+      "entries": [
+        { "value": "cheek" },
+        { "value": "forehead" },
+        { "value": "jaw" },
+        { "value": "eyebrow" },
+        { "value": "chin" },
+        { "value": "lip" }
+      ]
+    },
+    {
+      "id": "hand",
+      "name": "Hand",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail"],
+      "resultType": "description",
+      "entries": [
+        { "value": "left" },
+        { "value": "right" }
+      ]
+    },
+    {
+      "id": "tattooLocation",
+      "name": "Tattoo Location",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail"],
+      "resultType": "description",
+      "entries": [
+        { "value": "forearm" },
+        { "value": "upper arm" },
+        { "value": "hand" },
+        { "value": "chest" },
+        { "value": "back" }
+      ]
+    },
+    {
+      "id": "maleClothingStyle",
+      "name": "Male Clothing Style",
+      "type": "simple",
+      "description": "1920s men's fashion appropriate to social class",
+      "tags": ["appearance", "clothing", "male"],
+      "resultType": "description",
+      "entries": [
+        { "value": "a well-tailored three-piece suit", "weight": 2, "sets": { "clothingDesc": "dressed in an impeccable three-piece suit", "clothingClass": "upper" } },
+        { "value": "a worn but respectable suit", "weight": 2, "sets": { "clothingDesc": "wearing a suit that has seen better days but remains respectable", "clothingClass": "middle" } },
+        { "value": "working clothes", "weight": 2, "sets": { "clothingDesc": "dressed in practical working clothes", "clothingClass": "working" } },
+        { "value": "academic attire with leather elbow patches", "sets": { "clothingDesc": "wearing the typical professorial tweed with leather patches", "clothingClass": "middle" } },
+        { "value": "a sharp pinstripe suit", "sets": { "clothingDesc": "dressed sharply in fashionable pinstripes", "clothingClass": "upper" } },
+        { "value": "clerical black", "sets": { "clothingDesc": "wearing somber clerical attire", "clothingClass": "middle" } },
+        { "value": "military-influenced attire", "sets": { "clothingDesc": "dressed in clothing with a military cut, perhaps a veteran", "clothingClass": "middle" } },
+        { "value": "a newsboy cap and suspenders", "sets": { "clothingDesc": "wearing a flat cap and suspenders over a work shirt", "clothingClass": "working" } },
+        { "value": "shabby, patched clothing", "sets": { "clothingDesc": "dressed in worn, much-mended clothing", "clothingClass": "poor" } },
+        { "value": "a seaman's peacoat", "sets": { "clothingDesc": "wearing a heavy peacoat typical of sailors", "clothingClass": "working" } },
+        { "value": "flashy gangster style", "sets": { "clothingDesc": "dressed flashily with expensive accessories", "clothingClass": "criminal" } },
+        { "value": "a lab coat over ordinary clothes", "sets": { "clothingDesc": "wearing a stained laboratory coat", "clothingClass": "professional" } }
+      ]
+    },
+    {
+      "id": "femaleClothingStyle",
+      "name": "Female Clothing Style",
+      "type": "simple",
+      "description": "1920s women's fashion appropriate to social class",
+      "tags": ["appearance", "clothing", "female"],
+      "resultType": "description",
+      "entries": [
+        { "value": "an elegant drop-waist dress", "weight": 2, "sets": { "clothingDesc": "wearing an elegant dress in the latest fashion", "clothingClass": "upper" } },
+        { "value": "a practical day dress", "weight": 2, "sets": { "clothingDesc": "dressed in a sensible but neat day dress", "clothingClass": "middle" } },
+        { "value": "a simple working dress with apron", "weight": 2, "sets": { "clothingDesc": "wearing a plain dress with a work apron", "clothingClass": "working" } },
+        { "value": "a fashionable flapper ensemble", "sets": { "clothingDesc": "dressed daringly in flapper style with fringe and beads", "clothingClass": "modern" } },
+        { "value": "conservative Victorian-style dress", "sets": { "clothingDesc": "dressed conservatively in an older style", "clothingClass": "traditional" } },
+        { "value": "a nurse's uniform", "sets": { "clothingDesc": "wearing a crisp nurse's uniform", "clothingClass": "professional" } },
+        { "value": "mourning black", "sets": { "clothingDesc": "dressed in somber mourning attire", "clothingClass": "mourning" } },
+        { "value": "worn and mended clothes", "sets": { "clothingDesc": "wearing threadbare but carefully maintained clothing", "clothingClass": "poor" } },
+        { "value": "a smart traveling suit", "sets": { "clothingDesc": "dressed in a practical traveling ensemble", "clothingClass": "middle" } },
+        { "value": "bohemian artistic attire", "sets": { "clothingDesc": "dressed in unconventional artistic fashion", "clothingClass": "artistic" } },
+        { "value": "a formal evening gown", "sets": { "clothingDesc": "wearing a stunning evening gown", "clothingClass": "upper" } },
+        { "value": "a librarian's modest dress", "sets": { "clothingDesc": "dressed modestly but professionally", "clothingClass": "professional" } }
+      ]
+    },
+    {
+      "id": "relationshipStatus",
+      "name": "Relationship Status",
+      "type": "simple",
+      "description": "Character's romantic/marital status",
+      "tags": ["social", "personal"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "single", "value": "single", "weight": 2, "sets": { "relationshipDesc": "unmarried and unattached", "relationshipDetail": "either by choice or circumstance" } },
+        { "id": "courting", "value": "courting", "sets": { "relationshipDesc": "currently being courted by", "relationshipDetail": "a {{courtingPartner}}" } },
+        { "id": "engaged", "value": "engaged", "sets": { "relationshipDesc": "engaged to be married to", "relationshipDetail": "a {{fianceType}}" } },
+        { "id": "married", "value": "married", "weight": 2, "sets": { "relationshipDesc": "married", "relationshipDetail": "to a {{spouseType}}" } },
+        { "id": "marriedUnhappy", "value": "unhappily married", "sets": { "relationshipDesc": "trapped in an unhappy marriage", "relationshipDetail": "to a {{unhappySpouseType}}" } },
+        { "id": "widowed", "value": "widowed", "sets": { "relationshipDesc": "a widow(er)", "relationshipDetail": "still mourning {{widowedCircumstance}}" } },
+        { "id": "divorced", "value": "divorced", "sets": { "relationshipDesc": "scandalously divorced", "relationshipDetail": "a subject of local gossip" } },
+        { "id": "secretAffair", "value": "involved in a secret affair", "sets": { "relationshipDesc": "conducting a secret affair", "relationshipDetail": "with {{affairPartner}}" } },
+        { "id": "estranged", "value": "estranged", "sets": { "relationshipDesc": "estranged from their spouse", "relationshipDetail": "living separately" } }
+      ]
+    },
+    {
+      "id": "courtingPartner",
+      "name": "Courting Partner Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "social"],
+      "resultType": "description",
+      "entries": [
+        { "value": "respectable professional" },
+        { "value": "childhood friend" },
+        { "value": "somewhat unsuitable match" },
+        { "value": "wealthy admirer" },
+        { "value": "persistent suitor" },
+        { "value": "mysterious stranger" }
+      ]
+    },
+    {
+      "id": "fianceType",
+      "name": "Fiance Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "social"],
+      "resultType": "description",
+      "entries": [
+        { "value": "suitable match arranged by family" },
+        { "value": "love match despite family objections" },
+        { "value": "practical arrangement" },
+        { "value": "childhood sweetheart" },
+        { "value": "partner who has been waiting patiently" }
+      ]
+    },
+    {
+      "id": "spouseType",
+      "name": "Spouse Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "social"],
+      "resultType": "description",
+      "entries": [
+        { "value": "supportive and understanding partner" },
+        { "value": "spouse who knows nothing of their secrets" },
+        { "value": "fellow investigator of the strange" },
+        { "value": "long-suffering partner" },
+        { "value": "spouse often away on business" },
+        { "value": "sickly spouse requiring care" }
+      ]
+    },
+    {
+      "id": "unhappySpouseType",
+      "name": "Unhappy Spouse Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "social"],
+      "resultType": "description",
+      "entries": [
+        { "value": "controlling partner" },
+        { "value": "spouse they never loved" },
+        { "value": "partner who changed after marriage" },
+        { "value": "spouse with a dark secret of their own" },
+        { "value": "partner who has grown cold" }
+      ]
+    },
+    {
+      "id": "widowedCircumstance",
+      "name": "Widowed Circumstance",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "social"],
+      "resultType": "description",
+      "entries": [
+        { "value": "a spouse lost to illness" },
+        { "value": "a partner killed in the Great War" },
+        { "value": "a spouse who died under mysterious circumstances" },
+        { "value": "a partner lost at sea" },
+        { "value": "a spouse who simply vanished one night" },
+        { "value": "a partner driven to an early grave" }
+      ]
+    },
+    {
+      "id": "affairPartner",
+      "name": "Affair Partner",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "social"],
+      "resultType": "description",
+      "entries": [
+        { "value": "someone of inappropriate social standing" },
+        { "value": "a married person" },
+        { "value": "someone their family would never approve of" },
+        { "value": "a former flame" },
+        { "value": "someone connected to their profession" },
+        { "value": "a dangerous individual" }
+      ]
+    },
+    {
+      "id": "sanityState",
+      "name": "Mental State",
+      "type": "simple",
+      "description": "Character's current psychological condition relative to Mythos exposure",
+      "tags": ["mental", "mythos"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "stable", "value": "stable", "weight": 3, "sets": { "sanityDesc": "mentally sound and grounded", "sanityBehavior": "approaches problems rationally", "sanityTells": "none apparent" } },
+        { "id": "anxious", "value": "anxious", "weight": 2, "sets": { "sanityDesc": "prone to anxiety and worry", "sanityBehavior": "startles easily and overthinks", "sanityTells": "fidgets and checks doors twice" } },
+        { "id": "haunted", "value": "haunted", "weight": 1, "sets": { "sanityDesc": "troubled by what they have seen", "sanityBehavior": "sometimes stares at nothing", "sanityTells": "occasional distant look and muttering" } },
+        { "id": "paranoid", "value": "paranoid", "weight": 1, "sets": { "sanityDesc": "suspicious of everyone and everything", "sanityBehavior": "sees patterns and threats everywhere", "sanityTells": "constantly watching over their shoulder" } },
+        { "id": "manic", "value": "manic", "sets": { "sanityDesc": "driven by feverish energy", "sanityBehavior": "works obsessively on their interests", "sanityTells": "sleeps little and talks rapidly" } },
+        { "id": "detached", "value": "detached", "sets": { "sanityDesc": "emotionally distant from reality", "sanityBehavior": "responds to horrors with disturbing calm", "sanityTells": "flat affect and mechanical responses" } },
+        { "id": "nightmares", "value": "plagued by nightmares", "sets": { "sanityDesc": "tormented by terrible dreams", "sanityBehavior": "fears sleep and shows exhaustion", "sanityTells": "dark circles and occasional trembling" } },
+        { "id": "phobic", "value": "phobic", "sets": { "sanityDesc": "gripped by irrational fears", "sanityBehavior": "avoids specific triggers obsessively", "sanityTells": "panic when confronted with {{phobiaObject}}" } }
+      ]
+    },
+    {
+      "id": "phobiaObject",
+      "name": "Phobia Object",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "mental"],
+      "resultType": "description",
+      "entries": [
+        { "value": "enclosed spaces" },
+        { "value": "deep water" },
+        { "value": "the dark" },
+        { "value": "certain sounds" },
+        { "value": "specific places" },
+        { "value": "crowds" },
+        { "value": "being alone" },
+        { "value": "heights" },
+        { "value": "mirrors" },
+        { "value": "certain symbols" }
+      ]
+    },
+    {
+      "id": "mythosConnection",
+      "name": "Connection to the Mythos",
+      "type": "simple",
+      "description": "The character's awareness of and involvement with cosmic horrors",
+      "tags": ["mythos", "knowledge"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "ignorant", "value": "blissfully ignorant", "weight": 3, "sets": { "mythosDesc": "has no idea of the true nature of reality", "mythosKnowledge": "none", "mythosReaction": "would likely dismiss any evidence as fantasy" } },
+        { "id": "skeptic", "value": "skeptical but curious", "weight": 2, "sets": { "mythosDesc": "has heard rumors but remains unconvinced", "mythosKnowledge": "rumors only", "mythosReaction": "would investigate strange claims with scientific skepticism" } },
+        { "id": "glimpsed", "value": "has glimpsed the truth", "weight": 1, "sets": { "mythosDesc": "has had one or more encounters with the unexplainable", "mythosKnowledge": "personal experience", "mythosReaction": "takes supernatural claims seriously" } },
+        { "id": "student", "value": "student of the occult", "weight": 1, "sets": { "mythosDesc": "actively studies forbidden knowledge", "mythosKnowledge": "academic study", "mythosReaction": "seeks opportunities to learn more" } },
+        { "id": "survivor", "value": "scarred survivor", "sets": { "mythosDesc": "has survived direct Mythos contact", "mythosKnowledge": "firsthand terror", "mythosReaction": "either avoids involvement or grimly prepared" } },
+        { "id": "hunter", "value": "active hunter of the dark", "sets": { "mythosDesc": "dedicates their life to fighting the Mythos", "mythosKnowledge": "extensive and hard-won", "mythosReaction": "seeks out and confronts supernatural threats" } },
+        { "id": "touched", "value": "touched by the beyond", "sets": { "mythosDesc": "has been changed by Mythos contact", "mythosKnowledge": "intimate and disturbing", "mythosReaction": "no longer entirely human in outlook" } },
+        { "id": "cultist", "value": "secretly a cultist", "sets": { "mythosDesc": "secretly serves cosmic powers", "mythosKnowledge": "forbidden rituals", "mythosReaction": "works to advance their masters' plans" } }
+      ]
+    },
+    {
+      "id": "mannerism",
+      "name": "Distinctive Mannerism",
+      "type": "simple",
+      "description": "A notable behavioral quirk or habit",
+      "tags": ["personality", "behavior"],
+      "resultType": "trait",
+      "entries": [
+        { "value": "constantly cleaning or polishing something", "sets": { "mannerismDesc": "perpetually cleaning their spectacles or polishing a trinket" } },
+        { "value": "speaks in a distinctive cadence", "sets": { "mannerismDesc": "speaks with an unusual rhythm, pausing at odd moments" } },
+        { "value": "always seems to be looking past you", "sets": { "mannerismDesc": "rarely makes direct eye contact, gazing at something behind you" } },
+        { "value": "hums or whistles when nervous", "sets": { "mannerismDesc": "unconsciously hums when anxious or thinking" } },
+        { "value": "touches a specific item for comfort", "sets": { "mannerismDesc": "frequently touches {{comfortItem}} as if for reassurance" } },
+        { "value": "clears throat before speaking", "sets": { "mannerismDesc": "always clears their throat before saying anything important" } },
+        { "value": "uses elaborate hand gestures", "sets": { "mannerismDesc": "accompanies speech with dramatic hand movements" } },
+        { "value": "quotes literature or scripture", "sets": { "mannerismDesc": "peppers conversation with literary quotes" } },
+        { "value": "laughs at inappropriate moments", "sets": { "mannerismDesc": "sometimes laughs when the situation doesn't warrant it" } },
+        { "value": "extremely formal in speech", "sets": { "mannerismDesc": "speaks with unusual formality even in casual situations" } },
+        { "value": "checks the time obsessively", "sets": { "mannerismDesc": "constantly checking their watch" } },
+        { "value": "always positions themselves near exits", "sets": { "mannerismDesc": "invariably sits or stands near the door" } }
+      ]
+    },
+    {
+      "id": "comfortItem",
+      "name": "Comfort Item",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail"],
+      "resultType": "item",
+      "entries": [
+        { "value": "a pocket watch" },
+        { "value": "a ring" },
+        { "value": "a locket" },
+        { "value": "a lucky coin" },
+        { "value": "a small medal" },
+        { "value": "a worn photograph" },
+        { "value": "a religious symbol" },
+        { "value": "a smooth stone" }
+      ]
+    },
+    {
+      "id": "speechPattern",
+      "name": "Speech Pattern",
+      "type": "simple",
+      "description": "How the character typically speaks",
+      "tags": ["personality", "communication"],
+      "resultType": "trait",
+      "entries": [
+        { "value": "speaks in a rapid, clipped manner", "sets": { "speechDesc": "talks quickly, as if time is always short" } },
+        { "value": "drawls slowly and deliberately", "sets": { "speechDesc": "speaks slowly, choosing each word with care" } },
+        { "value": "uses many technical terms", "sets": { "speechDesc": "peppers speech with jargon from their profession" } },
+        { "value": "speaks softly, almost whispering", "sets": { "speechDesc": "speaks so quietly others must lean in to hear" } },
+        { "value": "has a booming, projecting voice", "sets": { "speechDesc": "speaks loudly enough to be heard across a room" } },
+        { "value": "uses colorful slang", "sets": { "speechDesc": "employs vivid street language and slang" } },
+        { "value": "speaks with excessive politeness", "sets": { "speechDesc": "is almost painfully polite in all interactions" } },
+        { "value": "frequently trails off mid-sentence", "sets": { "speechDesc": "often leaves thoughts unfinished, as if distracted" } },
+        { "value": "asks rhetorical questions constantly", "sets": { "speechDesc": "frames most statements as questions" } },
+        { "value": "has a noticeable stammer", "sets": { "speechDesc": "struggles with a stammer, especially when nervous" } }
+      ]
+    },
+    {
+      "id": "profession",
+      "name": "Profession",
+      "type": "simple",
+      "description": "1920s-appropriate occupations with Arkham Horror flavor",
+      "tags": ["core", "occupation"],
+      "resultType": "trait",
+      "entries": [
+        { "id": "professor", "value": "Professor", "weight": 2, "sets": { "professionDesc": "a university professor", "professionField": "{{academicField}}", "professionLocation": "Miskatonic University", "professionClass": "upper-middle", "professionSkills": "research, languages, history" } },
+        { "id": "doctor", "value": "Doctor", "weight": 2, "sets": { "professionDesc": "a medical doctor", "professionField": "{{medicalSpecialty}}", "professionLocation": "St. Mary's Hospital or private practice", "professionClass": "upper-middle", "professionSkills": "medicine, psychology, first aid" } },
+        { "id": "journalist", "value": "Journalist", "weight": 2, "sets": { "professionDesc": "a newspaper journalist", "professionField": "{{journalismBeat}}", "professionLocation": "the Arkham Advertiser", "professionClass": "middle", "professionSkills": "investigation, persuasion, writing" } },
+        { "id": "privateEye", "value": "Private Investigator", "sets": { "professionDesc": "a private detective", "professionField": "missing persons and infidelity cases", "professionLocation": "a small downtown office", "professionClass": "middle", "professionSkills": "investigation, streetwise, intimidation" } },
+        { "id": "antiquarian", "value": "Antiquarian", "sets": { "professionDesc": "a dealer in antiques and rare items", "professionField": "{{antiquarianSpecialty}}", "professionLocation": "a dusty shop in the old quarter", "professionClass": "middle", "professionSkills": "appraisal, history, occult" } },
+        { "id": "librarian", "value": "Librarian", "sets": { "professionDesc": "a librarian", "professionField": "{{librarySection}}", "professionLocation": "Miskatonic University Library or Arkham Public Library", "professionClass": "middle", "professionSkills": "research, languages, organization" } },
+        { "id": "author", "value": "Author", "sets": { "professionDesc": "a writer", "professionField": "{{authorGenre}}", "professionLocation": "working from home or coffee houses", "professionClass": "variable", "professionSkills": "persuasion, research, creativity" } },
+        { "id": "artist", "value": "Artist", "sets": { "professionDesc": "an artist", "professionField": "{{artistMedium}}", "professionLocation": "a bohemian studio", "professionClass": "variable", "professionSkills": "perception, craft, creativity" } },
+        { "id": "dilettante", "value": "Dilettante", "sets": { "professionDesc": "a wealthy dilettante", "professionField": "dabbling in various interests", "professionLocation": "the family estate", "professionClass": "upper", "professionSkills": "etiquette, connections, diverse knowledge" } },
+        { "id": "clergy", "value": "Clergy", "sets": { "professionDesc": "a member of the clergy", "professionField": "{{clergyDenomination}}", "professionLocation": "{{clergyLocation}}", "professionClass": "middle", "professionSkills": "theology, counseling, community" } },
+        { "id": "nurse", "value": "Nurse", "sets": { "professionDesc": "a nurse", "professionField": "{{nursingSpecialty}}", "professionLocation": "St. Mary's Hospital", "professionClass": "middle", "professionSkills": "medicine, empathy, observation" } },
+        { "id": "police", "value": "Police Officer", "sets": { "professionDesc": "a police officer", "professionField": "{{policeRole}}", "professionLocation": "Arkham Police Department", "professionClass": "middle", "professionSkills": "investigation, firearms, law" } },
+        { "id": "lawyer", "value": "Lawyer", "sets": { "professionDesc": "a lawyer", "professionField": "{{legalSpecialty}}", "professionLocation": "a downtown law firm", "professionClass": "upper-middle", "professionSkills": "persuasion, research, law" } },
+        { "id": "photographer", "value": "Photographer", "sets": { "professionDesc": "a photographer", "professionField": "{{photographyType}}", "professionLocation": "a small studio or freelance", "professionClass": "middle", "professionSkills": "observation, technical, artistry" } },
+        { "id": "archaeologist", "value": "Archaeologist", "sets": { "professionDesc": "an archaeologist", "professionField": "{{archaeologySpecialty}}", "professionLocation": "Miskatonic University or field expeditions", "professionClass": "upper-middle", "professionSkills": "history, languages, excavation" } },
+        { "id": "sailor", "value": "Sailor", "sets": { "professionDesc": "a sailor", "professionField": "{{sailorType}}", "professionLocation": "the docks and ships", "professionClass": "working", "professionSkills": "navigation, endurance, swimming" } },
+        { "id": "mechanic", "value": "Mechanic", "sets": { "professionDesc": "a mechanic", "professionField": "automobiles and machinery", "professionLocation": "a local garage", "professionClass": "working", "professionSkills": "mechanical repair, driving, practical knowledge" } },
+        { "id": "secretary", "value": "Secretary", "sets": { "professionDesc": "a secretary", "professionField": "office administration", "professionLocation": "a downtown office", "professionClass": "middle", "professionSkills": "organization, typing, discretion" } },
+        { "id": "bootlegger", "value": "Bootlegger", "sets": { "professionDesc": "a bootlegger", "professionField": "illegal alcohol distribution", "professionLocation": "speakeasies and back alleys", "professionClass": "criminal", "professionSkills": "streetwise, persuasion, driving" } },
+        { "id": "gangster", "value": "Gangster", "sets": { "professionDesc": "a criminal associate", "professionField": "{{gangsterRole}}", "professionLocation": "the O'Bannion gang territory", "professionClass": "criminal", "professionSkills": "intimidation, firearms, streetwise" } },
+        { "id": "entertainer", "value": "Entertainer", "sets": { "professionDesc": "an entertainer", "professionField": "{{entertainerType}}", "professionLocation": "clubs, theaters, and speakeasies", "professionClass": "variable", "professionSkills": "performance, charm, endurance" } },
+        { "id": "shopkeeper", "value": "Shopkeeper", "sets": { "professionDesc": "a shopkeeper", "professionField": "{{shopType}}", "professionLocation": "a modest establishment downtown", "professionClass": "middle", "professionSkills": "business, appraisal, community knowledge" } },
+        { "id": "factoryWorker", "value": "Factory Worker", "sets": { "professionDesc": "a factory worker", "professionField": "{{factoryType}}", "professionLocation": "one of the local mills", "professionClass": "working", "professionSkills": "endurance, mechanical aptitude, solidarity" } },
+        { "id": "servant", "value": "Domestic Servant", "sets": { "professionDesc": "a domestic servant", "professionField": "{{servantRole}}", "professionLocation": "a wealthy household", "professionClass": "working", "professionSkills": "discretion, observation, service" } },
+        { "id": "student", "value": "Student", "sets": { "professionDesc": "a university student", "professionField": "{{studentMajor}}", "professionLocation": "Miskatonic University", "professionClass": "variable", "professionSkills": "research, youthful energy, diverse studies" } },
+        { "id": "alienist", "value": "Alienist", "sets": { "professionDesc": "an alienist (psychiatrist)", "professionField": "disorders of the mind", "professionLocation": "Arkham Sanitarium or private practice", "professionClass": "upper-middle", "professionSkills": "psychology, medicine, insight" } },
+        { "id": "occultist", "value": "Occultist", "sets": { "professionDesc": "a practicing occultist", "professionField": "{{occultTradition}}", "professionLocation": "a private sanctum", "professionClass": "variable", "professionSkills": "occult lore, ritual, esoteric languages" } },
+        { "id": "vagrant", "value": "Vagrant", "sets": { "professionDesc": "a vagrant or drifter", "professionField": "survival on the margins", "professionLocation": "wherever they can find shelter", "professionClass": "poor", "professionSkills": "streetwise, stealth, scrounging" } },
+        { "id": "pilot", "value": "Pilot", "sets": { "professionDesc": "an aviator", "professionField": "{{pilotType}}", "professionLocation": "a small airfield outside town", "professionClass": "middle", "professionSkills": "flying, navigation, mechanics" } }
+      ]
+    },
+    {
+      "id": "academicField",
+      "name": "Academic Field",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "Archaeology" },
+        { "value": "History" },
+        { "value": "Anthropology" },
+        { "value": "Ancient Languages" },
+        { "value": "Folklore Studies" },
+        { "value": "Literature" },
+        { "value": "Chemistry" },
+        { "value": "Biology" },
+        { "value": "Physics" },
+        { "value": "Geology" },
+        { "value": "Astronomy" },
+        { "value": "Philosophy" },
+        { "value": "Classics" },
+        { "value": "Mathematics" }
+      ]
+    },
+    {
+      "id": "medicalSpecialty",
+      "name": "Medical Specialty",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "general practice" },
+        { "value": "surgery" },
+        { "value": "pathology" },
+        { "value": "neurology" },
+        { "value": "infectious diseases" },
+        { "value": "emergency medicine" }
+      ]
+    },
+    {
+      "id": "journalismBeat",
+      "name": "Journalism Beat",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "crime reporting" },
+        { "value": "society pages" },
+        { "value": "local politics" },
+        { "value": "human interest stories" },
+        { "value": "investigations" },
+        { "value": "the obituary desk" }
+      ]
+    },
+    {
+      "id": "antiquarianSpecialty",
+      "name": "Antiquarian Specialty",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "rare books and manuscripts" },
+        { "value": "Egyptian artifacts" },
+        { "value": "pre-Columbian items" },
+        { "value": "medieval curiosities" },
+        { "value": "occult paraphernalia" },
+        { "value": "Oriental antiquities" },
+        { "value": "colonial Americana" }
+      ]
+    },
+    {
+      "id": "librarySection",
+      "name": "Library Section",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "the rare books collection" },
+        { "value": "the reference section" },
+        { "value": "the archives" },
+        { "value": "general circulation" },
+        { "value": "the restricted section" },
+        { "value": "periodicals and newspapers" }
+      ]
+    },
+    {
+      "id": "authorGenre",
+      "name": "Author Genre",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "weird fiction" },
+        { "value": "mystery novels" },
+        { "value": "pulp adventures" },
+        { "value": "academic papers" },
+        { "value": "poetry" },
+        { "value": "true crime" },
+        { "value": "journalism" },
+        { "value": "local history" }
+      ]
+    },
+    {
+      "id": "artistMedium",
+      "name": "Artist Medium",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "oil painting" },
+        { "value": "sculpture" },
+        { "value": "illustration" },
+        { "value": "watercolors" },
+        { "value": "printmaking" },
+        { "value": "avant-garde mixed media" }
+      ]
+    },
+    {
+      "id": "clergyDenomination",
+      "name": "Clergy Denomination",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "Catholic" },
+        { "value": "Episcopal" },
+        { "value": "Baptist" },
+        { "value": "Methodist" },
+        { "value": "Congregationalist" },
+        { "value": "Unitarian" }
+      ]
+    },
+    {
+      "id": "clergyLocation",
+      "name": "Clergy Location",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "a small parish church" },
+        { "value": "the town's main church" },
+        { "value": "a monastery outside town" },
+        { "value": "a mission in the poor quarter" },
+        { "value": "the university chapel" }
+      ]
+    },
+    {
+      "id": "nursingSpecialty",
+      "name": "Nursing Specialty",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "surgical nursing" },
+        { "value": "psychiatric care" },
+        { "value": "private duty" },
+        { "value": "emergency ward" },
+        { "value": "maternity" },
+        { "value": "public health" }
+      ]
+    },
+    {
+      "id": "policeRole",
+      "name": "Police Role",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "beat cop" },
+        { "value": "detective" },
+        { "value": "desk sergeant" },
+        { "value": "harbor patrol" },
+        { "value": "evidence technician" },
+        { "value": "plainclothes officer" }
+      ]
+    },
+    {
+      "id": "legalSpecialty",
+      "name": "Legal Specialty",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "criminal defense" },
+        { "value": "estate law" },
+        { "value": "corporate law" },
+        { "value": "property disputes" },
+        { "value": "immigration cases" },
+        { "value": "prosecution" }
+      ]
+    },
+    {
+      "id": "photographyType",
+      "name": "Photography Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "portrait photography" },
+        { "value": "crime scene documentation" },
+        { "value": "news photography" },
+        { "value": "artistic photography" },
+        { "value": "scientific documentation" }
+      ]
+    },
+    {
+      "id": "archaeologySpecialty",
+      "name": "Archaeology Specialty",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "Egyptian archaeology" },
+        { "value": "Mesoamerican cultures" },
+        { "value": "Near Eastern antiquities" },
+        { "value": "pre-historic sites" },
+        { "value": "underwater archaeology" },
+        { "value": "New England colonial sites" }
+      ]
+    },
+    {
+      "id": "sailorType",
+      "name": "Sailor Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "merchant marine" },
+        { "value": "fishing boat crew" },
+        { "value": "former Navy" },
+        { "value": "harbor pilot" },
+        { "value": "yacht crew" },
+        { "value": "longshoreman" }
+      ]
+    },
+    {
+      "id": "gangsterRole",
+      "name": "Gangster Role",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "muscle and enforcement" },
+        { "value": "numbers running" },
+        { "value": "bootleg distribution" },
+        { "value": "a fixer and go-between" },
+        { "value": "protection rackets" },
+        { "value": "a driver and wheelman" }
+      ]
+    },
+    {
+      "id": "entertainerType",
+      "name": "Entertainer Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "jazz musician" },
+        { "value": "stage actor" },
+        { "value": "vaudeville performer" },
+        { "value": "nightclub singer" },
+        { "value": "dancer" },
+        { "value": "radio voice" }
+      ]
+    },
+    {
+      "id": "shopType",
+      "name": "Shop Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "a general store" },
+        { "value": "a pharmacy" },
+        { "value": "a bookshop" },
+        { "value": "a hardware store" },
+        { "value": "a clothing boutique" },
+        { "value": "a pawn shop" },
+        { "value": "a curiosity shop" }
+      ]
+    },
+    {
+      "id": "factoryType",
+      "name": "Factory Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "the textile mill" },
+        { "value": "the cannery" },
+        { "value": "the machine works" },
+        { "value": "the lumber yard" },
+        { "value": "the shoe factory" }
+      ]
+    },
+    {
+      "id": "servantRole",
+      "name": "Servant Role",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "butler" },
+        { "value": "housekeeper" },
+        { "value": "maid" },
+        { "value": "cook" },
+        { "value": "chauffeur" },
+        { "value": "gardener" },
+        { "value": "valet" },
+        { "value": "governess" }
+      ]
+    },
+    {
+      "id": "studentMajor",
+      "name": "Student Major",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "archaeology" },
+        { "value": "medicine" },
+        { "value": "law" },
+        { "value": "literature" },
+        { "value": "sciences" },
+        { "value": "history" },
+        { "value": "folklore" },
+        { "value": "divinity" }
+      ]
+    },
+    {
+      "id": "occultTradition",
+      "name": "Occult Tradition",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession", "mythos"],
+      "resultType": "description",
+      "entries": [
+        { "value": "hermetic ceremonial magic" },
+        { "value": "spiritualism and mediumship" },
+        { "value": "folk witchcraft" },
+        { "value": "Theosophical studies" },
+        { "value": "Golden Dawn rituals" },
+        { "value": "darker, unnamed practices" }
+      ]
+    },
+    {
+      "id": "pilotType",
+      "name": "Pilot Type",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["detail", "profession"],
+      "resultType": "description",
+      "entries": [
+        { "value": "barnstormer and stunt pilot" },
+        { "value": "former war ace" },
+        { "value": "airmail pilot" },
+        { "value": "charter pilot" },
+        { "value": "test pilot" }
+      ]
+    },
+    {
+      "id": "background",
+      "name": "Cultural Background",
+      "type": "simple",
+      "description": "Character's ethnic and cultural heritage, affecting name generation",
+      "tags": ["core", "identity", "names"],
+      "resultType": "trait",
+      "entries": [
+        {
+          "id": "american",
+          "value": "American",
+          "weight": 4,
+          "sets": {
+            "maleFirstName": "{{americanMaleFirstNames}}",
+            "femaleFirstName": "{{americanFemaleFirstNames}}",
+            "surname": "{{americanSurnames}}",
+            "backgroundDesc": "of American stock",
+            "accent": "standard American",
+            "origin": "New England"
+          }
+        },
+        {
+          "id": "british",
+          "value": "British",
+          "weight": 2,
+          "sets": {
+            "maleFirstName": "{{britishMaleFirstNames}}",
+            "femaleFirstName": "{{britishFemaleFirstNames}}",
+            "surname": "{{britishSurnames}}",
+            "backgroundDesc": "of British descent",
+            "accent": "English",
+            "origin": "England"
+          }
+        },
+        {
+          "id": "irish",
+          "value": "Irish",
+          "weight": 2,
+          "sets": {
+            "maleFirstName": "{{irishMaleFirstNames}}",
+            "femaleFirstName": "{{irishFemaleFirstNames}}",
+            "surname": "{{irishSurnames}}",
+            "backgroundDesc": "of Irish heritage",
+            "accent": "Irish brogue",
+            "origin": "Ireland"
+          }
+        },
+        {
+          "id": "italian",
+          "value": "Italian",
+          "weight": 1,
+          "sets": {
+            "maleFirstName": "{{italianMaleFirstNames}}",
+            "femaleFirstName": "{{italianFemaleFirstNames}}",
+            "surname": "{{italianSurnames}}",
+            "backgroundDesc": "of Italian descent",
+            "accent": "Italian",
+            "origin": "Italy"
+          }
+        },
+        {
+          "id": "german",
+          "value": "German",
+          "weight": 1,
+          "sets": {
+            "maleFirstName": "{{germanMaleFirstNames}}",
+            "femaleFirstName": "{{germanFemaleFirstNames}}",
+            "surname": "{{germanSurnames}}",
+            "backgroundDesc": "of German heritage",
+            "accent": "German",
+            "origin": "Germany"
+          }
+        },
+        {
+          "id": "easternEuropean",
+          "value": "Eastern European",
+          "weight": 1,
+          "sets": {
+            "maleFirstName": "{{easternEuropeanMaleFirstNames}}",
+            "femaleFirstName": "{{easternEuropeanFemaleFirstNames}}",
+            "surname": "{{easternEuropeanSurnames}}",
+            "backgroundDesc": "of Eastern European origin",
+            "accent": "Slavic",
+            "origin": "Eastern Europe"
+          }
+        },
+        {
+          "id": "chinese",
+          "value": "Chinese",
+          "weight": 1,
+          "sets": {
+            "maleFirstName": "{{chineseMaleFirstNames}}",
+            "femaleFirstName": "{{chineseFemaleFirstNames}}",
+            "surname": "{{chineseSurnames}}",
+            "backgroundDesc": "of Chinese ancestry",
+            "accent": "Cantonese",
+            "origin": "China"
+          }
+        }
+      ]
+    },
+    {
+      "id": "americanMaleFirstNames",
+      "name": "American Male First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "male", "american"],
+      "resultType": "name",
+      "entries": [
+        { "value": "James" }, { "value": "John" }, { "value": "William" }, { "value": "Robert" },
+        { "value": "Charles" }, { "value": "George" }, { "value": "Edward" }, { "value": "Thomas" },
+        { "value": "Henry" }, { "value": "Walter" }, { "value": "Harold" }, { "value": "Frank" },
+        { "value": "Arthur" }, { "value": "Albert" }, { "value": "Harry" }, { "value": "Raymond" },
+        { "value": "Howard" }, { "value": "Richard" }, { "value": "Joseph" }, { "value": "Paul" },
+        { "value": "Ernest" }, { "value": "Ralph" }, { "value": "Roy" }, { "value": "Louis" },
+        { "value": "Carl" }, { "value": "Donald" }, { "value": "Frederick" }, { "value": "Eugene" },
+        { "value": "Clarence" }, { "value": "Leonard" }, { "value": "Samuel" }, { "value": "Stanley" },
+        { "value": "Herbert" }, { "value": "Chester" }, { "value": "Floyd" }, { "value": "Earl" },
+        { "value": "Vernon" }, { "value": "Harvey" }, { "value": "Lawrence" }, { "value": "Nathaniel" }
+      ]
+    },
+    {
+      "id": "americanFemaleFirstNames",
+      "name": "American Female First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "female", "american"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Mary" }, { "value": "Helen" }, { "value": "Margaret" }, { "value": "Dorothy" },
+        { "value": "Ruth" }, { "value": "Elizabeth" }, { "value": "Virginia" }, { "value": "Anna" },
+        { "value": "Mildred" }, { "value": "Betty" }, { "value": "Frances" }, { "value": "Evelyn" },
+        { "value": "Alice" }, { "value": "Jean" }, { "value": "Shirley" }, { "value": "Louise" },
+        { "value": "Martha" }, { "value": "Catherine" }, { "value": "Doris" }, { "value": "Grace" },
+        { "value": "Edna" }, { "value": "Florence" }, { "value": "Lillian" }, { "value": "Rose" },
+        { "value": "Marie" }, { "value": "Eleanor" }, { "value": "Hazel" }, { "value": "Gladys" },
+        { "value": "Josephine" }, { "value": "Ethel" }, { "value": "Thelma" }, { "value": "Agnes" },
+        { "value": "Clara" }, { "value": "Lucille" }, { "value": "Irene" }, { "value": "Beatrice" },
+        { "value": "Pauline" }, { "value": "Esther" }, { "value": "Gertrude" }, { "value": "Vivian" }
+      ]
+    },
+    {
+      "id": "americanSurnames",
+      "name": "American Surnames",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "american"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Smith" }, { "value": "Johnson" }, { "value": "Williams" }, { "value": "Brown" },
+        { "value": "Jones" }, { "value": "Miller" }, { "value": "Davis" }, { "value": "Wilson" },
+        { "value": "Anderson" }, { "value": "Taylor" }, { "value": "Thomas" }, { "value": "Moore" },
+        { "value": "Martin" }, { "value": "Jackson" }, { "value": "White" }, { "value": "Harris" },
+        { "value": "Thompson" }, { "value": "Clark" }, { "value": "Lewis" }, { "value": "Robinson" },
+        { "value": "Walker" }, { "value": "Young" }, { "value": "King" }, { "value": "Wright" },
+        { "value": "Hill" }, { "value": "Scott" }, { "value": "Green" }, { "value": "Adams" },
+        { "value": "Baker" }, { "value": "Nelson" }, { "value": "Carter" }, { "value": "Mitchell" },
+        { "value": "Blackwood" }, { "value": "Marsh" }, { "value": "Waite" }, { "value": "Armitage" },
+        { "value": "Peaslee" }, { "value": "Whateley" }, { "value": "Bishop" }, { "value": "Elwood" }
+      ]
+    },
+    {
+      "id": "britishMaleFirstNames",
+      "name": "British Male First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "male", "british"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Reginald" }, { "value": "Nigel" }, { "value": "Geoffrey" }, { "value": "Rupert" },
+        { "value": "Archibald" }, { "value": "Percival" }, { "value": "Alistair" }, { "value": "Cecil" },
+        { "value": "Edmund" }, { "value": "Basil" }, { "value": "Cyril" }, { "value": "Neville" },
+        { "value": "Roderick" }, { "value": "Graham" }, { "value": "Terrence" }, { "value": "Clive" },
+        { "value": "Malcolm" }, { "value": "Colin" }, { "value": "Trevor" }, { "value": "Ian" },
+        { "value": "Douglas" }, { "value": "Kenneth" }, { "value": "Hugh" }, { "value": "Desmond" },
+        { "value": "Godfrey" }, { "value": "Montague" }, { "value": "Roland" }, { "value": "Oswald" }
+      ]
+    },
+    {
+      "id": "britishFemaleFirstNames",
+      "name": "British Female First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "female", "british"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Agatha" }, { "value": "Prudence" }, { "value": "Millicent" }, { "value": "Constance" },
+        { "value": "Winifred" }, { "value": "Hermione" }, { "value": "Penelope" }, { "value": "Cecily" },
+        { "value": "Cordelia" }, { "value": "Rosalind" }, { "value": "Philippa" }, { "value": "Gwendoline" },
+        { "value": "Eugenia" }, { "value": "Daphne" }, { "value": "Muriel" }, { "value": "Sybil" },
+        { "value": "Imogen" }, { "value": "Verity" }, { "value": "Augusta" }, { "value": "Clarice" },
+        { "value": "Harriet" }, { "value": "Edith" }, { "value": "Victoria" }, { "value": "Matilda" }
+      ]
+    },
+    {
+      "id": "britishSurnames",
+      "name": "British Surnames",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "british"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Ashworth" }, { "value": "Blackburn" }, { "value": "Carrington" }, { "value": "Darcy" },
+        { "value": "Fairfax" }, { "value": "Hathaway" }, { "value": "Langley" }, { "value": "Pemberton" },
+        { "value": "Worthington" }, { "value": "Sterling" }, { "value": "Ainsworth" }, { "value": "Crawley" },
+        { "value": "Hawthorne" }, { "value": "Whitmore" }, { "value": "Stafford" }, { "value": "Harrington" },
+        { "value": "Cromwell" }, { "value": "Ashford" }, { "value": "Blackwell" }, { "value": "Cavendish" },
+        { "value": "Wentworth" }, { "value": "Sinclair" }, { "value": "Thornwood" }, { "value": "Prescott" }
+      ]
+    },
+    {
+      "id": "irishMaleFirstNames",
+      "name": "Irish Male First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "male", "irish"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Patrick" }, { "value": "Michael" }, { "value": "Sean" }, { "value": "Brendan" },
+        { "value": "Liam" }, { "value": "Connor" }, { "value": "Declan" }, { "value": "Finnegan" },
+        { "value": "Seamus" }, { "value": "Rory" }, { "value": "Dermot" }, { "value": "Cormac" },
+        { "value": "Niall" }, { "value": "Eamon" }, { "value": "Kieran" }, { "value": "Padraig" },
+        { "value": "Donal" }, { "value": "Colm" }, { "value": "Cathal" }, { "value": "Tadhg" },
+        { "value": "Lorcan" }, { "value": "Oisin" }, { "value": "Ciaran" }, { "value": "Fergal" }
+      ]
+    },
+    {
+      "id": "irishFemaleFirstNames",
+      "name": "Irish Female First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "female", "irish"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Bridget" }, { "value": "Siobhan" }, { "value": "Aisling" }, { "value": "Kathleen" },
+        { "value": "Moira" }, { "value": "Fiona" }, { "value": "Maeve" }, { "value": "Colleen" },
+        { "value": "Deirdre" }, { "value": "Eileen" }, { "value": "Nuala" }, { "value": "Roisin" },
+        { "value": "Sinead" }, { "value": "Aoife" }, { "value": "Grainne" }, { "value": "Orla" },
+        { "value": "Nora" }, { "value": "Maire" }, { "value": "Clodagh" }, { "value": "Saoirse" },
+        { "value": "Ciara" }, { "value": "Niamh" }, { "value": "Caitlin" }, { "value": "Erin" }
+      ]
+    },
+    {
+      "id": "irishSurnames",
+      "name": "Irish Surnames",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "irish"],
+      "resultType": "name",
+      "entries": [
+        { "value": "O'Brien" }, { "value": "Murphy" }, { "value": "Kelly" }, { "value": "O'Sullivan" },
+        { "value": "Walsh" }, { "value": "O'Connor" }, { "value": "Byrne" }, { "value": "Ryan" },
+        { "value": "O'Neill" }, { "value": "Doyle" }, { "value": "McCarthy" }, { "value": "Gallagher" },
+        { "value": "Doherty" }, { "value": "Kennedy" }, { "value": "Lynch" }, { "value": "Murray" },
+        { "value": "Quinn" }, { "value": "Brennan" }, { "value": "Duffy" }, { "value": "Fitzgerald" },
+        { "value": "O'Rourke" }, { "value": "Flanagan" }, { "value": "Callahan" }, { "value": "Maguire" }
+      ]
+    },
+    {
+      "id": "italianMaleFirstNames",
+      "name": "Italian Male First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "male", "italian"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Antonio" }, { "value": "Giovanni" }, { "value": "Giuseppe" }, { "value": "Marco" },
+        { "value": "Francesco" }, { "value": "Salvatore" }, { "value": "Vincenzo" }, { "value": "Angelo" },
+        { "value": "Domenico" }, { "value": "Carlo" }, { "value": "Nicola" }, { "value": "Paolo" },
+        { "value": "Stefano" }, { "value": "Roberto" }, { "value": "Alessandro" }, { "value": "Lorenzo" },
+        { "value": "Massimo" }, { "value": "Raffaele" }, { "value": "Enzo" }, { "value": "Dante" },
+        { "value": "Luca" }, { "value": "Sergio" }, { "value": "Fabio" }, { "value": "Rocco" }
+      ]
+    },
+    {
+      "id": "italianFemaleFirstNames",
+      "name": "Italian Female First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "female", "italian"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Maria" }, { "value": "Giulia" }, { "value": "Francesca" }, { "value": "Rosa" },
+        { "value": "Lucia" }, { "value": "Angela" }, { "value": "Isabella" }, { "value": "Sofia" },
+        { "value": "Caterina" }, { "value": "Alessandra" }, { "value": "Giovanna" }, { "value": "Paola" },
+        { "value": "Valentina" }, { "value": "Elena" }, { "value": "Chiara" }, { "value": "Adriana" },
+        { "value": "Antonella" }, { "value": "Carmela" }, { "value": "Bianca" }, { "value": "Silvia" },
+        { "value": "Teresa" }, { "value": "Daniela" }, { "value": "Gina" }, { "value": "Loretta" }
+      ]
+    },
+    {
+      "id": "italianSurnames",
+      "name": "Italian Surnames",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "italian"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Rossi" }, { "value": "Russo" }, { "value": "Ferrari" }, { "value": "Esposito" },
+        { "value": "Bianchi" }, { "value": "Romano" }, { "value": "Colombo" }, { "value": "Ricci" },
+        { "value": "Marino" }, { "value": "Greco" }, { "value": "Bruno" }, { "value": "Gallo" },
+        { "value": "Conti" }, { "value": "De Luca" }, { "value": "Costa" }, { "value": "Giordano" },
+        { "value": "Mancini" }, { "value": "Rizzo" }, { "value": "Lombardi" }, { "value": "Moretti" },
+        { "value": "Barbieri" }, { "value": "Fontana" }, { "value": "Santoro" }, { "value": "Caruso" }
+      ]
+    },
+    {
+      "id": "germanMaleFirstNames",
+      "name": "German Male First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "male", "german"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Hans" }, { "value": "Friedrich" }, { "value": "Wilhelm" }, { "value": "Heinrich" },
+        { "value": "Otto" }, { "value": "Karl" }, { "value": "Wolfgang" }, { "value": "Ernst" },
+        { "value": "Hermann" }, { "value": "Günther" }, { "value": "Klaus" }, { "value": "Helmut" },
+        { "value": "Werner" }, { "value": "Gerhard" }, { "value": "Rudolf" }, { "value": "Kurt" },
+        { "value": "Erich" }, { "value": "Dieter" }, { "value": "Manfred" }, { "value": "Siegfried" },
+        { "value": "Konrad" }, { "value": "Albrecht" }, { "value": "Franz" }, { "value": "Ludwig" }
+      ]
+    },
+    {
+      "id": "germanFemaleFirstNames",
+      "name": "German Female First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "female", "german"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Greta" }, { "value": "Helga" }, { "value": "Ingrid" }, { "value": "Frieda" },
+        { "value": "Hildegard" }, { "value": "Gertrude" }, { "value": "Elsa" }, { "value": "Liesel" },
+        { "value": "Ursula" }, { "value": "Brunhilde" }, { "value": "Margarethe" }, { "value": "Ilse" },
+        { "value": "Hannelore" }, { "value": "Sigrid" }, { "value": "Monika" }, { "value": "Renate" },
+        { "value": "Erika" }, { "value": "Brigitte" }, { "value": "Sabine" }, { "value": "Heidi" },
+        { "value": "Christa" }, { "value": "Waltraud" }, { "value": "Inge" }, { "value": "Anneliese" }
+      ]
+    },
+    {
+      "id": "germanSurnames",
+      "name": "German Surnames",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "german"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Müller" }, { "value": "Schmidt" }, { "value": "Schneider" }, { "value": "Fischer" },
+        { "value": "Weber" }, { "value": "Meyer" }, { "value": "Wagner" }, { "value": "Becker" },
+        { "value": "Schulz" }, { "value": "Hoffmann" }, { "value": "Schäfer" }, { "value": "Koch" },
+        { "value": "Bauer" }, { "value": "Richter" }, { "value": "Klein" }, { "value": "Wolf" },
+        { "value": "Schröder" }, { "value": "Neumann" }, { "value": "Schwarz" }, { "value": "Zimmermann" },
+        { "value": "Braun" }, { "value": "Krüger" }, { "value": "Hartmann" }, { "value": "Lange" }
+      ]
+    },
+    {
+      "id": "easternEuropeanMaleFirstNames",
+      "name": "Eastern European Male First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "male", "eastern-european"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Ivan" }, { "value": "Dmitri" }, { "value": "Nikolai" }, { "value": "Alexei" },
+        { "value": "Sergei" }, { "value": "Mikhail" }, { "value": "Pavel" }, { "value": "Andrei" },
+        { "value": "Yuri" }, { "value": "Viktor" }, { "value": "Boris" }, { "value": "Konstantin" },
+        { "value": "Vladislav" }, { "value": "Oleg" }, { "value": "Igor" }, { "value": "Stanislav" },
+        { "value": "Josef" }, { "value": "Kazimierz" }, { "value": "Vaclav" }, { "value": "Ladislav" },
+        { "value": "Stefan" }, { "value": "Miroslav" }, { "value": "Bogdan" }, { "value": "Tadeusz" }
+      ]
+    },
+    {
+      "id": "easternEuropeanFemaleFirstNames",
+      "name": "Eastern European Female First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "female", "eastern-european"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Natasha" }, { "value": "Svetlana" }, { "value": "Katarina" }, { "value": "Irina" },
+        { "value": "Anastasia" }, { "value": "Tatiana" }, { "value": "Olga" }, { "value": "Elena" },
+        { "value": "Marta" }, { "value": "Ludmila" }, { "value": "Yelena" }, { "value": "Nadia" },
+        { "value": "Zoya" }, { "value": "Galina" }, { "value": "Vera" }, { "value": "Marina" },
+        { "value": "Zofia" }, { "value": "Malgorzata" }, { "value": "Jadwiga" }, { "value": "Ivana" },
+        { "value": "Milena" }, { "value": "Daria" }, { "value": "Agnieszka" }, { "value": "Valentina" }
+      ]
+    },
+    {
+      "id": "easternEuropeanSurnames",
+      "name": "Eastern European Surnames",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "eastern-european"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Volkov" }, { "value": "Petrov" }, { "value": "Kozlov" }, { "value": "Novak" },
+        { "value": "Kowalski" }, { "value": "Dvorak" }, { "value": "Horvat" }, { "value": "Popov" },
+        { "value": "Sokolov" }, { "value": "Lebedev" }, { "value": "Morozov" }, { "value": "Kuznetsov" },
+        { "value": "Nowak" }, { "value": "Svoboda" }, { "value": "Kovac" }, { "value": "Jaworski" },
+        { "value": "Babic" }, { "value": "Krakowski" }, { "value": "Vasiliev" }, { "value": "Czerniak" },
+        { "value": "Reznik" }, { "value": "Karpov" }, { "value": "Baranov" }, { "value": "Zielinski" }
+      ]
+    },
+    {
+      "id": "chineseMaleFirstNames",
+      "name": "Chinese Male First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "male", "chinese"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Wei" }, { "value": "Ming" }, { "value": "Jun" }, { "value": "Chen" },
+        { "value": "Hai" }, { "value": "Long" }, { "value": "Feng" }, { "value": "Jian" },
+        { "value": "Lei" }, { "value": "Dong" }, { "value": "Bing" }, { "value": "Xin" },
+        { "value": "Tao" }, { "value": "Hong" }, { "value": "Bao" }, { "value": "Deshi" },
+        { "value": "Enlai" }, { "value": "Guang" }, { "value": "Heng" }, { "value": "Kang" },
+        { "value": "Liang" }, { "value": "Ning" }, { "value": "Ping" }, { "value": "Qiang" }
+      ]
+    },
+    {
+      "id": "chineseFemaleFirstNames",
+      "name": "Chinese Female First Names",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "female", "chinese"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Mei" }, { "value": "Ling" }, { "value": "Xiu" }, { "value": "Yan" },
+        { "value": "Hua" }, { "value": "Jing" }, { "value": "Fang" }, { "value": "Yun" },
+        { "value": "Lan" }, { "value": "Qiu" }, { "value": "Zhen" }, { "value": "Xia" },
+        { "value": "Li" }, { "value": "Shu" }, { "value": "Ai" }, { "value": "Bai" },
+        { "value": "Chun" }, { "value": "Dan" }, { "value": "Feng" }, { "value": "Hui" },
+        { "value": "Ju" }, { "value": "Lian" }, { "value": "Ning" }, { "value": "Pei" }
+      ]
+    },
+    {
+      "id": "chineseSurnames",
+      "name": "Chinese Surnames",
+      "type": "simple",
+      "hidden": true,
+      "tags": ["names", "chinese"],
+      "resultType": "name",
+      "entries": [
+        { "value": "Wang" }, { "value": "Li" }, { "value": "Zhang" }, { "value": "Liu" },
+        { "value": "Chen" }, { "value": "Yang" }, { "value": "Huang" }, { "value": "Zhao" },
+        { "value": "Wu" }, { "value": "Zhou" }, { "value": "Xu" }, { "value": "Sun" },
+        { "value": "Ma" }, { "value": "Zhu" }, { "value": "Hu" }, { "value": "Guo" },
+        { "value": "Lin" }, { "value": "He" }, { "value": "Gao" }, { "value": "Luo" },
+        { "value": "Zheng" }, { "value": "Liang" }, { "value": "Xie" }, { "value": "Tang" }
+      ]
+    },
+    {
+        "id": "cultRole",
+        "name": "Cult Role",
+        "type": "simple",
+        "hidden": true,
+        "tags": ["mythos", "cultist"],
+        "resultType": "description",
+        "entries": [
+          { "value": "**Initiate** — Recently recruited, still learning the cult's secrets" },
+          { "value": "**True Believer** — A devoted worshipper who attends all rituals" },
+          { "value": "**Recruiter** — Responsible for bringing in new members" },
+          { "value": "**Guard** — Protects cult gatherings and eliminates threats" },
+          { "value": "**Scholar** — Studies forbidden texts and ritual procedures" },
+          { "value": "**Acolyte** — Assists in rituals and tends to sacred objects" },
+          { "value": "**Inner Circle** — One of the leader's trusted lieutenants" },
+          { "value": "**Sleeper Agent** — Maintains normal life while awaiting activation" }
+        ]
+      },
+      {
+        "id": "corruptionSign",
+        "name": "Sign of Corruption",
+        "type": "simple",
+        "hidden": true,
+        "tags": ["mythos", "cultist"],
+        "resultType": "description",
+        "entries": [
+          { "value": "Strange symbols tattooed or scarred on hidden parts of the body" },
+          { "value": "Eyes that occasionally seem to reflect light like an animal's" },
+          { "value": "A persistent odor of brine and decay they cannot wash away" },
+          { "value": "Occasional twitches and muttering in unknown languages" },
+          { "value": "An unnatural pallor and sensitivity to bright light" },
+          { "value": "Fingernails that have become thick and yellowed" },
+          { "value": "Dreams of R'lyeh that they speak of in their sleep" },
+          { "value": "A cold touch that makes others uncomfortable" },
+          { "value": "Subtle webbing beginning to form between their fingers" },
+          { "value": "An obsessive habit of drawing certain geometric patterns" }
+        ]
+      },
+      {
+        "id": "cultActivity",
+        "name": "Cult Activity",
+        "type": "simple",
+        "hidden": true,
+        "tags": ["mythos", "cultist"],
+        "resultType": "description",
+        "entries": [
+          { "value": "Attends midnight rituals in the old warehouse district" },
+          { "value": "Helps dispose of evidence after cult 'ceremonies'" },
+          { "value": "Procures sacrificial materials through their profession" },
+          { "value": "Scouts potential victims or new members" },
+          { "value": "Maintains a hidden shrine in their home" },
+          { "value": "Translates portions of forbidden texts" },
+          { "value": "Creates forgeries to cover cult activities" },
+          { "value": "Provides inside information about local authorities" },
+          { "value": "Guards a location important to the cult's plans" },
+          { "value": "Works to corrupt or recruit specific targets" }
+        ]
+      },
+      {
+        "id": "witnessWillingness",
+        "name": "Witness Willingness to Talk",
+        "type": "simple",
+        "hidden": true,
+        "tags": ["investigation"],
+        "resultType": "description",
+        "entries": [
+          { "value": "**Desperate to talk** — Has been waiting for someone who will believe them" },
+          { "value": "**Reluctant but persuadable** — Fears being thought insane but needs to unburden" },
+          { "value": "**Terrified into silence** — Has been threatened or is too scared to speak" },
+          { "value": "**In denial** — Insists they saw nothing, clearly lying" },
+          { "value": "**Eager to help** — Wants answers and will cooperate fully" },
+          { "value": "**Suspicious of investigators** — Worried about being blamed or committed" },
+          { "value": "**Memory is fragmentary** — Genuinely confused about what they saw" },
+          { "value": "**Will only talk for price** — Wants money, protection, or something else first" }
+        ]
+      },
+      {
+        "id": "witnessWant",
+        "name": "Witness Wants",
+        "type": "simple",
+        "hidden": true,
+        "tags": ["investigation"],
+        "resultType": "description",
+        "entries": [
+          { "value": "To be believed and taken seriously" },
+          { "value": "Protection from whatever they saw" },
+          { "value": "Money to leave town immediately" },
+          { "value": "Assurance that they aren't going mad" },
+          { "value": "Revenge against whoever is responsible" },
+          { "value": "Their missing loved one found" },
+          { "value": "To forget what they witnessed" },
+          { "value": "To understand what they saw" },
+          { "value": "The police to take action" },
+          { "value": "Someone else to take responsibility" }
+        ]
+      }
+  ],
+  "templates": [
+    {
+      "id": "fullName",
+      "name": "Full Name",
+      "description": "Generates a culturally appropriate full name based on gender and background",
+      "tags": ["name", "core"],
+      "resultType": "name",
+      "shared": {
+        "$gender": "{{gender}}",
+        "$background": "{{background}}"
+      },
+      "pattern": "{{switch[$gender==\"male\":$background.@maleFirstName].else[$background.@femaleFirstName]}} {{$background.@surname}}"
+    },
+    {
+      "id": "physicalDescription",
+      "name": "Physical Description",
+      "description": "Generates a detailed physical description",
+      "tags": ["description", "physical"],
+      "resultType": "description",
+      "shared": {
+        "$gender": "{{gender}}",
+        "$age": "{{ageRange}}",
+        "$build": "{{build}}",
+        "$hairColor": "{{hairColor}}",
+        "$hairStyle": "{{switch[$gender==\"male\":{{maleHairStyle}}].else[{{femaleHairStyle}}]}}",
+        "$eyeColor": "{{eyeColor}}",
+        "$feature": "{{distinguishingFeature}}",
+        "$clothing": "{{switch[$gender==\"male\":{{maleClothingStyle}}].else[{{femaleClothingStyle}}]}}"
+      },
+      "pattern": "A {{$build}} {{switch[$gender==\"male\":man].else[woman]}} {{$age.@ageDesc}} with {{$hairColor.@hairColorDesc}} hair {{$hairStyle.@hairStyleDesc}} and {{$eyeColor.@eyeColorDesc}} eyes. {{switch[$gender==\"male\":He].else[She]}} has {{$feature.@featureDesc}} {{$feature.@featureLocation}}, and is typically seen wearing {{$clothing.@clothingDesc}}."
+    },
+    {
+      "id": "personalitySummary",
+      "name": "Personality Summary",
+      "description": "Generates a personality overview including traits, virtue, and flaw",
+      "tags": ["description", "personality"],
+      "resultType": "description",
+      "shared": {
+        "$primary": "{{primaryTrait}}",
+        "$secondary": "{{secondaryTrait}}",
+        "$virtue": "{{virtue}}",
+        "$flaw": "{{flaw}}"
+      },
+      "pattern": "Fundamentally {{$primary}} and {{$secondary}}, {{$secondary.@secondaryBehavior}}. Their greatest strength is their {{$virtue.@virtueBehavior}}, but they struggle with {{$flaw}}, which manifests as {{$flaw.@flawBehavior}} especially when {{$flaw.@flawTrigger}}."
+    },
+    {
+      "id": "npcCompact",
+      "name": "Compact NPC",
+      "description": "A brief NPC summary for quick reference",
+      "tags": ["npc", "compact"],
+      "resultType": "npc",
+      "shared": {
+        "$gender": "{{gender}}",
+        "$background": "{{background}}",
+        "$age": "{{ageRange}}",
+        "$profession": "{{profession}}",
+        "$primaryTrait": "{{primaryTrait}}",
+        "$flaw": "{{flaw}}",
+        "$motivation": "{{motivation}}"
+      },
+      "pattern": "**{{switch[$gender==\"male\":$background.@maleFirstName].else[$background.@femaleFirstName]}} {{$background.@surname}}** — {{$age}} {{$background}} {{$profession}}, {{$primaryTrait}} but prone to {{$flaw}}. Driven by {{$motivation}}."
+    },
+    {
+      "id": "npcComplete",
+      "name": "Complete NPC",
+      "description": "Full detailed NPC generation with all attributes exposed for reference",
+      "tags": ["npc", "complete", "main"],
+      "resultType": "npc",
+      "shared": {
+        "$gender": "{{gender}}",
+        "$background": "{{background}}",
+        "$age": "{{ageRange}}",
+        "$profession": "{{profession}}",
+        "$socialClass": "{{socialClass}}",
+        "$primaryTrait": "{{primaryTrait}}",
+        "$secondaryTrait": "{{secondaryTrait}}",
+        "$virtue": "{{virtue}}",
+        "$flaw": "{{flaw}}",
+        "$motivation": "{{motivation}}",
+        "$darkSecret": "{{darkSecret}}",
+        "$build": "{{build}}",
+        "$hairColor": "{{hairColor}}",
+        "$hairStyle": "{{switch[$gender==\"male\":{{maleHairStyle}}].else[{{femaleHairStyle}}]}}",
+        "$eyeColor": "{{eyeColor}}",
+        "$feature": "{{distinguishingFeature}}",
+        "$clothing": "{{switch[$gender==\"male\":{{maleClothingStyle}}].else[{{femaleClothingStyle}}]}}",
+        "$relationship": "{{relationshipStatus}}",
+        "$sanity": "{{sanityState}}",
+        "$mythos": "{{mythosConnection}}",
+        "$mannerism": "{{mannerism}}",
+        "$speech": "{{speechPattern}}"
+      },
+      "pattern": "## {{switch[$gender==\"male\":$background.@maleFirstName].else[$background.@femaleFirstName]}} {{$background.@surname}}\n\n**Gender:** {{switch[$gender==\"male\":Male].else[Female]}} | **Age:** {{$age}} ({{$age.@ageYears}}) | **Background:** {{$background}}\n\n**Profession:** {{$profession.@professionDesc}} specializing in {{$profession.@professionField}}, based at {{$profession.@professionLocation}}\n\n**Social Standing:** {{$socialClass}} — {{$socialClass.@classDesc}}, living in {{$socialClass.@housing}}\n\n---\n\n### Physical Description\n\nA {{$build.@buildDesc}} {{switch[$gender==\"male\":man].else[woman]}} {{$age.@ageDesc}}, {{$build.@buildDetail}}. {{switch[$gender==\"male\":He].else[She]}} has {{$hairColor.@hairColorDesc}} hair {{$hairStyle.@hairStyleDesc}} and {{$eyeColor.@eyeColorDesc}} eyes showing {{$age.@agePhysical}}.\n\n**Distinguishing Feature:** {{switch[$gender==\"male\":He].else[She]}} has {{$feature.@featureDesc}} {{$feature.@featureLocation}}.\n\n**Typical Attire:** {{$clothing.@clothingDesc}}.\n\n---\n\n### Personality\n\n**Primary Trait:** {{$primaryTrait}} — {{$primaryTrait.@traitBehavior}}\n\n**Secondary Trait:** {{$secondaryTrait}} — {{$secondaryTrait.@secondaryBehavior}}\n\n**Virtue:** {{$virtue}} — {{$virtue.@virtueBehavior}}\n\n**Flaw:** {{$flaw}} — {{$flaw.@flawBehavior}}, especially when {{$flaw.@flawTrigger}}\n\n**Mannerism:** {{$mannerism.@mannerismDesc}}\n\n**Speech:** {{$speech.@speechDesc}}\n\n---\n\n### Background & Motivations\n\n**Motivation:** {{$motivation}} — {{$motivation.@motivationDesc}}\n\n**Dark Secret:** {{$darkSecret.@secretDesc}}. {{$darkSecret.@secretDetail}}. {{switch[$gender==\"male\":He].else[She]}} {{$darkSecret.@secretEffect}}.\n\n**Relationship Status:** {{$relationship}} — {{$relationship.@relationshipDesc}}{{switch[$relationship.@relationshipDetail!=\"\":\" \"].else[\"\"]}}{{$relationship.@relationshipDetail}}\n\n---\n\n### Connection to the Mythos\n\n**Mental State:** {{$sanity}} — {{$sanity.@sanityDesc}}. {{switch[$gender==\"male\":He].else[She]}} {{$sanity.@sanityBehavior}}.{{switch[$sanity.@sanityTells!=\"none apparent\":\" *Tells: \"].else[\"\"]}}{{switch[$sanity.@sanityTells!=\"none apparent\":$sanity.@sanityTells].else[\"\"]}}{{switch[$sanity.@sanityTells!=\"none apparent\":\".*\"].else[\"\"]}}\n\n**Mythos Awareness:** {{$mythos}} — {{$mythos.@mythosDesc}}. {{switch[$gender==\"male\":He].else[She]}} {{$mythos.@mythosReaction}}.\n\n---\n\n### Quick Reference\n\n| Attribute | Value |\n|-----------|-------|\n| Name | {{switch[$gender==\"male\":$background.@maleFirstName].else[$background.@femaleFirstName]}} {{$background.@surname}} |\n| Profession | {{$profession}} |\n| Key Trait | {{$primaryTrait}} |\n| Flaw | {{$flaw}} |\n| Motivation | {{$motivation}} |\n| Secret | {{$darkSecret}} |\n| Sanity | {{$sanity}} |"
+    },
+    {
+      "id": "cultist",
+      "name": "Cultist NPC",
+      "description": "Generates an NPC specifically as a cultist or Mythos-connected antagonist",
+      "tags": ["npc", "antagonist", "mythos", "cultist"],
+      "resultType": "npc",
+      "shared": {
+        "$gender": "{{gender}}",
+        "$background": "{{background}}",
+        "$age": "{{ageRange}}",
+        "$profession": "{{profession}}",
+        "$primaryTrait": "{{primaryTrait}}",
+        "$flaw": "{{flaw}}"
+      },
+      "pattern": "## Cultist: {{switch[$gender==\"male\":$background.@maleFirstName].else[$background.@femaleFirstName]}} {{$background.@surname}}\n\n**Cover Identity:** {{$age}} {{$background}} {{$profession.@professionDesc}} at {{$profession.@professionLocation}}\n\n**Personality:** Outwardly {{$primaryTrait}}, but secretly devoted to dark powers. Suffers from {{$flaw}}, which {{$flaw.@flawBehavior}}.\n\n**Cult Role:** {{cultRole}}\n\n**Signs of Corruption:** {{corruptionSign}}\n\n**Secret Activities:** {{cultActivity}}"
+    },
+    {
+      "id": "witness",
+      "name": "Witness NPC",
+      "description": "Generates an NPC who has witnessed something strange",
+      "tags": ["npc", "witness", "investigation"],
+      "resultType": "npc",
+      "shared": {
+        "$gender": "{{gender}}",
+        "$background": "{{background}}",
+        "$age": "{{ageRange}}",
+        "$profession": "{{profession}}",
+        "$sanity": "{{sanityState}}"
+      },
+      "pattern": "## Witness: {{switch[$gender==\"male\":$background.@maleFirstName].else[$background.@femaleFirstName]}} {{$background.@surname}}\n\n**Identity:** {{$age}} {{$background}} {{$profession.@professionDesc}}\n\n**What They Saw:** {{witnessedEvent}}\n\n**Current State:** {{$sanity}} — {{$sanity.@sanityDesc}}. {{$sanity.@sanityTells}}.\n\n**Willingness to Talk:** {{witnessWillingness}}\n\n**What They Want:** {{witnessWant}}"
+    }
+  ]
+}

@@ -6,7 +6,7 @@
  */
 
 import { memo, useCallback, useMemo } from 'react'
-import { CollectionAccordion } from './CollectionAccordion'
+import { PublisherAccordion } from './PublisherAccordion'
 import { CollectionFilterBar } from './CollectionFilterBar'
 import { useCollections } from '@/hooks/useCollections'
 import { useCollectionStore } from '@/stores/collectionStore'
@@ -109,9 +109,9 @@ export const BrowserPanel = memo(function BrowserPanel({
         filteredCount={collections.length}
       />
 
-      {/* Collection accordion */}
-      <div className="flex-1 overflow-hidden">
-        <CollectionAccordion
+      {/* Publisher accordion */}
+      <div className="flex-1 min-h-0 overflow-auto">
+        <PublisherAccordion
           collections={collections}
           selectedItemId={selectedItemId}
           onSelectItem={handleSelectItem}

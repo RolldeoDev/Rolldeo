@@ -8,7 +8,7 @@
 import { memo, useState, useCallback, useEffect, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { History as HistoryIcon, Pin, PinOff, Trash2, Activity, BookOpen, ListOrdered } from 'lucide-react'
+import { History as HistoryIcon, Pin, PinOff, Trash2, Activity, BookOpen, ListOrdered, ClipboardCopy, Check } from 'lucide-react'
 import type { StoredRoll } from '@/services/db'
 import type { EntryDescription, EvaluatedSets } from '@/engine/types'
 import { formatTimestamp } from '@/stores/rollStore'
@@ -36,6 +36,9 @@ export const RollHistoryList = memo(function RollHistoryList({
 }: RollHistoryListProps) {
   // Track which history items have their trace expanded (by item id)
   const [expandedTraces, setExpandedTraces] = useState<Set<number>>(new Set())
+
+  // Track which item was just copied (for feedback)
+  const [copiedId, setCopiedId] = useState<number | null>(null)
 
   // Filter out current roll and limit to 50 items
   const displayHistory = useMemo(() => {
@@ -69,6 +72,16 @@ export const RollHistoryList = memo(function RollHistoryList({
       }
       return next
     })
+  }, [])
+
+  const handleCopy = useCallback(async (itemId: number, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedId(itemId)
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
   }, [])
 
   return (
@@ -119,6 +132,22 @@ export const RollHistoryList = memo(function RollHistoryList({
                   </p>
                 </div>
                 <div className="flex gap-1 shrink-0">
+                  <button
+                    onClick={() => handleCopy(item.id!, item.result.text)}
+                    className={cn(
+                      'p-1.5 rounded-lg transition-all',
+                      copiedId === item.id
+                        ? 'text-green-500'
+                        : 'hover:bg-white/5 text-muted-foreground hover:text-foreground'
+                    )}
+                    title={copiedId === item.id ? 'Copied!' : 'Copy to clipboard'}
+                  >
+                    {copiedId === item.id ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <ClipboardCopy className="h-4 w-4" />
+                    )}
+                  </button>
                   <button
                     onClick={() => onPin(item.id!, !item.pinned)}
                     className={cn(
