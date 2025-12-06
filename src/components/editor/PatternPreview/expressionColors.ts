@@ -8,17 +8,19 @@
  * - table: mint
  * - template: lavender
  * - variable: pink (light)
- * - placeholder: teal (cyan)
+ * - placeholder: cyan (teal) - used for @prop access
  * - again: mint (green)
  * - unique: amber
- * - capture: pink (light)
- * - capture-shared: pink (light)
+ * - capture: pink (light) - used for {{N*table >> $var}}
+ * - capture-shared: cyan (teal) - used for $var.@prop (accessing @ properties on variables)
  * - collect: blue
  * - switch: purple (control flow)
  * - unknown: gray
  */
 
-import type { ExpressionType } from './types'
+import type { ExpressionType } from '@/lib/expressionUtils'
+// Re-export getExpressionType for convenience
+export { getExpressionType } from '@/lib/expressionUtils'
 
 /**
  * Color configuration for each expression type
@@ -69,8 +71,8 @@ export const EXPRESSION_COLORS: Record<
     badge: 'bg-pink/15 text-pink hover:bg-pink/25',
   },
   'capture-shared': {
-    text: 'text-pink',
-    badge: 'bg-pink/15 text-pink hover:bg-pink/25',
+    text: 'text-cyan',
+    badge: 'bg-cyan/15 text-cyan hover:bg-cyan/25',
   },
   collect: {
     text: 'text-blue-500 dark:text-blue-400',
@@ -98,43 +100,4 @@ export function getExpressionTextColor(type: ExpressionType): string {
  */
 export function getExpressionBadgeClasses(type: ExpressionType): string {
   return EXPRESSION_COLORS[type].badge
-}
-
-/**
- * Determine expression type from raw expression string content.
- * Used by EditablePattern for syntax highlighting in the pattern input.
- */
-export function getExpressionTypeFromContent(content: string): ExpressionType {
-  // Dice expressions: {{dice:XdY}}
-  if (content.startsWith('dice:')) return 'dice'
-
-  // Math expressions: {{math:expr}}
-  if (content.startsWith('math:')) return 'math'
-
-  // Collect expressions: {{collect:$var.@prop}}
-  if (content.startsWith('collect:')) return 'collect'
-
-  // Roll capture: {{N*table >> $var}}
-  if (content.includes(' >> $') || content.includes('>>$')) return 'capture'
-
-  // Capture-aware shared variable with property access: $var.@prop, $var[n].@prop
-  if (content.startsWith('$') && content.includes('@')) return 'capture-shared'
-
-  // Regular variable access: $var, $var[n], $var.value, $var.count
-  if (content.startsWith('$')) return 'variable'
-
-  // Placeholder access: @placeholder
-  if (content.startsWith('@')) return 'placeholder'
-
-  // Roll again: {{again}}, {{N*again}}
-  if (content === 'again' || content.endsWith('*again')) return 'again'
-
-  // Unique modifier: {{unique:...}}
-  if (content.startsWith('unique:')) return 'unique'
-
-  // Switch expressions: {{switch[...]}} or {{expr.switch[...]}}
-  if (content.startsWith('switch[') || content.includes('.switch[')) return 'switch'
-
-  // Default for table references (can't easily distinguish from templates here)
-  return 'table'
 }

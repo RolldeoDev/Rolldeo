@@ -18,65 +18,10 @@ import {
   useImperativeHandle,
 } from 'react'
 import { cn } from '@/lib/utils'
-import { extractExpressions } from '@/engine/core/parser'
-import {
-  EXPRESSION_COLORS,
-  getExpressionTypeFromContent,
-} from './expressionColors'
 import { usePatternAutocomplete } from '@/hooks/usePatternAutocomplete'
 import { AutocompleteDropdown } from '../AutocompleteDropdown'
+import { renderHighlightedText } from './highlightUtils'
 import type { EditablePatternProps } from './types'
-
-/**
- * Get expression class name based on content for syntax highlighting.
- * Uses centralized color map for consistency with preview.
- */
-function getExpressionClassName(content: string): string {
-  const type = getExpressionTypeFromContent(content)
-  return EXPRESSION_COLORS[type].text
-}
-
-/**
- * Render syntax-highlighted pattern for overlay
- * Uses extractExpressions from parser for robust expression detection
- */
-function renderHighlightedPattern(pattern: string): React.ReactNode {
-  const expressions = extractExpressions(pattern)
-  const parts: React.ReactNode[] = []
-  let lastIndex = 0
-
-  for (const match of expressions) {
-    // Add text before the match
-    if (match.start > lastIndex) {
-      parts.push(
-        <span key={`text-${lastIndex}`} className="whitespace-pre-wrap">
-          {pattern.slice(lastIndex, match.start)}
-        </span>
-      )
-    }
-
-    // Add the highlighted expression
-    const className = getExpressionClassName(match.expression)
-    parts.push(
-      <span key={`expr-${match.start}`} className={className}>
-        {match.raw}
-      </span>
-    )
-
-    lastIndex = match.end
-  }
-
-  // Add remaining text
-  if (lastIndex < pattern.length) {
-    parts.push(
-      <span key={`text-${lastIndex}`} className="whitespace-pre-wrap">
-        {pattern.slice(lastIndex)}
-      </span>
-    )
-  }
-
-  return parts.length > 0 ? parts : pattern
-}
 
 /**
  * Ref handle for EditablePattern
@@ -240,7 +185,7 @@ export const EditablePattern = memo(
           aria-hidden="true"
         >
           {value ? (
-            renderHighlightedPattern(value)
+            renderHighlightedText(value)
           ) : (
             <span className="text-muted-foreground/50">{placeholder}</span>
           )}

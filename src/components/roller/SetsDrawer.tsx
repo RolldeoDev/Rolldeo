@@ -33,6 +33,8 @@ export const SetsDrawer = memo(function SetsDrawer({
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => new Set(setKeys))
   const drawerRef = useRef<HTMLDivElement>(null)
   const resultTheme = useUIStore((state) => state.resultTheme)
+  // Use TTRPG drawer styling for ttrpg theme, default for others
+  // The main prose content will still use theme-specific CSS classes
   const isTtrpg = resultTheme === 'ttrpg'
 
   // Reset expanded state when sets change - default to all expanded
@@ -310,6 +312,7 @@ const SetEntry = memo(function SetEntry({
   isExpanded,
   onToggle,
   index,
+  isTtrpg,
 }: SetEntryProps) {
   const [copied, setCopied] = useState(false)
   const displayValue = getDisplayValue(value)
@@ -328,11 +331,25 @@ const SetEntry = memo(function SetEntry({
   return (
     <div
       className={cn(
-        'rounded-lg overflow-hidden transition-all duration-300',
+        'overflow-hidden transition-all duration-300',
         'border',
-        isExpanded
-          ? 'dark:border-rose/30 dark:bg-gradient-to-br dark:from-rose/20 dark:to-stone-900/80 border-rose/40 bg-rose/10'
-          : 'dark:border-stone-700/40 dark:bg-stone-800/50 dark:hover:bg-stone-800/70 dark:hover:border-rose/30 border-rose/20 bg-white hover:bg-rose/5 hover:border-rose/30'
+        isTtrpg ? (
+          // TTRPG parchment style
+          cn(
+            'rounded',
+            isExpanded
+              ? 'dark:border-[hsl(35,45%,35%)] dark:bg-gradient-to-br dark:from-[hsl(35,40%,22%)] dark:to-[hsl(28,22%,14%)] border-[hsl(30,40%,55%)] bg-[hsl(42,40%,90%)]'
+              : 'dark:border-[hsl(30,30%,25%)] dark:bg-[hsl(28,22%,16%)] dark:hover:bg-[hsl(30,25%,18%)] dark:hover:border-[hsl(35,45%,35%)] border-[hsl(32,35%,65%)] bg-[hsl(42,35%,94%)] hover:bg-[hsl(42,40%,90%)] hover:border-[hsl(30,40%,55%)]'
+          )
+        ) : (
+          // Default rose style
+          cn(
+            'rounded-lg',
+            isExpanded
+              ? 'dark:border-rose/30 dark:bg-gradient-to-br dark:from-rose/20 dark:to-stone-900/80 border-rose/40 bg-rose/10'
+              : 'dark:border-stone-700/40 dark:bg-stone-800/50 dark:hover:bg-stone-800/70 dark:hover:border-rose/30 border-rose/20 bg-white hover:bg-rose/5 hover:border-rose/30'
+          )
+        )
       )}
       style={{
         animationDelay: `${index * 50}ms`,

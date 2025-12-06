@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Dices, Library, PenSquare, Sparkles, Wifi, Clock, ArrowRight, Scale, BookOpen } from 'lucide-react'
 import { DropZone, ImportDialog } from '../components/upload'
 import { QuickRoll } from '../components/home'
+import { SEO } from '../components/common'
+import { PAGE_SEO } from '../lib/seo'
 import { useCollectionStore } from '../stores/collectionStore'
 import { generateUniqueId } from '../services/import'
 import type { ImportResult, ImportedCollection } from '../services/import'
@@ -162,8 +164,10 @@ export function HomePage() {
   }, [importResult, navigate])
 
   return (
-    <div className="space-y-12">
-      {/* Hero Section */}
+    <>
+      <SEO {...PAGE_SEO.home} />
+      <div className="space-y-12">
+        {/* Hero Section */}
       <section className="text-center space-y-4 py-4">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight animate-slide-up">
           Share the Perfect <span className="gradient-text">Random Table</span>
@@ -300,6 +304,7 @@ export function HomePage() {
         result={importResult}
         isImporting={isImporting}
       />
-    </div>
+      </div>
+    </>
   )
 }

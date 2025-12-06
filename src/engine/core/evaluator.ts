@@ -524,11 +524,11 @@ export class ExpressionEvaluator {
         break
 
       case 'captureAccess':
-        result = this.evaluateCaptureAccess(token, context, collectionId)
+        result = this.evaluateCaptureAccess(token, context)
         break
 
       case 'collect':
-        result = this.evaluateCollect(token, context, collectionId)
+        result = this.evaluateCollect(token, context)
         break
 
       case 'switch':
@@ -649,7 +649,7 @@ export class ExpressionEvaluator {
       return captureShared.value
     }
 
-    const value = resolveVariable(context, token.name, token.alias)
+    const value = resolveVariable(context, token.name)
     const result = value !== undefined ? String(value) : ''
 
     // Determine variable source
@@ -1614,8 +1614,7 @@ export class ExpressionEvaluator {
       properties?: string[]
       separator?: string
     },
-    context: GenerationContext,
-    collectionId: string
+    context: GenerationContext
   ): string {
     // Try to get from capture variables first, then fall back to capture-aware shared variables
     const capture = getCaptureVariable(context, token.varName)
@@ -1630,7 +1629,7 @@ export class ExpressionEvaluator {
 
     // Handle capture-aware shared variables (single item, no index needed)
     if (!capture && captureShared) {
-      return this.evaluateCaptureSharedAccess(token, captureShared, context, collectionId, label)
+      return this.evaluateCaptureSharedAccess(token, captureShared, context, label)
     }
 
     if (!capture) {
@@ -1876,7 +1875,6 @@ export class ExpressionEvaluator {
     },
     item: CaptureItem,
     context: GenerationContext,
-    _collectionId: string,
     label: string
   ): string {
     let result: string
@@ -1920,8 +1918,7 @@ export class ExpressionEvaluator {
       unique?: boolean
       separator?: string
     },
-    context: GenerationContext,
-    _collectionId: string
+    context: GenerationContext
   ): string {
     const label = `collect:$${token.varName}.${token.property}${token.unique ? '|unique' : ''}`
     const capture = getCaptureVariable(context, token.varName)

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import { Layout } from './components/layout/Layout'
 import { HomePage } from './pages/HomePage'
 import { LibraryPage } from './pages/LibraryPage'
@@ -37,13 +38,15 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
-      <ToastProvider>
-        <AppInitializer />
-        <RouterProvider router={router} />
-        <InstallPrompt />
-        <OfflineIndicator />
-      </ToastProvider>
-    </ErrorBoundary>
+    <HelmetProvider>
+      <ErrorBoundary>
+        <ToastProvider>
+          <AppInitializer />
+          <RouterProvider router={router} />
+          <InstallPrompt />
+          <OfflineIndicator />
+        </ToastProvider>
+      </ErrorBoundary>
+    </HelmetProvider>
   </StrictMode>,
 )

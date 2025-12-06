@@ -18,7 +18,15 @@ export type BrowserTab = 'tables' | 'templates'
 export type EditorTab = 'metadata' | 'tables' | 'templates' | 'variables' | 'json'
 export type LibraryViewMode = 'grid' | 'grouped'
 export type NamespaceDepth = 1 | 2
-export type ResultTheme = 'default' | 'ttrpg'
+// Result themes for the roller page
+// To add a new theme:
+// 1. Add the theme ID to this union type
+// 2. Add theme config in ResultThemeSwitcher.tsx (icon, label, description)
+// 3. Add CSS classes in index.css (card-result-{id}, history-item-{id}, prose-roll-{id})
+export type ResultTheme = 'default' | 'ttrpg' | 'cyberpunk' | 'sleek' | 'whimsical'
+
+// Array of all theme IDs for iteration (keep in sync with ResultTheme type)
+export const RESULT_THEMES: ResultTheme[] = ['default', 'ttrpg', 'cyberpunk', 'sleek', 'whimsical']
 
 interface UIState {
   // Search and filter (library page)
@@ -129,7 +137,7 @@ interface UIState {
 
 export const useUIStore = create<UIState>()(
   persist(
-    (set, _get) => ({
+    (set) => ({
       // Initial state
       searchQuery: '',
       selectedTags: [],

@@ -5,6 +5,7 @@
  */
 
 export { ErrorBoundary } from './ErrorBoundary'
+export { SEO } from './SEO'
 export { InstallPrompt } from './InstallPrompt'
 export { OfflineIndicator } from './OfflineIndicator'
 export { ResultThemeSwitcher } from './ResultThemeSwitcher'

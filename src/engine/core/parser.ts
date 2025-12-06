@@ -193,7 +193,7 @@ export function extractExpressions(text: string | undefined | null): ExpressionM
 
       // Find matching }}
       let depth = 1
-      let exprStart = i
+      const exprStart = i
 
       while (i < text.length && depth > 0) {
         if (text[i] === '\\' && text.slice(i + 1, i + 3) === '}}') {
@@ -368,12 +368,20 @@ function parseBaseExpression(expr: string): ExpressionToken {
   }
 
   // Instance reference: tableId#instanceName
+  // Only match if # is outside of a quoted separator (i.e., not after |")
   if (trimmed.includes('#')) {
-    const [tableId, instanceName] = trimmed.split('#')
-    return {
-      type: 'instance',
-      tableId: tableId.trim(),
-      instanceName: instanceName.trim(),
+    // Check if # appears before any separator (|") - if so, it's an instance ref
+    const separatorStart = trimmed.indexOf('|"')
+    const hashIndex = trimmed.indexOf('#')
+
+    // Only treat as instance if # is before separator or there's no separator
+    if (separatorStart === -1 || hashIndex < separatorStart) {
+      const [tableId, instanceName] = trimmed.split('#')
+      return {
+        type: 'instance',
+        tableId: tableId.trim(),
+        instanceName: instanceName.trim(),
+      }
     }
   }
 
@@ -615,7 +623,7 @@ function isCaptureAccessPattern(expr: string): boolean {
     /\.count$/.test(afterDollar) || // .count accessor: $var.count
     /\.value$/.test(afterDollar) || // .value accessor: $var.value
     /\|"/.test(afterDollar) || // separator: $var|", "
-    /\.\@/.test(afterDollar) // property access: $var[0].@prop or $var.@prop
+    /\.@/.test(afterDollar) // property access: $var[0].@prop or $var.@prop
   )
 }
 

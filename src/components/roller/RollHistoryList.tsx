@@ -43,7 +43,7 @@ export const RollHistoryList = memo(function RollHistoryList({
 
   // Get result theme from store
   const resultTheme = useUIStore((state) => state.resultTheme)
-  const isTtrpg = resultTheme === 'ttrpg'
+  const isThemedResult = resultTheme !== 'default'
 
   // Filter out current roll and limit to 50 items
   const displayHistory = useMemo(() => {
@@ -118,10 +118,10 @@ export const RollHistoryList = memo(function RollHistoryList({
               key={item.id}
               className={cn(
                 'group p-4 border transition-all duration-300 animate-slide-up',
-                isTtrpg
+                isThemedResult
                   ? item.pinned
-                    ? 'history-item-ttrpg border-2'
-                    : 'history-item-ttrpg'
+                    ? `history-item-${resultTheme} border-2`
+                    : `history-item-${resultTheme}`
                   : item.pinned
                     ? 'rounded-2xl border-copper/30 card-elevated card-result'
                     : 'rounded-2xl border-white/5 hover:border-white/10 bg-white/[0.02] hover:bg-white/[0.04]'
@@ -185,7 +185,7 @@ export const RollHistoryList = memo(function RollHistoryList({
               </div>
               <div className={cn(
                 "text-foreground/90 overflow-x-auto",
-                isTtrpg ? "prose-roll-ttrpg" : "prose-roll"
+                isThemedResult ? `prose-roll-${resultTheme}` : "prose-roll"
               )}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.result.text}</ReactMarkdown>
               </div>

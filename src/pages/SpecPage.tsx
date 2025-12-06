@@ -5,12 +5,16 @@
  */
 
 import { GuideLayout, DownloadButton } from '@/components/guide'
+import { SEO } from '@/components/common'
+import { PAGE_SEO } from '@/lib/seo'
 import { Github, Scale } from 'lucide-react'
 import specMd from '@/../docs/randomTableSpecV1.md?raw'
 
 export function SpecPage() {
   return (
-    <GuideLayout title="Full Specification" content={specMd}>
+    <>
+      <SEO {...PAGE_SEO.spec} />
+      <GuideLayout title="Full Specification" content={specMd}>
       {/* Download CTA at the bottom */}
       <div className="mt-12 p-6 rounded-xl bg-muted/30 border border-border/30">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -62,7 +66,8 @@ export function SpecPage() {
           </a>
         </div>
       </div>
-    </GuideLayout>
+      </GuideLayout>
+    </>
   )
 }
 

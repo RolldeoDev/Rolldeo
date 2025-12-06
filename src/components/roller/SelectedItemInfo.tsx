@@ -12,6 +12,8 @@ import { TableTypeIcon } from './TableTypeIcon'
 import { TraceToggle } from './TraceToggle'
 import { useRollStore } from '@/stores/rollStore'
 import { useCollectionStore } from '@/stores/collectionStore'
+import { useUIStore } from '@/stores/uiStore'
+import { cn } from '@/lib/utils'
 import type { Table, Template, TableSource } from '@/engine/types'
 
 interface SelectedItemInfoProps {
@@ -33,6 +35,7 @@ export const SelectedItemInfo = memo(function SelectedItemInfo({
   const traceEnabled = useRollStore((state) => state.traceEnabled)
   const setTraceEnabled = useRollStore((state) => state.setTraceEnabled)
   const getCollectionDocument = useCollectionStore((state) => state.getCollectionDocument)
+  const resultTheme = useUIStore((state) => state.resultTheme)
 
   // Get the full document to access metadata and table/template details
   const documentData = useMemo(() => {
@@ -238,16 +241,19 @@ export const SelectedItemInfo = memo(function SelectedItemInfo({
       <button
         onClick={onRoll}
         disabled={!canRoll || isRolling}
-        className={`
-          btn-copper relative w-full flex items-center justify-center gap-3 py-4 text-lg font-bold mt-4
-          ${isRolling ? 'animate-pulse' : ''}
-        `}
+        className={cn(
+          "relative w-full flex items-center justify-center gap-3 py-4 text-lg font-bold mt-4",
+          resultTheme !== 'default' ? `btn-roll-${resultTheme}` : 'btn-copper',
+          isRolling && 'animate-pulse'
+        )}
       >
-        {/* Glow effect */}
-        <div
-          className="absolute inset-0 rounded-xl blur-xl -z-10 opacity-50"
-          style={{ backgroundColor: 'hsl(var(--copper-glow) / 0.3)' }}
-        />
+        {/* Glow effect - only for default theme */}
+        {resultTheme === 'default' && (
+          <div
+            className="absolute inset-0 rounded-xl blur-xl -z-10 opacity-50"
+            style={{ backgroundColor: 'hsl(var(--copper-glow) / 0.3)' }}
+          />
+        )}
 
         {isRolling ? (
           <Loader2 className="h-6 w-6 animate-spin" />
@@ -256,7 +262,14 @@ export const SelectedItemInfo = memo(function SelectedItemInfo({
         )}
         {isRolling ? 'Rolling...' : 'Roll!'}
         {!isRolling && (
-          <span className="text-sm font-medium ml-2 px-2 py-0.5 bg-white/20 rounded text-white/80">Space</span>
+          <span className={cn(
+            "text-sm font-medium ml-2 px-2 py-0.5 rounded",
+            resultTheme === 'default' && 'bg-white/20 text-white/80',
+            resultTheme === 'ttrpg' && 'bg-[hsl(25,45%,25%,0.3)] text-[hsl(35,60%,85%)]',
+            resultTheme === 'cyberpunk' && 'bg-[hsl(186,100%,50%,0.2)] text-[hsl(186,100%,70%)]'
+          )}>
+            Space
+          </span>
         )}
       </button>
     </div>

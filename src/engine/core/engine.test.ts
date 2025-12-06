@@ -245,6 +245,7 @@ describe('RandomTableEngine', () => {
           name: 'Test',
           namespace: 'test',
           version: '1.0.0',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Testing invalid input
           specVersion: '2.0' as any,
         },
         tables: [],

@@ -8,6 +8,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Copy, Check, ExternalLink, FileJson, Github, Scale } from 'lucide-react'
 import { GuideLayout, DownloadButton } from '@/components/guide'
+import { SEO } from '@/components/common'
+import { PAGE_SEO } from '@/lib/seo'
 import schemaJson from '@/../public/schemas/random-table-spec-v1.0.json?raw'
 
 // Parse schema for display
@@ -89,8 +91,10 @@ export function SchemaPage() {
   }
 
   return (
-    <GuideLayout title="Schema Reference" content={schemaOverview}>
-      {/* Schema Viewer */}
+    <>
+      <SEO {...PAGE_SEO.schema} />
+      <GuideLayout title="Schema Reference" content={schemaOverview}>
+        {/* Schema Viewer */}
       <div className="mt-8">
         {/* Actions bar */}
         <div className="flex items-center justify-between mb-4">
@@ -204,7 +208,8 @@ export function SchemaPage() {
           . Use it freely in your own projects.
         </p>
       </div>
-    </GuideLayout>
+      </GuideLayout>
+    </>
   )
 }
 

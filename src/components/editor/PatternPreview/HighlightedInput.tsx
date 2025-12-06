@@ -7,8 +7,7 @@
 
 import { memo, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { cn } from '@/lib/utils'
-import { extractExpressions } from '@/engine/core/parser'
-import { EXPRESSION_COLORS, getExpressionTypeFromContent } from './expressionColors'
+import { renderHighlightedText } from './highlightUtils'
 
 export interface HighlightedInputProps {
   value: string
@@ -32,55 +31,6 @@ export interface HighlightedInputRef {
   get selectionStart(): number | null
   /** Get selection end position */
   get selectionEnd(): number | null
-}
-
-/**
- * Get expression class name based on content for syntax highlighting.
- */
-function getExpressionClassName(content: string): string {
-  const type = getExpressionTypeFromContent(content)
-  return EXPRESSION_COLORS[type].text
-}
-
-/**
- * Render syntax-highlighted text for overlay
- */
-function renderHighlightedText(text: string): React.ReactNode {
-  const expressions = extractExpressions(text)
-  const parts: React.ReactNode[] = []
-  let lastIndex = 0
-
-  for (const match of expressions) {
-    // Add text before the match
-    if (match.start > lastIndex) {
-      parts.push(
-        <span key={`text-${lastIndex}`} className="whitespace-pre">
-          {text.slice(lastIndex, match.start)}
-        </span>
-      )
-    }
-
-    // Add the highlighted expression
-    const className = getExpressionClassName(match.expression)
-    parts.push(
-      <span key={`expr-${match.start}`} className={cn(className, 'whitespace-pre')}>
-        {match.raw}
-      </span>
-    )
-
-    lastIndex = match.end
-  }
-
-  // Add remaining text
-  if (lastIndex < text.length) {
-    parts.push(
-      <span key={`text-${lastIndex}`} className="whitespace-pre">
-        {text.slice(lastIndex)}
-      </span>
-    )
-  }
-
-  return parts.length > 0 ? parts : text
 }
 
 /**
@@ -184,7 +134,7 @@ export const HighlightedInput = memo(
             )}
             aria-hidden="true"
           >
-            {renderHighlightedText(value ?? '')}
+            {renderHighlightedText(value ?? '', { whiteSpace: 'pre', expressionClassName: 'whitespace-pre' })}
           </div>
         )}
 

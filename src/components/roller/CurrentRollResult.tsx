@@ -40,7 +40,8 @@ export const CurrentRollResult = memo(function CurrentRollResult({
   const [copied, setCopied] = useState(false)
   const resultTheme = useUIStore((state) => state.resultTheme)
 
-  const isTtrpg = resultTheme === 'ttrpg'
+  // Theme-specific class names (default theme uses base classes)
+  const isThemedResult = resultTheme !== 'default'
 
   const hasCaptures = result?.captures && Object.keys(result.captures).length > 0
   const captureCount = hasCaptures ? Object.keys(result!.captures!).length : 0
@@ -82,8 +83,8 @@ export const CurrentRollResult = memo(function CurrentRollResult({
   return (
     <div className={cn(
       "mx-4 mt-4 mb-6 p-5 border animate-slide-up",
-      isTtrpg
-        ? "card-result-ttrpg"
+      isThemedResult
+        ? `card-result-${resultTheme}`
         : "rounded-2xl card-elevated card-result shadow-lg shadow-copper/5"
     )}>
       <div className="flex items-start justify-between mb-5">
@@ -133,7 +134,7 @@ export const CurrentRollResult = memo(function CurrentRollResult({
       <div
         className={cn(
           "overflow-x-auto max-w-[70ch]",
-          isTtrpg ? "prose-roll-ttrpg" : "prose-roll"
+          isThemedResult ? `prose-roll-${resultTheme}` : "prose-roll"
         )}
         style={{ lineHeight: '1.7' }}
       >

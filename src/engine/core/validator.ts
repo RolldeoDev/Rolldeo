@@ -512,7 +512,7 @@ function validateVariables(
   path: string,
   issues: ValidationIssue[]
 ): void {
-  for (const [name, _value] of Object.entries(variables)) {
+  for (const name of Object.keys(variables)) {
     if (!VARIABLE_NAME_PATTERN.test(name)) {
       issues.push({
         severity: 'error',

@@ -142,7 +142,7 @@ function evaluateDice(parsed: ParsedDice, config: DiceConfig): DiceResult {
   const { count, sides, keepHighest, keepLowest, exploding, modifier } = parsed
 
   // Roll all dice
-  let rolls: number[] = []
+  const rolls: number[] = []
   let explosionCount = 0
 
   for (let i = 0; i < count; i++) {

@@ -5,11 +5,16 @@
  */
 
 import { GuideLayout } from '@/components/guide'
+import { SEO } from '@/components/common'
+import { PAGE_SEO } from '@/lib/seo'
 import usingRolldeoMd from '@/../docs/UsingRolldeo.md?raw'
 
 export function UsingRolldeoPage() {
   return (
-    <GuideLayout title="Using Rolldeo" content={usingRolldeoMd} />
+    <>
+      <SEO {...PAGE_SEO.usingRolldeo} />
+      <GuideLayout title="Using Rolldeo" content={usingRolldeoMd} />
+    </>
   )
 }
 
