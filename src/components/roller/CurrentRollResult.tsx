@@ -13,6 +13,8 @@ import type { RollResult, EntryDescription, EvaluatedSets } from '@/engine/types
 import { TraceViewer } from './TraceViewer'
 import { CaptureInspector } from './CaptureInspector'
 import { getResultTypeIcon } from '@/lib/resultTypeIcons'
+import { useUIStore } from '@/stores/uiStore'
+import { cn } from '@/lib/utils'
 
 interface CurrentRollResultProps {
   result: RollResult | null
@@ -36,6 +38,9 @@ export const CurrentRollResult = memo(function CurrentRollResult({
   const [showTrace, setShowTrace] = useState(false)
   const [showCaptures, setShowCaptures] = useState(false)
   const [copied, setCopied] = useState(false)
+  const resultTheme = useUIStore((state) => state.resultTheme)
+
+  const isTtrpg = resultTheme === 'ttrpg'
 
   const hasCaptures = result?.captures && Object.keys(result.captures).length > 0
   const captureCount = hasCaptures ? Object.keys(result!.captures!).length : 0
@@ -75,8 +80,13 @@ export const CurrentRollResult = memo(function CurrentRollResult({
   const ResultIcon = getResultTypeIcon(result.resultType)
 
   return (
-    <div className="mx-4 mt-4 p-5 rounded-xl card-elevated card-result border animate-slide-up">
-      <div className="flex items-start justify-between mb-4">
+    <div className={cn(
+      "mx-4 mt-4 mb-6 p-5 border animate-slide-up",
+      isTtrpg
+        ? "card-result-ttrpg"
+        : "rounded-2xl card-elevated card-result shadow-lg shadow-copper/5"
+    )}>
+      <div className="flex items-start justify-between mb-5">
         <div className="flex items-center gap-3">
           <div
             className="icon-container icon-copper"
@@ -93,10 +103,13 @@ export const CurrentRollResult = memo(function CurrentRollResult({
         </div>
         <div className="flex items-center gap-1">
           <button
-            className={`p-2.5 rounded-xl transition-colors ${
-              copied ? 'text-green-500' : 'hover:bg-accent'
+            className={`p-2.5 rounded-xl transition-all ${
+              copied
+                ? 'text-green-500 bg-green-500/10'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
-            title={copied ? 'Copied!' : 'Copy to clipboard'}
+            title={copied ? 'Copied!' : 'Copy result to clipboard'}
+            aria-label={copied ? 'Copied!' : 'Copy result to clipboard'}
             onClick={handleCopy}
           >
             {copied ? (
@@ -106,8 +119,9 @@ export const CurrentRollResult = memo(function CurrentRollResult({
             )}
           </button>
           <button
-            className="p-2.5 rounded-xl hover:bg-accent transition-colors"
-            title="Re-roll"
+            className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-all disabled:opacity-50"
+            title="Re-roll (Space or Enter)"
+            aria-label="Re-roll"
             onClick={onReroll}
             disabled={isRolling}
           >
@@ -115,22 +129,30 @@ export const CurrentRollResult = memo(function CurrentRollResult({
           </button>
         </div>
       </div>
-      <div className="prose-roll overflow-x-auto">
+      {/* Content with max-width for readability */}
+      <div
+        className={cn(
+          "overflow-x-auto max-w-[70ch]",
+          isTtrpg ? "prose-roll-ttrpg" : "prose-roll"
+        )}
+        style={{ lineHeight: '1.7' }}
+      >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.text}</ReactMarkdown>
       </div>
 
-      {/* Toggle buttons */}
-      <div className="mt-4 flex flex-wrap gap-2">
+      {/* Toggle buttons - standardized to copper accent */}
+      <div className="mt-5 pt-4 border-t border-copper/10 flex flex-wrap gap-2">
         {/* Descriptions button - opens drawer */}
         {hasDescriptions && (
           <button
             onClick={() => onShowDescriptions(result!.descriptions!, itemName || undefined)}
-            className="text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 text-muted-foreground border-border/50 hover:text-copper hover:border-copper/50 hover:bg-copper/15 hover:scale-[1.02]"
+            className="text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 text-muted-foreground border-border/50 hover:text-copper hover:border-copper/40 hover:bg-copper/10"
+            title="View entry descriptions"
           >
             <BookOpen className="w-4 h-4" />
-            View Descriptions
-            <span className="text-xs opacity-60">
-              ({descriptionCount})
+            Descriptions
+            <span className="text-xs text-copper/60">
+              {descriptionCount}
             </span>
           </button>
         )}
@@ -139,12 +161,13 @@ export const CurrentRollResult = memo(function CurrentRollResult({
         {hasSets && (
           <button
             onClick={() => onShowSets(result!.placeholders!, itemName || undefined)}
-            className="text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 text-muted-foreground border-border/50 hover:text-rose hover:border-rose/40 hover:bg-rose/10 hover:scale-[1.02]"
+            className="text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 text-muted-foreground border-border/50 hover:text-copper hover:border-copper/40 hover:bg-copper/10"
+            title="View entry sets/properties"
           >
             <ListOrdered className="w-4 h-4" />
-            View Sets
-            <span className="text-xs opacity-60">
-              ({setsCount})
+            Sets
+            <span className="text-xs text-copper/60">
+              {setsCount}
             </span>
           </button>
         )}
@@ -157,13 +180,14 @@ export const CurrentRollResult = memo(function CurrentRollResult({
               text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all
               ${showTrace
                 ? 'text-copper border-copper/40 bg-copper/10'
-                : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'}
+                : 'text-muted-foreground border-border/50 hover:text-copper hover:border-copper/40 hover:bg-copper/10'}
             `}
+            title={showTrace ? 'Hide execution trace' : 'Show execution trace'}
           >
             <Activity className="w-4 h-4" />
-            {showTrace ? 'Hide' : 'Show'} Trace
-            <span className="text-muted-foreground/60 text-xs">
-              ({result.trace.stats.nodeCount} ops)
+            Trace
+            <span className="text-xs text-copper/60">
+              {result.trace.stats.nodeCount}
             </span>
           </button>
         )}
@@ -175,14 +199,15 @@ export const CurrentRollResult = memo(function CurrentRollResult({
             className={`
               text-sm flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all
               ${showCaptures
-                ? 'text-rose-400 border-rose-400/40 bg-rose-400/10'
-                : 'text-muted-foreground border-border/50 hover:border-border hover:bg-accent'}
+                ? 'text-copper border-copper/40 bg-copper/10'
+                : 'text-muted-foreground border-border/50 hover:text-copper hover:border-copper/40 hover:bg-copper/10'}
             `}
+            title={showCaptures ? 'Hide captured variables' : 'Show captured variables'}
           >
             <Grab className="w-4 h-4" />
-            {showCaptures ? 'Hide' : 'Show'} Captures
-            <span className="text-muted-foreground/60 text-xs">
-              ({captureCount} var{captureCount !== 1 ? 's' : ''})
+            Captures
+            <span className="text-xs text-copper/60">
+              {captureCount}
             </span>
           </button>
         )}

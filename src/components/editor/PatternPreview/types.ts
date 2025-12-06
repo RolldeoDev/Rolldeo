@@ -3,7 +3,8 @@
  */
 
 import type { RollTrace } from '@/engine/core'
-import type { CaptureVariable } from '@/engine/types'
+import type { CaptureVariable, Table, Template } from '@/engine/types'
+import type { Suggestion } from '@/hooks/usePatternSuggestions'
 
 /**
  * A segment of evaluated pattern output.
@@ -82,6 +83,12 @@ export interface PatternPreviewProps {
   hidePreviewWhenEmpty?: boolean
   /** Hide the pattern label (use when parent provides its own label) */
   hideLabel?: boolean
+  /** Suggestions for autocomplete (optional) */
+  suggestions?: Suggestion[]
+  /** Full table data for property lookups (keyed by table ID) */
+  tableMap?: Map<string, Table>
+  /** Full template data for property lookups (keyed by template ID) */
+  templateMap?: Map<string, Template>
 }
 
 /**
@@ -108,6 +115,12 @@ export interface EditablePatternProps {
   minHeight?: number
   /** ID for label association */
   id?: string
+  /** Suggestions for autocomplete (optional - if not provided, autocomplete is disabled) */
+  suggestions?: Suggestion[]
+  /** Full table data for property lookups (keyed by table ID) */
+  tableMap?: Map<string, Table>
+  /** Full template data for property lookups (keyed by template ID) */
+  templateMap?: Map<string, Template>
 }
 
 /**

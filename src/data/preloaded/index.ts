@@ -12,6 +12,8 @@ import fantasyNpc from './rolldeo.fantasy.npc.json'
 import horrorNpc from './rolldeo.horror.npc.json'
 import scifiNpc from './rolldeo.scifi.npc.json'
 import wh40kNpc from './rolldeo.wh40k.npc.json'
+import cyberpunkCore from './rolldeo.cyberpunk.core.json'
+import cyberpunkNames from './rolldeo.cyberpunk.npc.json'
 import exampleCore from './rolldeo.example.core.json'
 import type { RandomTableDocument } from '../../engine/types'
 
@@ -55,6 +57,14 @@ export const preloadedCollections: PreloadedCollection[] = [
   {
     id: 'rolldeo.wh40k.npc',
     document: wh40kNpc as unknown as RandomTableDocument,
+  },
+  {
+    id: 'rolldeo.cyberpunk.core',
+    document: cyberpunkCore as unknown as RandomTableDocument,
+  },
+  {
+    id: 'rolldeo.cyberpunk.names',
+    document: cyberpunkNames as unknown as RandomTableDocument,
   },
   {
     id: 'rolldeo.example.core',

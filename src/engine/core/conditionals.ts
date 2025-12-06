@@ -6,7 +6,7 @@
  */
 
 import type { GenerationContext } from './context'
-import { resolveVariable, getPlaceholder, getCaptureSharedVariable } from './context'
+import { resolveVariable, getPlaceholder, getSharedVariable } from './context'
 
 // ============================================================================
 // Types
@@ -121,7 +121,7 @@ function resolveValue(
     if (propMatch) {
       const varName = propMatch[1]
       const propName = propMatch[2]
-      const captureShared = getCaptureSharedVariable(context, varName)
+      const captureShared = getSharedVariable(context, varName)
       if (captureShared) {
         // Access the property from the captured sets
         const propValue = captureShared.sets[propName]

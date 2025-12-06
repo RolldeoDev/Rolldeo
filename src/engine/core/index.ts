@@ -29,7 +29,6 @@ import {
   setCurrentTable,
   setCurrentCollection,
   mergePlaceholderSets,
-  getSharedVariableSource,
   registerDocumentSharedName,
   addDescription,
   setCurrentEntryDescription,
@@ -902,18 +901,9 @@ export class RandomTableEngine {
       setCurrentTable(context, table.id)
 
       // Evaluate table-level shared variables (lazy evaluation)
-      // Clear this table's shared variables first so they get re-evaluated on each invocation
-      // BUT only if they were set by this same table (multi-roll case), not by a parent (inheritance case)
+      // evaluateTableLevelShared skips variables that already exist, handling inheritance
+      // Multi-roll isolation is handled by isolated contexts in evaluateMultiRoll
       if (table.shared) {
-        for (const name of Object.keys(table.shared)) {
-          const source = getSharedVariableSource(context, name)
-          if (source === table.id) {
-            // Same table set this variable before - clear it for re-evaluation
-            context.sharedVariables.delete(name)
-            context.sharedVariableSources.delete(name)
-          }
-          // If source is different (parent table), keep the value (inheritance)
-        }
         this.evaluator.evaluateTableLevelShared(table.shared, context, collectionId, table.id)
       }
 

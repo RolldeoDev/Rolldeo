@@ -17,6 +17,7 @@ import { SetsDrawer } from './SetsDrawer'
 
 interface ResultsPanelProps {
   selectedItem: BrowserItem | null
+  collectionId: string | null
   currentResult: RollResult | null
   isRolling: boolean
   rollError: string | null
@@ -38,6 +39,7 @@ interface DrawerState {
 
 export const ResultsPanel = memo(function ResultsPanel({
   selectedItem,
+  collectionId,
   currentResult,
   isRolling,
   rollError,
@@ -105,6 +107,7 @@ export const ResultsPanel = memo(function ResultsPanel({
       <div className="flex-shrink-0">
         <SelectedItemInfo
           selectedItem={selectedItem}
+          collectionId={collectionId}
           isRolling={isRolling}
           canRoll={canRoll}
           onRoll={handleRoll}

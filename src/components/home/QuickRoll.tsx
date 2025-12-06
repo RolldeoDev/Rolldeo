@@ -26,6 +26,7 @@ const TEMPLATE_OPTIONS = [
 export function QuickRoll() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('npc')
   const [result, setResult] = useState<RollResult | null>(null)
+  const [rolledTemplateName, setRolledTemplateName] = useState<string | null>(null)
   const [isRolling, setIsRolling] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isResetting, setIsResetting] = useState(false)
@@ -73,6 +74,9 @@ export function QuickRoll() {
     try {
       const rollResult = engine.rollTemplate(selectedTemplate, COLLECTION_ID)
       setResult(rollResult)
+      // Store the template name at roll time so it doesn't change when selection changes
+      const option = TEMPLATE_OPTIONS.find((o) => o.id === selectedTemplate)
+      setRolledTemplateName(option?.label || selectedTemplate)
     } catch (err) {
       console.error('Roll failed:', err)
       setError(err instanceof Error ? err.message : 'Roll failed')
@@ -85,11 +89,6 @@ export function QuickRoll() {
     setSelectedTemplate(templateId)
     setError(null)
   }, [])
-
-  const getTemplateName = () => {
-    const option = TEMPLATE_OPTIONS.find((o) => o.id === selectedTemplate)
-    return option?.label || selectedTemplate
-  }
 
   // Don't render until initialized
   if (!isInitialized) {
@@ -168,11 +167,11 @@ export function QuickRoll() {
       )}
 
       {/* Result Display */}
-      {result && (
+      {result && rolledTemplateName && (
         <div className="mb-4">
           <QuickRollResult
             result={result}
-            templateName={getTemplateName()}
+            templateName={rolledTemplateName}
             isRolling={isRolling}
             onReroll={handleRoll}
           />

@@ -34,6 +34,8 @@ export interface TableToken {
   tableId: string
   alias?: string
   namespace?: string
+  /** Property chain for accessing set values (e.g., @colors, @name.@subprop) */
+  properties?: string[]
 }
 
 export interface DiceToken {
@@ -533,6 +535,49 @@ function parseTableReference(expr: string): TableToken {
     return {
       type: 'table',
       tableId: parts[0],
+    }
+  }
+
+  // Check if any part starts with @ (indicating property access)
+  // Format: tableName.@prop or alias.tableName.@prop or tableName.@prop1.@prop2
+  const firstAtIndex = parts.findIndex(p => p.startsWith('@'))
+
+  if (firstAtIndex !== -1) {
+    // Everything from firstAtIndex onward is property access
+    const properties = parts.slice(firstAtIndex).map(p => p.startsWith('@') ? p.slice(1) : p)
+    const tableParts = parts.slice(0, firstAtIndex)
+
+    if (tableParts.length === 0) {
+      // Invalid: just @prop with no table
+      return {
+        type: 'table',
+        tableId: expr, // Will fail at runtime, but keeps backward compat
+      }
+    }
+
+    if (tableParts.length === 1) {
+      return {
+        type: 'table',
+        tableId: tableParts[0],
+        properties,
+      }
+    }
+
+    if (tableParts.length === 2) {
+      return {
+        type: 'table',
+        alias: tableParts[0],
+        tableId: tableParts[1],
+        properties,
+      }
+    }
+
+    // Multiple segments before @prop: namespace.segment.tableId.@prop
+    return {
+      type: 'table',
+      namespace: tableParts.slice(0, -1).join('.'),
+      tableId: tableParts[tableParts.length - 1],
+      properties,
     }
   }
 

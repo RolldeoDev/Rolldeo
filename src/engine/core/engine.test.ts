@@ -1903,6 +1903,107 @@ describe('Capture-Aware Shared Variables', () => {
 
       expect(result.text).toBe('Child value: ChildValue')
     })
+
+    it('should support nested property access on template references: {{templateName.@a.@b}}', () => {
+      // Tests the pattern {{gangProfile.@gang.@reputation}} where gangProfile is a template
+      // that has a $gang capture-aware shared variable referencing a table with sets
+      const doc = createTestDoc(
+        [
+          {
+            id: 'streetGangs',
+            name: 'Street Gangs',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Iron Wolves',
+                sets: {
+                  territory: 'Downtown',
+                  style: 'Biker',
+                  reputation: 'Feared'
+                }
+              },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'gangProfile',
+            name: 'Gang Profile',
+            shared: {
+              '$gang': '{{streetGangs}}',
+            },
+            pattern: '## {{$gang}}\n\n**Territory:** {{$gang.@territory}}\n\n**Reputation:** {{$gang.@reputation}}',
+          },
+          {
+            id: 'test',
+            name: 'Test',
+            // Access nested property through template reference
+            pattern: 'Gang reputation: {{gangProfile.@gang.@reputation}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Gang reputation: Feared')
+    })
+
+    it('should support deeply nested property access on template references', () => {
+      // Tests chaining multiple levels through a template reference
+      const doc = createTestDoc(
+        [
+          {
+            id: 'cultures',
+            name: 'Cultures',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Nordic',
+                sets: {
+                  naming: '{{nordicNames}}'
+                }
+              },
+            ],
+          },
+          {
+            id: 'nordicNames',
+            name: 'Nordic Names',
+            type: 'simple',
+            entries: [
+              {
+                value: 'Bjorn',
+                sets: {
+                  meaning: 'Bear',
+                  origin: 'Old Norse'
+                }
+              },
+            ],
+          },
+        ],
+        [
+          {
+            id: 'culturalProfile',
+            name: 'Cultural Profile',
+            shared: {
+              '$culture': '{{cultures}}',
+            },
+            pattern: 'Culture: {{$culture}}',
+          },
+          {
+            id: 'test',
+            name: 'Test',
+            // Access three levels deep through template reference
+            pattern: 'Name origin: {{culturalProfile.@culture.@naming.@origin}}',
+          },
+        ]
+      )
+
+      engine.loadCollection(doc, 'test')
+      const result = engine.rollTemplate('test', 'test')
+
+      expect(result.text).toBe('Name origin: Old Norse')
+    })
   })
 })
 

@@ -1979,3 +1979,632 @@
     display: none !important;
   }
 }
+
+/* ============================================================================
+   TTRPG RESULT THEME - "Parchment & Quill" Theme
+
+   A traditional tabletop RPG aesthetic with parchment backgrounds,
+   medieval flourishes, and the feel of classic gaming rulebooks.
+   ============================================================================ */
+
+/* Card styling for TTRPG theme */
+.card-result-ttrpg {
+  background: linear-gradient(180deg,
+    hsl(40, 45%, 94%) 0%,
+    hsl(38, 40%, 88%) 100%);
+  border: 2px solid hsl(30, 40%, 55%);
+  border-radius: 0.375rem;
+  position: relative;
+  box-shadow:
+    inset 0 0 30px hsl(35, 30%, 80%),
+    0 4px 12px hsl(30, 30%, 40% / 0.15);
+}
+
+/* Corner flourishes */
+.card-result-ttrpg::before,
+.card-result-ttrpg::after {
+  content: '❧';
+  position: absolute;
+  font-size: 1.25rem;
+  color: hsl(30, 50%, 45%);
+  opacity: 0.6;
+}
+
+.card-result-ttrpg::before {
+  top: 0.25rem;
+  left: 0.5rem;
+}
+
+.card-result-ttrpg::after {
+  bottom: 0.25rem;
+  right: 0.5rem;
+  transform: rotate(180deg);
+}
+
+.dark .card-result-ttrpg {
+  background: linear-gradient(180deg,
+    hsl(30, 25%, 18%) 0%,
+    hsl(28, 22%, 14%) 100%);
+  border-color: hsl(35, 45%, 35%);
+  box-shadow:
+    inset 0 0 40px hsl(28, 20%, 10%),
+    0 0 20px hsl(35, 50%, 25% / 0.3),
+    0 4px 12px hsl(0, 0%, 0% / 0.3);
+}
+
+.dark .card-result-ttrpg::before,
+.dark .card-result-ttrpg::after {
+  color: hsl(35, 60%, 50%);
+  opacity: 0.5;
+}
+
+/* History item styling for TTRPG theme */
+.history-item-ttrpg {
+  background: linear-gradient(180deg,
+    hsl(42, 35%, 92%) 0%,
+    hsl(40, 30%, 88%) 100%);
+  border: 1px solid hsl(32, 35%, 65%);
+  border-radius: 0.25rem;
+  box-shadow:
+    inset 0 0 15px hsl(38, 25%, 85%),
+    0 2px 4px hsl(30, 25%, 50% / 0.1);
+}
+
+.dark .history-item-ttrpg {
+  background: linear-gradient(180deg,
+    hsl(30, 22%, 16%) 0%,
+    hsl(28, 20%, 12%) 100%);
+  border-color: hsl(35, 40%, 30%);
+  box-shadow:
+    inset 0 0 20px hsl(28, 18%, 8%),
+    0 2px 6px hsl(0, 0%, 0% / 0.25);
+}
+
+/* Main TTRPG prose styling */
+.prose-roll-ttrpg {
+  @apply leading-relaxed;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  color: hsl(25, 45%, 18%);
+}
+
+/* === HEADERS - Medieval book styling === */
+
+.prose-roll-ttrpg h1 {
+  @apply text-2xl mt-5 mb-3 pb-2 first:mt-0;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  color: hsl(25, 50%, 22%);
+  text-align: center;
+  position: relative;
+  border-bottom: none;
+}
+
+/* Decorative underline with flourishes */
+.prose-roll-ttrpg h1::after {
+  content: '✦ ━━━━━━━━━━━━━━━ ✦';
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+  color: hsl(30, 45%, 50%);
+  margin-top: 0.5rem;
+}
+
+.prose-roll-ttrpg h2 {
+  @apply text-xl mt-5 mb-2 first:mt-0;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-weight: 600;
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+  color: hsl(25, 48%, 25%);
+  padding-left: 0;
+  position: relative;
+}
+
+/* Side flourish for h2 */
+.prose-roll-ttrpg h2::before {
+  content: '§';
+  position: absolute;
+  left: -1.25em;
+  color: hsl(30, 50%, 45%);
+  font-size: 1.1em;
+  font-weight: 400;
+}
+
+.prose-roll-ttrpg h3 {
+  @apply text-lg mt-4 mb-2 first:mt-0;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-weight: 600;
+  font-style: italic;
+  color: hsl(25, 42%, 28%);
+}
+
+.prose-roll-ttrpg h4 {
+  @apply text-base mt-3 mb-1 first:mt-0;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  color: hsl(25, 38%, 35%);
+}
+
+.prose-roll-ttrpg h5,
+.prose-roll-ttrpg h6 {
+  @apply text-sm mt-3 mb-1 first:mt-0;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  color: hsl(25, 30%, 42%);
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll-ttrpg p {
+  @apply my-3 first:mt-0 last:mb-0;
+  text-indent: 1.5em;
+}
+
+.prose-roll-ttrpg p:first-of-type {
+  text-indent: 0;
+}
+
+/* Drop cap for first paragraph after headers */
+.prose-roll-ttrpg h1 + p::first-letter,
+.prose-roll-ttrpg h2 + p::first-letter {
+  font-size: 2.5em;
+  float: left;
+  line-height: 0.8;
+  margin-right: 0.1em;
+  margin-top: 0.1em;
+  font-weight: 700;
+  color: hsl(25, 55%, 35%);
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+}
+
+.prose-roll-ttrpg strong {
+  font-weight: 700;
+  color: hsl(25, 50%, 15%);
+}
+
+.prose-roll-ttrpg em {
+  font-style: italic;
+  color: hsl(25, 45%, 25%);
+}
+
+/* === LISTS - Ornate bullets === */
+
+.prose-roll-ttrpg ul,
+.prose-roll-ttrpg ol {
+  @apply my-3;
+  padding-left: 1.75em;
+  list-style: none;
+}
+
+.prose-roll-ttrpg li {
+  @apply my-2;
+  position: relative;
+  padding-left: 0.5em;
+}
+
+/* Unordered list - fleuron bullet */
+.prose-roll-ttrpg ul > li::before {
+  content: '❖';
+  position: absolute;
+  left: -1.5em;
+  color: hsl(30, 50%, 40%);
+  font-size: 0.75em;
+  top: 0.2em;
+}
+
+/* Nested unordered */
+.prose-roll-ttrpg ul ul > li::before {
+  content: '✧';
+  color: hsl(32, 45%, 50%);
+  font-size: 0.7em;
+}
+
+/* Double nested */
+.prose-roll-ttrpg ul ul ul > li::before {
+  content: '•';
+  color: hsl(35, 40%, 55%);
+  font-size: 0.9em;
+  top: 0.15em;
+}
+
+/* Ordered list - classic numbering */
+.prose-roll-ttrpg ol {
+  counter-reset: ttrpg-counter;
+}
+
+.prose-roll-ttrpg ol > li {
+  counter-increment: ttrpg-counter;
+}
+
+.prose-roll-ttrpg ol > li::before {
+  content: counter(ttrpg-counter) '.';
+  position: absolute;
+  left: -2em;
+  color: hsl(30, 50%, 35%);
+  font-weight: 700;
+  font-size: 0.95em;
+  min-width: 1.5em;
+  text-align: right;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+}
+
+/* Nested ordered lists - roman numerals */
+.prose-roll-ttrpg ol ol {
+  counter-reset: ttrpg-nested;
+}
+
+.prose-roll-ttrpg ol ol > li {
+  counter-increment: ttrpg-nested;
+}
+
+.prose-roll-ttrpg ol ol > li::before {
+  content: counter(ttrpg-nested, lower-roman) '.';
+  color: hsl(32, 45%, 45%);
+  font-weight: 500;
+}
+
+/* Nested lists spacing */
+.prose-roll-ttrpg li > ul,
+.prose-roll-ttrpg li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items */
+.prose-roll-ttrpg li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll-ttrpg li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll-ttrpg li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(30, 50%, 40%);
+}
+
+/* === CODE - Manuscript style === */
+
+.prose-roll-ttrpg code {
+  @apply px-1.5 py-0.5 rounded text-sm;
+  font-family: 'Courier New', Courier, monospace;
+  background: hsl(40, 35%, 88%);
+  color: hsl(25, 60%, 25%);
+  border: 1px solid hsl(35, 30%, 70%);
+  font-size: 0.85em;
+}
+
+.prose-roll-ttrpg pre {
+  @apply my-4 p-4 rounded-lg overflow-x-auto;
+  background: hsl(42, 30%, 90%);
+  border: 1px solid hsl(35, 30%, 65%);
+  box-shadow: inset 0 2px 4px hsl(35, 25%, 80%);
+}
+
+.prose-roll-ttrpg pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+}
+
+/* === BLOCKQUOTES - Scroll/proclamation style === */
+
+.prose-roll-ttrpg blockquote {
+  @apply my-4 py-4 px-5;
+  border: 2px solid hsl(35, 40%, 60%);
+  border-radius: 0.25rem;
+  background: linear-gradient(180deg,
+    hsl(42, 40%, 92%) 0%,
+    hsl(40, 35%, 88%) 100%);
+  color: hsl(25, 40%, 22%);
+  font-style: italic;
+  position: relative;
+  box-shadow:
+    inset 0 0 20px hsl(38, 30%, 85%),
+    2px 2px 8px hsl(30, 25%, 50% / 0.15);
+}
+
+/* Scroll corners */
+.prose-roll-ttrpg blockquote::before {
+  content: '❝';
+  position: absolute;
+  top: -0.5em;
+  left: 0.5em;
+  font-size: 1.5em;
+  font-family: Georgia, serif;
+  color: hsl(30, 45%, 50%);
+  line-height: 1;
+  background: hsl(42, 40%, 92%);
+  padding: 0 0.25em;
+}
+
+.prose-roll-ttrpg blockquote::after {
+  content: '❞';
+  position: absolute;
+  bottom: -0.5em;
+  right: 0.5em;
+  font-size: 1.5em;
+  font-family: Georgia, serif;
+  color: hsl(30, 45%, 50%);
+  line-height: 1;
+  background: hsl(40, 35%, 88%);
+  padding: 0 0.25em;
+}
+
+.prose-roll-ttrpg blockquote p {
+  position: relative;
+  z-index: 1;
+  text-indent: 0;
+  margin: 0;
+}
+
+/* === HORIZONTAL RULES - Ornate divider === */
+
+.prose-roll-ttrpg hr {
+  @apply my-6;
+  border: none;
+  height: auto;
+  text-align: center;
+  background: none;
+  overflow: visible;
+}
+
+.prose-roll-ttrpg hr::before {
+  content: '⚜ ━━━━━ ❖ ━━━━━ ⚜';
+  display: block;
+  color: hsl(30, 45%, 50%);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.prose-roll-ttrpg hr::after {
+  display: none;
+}
+
+/* === LINKS - Parchment ink color === */
+
+.prose-roll-ttrpg a {
+  color: hsl(220, 60%, 35%);
+  text-decoration: none;
+  border-bottom: 1px solid hsl(220, 40%, 55%);
+  transition: all 0.2s ease;
+}
+
+.prose-roll-ttrpg a:hover {
+  color: hsl(220, 65%, 25%);
+  border-bottom-color: hsl(220, 55%, 40%);
+}
+
+/* === TABLES - Classic rulebook style === */
+
+.prose-roll-ttrpg table {
+  @apply w-full text-sm my-4;
+  border-collapse: collapse;
+  border: 2px solid hsl(30, 40%, 55%);
+  background: hsl(42, 35%, 93%);
+}
+
+.prose-roll-ttrpg thead {
+  background: hsl(30, 35%, 75%);
+}
+
+.prose-roll-ttrpg th {
+  @apply px-4 py-2.5 text-left;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+  color: hsl(25, 45%, 18%);
+  border-bottom: 2px solid hsl(30, 40%, 50%);
+  font-size: 0.85rem;
+}
+
+.prose-roll-ttrpg td {
+  @apply px-4 py-2.5;
+  border-bottom: 1px solid hsl(35, 30%, 75%);
+  color: hsl(25, 40%, 22%);
+}
+
+.prose-roll-ttrpg tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll-ttrpg tbody tr:hover {
+  background: hsl(42, 40%, 90%);
+}
+
+/* Alternating row colors */
+.prose-roll-ttrpg tbody tr:nth-child(even) {
+  background: hsl(40, 30%, 91%);
+}
+
+.prose-roll-ttrpg tbody tr:nth-child(even):hover {
+  background: hsl(42, 38%, 88%);
+}
+
+/* === IMAGES === */
+
+.prose-roll-ttrpg img {
+  @apply my-4 rounded;
+  border: 2px solid hsl(30, 35%, 60%);
+  box-shadow: 2px 2px 8px hsl(30, 25%, 50% / 0.2);
+}
+
+/* ============================================================================
+   TTRPG DARK MODE - Aged Tome Theme
+   ============================================================================ */
+
+:is(.dark .prose-roll-ttrpg) {
+  color: hsl(35, 25%, 80%);
+}
+
+/* Dark mode headers */
+:is(.dark .prose-roll-ttrpg) h1 {
+  color: hsl(38, 50%, 75%);
+}
+
+:is(.dark .prose-roll-ttrpg) h1::after {
+  color: hsl(35, 55%, 50%);
+}
+
+:is(.dark .prose-roll-ttrpg) h2 {
+  color: hsl(38, 45%, 72%);
+}
+
+:is(.dark .prose-roll-ttrpg) h2::before {
+  color: hsl(35, 55%, 55%);
+}
+
+:is(.dark .prose-roll-ttrpg) h3 {
+  color: hsl(38, 40%, 68%);
+}
+
+:is(.dark .prose-roll-ttrpg) h4 {
+  color: hsl(38, 35%, 60%);
+}
+
+:is(.dark .prose-roll-ttrpg) h5,
+:is(.dark .prose-roll-ttrpg) h6 {
+  color: hsl(38, 30%, 55%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll-ttrpg) strong {
+  color: hsl(40, 60%, 78%);
+}
+
+:is(.dark .prose-roll-ttrpg) em {
+  color: hsl(35, 40%, 72%);
+}
+
+/* Dark mode drop cap */
+:is(.dark .prose-roll-ttrpg) h1 + p::first-letter,
+:is(.dark .prose-roll-ttrpg) h2 + p::first-letter {
+  color: hsl(35, 60%, 55%);
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll-ttrpg) ul > li::before {
+  color: hsl(35, 60%, 55%);
+}
+
+:is(.dark .prose-roll-ttrpg) ul ul > li::before {
+  color: hsl(38, 55%, 60%);
+}
+
+:is(.dark .prose-roll-ttrpg) ul ul ul > li::before {
+  color: hsl(40, 50%, 55%);
+}
+
+:is(.dark .prose-roll-ttrpg) ol > li::before {
+  color: hsl(38, 60%, 60%);
+}
+
+:is(.dark .prose-roll-ttrpg) ol ol > li::before {
+  color: hsl(40, 55%, 58%);
+}
+
+:is(.dark .prose-roll-ttrpg) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(35, 60%, 55%);
+}
+
+/* Dark mode code */
+:is(.dark .prose-roll-ttrpg) code {
+  background: hsl(28, 25%, 20%);
+  color: hsl(38, 55%, 70%);
+  border-color: hsl(30, 30%, 35%);
+}
+
+:is(.dark .prose-roll-ttrpg) pre {
+  background: hsl(26, 22%, 15%);
+  border-color: hsl(30, 28%, 30%);
+  box-shadow: inset 0 2px 4px hsl(25, 20%, 10%);
+}
+
+/* Dark mode blockquote */
+:is(.dark .prose-roll-ttrpg) blockquote {
+  background: linear-gradient(180deg,
+    hsl(30, 25%, 18%) 0%,
+    hsl(28, 22%, 14%) 100%);
+  border-color: hsl(35, 45%, 40%);
+  color: hsl(35, 30%, 75%);
+  box-shadow:
+    inset 0 0 25px hsl(28, 20%, 10%),
+    2px 2px 10px hsl(0, 0%, 0% / 0.3);
+}
+
+:is(.dark .prose-roll-ttrpg) blockquote::before,
+:is(.dark .prose-roll-ttrpg) blockquote::after {
+  color: hsl(35, 55%, 50%);
+  background: hsl(30, 25%, 18%);
+}
+
+:is(.dark .prose-roll-ttrpg) blockquote::after {
+  background: hsl(28, 22%, 14%);
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll-ttrpg) hr::before {
+  color: hsl(35, 55%, 50%);
+}
+
+/* Dark mode links */
+:is(.dark .prose-roll-ttrpg) a {
+  color: hsl(210, 60%, 65%);
+  border-bottom-color: hsl(210, 45%, 50%);
+}
+
+:is(.dark .prose-roll-ttrpg) a:hover {
+  color: hsl(210, 65%, 75%);
+  border-bottom-color: hsl(210, 55%, 60%);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll-ttrpg) table {
+  border-color: hsl(30, 40%, 35%);
+  background: hsl(28, 22%, 14%);
+}
+
+:is(.dark .prose-roll-ttrpg) thead {
+  background: hsl(30, 30%, 25%);
+}
+
+:is(.dark .prose-roll-ttrpg) th {
+  color: hsl(38, 50%, 78%);
+  border-bottom-color: hsl(35, 45%, 40%);
+}
+
+:is(.dark .prose-roll-ttrpg) td {
+  border-bottom-color: hsl(30, 25%, 25%);
+  color: hsl(35, 28%, 75%);
+}
+
+:is(.dark .prose-roll-ttrpg) tbody tr:hover {
+  background: hsl(30, 25%, 18%);
+}
+
+:is(.dark .prose-roll-ttrpg) tbody tr:nth-child(even) {
+  background: hsl(28, 20%, 12%);
+}
+
+:is(.dark .prose-roll-ttrpg) tbody tr:nth-child(even):hover {
+  background: hsl(30, 22%, 16%);
+}
+
+/* Dark mode images */
+:is(.dark .prose-roll-ttrpg) img {
+  border-color: hsl(30, 35%, 35%);
+  box-shadow: 2px 2px 12px hsl(0, 0%, 0% / 0.4);
+}

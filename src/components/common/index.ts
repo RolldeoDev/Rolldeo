@@ -7,6 +7,7 @@
 export { ErrorBoundary } from './ErrorBoundary'
 export { InstallPrompt } from './InstallPrompt'
 export { OfflineIndicator } from './OfflineIndicator'
+export { ResultThemeSwitcher } from './ResultThemeSwitcher'
 export { ThemeSwitcher } from './ThemeSwitcher'
 export { ToastProvider, useToast } from './Toast'
 export type { Toast, ToastType } from './Toast'

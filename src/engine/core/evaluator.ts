@@ -28,12 +28,12 @@ import {
   setPlaceholders,
   setInstance,
   getInstance,
+  getSharedVariable,
   setSharedVariable,
+  hasSharedVariable,
   wouldShadowDocumentShared,
   getCaptureVariable,
   setCaptureVariable,
-  getCaptureSharedVariable,
-  setCaptureSharedVariable,
   hasVariableConflict,
   beginSetEvaluation,
   endSetEvaluation,
@@ -242,8 +242,9 @@ export class ExpressionEvaluator {
    * Evaluate shared variables at generation start.
    * Processed in order - later variables can reference earlier ones.
    *
-   * Capture-aware shared variables: Keys starting with $ (e.g., "$hero") capture
-   * the full roll result including sets, enabling {{$hero.@prop}} access syntax.
+   * All shared variables are now capture-aware, storing full results including sets.
+   * This enables {{$varName.@prop}} access for any shared variable.
+   * The $ prefix on keys is optional and accepted for backward compatibility.
    */
   evaluateSharedVariables(
     shared: Record<string, string>,
@@ -251,21 +252,10 @@ export class ExpressionEvaluator {
     collectionId: string
   ): void {
     for (const [name, expression] of Object.entries(shared)) {
-      // Check if this is a capture-aware shared variable (starts with $)
-      if (name.startsWith('$')) {
-        const varName = name.slice(1) // Remove $ prefix
-        this.evaluateCaptureAwareShared(varName, expression, context, collectionId)
-        continue
-      }
-
-      // Regular shared variable evaluation
-      const evaluated = this.evaluatePattern(expression, context, collectionId)
-
-      // Try to parse as number, otherwise keep as string
-      const numValue = parseFloat(evaluated)
-      const value = !isNaN(numValue) && isFinite(numValue) ? numValue : evaluated
-
-      setSharedVariable(context, name, value)
+      // Strip $ prefix if present (for backward compatibility)
+      const varName = name.startsWith('$') ? name.slice(1) : name
+      // All shared variables are now capture-aware
+      this.evaluateCaptureAwareShared(varName, expression, context, collectionId)
     }
   }
 
@@ -301,7 +291,7 @@ export class ExpressionEvaluator {
 
           // Sets are already evaluated at merge time in evaluateSetValues()
           // Just use the placeholders directly
-          setCaptureSharedVariable(context, varName, {
+          setSharedVariable(context, varName, {
             value: result.text,
             sets: result.placeholders ?? {},
             description: entryDescription,
@@ -318,7 +308,7 @@ export class ExpressionEvaluator {
             templateResult.collectionId,
             context
           )
-          setCaptureSharedVariable(context, varName, result)
+          setSharedVariable(context, varName, result)
           return
         }
       }
@@ -327,7 +317,7 @@ export class ExpressionEvaluator {
       // This enables chaining: "$situation": "{{$conflict.@situation}}" where @situation is a nested CaptureItem
       // Also supports deep chaining: "$deep": "{{$conflict.@situation.@focus}}"
       if (token.type === 'captureAccess' && token.properties && token.properties.length > 0) {
-        const sourceCapture = getCaptureSharedVariable(context, token.varName)
+        const sourceCapture = getSharedVariable(context, token.varName)
         if (sourceCapture) {
           // Check if the final property is a terminal (value/count/description)
           const lastProp = token.properties[token.properties.length - 1]
@@ -336,7 +326,7 @@ export class ExpressionEvaluator {
             const nestedItem = this.getNestedCaptureItem(sourceCapture, token.properties)
             if (nestedItem) {
               // It's a nested CaptureItem - store it directly to enable further chaining
-              setCaptureSharedVariable(context, varName, nestedItem)
+              setSharedVariable(context, varName, nestedItem)
               return
             }
           }
@@ -362,7 +352,7 @@ export class ExpressionEvaluator {
               const newDescriptions = context.collectedDescriptions.slice(descCountBefore)
               const entryDescription = newDescriptions.length > 0 ? newDescriptions[0].description : undefined
 
-              setCaptureSharedVariable(context, varName, {
+              setSharedVariable(context, varName, {
                 value: result.text,
                 sets: result.placeholders ?? {},
                 description: entryDescription,
@@ -390,7 +380,7 @@ export class ExpressionEvaluator {
                   const newDescriptions = context.collectedDescriptions.slice(descCountBefore)
                   const entryDescription = newDescriptions.length > 0 ? newDescriptions[0].description : undefined
 
-                  setCaptureSharedVariable(context, varName, {
+                  setSharedVariable(context, varName, {
                     value: result.text,
                     sets: result.placeholders ?? {},
                     description: entryDescription,
@@ -406,7 +396,7 @@ export class ExpressionEvaluator {
                     templateResult.collectionId,
                     context
                   )
-                  setCaptureSharedVariable(context, varName, result)
+                  setSharedVariable(context, varName, result)
                   return
                 }
               }
@@ -415,7 +405,7 @@ export class ExpressionEvaluator {
 
           // Not a simple table reference - evaluate the result expression normally
           const evaluated = this.evaluateSwitchResult(winningResultExpr, context, collectionId)
-          setCaptureSharedVariable(context, varName, {
+          setSharedVariable(context, varName, {
             value: evaluated,
             sets: {},
           })
@@ -427,7 +417,7 @@ export class ExpressionEvaluator {
     // Fallback: For complex expressions, evaluate and capture with empty sets
     // This supports patterns like "$result": "{{dice:1d6}} {{table}}"
     const evaluated = this.evaluatePattern(expression, context, collectionId)
-    setCaptureSharedVariable(context, varName, {
+    setSharedVariable(context, varName, {
       value: evaluated,
       sets: {},
     })
@@ -438,8 +428,8 @@ export class ExpressionEvaluator {
    * Validates that names don't shadow document-level shared variables.
    * Processed in order - later variables can reference earlier ones.
    *
-   * Capture-aware shared variables: Keys starting with $ (e.g., "$hero") capture
-   * the full roll result including sets, enabling {{$hero.@prop}} access syntax.
+   * All shared variables are now capture-aware, storing full results including sets.
+   * The $ prefix on keys is optional and accepted for backward compatibility.
    */
   evaluateTableLevelShared(
     shared: Record<string, string>,
@@ -448,31 +438,11 @@ export class ExpressionEvaluator {
     sourceId: string
   ): void {
     for (const [name, expression] of Object.entries(shared)) {
-      // Handle capture-aware shared variables (keys starting with $)
-      if (name.startsWith('$')) {
-        const varName = name.slice(1) // Remove $ prefix
+      // Strip $ prefix if present (for backward compatibility)
+      const varName = name.startsWith('$') ? name.slice(1) : name
 
-        // Check for shadowing document-level shared (check with $ prefix)
-        if (wouldShadowDocumentShared(context, name)) {
-          throw new Error(
-            `SHARED_SHADOW in ${sourceId}: Table/template-level capture-aware shared variable '${name}' ` +
-              `would shadow document-level shared variable. ` +
-              `Document-level shared variables take precedence.`
-          )
-        }
-
-        // If already set by a parent table, skip
-        if (context.captureSharedVariables.has(varName)) {
-          continue
-        }
-
-        this.evaluateCaptureAwareShared(varName, expression, context, collectionId)
-        continue
-      }
-
-      // Regular shared variable handling
-      // Check for shadowing document-level shared
-      if (wouldShadowDocumentShared(context, name)) {
+      // Check for shadowing document-level shared (check both with and without $ prefix)
+      if (wouldShadowDocumentShared(context, name) || wouldShadowDocumentShared(context, varName)) {
         throw new Error(
           `SHARED_SHADOW in ${sourceId}: Table/template-level shared variable '${name}' ` +
             `would shadow document-level shared variable. ` +
@@ -481,7 +451,7 @@ export class ExpressionEvaluator {
       }
 
       // Check for shadowing static variables
-      if (context.staticVariables.has(name)) {
+      if (context.staticVariables.has(varName)) {
         throw new Error(
           `SHARED_SHADOW in ${sourceId}: Shared variable '${name}' ` +
             `would shadow static variable.`
@@ -490,18 +460,12 @@ export class ExpressionEvaluator {
 
       // If already set by a parent table (propagated down), skip
       // This allows nested tables to inherit shared from parent without error
-      if (context.sharedVariables.has(name)) {
+      if (hasSharedVariable(context, varName)) {
         continue
       }
 
-      // Evaluate the expression
-      const evaluated = this.evaluatePattern(expression, context, collectionId)
-
-      // Try to parse as number, otherwise keep as string
-      const numValue = parseFloat(evaluated)
-      const value = !isNaN(numValue) && isFinite(numValue) ? numValue : evaluated
-
-      setSharedVariable(context, name, value, sourceId)
+      // All shared variables are now capture-aware
+      this.evaluateCaptureAwareShared(varName, expression, context, collectionId)
     }
   }
 
@@ -661,7 +625,7 @@ export class ExpressionEvaluator {
     }
 
     // Check capture-aware shared variables (from "$var": "{{table}}" syntax)
-    const captureShared = getCaptureSharedVariable(context, token.name)
+    const captureShared = getSharedVariable(context, token.name)
     if (captureShared) {
       // Add variable access trace
       addTraceLeaf(
@@ -690,7 +654,7 @@ export class ExpressionEvaluator {
 
     // Determine variable source
     let source: 'static' | 'shared' | 'undefined' = 'undefined'
-    if (context.sharedVariables.has(token.name)) {
+    if (hasSharedVariable(context, token.name)) {
       source = 'shared'
     } else if (context.staticVariables.has(token.name)) {
       source = 'static'
@@ -849,7 +813,7 @@ export class ExpressionEvaluator {
   }
 
   private evaluateTableRefExpr(
-    token: { tableId: string; alias?: string; namespace?: string },
+    token: { tableId: string; alias?: string; namespace?: string; properties?: string[] },
     context: GenerationContext,
     collectionId: string
   ): string {
@@ -866,16 +830,138 @@ export class ExpressionEvaluator {
     if (tableResult) {
       // Use the collection ID where the table was found, not the original collection
       const result = this.deps.rollTable(tableResult.table, context, tableResult.collectionId)
+
+      // If properties are specified, access them from the roll result's placeholders
+      if (token.properties && token.properties.length > 0) {
+        return this.accessPropertyFromPlaceholders(result.placeholders, token.properties, ref)
+      }
+
       return result.text
     }
 
     // Fall back to template lookup
     const templateResult = this.deps.resolveTemplateRef(ref, collectionId)
     if (templateResult) {
+      // For templates with properties, we need to evaluate and then access the property
+      if (token.properties && token.properties.length > 0) {
+        // Create a temporary capture to access properties
+        const templateRollResult = this.evaluateTemplateForPropertyAccess(
+          templateResult.template,
+          templateResult.collectionId,
+          context
+        )
+        return this.accessPropertyFromPlaceholders(templateRollResult.placeholders, token.properties, ref)
+      }
       return this.evaluateTemplateInternal(templateResult.template, templateResult.collectionId, context)
     }
 
     return ''
+  }
+
+  /**
+   * Access a property chain from placeholders (EvaluatedSets).
+   * Handles both simple string values and nested CaptureItem values.
+   */
+  private accessPropertyFromPlaceholders(
+    placeholders: Record<string, string | CaptureItem> | undefined,
+    properties: string[],
+    sourceRef: string
+  ): string {
+    if (!placeholders || properties.length === 0) {
+      return ''
+    }
+
+    const firstProp = properties[0]
+    const propValue = placeholders[firstProp]
+
+    if (propValue === undefined) {
+      console.warn(`Property @${firstProp} not found in ${sourceRef}`)
+      return ''
+    }
+
+    // Single property access
+    if (properties.length === 1) {
+      if (typeof propValue === 'string') {
+        return propValue
+      }
+      // It's a CaptureItem
+      return propValue.value
+    }
+
+    // Multi-level property access - need to traverse through CaptureItem
+    if (typeof propValue === 'string') {
+      console.warn(`Cannot chain through string property: ${sourceRef}.@${firstProp}`)
+      return ''
+    }
+
+    // Traverse the remaining properties through the CaptureItem
+    return this.traversePropertyChain(propValue, properties.slice(1), `${sourceRef}.@${firstProp}`)
+  }
+
+  /**
+   * Evaluate a template and return the full result including placeholders.
+   * Used for property access on template results.
+   */
+  private evaluateTemplateForPropertyAccess(
+    template: Template,
+    collectionId: string,
+    context: GenerationContext
+  ): { text: string; placeholders?: Record<string, string | CaptureItem> } {
+    // Check recursion limit
+    if (!incrementRecursion(context)) {
+      throw new Error(`Recursion limit exceeded (${context.config.maxRecursionDepth})`)
+    }
+
+    try {
+      // Get the collection for context
+      const collection = this.deps.getCollection(collectionId)
+      if (!collection) {
+        return { text: '' }
+      }
+
+      // Evaluate template shared variables first (they become placeholders)
+      const templatePlaceholders: Record<string, string | CaptureItem> = {}
+
+      if (template.shared) {
+        for (const [key, pattern] of Object.entries(template.shared)) {
+          const varName = key.startsWith('$') ? key.slice(1) : key
+
+          // For capture-aware shared variables ($-prefixed), we need to capture
+          // the full result with sets to enable chained property access like
+          // {{templateName.@gang.@reputation}}
+          if (key.startsWith('$')) {
+            const expressions = extractExpressions(pattern)
+            if (expressions.length === 1 && pattern.trim() === expressions[0].raw) {
+              const token = parseExpression(expressions[0].expression)
+              if (token.type === 'table') {
+                // Try to resolve as a table and capture full result with sets
+                const tableResult = this.deps.resolveTableRef(token.tableId, collectionId)
+                if (tableResult) {
+                  const result = this.deps.rollTable(tableResult.table, context, tableResult.collectionId)
+                  templatePlaceholders[varName] = {
+                    value: result.text,
+                    sets: result.placeholders ?? {},
+                    description: undefined,
+                  }
+                  continue
+                }
+              }
+            }
+          }
+
+          // Fallback: evaluate as string for non-capture vars or complex expressions
+          const evaluated = this.evaluatePattern(pattern, context, collectionId)
+          templatePlaceholders[varName] = evaluated
+        }
+      }
+
+      // Evaluate the pattern
+      const text = this.evaluatePattern(template.pattern, context, collectionId)
+
+      return { text, placeholders: templatePlaceholders }
+    } finally {
+      decrementRecursion(context)
+    }
   }
 
   /**
@@ -911,20 +997,18 @@ export class ExpressionEvaluator {
       // Without isolation, table rolls in the imported collection add placeholder keys
       // that persist and pollute subsequent evaluations in the parent collection.
       //
-      // We also isolate sharedVariables and sharedVariableSources so that:
+      // We also isolate sharedVariables so that:
       // 1. The child template's shared variables are evaluated fresh
       // 2. Side effects (like populating placeholders from table rolls) happen properly
       // 3. Parent and child can have shared variables with the same name without conflict
       //
-      // captureSharedVariables must also be copied to allow templates with capture-aware
-      // shared variables (like "$race": "{{characterRaces}}") to be evaluated fresh each
-      // time when used in multi-roll contexts like {{4*templateName}}.
+      // sharedVariables must also be copied to allow templates with shared variables
+      // (like "race": "{{characterRaces}}") to be evaluated fresh each time
+      // when used in multi-roll contexts like {{4*templateName}}.
       const isolatedContext: GenerationContext = {
         ...context,
         placeholders: new Map(), // Fresh placeholder map - prevents leakage
-        sharedVariables: new Map(context.sharedVariables), // Copy so child can add without affecting parent
-        sharedVariableSources: new Map(context.sharedVariableSources), // Copy for tracking
-        captureSharedVariables: new Map(context.captureSharedVariables), // Copy for isolation in multi-roll
+        sharedVariables: new Map(context.sharedVariables), // Copy for isolation in multi-roll
       }
 
       // Evaluate template-level shared variables (lazy evaluation)
@@ -936,13 +1020,9 @@ export class ExpressionEvaluator {
           // Clear any existing value for this shared variable so it gets re-evaluated
           // in this isolated context. This ensures that table rolls populate the
           // isolated placeholders map.
-          if (name.startsWith('$')) {
-            // Capture-aware shared variable - delete from captureSharedVariables (without $ prefix)
-            isolatedContext.captureSharedVariables.delete(name.slice(1))
-          } else {
-            isolatedContext.sharedVariables.delete(name)
-            isolatedContext.sharedVariableSources.delete(name)
-          }
+          // Strip $ prefix if present for the internal variable name
+          const varName = name.startsWith('$') ? name.slice(1) : name
+          isolatedContext.sharedVariables.delete(varName)
         }
         this.evaluateTableLevelShared(template.shared, isolatedContext, collectionId, template.id)
       }
@@ -992,19 +1072,14 @@ export class ExpressionEvaluator {
         ...context,
         placeholders: new Map(),
         sharedVariables: new Map(context.sharedVariables),
-        sharedVariableSources: new Map(context.sharedVariableSources),
-        captureSharedVariables: new Map(context.captureSharedVariables),
       }
 
       // Evaluate template-level shared variables
       if (template.shared) {
         for (const name of Object.keys(template.shared)) {
-          if (name.startsWith('$')) {
-            isolatedContext.captureSharedVariables.delete(name.slice(1))
-          } else {
-            isolatedContext.sharedVariables.delete(name)
-            isolatedContext.sharedVariableSources.delete(name)
-          }
+          // Strip $ prefix if present for the internal variable name
+          const varName = name.startsWith('$') ? name.slice(1) : name
+          isolatedContext.sharedVariables.delete(varName)
         }
         this.evaluateTableLevelShared(template.shared, isolatedContext, collectionId, template.id)
       }
@@ -1013,23 +1088,16 @@ export class ExpressionEvaluator {
       const text = this.evaluatePattern(template.pattern, isolatedContext, collectionId)
 
       // Build sets from the template's own shared variables
+      // All shared variables are now CaptureItems
       const sets: Record<string, string | CaptureItem> = {}
 
       if (template.shared) {
         for (const name of Object.keys(template.shared)) {
-          if (name.startsWith('$')) {
-            // Capture-aware shared variable
-            const varName = name.slice(1)
-            const captureItem = isolatedContext.captureSharedVariables.get(varName)
-            if (captureItem) {
-              sets[varName] = captureItem
-            }
-          } else {
-            // Regular shared variable
-            const value = isolatedContext.sharedVariables.get(name)
-            if (value !== undefined) {
-              sets[name] = String(value)
-            }
+          // Strip $ prefix if present for the internal variable name
+          const varName = name.startsWith('$') ? name.slice(1) : name
+          const captureItem = isolatedContext.sharedVariables.get(varName)
+          if (captureItem) {
+            sets[varName] = captureItem
           }
         }
       }
@@ -1094,7 +1162,7 @@ export class ExpressionEvaluator {
           }
         } else {
           // Try capture-aware shared variable
-          const captureShared = getCaptureSharedVariable(context, varName)
+          const captureShared = getSharedVariable(context, varName)
           if (captureShared) {
             if (property === 'count') {
               // Capture-aware shared is always a single item
@@ -1407,7 +1475,7 @@ export class ExpressionEvaluator {
           }
         } else {
           // Try capture-aware shared variable
-          const captureShared = getCaptureSharedVariable(context, varName)
+          const captureShared = getSharedVariable(context, varName)
           if (captureShared) {
             if (property === 'count') {
               // Capture-aware shared is always a single item
@@ -1551,7 +1619,7 @@ export class ExpressionEvaluator {
   ): string {
     // Try to get from capture variables first, then fall back to capture-aware shared variables
     const capture = getCaptureVariable(context, token.varName)
-    const captureShared = getCaptureSharedVariable(context, token.varName)
+    const captureShared = getSharedVariable(context, token.varName)
 
     // Build label for trace
     let label = `$${token.varName}`
@@ -1857,7 +1925,7 @@ export class ExpressionEvaluator {
   ): string {
     const label = `collect:$${token.varName}.${token.property}${token.unique ? '|unique' : ''}`
     const capture = getCaptureVariable(context, token.varName)
-    const captureShared = getCaptureSharedVariable(context, token.varName)
+    const captureShared = getSharedVariable(context, token.varName)
 
     // Handle capture-aware shared variables (single item)
     // Sets are already evaluated at merge time, so just return the value

@@ -162,10 +162,10 @@ export function SplitPanelLayout({
 
   // Desktop layout with resizable split panel
   return (
-    <div className="flex h-full w-full overflow-hidden">
+    <div className="flex h-full w-full overflow-hidden p-2 gap-0">
       {/* Left Browser Panel */}
       <div
-        className="flex-shrink-0 flex flex-col bg-card border-r border-border/50 overflow-hidden"
+        className="flex-shrink-0 flex flex-col bg-card border border-border/50 rounded-2xl overflow-hidden"
         style={{ width: `${width}px` }}
       >
         {leftPanel({})}

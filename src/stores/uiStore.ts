@@ -18,6 +18,7 @@ export type BrowserTab = 'tables' | 'templates'
 export type EditorTab = 'metadata' | 'tables' | 'templates' | 'variables' | 'json'
 export type LibraryViewMode = 'grid' | 'grouped'
 export type NamespaceDepth = 1 | 2
+export type ResultTheme = 'default' | 'ttrpg'
 
 interface UIState {
   // Search and filter (library page)
@@ -30,6 +31,9 @@ interface UIState {
 
   // Theme
   theme: 'light' | 'dark' | 'system'
+
+  // Result theme (roller page only)
+  resultTheme: ResultTheme
 
   // Modals
   isImportDialogOpen: boolean
@@ -75,6 +79,7 @@ interface UIState {
   setViewMode: (mode: 'grid' | 'list') => void
   toggleShowHiddenTables: () => void
   setTheme: (theme: 'light' | 'dark' | 'system') => void
+  setResultTheme: (resultTheme: ResultTheme) => void
 
   openImportDialog: () => void
   closeImportDialog: () => void
@@ -131,6 +136,7 @@ export const useUIStore = create<UIState>()(
       viewMode: 'grid',
       showHiddenTables: false,
       theme: 'system',
+      resultTheme: 'default',
       isImportDialogOpen: false,
       isConflictDialogOpen: false,
 
@@ -193,6 +199,8 @@ export const useUIStore = create<UIState>()(
         set((state) => ({ showHiddenTables: !state.showHiddenTables })),
 
       setTheme: (theme) => set({ theme }),
+
+      setResultTheme: (resultTheme) => set({ resultTheme }),
 
       // ========================================================================
       // Modal Actions
@@ -314,6 +322,7 @@ export const useUIStore = create<UIState>()(
         viewMode: state.viewMode,
         showHiddenTables: state.showHiddenTables,
         theme: state.theme,
+        resultTheme: state.resultTheme,
         browserPanelWidth: state.browserPanelWidth,
         browserViewMode: state.browserViewMode,
         browserGroupBy: state.browserGroupBy,

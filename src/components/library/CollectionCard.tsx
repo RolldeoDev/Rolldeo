@@ -8,7 +8,7 @@
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
-import { Dices, Layers, Trash2, User, BookOpen } from 'lucide-react'
+import { Dices, Layers, Trash2, User, BookOpen, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CollectionMeta } from '@/stores/collectionStore'
 
@@ -25,6 +25,10 @@ interface CollectionCardProps {
   index?: number
   /** Whether to show a compact version */
   compact?: boolean
+  /** Whether the card is selected */
+  isSelected?: boolean
+  /** Callback when selection changes */
+  onSelectionChange?: (id: string, selected: boolean) => void
 }
 
 export const CollectionCard = memo(function CollectionCard({
@@ -32,19 +36,43 @@ export const CollectionCard = memo(function CollectionCard({
   onDelete,
   index = 0,
   compact = false,
+  isSelected = false,
+  onSelectionChange,
 }: CollectionCardProps) {
   const hasMetadata = collection.author || collection.sourceBook || collection.sourcePublisher
 
   return (
     <div
       className={cn(
-        'card-elevated border border-white/5 group transition-all duration-300 hover:border-white/10 hover:scale-[1.01] animate-slide-up',
-        compact ? 'p-4' : 'p-5'
+        'card-elevated border group transition-all duration-300 hover:scale-[1.01] animate-slide-up relative',
+        compact ? 'p-4' : 'p-5',
+        isSelected
+          ? 'border-primary/50 bg-primary/5'
+          : 'border-white/5 hover:border-white/10'
       )}
       style={{ animationDelay: `${index * 0.05}s` }}
     >
+      {/* Selection Checkbox */}
+      <button
+        role="checkbox"
+        aria-checked={isSelected}
+        aria-label={isSelected ? 'Deselect collection' : 'Select collection'}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          onSelectionChange?.(collection.id, !isSelected)
+        }}
+        className={cn(
+          'absolute top-3 left-3 w-5 h-5 rounded border-2 flex items-center justify-center transition-all z-10',
+          isSelected
+            ? 'bg-primary border-primary text-primary-foreground'
+            : 'border-white/30 hover:border-white/50 bg-black/20'
+        )}
+      >
+        {isSelected && <Check className="h-3 w-3" />}
+      </button>
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="flex items-start justify-between gap-3 mb-3 pl-7">
         <h3 className={cn(
           'font-semibold leading-tight',
           compact ? 'text-base' : 'text-lg'

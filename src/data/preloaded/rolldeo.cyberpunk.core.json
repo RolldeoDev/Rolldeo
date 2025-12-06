@@ -1,0 +1,1803 @@
+{
+  "metadata": {
+    "name": "Cyberpunk Generator",
+    "namespace": "rolldeo.cyberpunk.core",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rolldeo",
+    "description": "A **cyberpunk** generator for creating NPCs, corporations, gangs, gigs, locations, cyberware, and street scenes. Perfect for any neon-soaked dystopian future setting where megacorps rule the world and chrome is king.",
+    "tags": ["cyberpunk", "sci-fi", "generator", "npc", "corporations", "gangs", "cyberware", "noir"],
+    "source": {
+      "license": "CC0-1.0",
+      "copyright": "Rolldeo - Free for any use"
+    }
+  },
+  "variables": {
+    "settingName": "Night City",
+    "defaultSeparator": ", ",
+    "currency": "eurodollars"
+  },
+  "shared": {
+    "$dominantCorp": "{{megaCorporations}}",
+    "threatLevel": "{{dice:1d6}}"
+  },
+  "tables": [
+    {
+      "id": "corpPrefixes",
+      "name": "Corporation Prefixes",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Arasaka" },
+        { "value": "Militech" },
+        { "value": "Kang-Tao" },
+        { "value": "Zetatech" },
+        { "value": "Biotechnica" },
+        { "value": "Petrochem" },
+        { "value": "Orbital" },
+        { "value": "Dynalar" },
+        { "value": "Trauma" },
+        { "value": "Kiroshi" },
+        { "value": "Raven" },
+        { "value": "IEC" },
+        { "value": "Lazarus" },
+        { "value": "Network" },
+        { "value": "Continental" }
+      ]
+    },
+    {
+      "id": "corpSuffixes",
+      "name": "Corporation Suffixes",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "name",
+      "entries": [
+        { "value": "Industries" },
+        { "value": "Corporation" },
+        { "value": "Systems" },
+        { "value": "Dynamics" },
+        { "value": "Technologies" },
+        { "value": "International" },
+        { "value": "Global" },
+        { "value": "Solutions" },
+        { "value": "Unlimited" },
+        { "value": "Group" },
+        { "value": "Holdings" },
+        { "value": "Enterprises" }
+      ]
+    },
+    {
+      "id": "megaCorporations",
+      "name": "Megacorporations",
+      "type": "simple",
+      "description": "The massive corporate entities that control the world",
+      "resultType": "faction",
+      "tags": ["corporations", "factions"],
+      "entries": [
+        {
+          "value": "Arasaka Corporation",
+          "weight": 3,
+          "description": "Japanese megacorp specializing in security and banking",
+          "sets": {
+            "specialty": "security and banking",
+            "origin": "Japanese",
+            "reputation": "ruthless and traditional",
+            "colors": "red and black",
+            "security": "legendary"
+          }
+        },
+        {
+          "value": "Militech International",
+          "weight": 3,
+          "description": "American weapons and military contractor",
+          "sets": {
+            "specialty": "weapons manufacturing",
+            "origin": "American",
+            "reputation": "aggressive and patriotic",
+            "colors": "olive and gold",
+            "security": "military-grade"
+          }
+        },
+        {
+          "value": "Kang-Tao Industries",
+          "weight": 2,
+          "description": "Chinese weapons and cyberware manufacturer",
+          "sets": {
+            "specialty": "smart weapons and cyberware",
+            "origin": "Chinese",
+            "reputation": "innovative and secretive",
+            "colors": "white and blue",
+            "security": "high-tech"
+          }
+        },
+        {
+          "value": "Biotechnica",
+          "weight": 2,
+          "description": "Italian biotech and pharmaceutical giant",
+          "sets": {
+            "specialty": "biotech and pharmaceuticals",
+            "origin": "Italian",
+            "reputation": "clinical and amoral",
+            "colors": "green and white",
+            "security": "corporate standard"
+          }
+        },
+        {
+          "value": "Zetatech",
+          "weight": 2,
+          "description": "Cutting-edge cyberware and electronics",
+          "sets": {
+            "specialty": "cyberware and electronics",
+            "origin": "Multinational",
+            "reputation": "cutting-edge but unstable",
+            "colors": "chrome and purple",
+            "security": "automated"
+          }
+        },
+        {
+          "value": "Trauma Team International",
+          "weight": 2,
+          "description": "Premium medical response and healthcare",
+          "sets": {
+            "specialty": "emergency medical services",
+            "origin": "American",
+            "reputation": "professional and expensive",
+            "colors": "red and white",
+            "security": "armed medics"
+          }
+        },
+        {
+          "value": "Petrochem",
+          "weight": 2,
+          "description": "Energy and synthetic fuel conglomerate",
+          "sets": {
+            "specialty": "energy and CHOOH2 fuel",
+            "origin": "American",
+            "reputation": "powerful and polluting",
+            "colors": "yellow and black",
+            "security": "private army"
+          }
+        },
+        {
+          "value": "Network News 54",
+          "weight": 1,
+          "description": "Major media and information network",
+          "sets": {
+            "specialty": "media and information",
+            "origin": "American",
+            "reputation": "influential but biased",
+            "colors": "blue and white",
+            "security": "moderate"
+          }
+        },
+        {
+          "value": "Orbital Air",
+          "weight": 1,
+          "description": "Aerospace and space transportation",
+          "sets": {
+            "specialty": "aerospace and orbital services",
+            "origin": "European",
+            "reputation": "elite and exclusive",
+            "colors": "silver and blue",
+            "security": "restricted access"
+          }
+        },
+        {
+          "value": "Continental Brands",
+          "weight": 2,
+          "description": "Consumer goods and lifestyle products",
+          "sets": {
+            "specialty": "consumer products",
+            "origin": "Multinational",
+            "reputation": "ubiquitous and manipulative",
+            "colors": "varies by brand",
+            "security": "corporate standard"
+          }
+        }
+      ]
+    },
+    {
+      "id": "corpDivisions",
+      "name": "Corporate Divisions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["corporations"],
+      "entries": [
+        { "value": "Security Division", "sets": { "function": "protection", "danger": "high" } },
+        { "value": "R&D Department", "sets": { "function": "research", "danger": "medium" } },
+        { "value": "Human Resources", "sets": { "function": "personnel", "danger": "low" } },
+        { "value": "Legal Affairs", "sets": { "function": "legal", "danger": "medium" } },
+        { "value": "Marketing Division", "sets": { "function": "propaganda", "danger": "low" } },
+        { "value": "Special Operations", "sets": { "function": "black ops", "danger": "extreme" } },
+        { "value": "Finance Division", "sets": { "function": "money", "danger": "low" } },
+        { "value": "Intelligence Bureau", "sets": { "function": "espionage", "danger": "high" } },
+        { "value": "Manufacturing Division", "sets": { "function": "production", "danger": "low" } },
+        { "value": "Executive Branch", "sets": { "function": "leadership", "danger": "medium" } }
+      ]
+    },
+    {
+      "id": "corpTitles",
+      "name": "Corporate Titles",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["corporations", "characters"],
+      "entries": [
+        { "value": "CEO", "weight": 0.5, "sets": { "level": "executive", "authority": "supreme" } },
+        { "value": "Vice President", "weight": 1, "sets": { "level": "executive", "authority": "high" } },
+        { "value": "Director", "weight": 2, "sets": { "level": "senior", "authority": "significant" } },
+        { "value": "Manager", "weight": 3, "sets": { "level": "middle", "authority": "moderate" } },
+        { "value": "Senior Analyst", "weight": 3, "sets": { "level": "professional", "authority": "limited" } },
+        { "value": "Security Chief", "weight": 1, "sets": { "level": "senior", "authority": "significant" } },
+        { "value": "Lead Developer", "weight": 2, "sets": { "level": "professional", "authority": "technical" } },
+        { "value": "Executive Assistant", "weight": 2, "sets": { "level": "support", "authority": "proxy" } },
+        { "value": "Field Agent", "weight": 2, "sets": { "level": "operative", "authority": "operational" } },
+        { "value": "Corporate Lawyer", "weight": 2, "sets": { "level": "professional", "authority": "legal" } }
+      ]
+    },
+    {
+      "id": "streetGangs",
+      "name": "Street Gangs",
+      "type": "simple",
+      "description": "The gangs that control the streets",
+      "resultType": "faction",
+      "tags": ["gangs", "factions", "street"],
+      "entries": [
+        {
+          "value": "Maelstrom",
+          "weight": 2,
+          "description": "Cyberpsychos obsessed with body modification",
+          "sets": {
+            "style": "extreme cyberware",
+            "territory": "industrial zones",
+            "reputation": "violent and unpredictable",
+            "colors": "chrome and red",
+            "specialty": "cyberware theft"
+          }
+        },
+        {
+          "value": "Tyger Claws",
+          "weight": 2,
+          "description": "Japanese-style gang with strict hierarchy",
+          "sets": {
+            "style": "traditional yakuza",
+            "territory": "Japantown",
+            "reputation": "honorable but deadly",
+            "colors": "neon blue and white",
+            "specialty": "protection rackets"
+          }
+        },
+        {
+          "value": "Valentinos",
+          "weight": 2,
+          "description": "Latino gang with strong family ties",
+          "sets": {
+            "style": "flashy and proud",
+            "territory": "Heywood district",
+            "reputation": "loyal and territorial",
+            "colors": "gold and red",
+            "specialty": "smuggling"
+          }
+        },
+        {
+          "value": "6th Street",
+          "weight": 2,
+          "description": "Veterans turned street soldiers",
+          "sets": {
+            "style": "military discipline",
+            "territory": "Santo Domingo",
+            "reputation": "patriotic vigilantes",
+            "colors": "red, white, and blue",
+            "specialty": "weapons dealing"
+          }
+        },
+        {
+          "value": "Animals",
+          "weight": 2,
+          "description": "Steroid-pumped street fighters",
+          "sets": {
+            "style": "ultra-violence",
+            "territory": "combat zones",
+            "reputation": "brutal enforcers",
+            "colors": "orange and black",
+            "specialty": "muscle for hire"
+          }
+        },
+        {
+          "value": "Voodoo Boys",
+          "weight": 1,
+          "description": "Elite netrunners from Pacifica",
+          "sets": {
+            "style": "mystical hackers",
+            "territory": "Pacifica",
+            "reputation": "mysterious and dangerous",
+            "colors": "green and purple",
+            "specialty": "netrunning"
+          }
+        },
+        {
+          "value": "Moxes",
+          "weight": 2,
+          "description": "Sex workers who fight back",
+          "sets": {
+            "style": "punk protectors",
+            "territory": "entertainment districts",
+            "reputation": "protective and fierce",
+            "colors": "pink and black",
+            "specialty": "information gathering"
+          }
+        },
+        {
+          "value": "Scavengers",
+          "weight": 2,
+          "description": "Organ harvesters and body snatchers",
+          "sets": {
+            "style": "desperate predators",
+            "territory": "anywhere vulnerable",
+            "reputation": "feared and despised",
+            "colors": "dirty white and red",
+            "specialty": "organ trafficking"
+          }
+        },
+        {
+          "value": "Aldecaldos",
+          "weight": 1,
+          "description": "Nomad family operating near the city",
+          "sets": {
+            "style": "family first",
+            "territory": "badlands",
+            "reputation": "trustworthy outsiders",
+            "colors": "brown and orange",
+            "specialty": "smuggling and transport"
+          }
+        },
+        {
+          "value": "Wraiths",
+          "weight": 1,
+          "description": "Badlands raiders",
+          "sets": {
+            "style": "road warriors",
+            "territory": "badlands highways",
+            "reputation": "merciless raiders",
+            "colors": "black and chrome",
+            "specialty": "highway robbery"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gangRoles",
+      "name": "Gang Roles",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["gangs", "characters"],
+      "entries": [
+        { "value": "lieutenant", "sets": { "authority": "high", "danger": "high" } },
+        { "value": "enforcer", "sets": { "authority": "low", "danger": "extreme" } },
+        { "value": "runner", "sets": { "authority": "low", "danger": "medium" } },
+        { "value": "dealer", "sets": { "authority": "low", "danger": "medium" } },
+        { "value": "lookout", "sets": { "authority": "none", "danger": "low" } },
+        { "value": "tech specialist", "sets": { "authority": "medium", "danger": "low" } },
+        { "value": "netrunner", "sets": { "authority": "medium", "danger": "high" } },
+        { "value": "wheelman", "sets": { "authority": "low", "danger": "medium" } },
+        { "value": "recruiter", "sets": { "authority": "medium", "danger": "low" } },
+        { "value": "shot caller", "sets": { "authority": "very high", "danger": "high" } }
+      ]
+    },
+    {
+      "id": "fixerTypes",
+      "name": "Fixer Types",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["characters", "contacts"],
+      "entries": [
+        {
+          "value": "job broker",
+          "description": "Connects clients with mercs",
+          "sets": { "specialty": "employment", "connections": "both sides" }
+        },
+        {
+          "value": "arms dealer",
+          "description": "Supplies weapons and ammo",
+          "sets": { "specialty": "weapons", "connections": "underworld" }
+        },
+        {
+          "value": "info broker",
+          "description": "Trades in secrets and data",
+          "sets": { "specialty": "information", "connections": "everywhere" }
+        },
+        {
+          "value": "fence",
+          "description": "Moves stolen goods",
+          "sets": { "specialty": "stolen property", "connections": "criminal" }
+        },
+        {
+          "value": "ripperdoc connector",
+          "description": "Knows the best chrome docs",
+          "sets": { "specialty": "cyberware", "connections": "medical" }
+        },
+        {
+          "value": "vehicle specialist",
+          "description": "Deals in cars and parts",
+          "sets": { "specialty": "vehicles", "connections": "mechanics" }
+        },
+        {
+          "value": "identity specialist",
+          "description": "Provides fake IDs and documents",
+          "sets": { "specialty": "forgery", "connections": "government" }
+        },
+        {
+          "value": "corpo insider",
+          "description": "Has friends in high places",
+          "sets": { "specialty": "corporate access", "connections": "corporate" }
+        }
+      ]
+    },
+    {
+      "id": "cyberwareNeural",
+      "name": "Neural Cyberware",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["cyberware", "neural"],
+      "defaultSets": {
+        "category": "neural",
+        "invasiveness": "high"
+      },
+      "entries": [
+        {
+          "value": "neural processor",
+          "description": "Basic brain-computer interface",
+          "sets": { "function": "computing", "humanity": "-2" }
+        },
+        {
+          "value": "reflex booster",
+          "description": "Accelerates reaction time",
+          "sets": { "function": "combat", "humanity": "-4" }
+        },
+        {
+          "value": "memory chip",
+          "description": "Expanded memory storage",
+          "sets": { "function": "storage", "humanity": "-1" }
+        },
+        {
+          "value": "skillsoft socket",
+          "description": "Allows downloadable skills",
+          "sets": { "function": "learning", "humanity": "-3" }
+        },
+        {
+          "value": "pain editor",
+          "description": "Blocks pain signals",
+          "sets": { "function": "combat", "humanity": "-4" }
+        },
+        {
+          "value": "behavioral inhibitor",
+          "description": "Emotional control implant",
+          "sets": { "function": "control", "humanity": "-6" }
+        },
+        {
+          "value": "interface plugs",
+          "description": "Universal connection ports",
+          "sets": { "function": "interface", "humanity": "-1" }
+        },
+        {
+          "value": "cybermodem",
+          "description": "Internal netrunning hardware",
+          "sets": { "function": "hacking", "humanity": "-3" }
+        },
+        {
+          "value": "threat detector",
+          "description": "Danger awareness system",
+          "sets": { "function": "defense", "humanity": "-2" }
+        },
+        {
+          "value": "combat algorithm chip",
+          "description": "Tactical combat enhancement",
+          "sets": { "function": "combat", "humanity": "-3" }
+        }
+      ]
+    },
+    {
+      "id": "cyberwareLimbs",
+      "name": "Limb Cyberware",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["cyberware", "limbs"],
+      "defaultSets": {
+        "category": "limbs",
+        "invasiveness": "extreme"
+      },
+      "entries": [
+        {
+          "value": "cyberarm",
+          "description": "Full arm replacement",
+          "sets": { "function": "strength", "humanity": "-4", "appearance": "obvious chrome" }
+        },
+        {
+          "value": "mantis blades",
+          "description": "Retractable forearm blades",
+          "sets": { "function": "weapon", "humanity": "-6", "appearance": "hidden" }
+        },
+        {
+          "value": "monowire",
+          "description": "Retractable monofilament whip",
+          "sets": { "function": "weapon", "humanity": "-4", "appearance": "hidden" }
+        },
+        {
+          "value": "gorilla arms",
+          "description": "Enhanced strength arms",
+          "sets": { "function": "strength", "humanity": "-5", "appearance": "bulky chrome" }
+        },
+        {
+          "value": "cyberleg",
+          "description": "Full leg replacement",
+          "sets": { "function": "mobility", "humanity": "-4", "appearance": "obvious chrome" }
+        },
+        {
+          "value": "jump boosters",
+          "description": "Leg-mounted leap enhancement",
+          "sets": { "function": "mobility", "humanity": "-3", "appearance": "compact" }
+        },
+        {
+          "value": "quick-change mount",
+          "description": "Swappable hand attachment",
+          "sets": { "function": "utility", "humanity": "-2", "appearance": "socket visible" }
+        },
+        {
+          "value": "subdermal grip",
+          "description": "Smart weapon link in palm",
+          "sets": { "function": "weapon", "humanity": "-1", "appearance": "hidden" }
+        },
+        {
+          "value": "projectile launcher",
+          "description": "Arm-mounted grenade launcher",
+          "sets": { "function": "weapon", "humanity": "-5", "appearance": "obvious" }
+        },
+        {
+          "value": "climbing claws",
+          "description": "Retractable climbing aids",
+          "sets": { "function": "utility", "humanity": "-2", "appearance": "hidden" }
+        }
+      ]
+    },
+    {
+      "id": "cyberwareSensory",
+      "name": "Sensory Cyberware",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["cyberware", "sensory"],
+      "defaultSets": {
+        "category": "sensory",
+        "invasiveness": "moderate"
+      },
+      "entries": [
+        {
+          "value": "cybereyes",
+          "description": "Full optical replacement",
+          "sets": { "function": "vision", "humanity": "-2", "appearance": "glowing iris" }
+        },
+        {
+          "value": "infrared scanner",
+          "description": "Thermal vision implant",
+          "sets": { "function": "vision", "humanity": "-1", "appearance": "red tint" }
+        },
+        {
+          "value": "low-light enhancement",
+          "description": "Night vision modification",
+          "sets": { "function": "vision", "humanity": "-1", "appearance": "dilated pupils" }
+        },
+        {
+          "value": "targeting system",
+          "description": "Combat HUD overlay",
+          "sets": { "function": "combat", "humanity": "-2", "appearance": "scanning patterns" }
+        },
+        {
+          "value": "cyberaudio",
+          "description": "Enhanced hearing system",
+          "sets": { "function": "hearing", "humanity": "-2", "appearance": "metallic ear" }
+        },
+        {
+          "value": "audio dampener",
+          "description": "Protection from sonic attacks",
+          "sets": { "function": "defense", "humanity": "-1", "appearance": "invisible" }
+        },
+        {
+          "value": "radio scanner",
+          "description": "Intercepts communications",
+          "sets": { "function": "surveillance", "humanity": "-1", "appearance": "invisible" }
+        },
+        {
+          "value": "olfactory booster",
+          "description": "Enhanced sense of smell",
+          "sets": { "function": "detection", "humanity": "-1", "appearance": "invisible" }
+        },
+        {
+          "value": "recording implant",
+          "description": "Internal audio/video recorder",
+          "sets": { "function": "surveillance", "humanity": "-1", "appearance": "invisible" }
+        },
+        {
+          "value": "facial recognition software",
+          "description": "Automatic ID system",
+          "sets": { "function": "identification", "humanity": "-1", "appearance": "scanning eyes" }
+        }
+      ]
+    },
+    {
+      "id": "cyberwareInternal",
+      "name": "Internal Cyberware",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["cyberware", "internal"],
+      "defaultSets": {
+        "category": "internal",
+        "invasiveness": "moderate"
+      },
+      "entries": [
+        {
+          "value": "subdermal armor",
+          "description": "Under-skin plating",
+          "sets": { "function": "defense", "humanity": "-3", "appearance": "subtle ridges" }
+        },
+        {
+          "value": "synth-lungs",
+          "description": "Artificial respiratory system",
+          "sets": { "function": "survival", "humanity": "-2", "appearance": "invisible" }
+        },
+        {
+          "value": "toxin filters",
+          "description": "Blood filtration system",
+          "sets": { "function": "survival", "humanity": "-1", "appearance": "invisible" }
+        },
+        {
+          "value": "adrenaline booster",
+          "description": "Combat stimulant injector",
+          "sets": { "function": "combat", "humanity": "-2", "appearance": "invisible" }
+        },
+        {
+          "value": "nasal filters",
+          "description": "Air filtration implants",
+          "sets": { "function": "survival", "humanity": "-1", "appearance": "invisible" }
+        },
+        {
+          "value": "reinforced bones",
+          "description": "Skeletal strengthening",
+          "sets": { "function": "durability", "humanity": "-4", "appearance": "invisible" }
+        },
+        {
+          "value": "blood pump",
+          "description": "Auxiliary cardiac system",
+          "sets": { "function": "survival", "humanity": "-2", "appearance": "invisible" }
+        },
+        {
+          "value": "biomonitor",
+          "description": "Internal health display",
+          "sets": { "function": "medical", "humanity": "-1", "appearance": "invisible" }
+        },
+        {
+          "value": "skin weave",
+          "description": "Reinforced epidermis",
+          "sets": { "function": "defense", "humanity": "-2", "appearance": "subtle sheen" }
+        },
+        {
+          "value": "hidden compartment",
+          "description": "Concealed storage in body",
+          "sets": { "function": "utility", "humanity": "-2", "appearance": "invisible" }
+        }
+      ]
+    },
+    {
+      "id": "cyberwareConditions",
+      "name": "Cyberware Conditions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["cyberware", "condition"],
+      "entries": [
+        { "value": "factory fresh, still under warranty", "weight": 1, "sets": { "quality": "pristine", "reliability": "perfect" } },
+        { "value": "military-grade surplus, battle-tested", "weight": 2, "sets": { "quality": "excellent", "reliability": "proven" } },
+        { "value": "standard commercial model, well-maintained", "weight": 4, "sets": { "quality": "good", "reliability": "normal" } },
+        { "value": "refurbished from donor, some quirks", "weight": 3, "sets": { "quality": "acceptable", "reliability": "occasional glitch" } },
+        { "value": "bootleg copy, questionable origin", "weight": 2, "sets": { "quality": "poor", "reliability": "unreliable" } },
+        { "value": "scav-harvested, barely functional", "weight": 1, "sets": { "quality": "terrible", "reliability": "failing" } },
+        { "value": "prototype model, experimental features", "weight": 1, "sets": { "quality": "variable", "reliability": "unpredictable" } },
+        { "value": "custom-built, one of a kind", "weight": 1, "sets": { "quality": "excellent", "reliability": "depends on maker" } }
+      ]
+    },
+    {
+      "id": "allCyberware",
+      "name": "All Cyberware",
+      "type": "composite",
+      "description": "Any type of cyberware",
+      "resultType": "item",
+      "tags": ["cyberware"],
+      "sources": [
+        { "tableId": "cyberwareNeural", "weight": 3 },
+        { "tableId": "cyberwareLimbs", "weight": 3 },
+        { "tableId": "cyberwareSensory", "weight": 3 },
+        { "tableId": "cyberwareInternal", "weight": 2 }
+      ]
+    },
+    {
+      "id": "districts",
+      "name": "City Districts",
+      "type": "simple",
+      "description": "Different zones of the megacity",
+      "resultType": "location",
+      "tags": ["locations", "districts"],
+      "entries": [
+        {
+          "value": "Corporate Center",
+          "description": "Gleaming towers of the megacorps",
+          "sets": {
+            "wealth": "extreme",
+            "security": "maximum",
+            "atmosphere": "sterile and surveilled",
+            "danger": "low for corps, extreme for intruders"
+          }
+        },
+        {
+          "value": "Industrial Zone",
+          "description": "Factories and warehouses",
+          "sets": {
+            "wealth": "working class",
+            "security": "private guards",
+            "atmosphere": "polluted and loud",
+            "danger": "moderate"
+          }
+        },
+        {
+          "value": "Entertainment District",
+          "description": "Clubs, bars, and braindance parlors",
+          "sets": {
+            "wealth": "mixed",
+            "security": "gang-controlled",
+            "atmosphere": "neon and noise",
+            "danger": "moderate to high"
+          }
+        },
+        {
+          "value": "Combat Zone",
+          "description": "Abandoned and lawless area",
+          "sets": {
+            "wealth": "poverty",
+            "security": "none",
+            "atmosphere": "ruined and desperate",
+            "danger": "extreme"
+          }
+        },
+        {
+          "value": "Residential Megablocks",
+          "description": "Massive apartment complexes",
+          "sets": {
+            "wealth": "working class",
+            "security": "minimal",
+            "atmosphere": "cramped and anonymous",
+            "danger": "moderate"
+          }
+        },
+        {
+          "value": "Luxury Enclave",
+          "description": "Gated community for the wealthy",
+          "sets": {
+            "wealth": "rich",
+            "security": "private military",
+            "atmosphere": "artificial paradise",
+            "danger": "low inside, high trying to enter"
+          }
+        },
+        {
+          "value": "Port District",
+          "description": "Shipping and smuggling hub",
+          "sets": {
+            "wealth": "mixed",
+            "security": "corrupt",
+            "atmosphere": "busy and transient",
+            "danger": "moderate"
+          }
+        },
+        {
+          "value": "Japantown",
+          "description": "Cultural enclave with traditional architecture",
+          "sets": {
+            "wealth": "mixed",
+            "security": "Tyger Claws",
+            "atmosphere": "neon meets tradition",
+            "danger": "moderate if respectful"
+          }
+        },
+        {
+          "value": "Badlands",
+          "description": "Wasteland outside the city",
+          "sets": {
+            "wealth": "poverty",
+            "security": "nomad patrols",
+            "atmosphere": "dust and freedom",
+            "danger": "high"
+          }
+        },
+        {
+          "value": "Medical District",
+          "description": "Hospitals and ripperdoc clinics",
+          "sets": {
+            "wealth": "varies wildly",
+            "security": "varies by clinic",
+            "atmosphere": "sterile meets street",
+            "danger": "low to high"
+          }
+        }
+      ]
+    },
+    {
+      "id": "establishments",
+      "name": "Establishments",
+      "type": "simple",
+      "description": "Places you might visit",
+      "resultType": "location",
+      "tags": ["locations", "establishments"],
+      "entries": [
+        {
+          "value": "dive bar",
+          "sets": { "type": "social", "clientele": "street", "security": "bouncer", "vibe": "rough and loud" }
+        },
+        {
+          "value": "nightclub",
+          "sets": { "type": "social", "clientele": "mixed", "security": "armed", "vibe": "pulsing music and lights" }
+        },
+        {
+          "value": "ripperdoc clinic",
+          "sets": { "type": "medical", "clientele": "anyone with eddies", "security": "varies", "vibe": "chrome and blood" }
+        },
+        {
+          "value": "braindance parlor",
+          "sets": { "type": "entertainment", "clientele": "escapists", "security": "minimal", "vibe": "dreamy and seedy" }
+        },
+        {
+          "value": "gun shop",
+          "sets": { "type": "retail", "clientele": "armed citizens", "security": "heavy", "vibe": "clinical violence" }
+        },
+        {
+          "value": "food stall",
+          "sets": { "type": "food", "clientele": "everyone", "security": "none", "vibe": "sizzling and smoky" }
+        },
+        {
+          "value": "fixer's office",
+          "sets": { "type": "business", "clientele": "mercs", "security": "hidden", "vibe": "tense and professional" }
+        },
+        {
+          "value": "corpo hotel",
+          "sets": { "type": "lodging", "clientele": "executives", "security": "maximum", "vibe": "sterile luxury" }
+        },
+        {
+          "value": "coffin motel",
+          "sets": { "type": "lodging", "clientele": "desperate", "security": "none", "vibe": "cramped and anonymous" }
+        },
+        {
+          "value": "netrunner den",
+          "sets": { "type": "tech", "clientele": "hackers", "security": "digital", "vibe": "cables and cold" }
+        },
+        {
+          "value": "black market",
+          "sets": { "type": "retail", "clientele": "criminals", "security": "gang", "vibe": "paranoid and transactional" }
+        },
+        {
+          "value": "joytoy parlor",
+          "sets": { "type": "entertainment", "clientele": "lonely", "security": "varies", "vibe": "artificial intimacy" }
+        },
+        {
+          "value": "chop shop",
+          "sets": { "type": "automotive", "clientele": "anyone", "security": "gang", "vibe": "grease and stolen parts" }
+        },
+        {
+          "value": "pachinko arcade",
+          "sets": { "type": "gambling", "clientele": "gamblers", "security": "gang", "vibe": "flashing lights and desperation" }
+        },
+        {
+          "value": "fight club",
+          "sets": { "type": "entertainment", "clientele": "adrenaline junkies", "security": "brutal", "vibe": "blood and money" }
+        }
+      ]
+    },
+    {
+      "id": "locationAtmospheres",
+      "name": "Location Atmospheres",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["locations", "atmosphere"],
+      "entries": [
+        { "value": "Neon signs flicker and buzz, casting shifting shadows in primary colors." },
+        { "value": "The bass from hidden speakers makes your chest vibrate." },
+        { "value": "Steam rises from grates, mixing with the ever-present smog." },
+        { "value": "Holographic advertisements assault your senses from every surface." },
+        { "value": "The acrid smell of synthetic food and recycled air fills your nostrils." },
+        { "value": "Conversations in a dozen languages create a constant murmur." },
+        { "value": "Security drones hum overhead, red lights scanning the crowd." },
+        { "value": "The metallic tang of blood and chrome hangs in the air." },
+        { "value": "Rain patters against grimy windows, neon reflections pooling in the gutters." },
+        { "value": "Warning klaxons echo from somewhere distant, but no one reacts." },
+        { "value": "The sharp ozone smell of recently fired weapons lingers." },
+        { "value": "Glitching AR overlays compete for your attention." }
+      ]
+    },
+    {
+      "id": "securityLevels",
+      "name": "Security Levels",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["security", "locations"],
+      "entries": [
+        {
+          "value": "No security",
+          "sets": { "level": "none", "response": "none", "tech": "none" }
+        },
+        {
+          "value": "Basic - cameras and locks",
+          "sets": { "level": "minimal", "response": "cops maybe", "tech": "standard" }
+        },
+        {
+          "value": "Standard - guards and alarms",
+          "sets": { "level": "moderate", "response": "corporate security", "tech": "decent" }
+        },
+        {
+          "value": "High - armed response and ICE",
+          "sets": { "level": "high", "response": "rapid", "tech": "advanced" }
+        },
+        {
+          "value": "Maximum - military grade protection",
+          "sets": { "level": "extreme", "response": "lethal", "tech": "cutting edge" }
+        },
+        {
+          "value": "Black site - officially doesn't exist",
+          "sets": { "level": "maximum", "response": "extreme prejudice", "tech": "classified" }
+        }
+      ]
+    },
+    {
+      "id": "weaponsRanged",
+      "name": "Ranged Weapons",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["weapons", "ranged"],
+      "entries": [
+        { "value": "heavy pistol", "sets": { "type": "pistol", "damage": "high", "conceal": "easy" } },
+        { "value": "submachine gun", "sets": { "type": "smg", "damage": "medium", "conceal": "moderate" } },
+        { "value": "assault rifle", "sets": { "type": "rifle", "damage": "high", "conceal": "impossible" } },
+        { "value": "shotgun", "sets": { "type": "shotgun", "damage": "devastating", "conceal": "impossible" } },
+        { "value": "sniper rifle", "sets": { "type": "rifle", "damage": "extreme", "conceal": "impossible" } },
+        { "value": "smart pistol", "sets": { "type": "smart", "damage": "medium", "conceal": "easy" } },
+        { "value": "tech rifle", "sets": { "type": "tech", "damage": "high", "conceal": "impossible" } },
+        { "value": "power weapon", "sets": { "type": "power", "damage": "extreme", "conceal": "moderate" } },
+        { "value": "holdout pistol", "sets": { "type": "pistol", "damage": "low", "conceal": "very easy" } },
+        { "value": "machine pistol", "sets": { "type": "smg", "damage": "medium", "conceal": "easy" } }
+      ]
+    },
+    {
+      "id": "weaponsMelee",
+      "name": "Melee Weapons",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["weapons", "melee"],
+      "entries": [
+        { "value": "katana", "sets": { "type": "blade", "damage": "high", "style": "elegant" } },
+        { "value": "monoknife", "sets": { "type": "blade", "damage": "medium", "style": "practical" } },
+        { "value": "stun baton", "sets": { "type": "blunt", "damage": "low", "style": "non-lethal" } },
+        { "value": "baseball bat", "sets": { "type": "blunt", "damage": "medium", "style": "street" } },
+        { "value": "sledgehammer", "sets": { "type": "blunt", "damage": "extreme", "style": "brutal" } },
+        { "value": "combat knife", "sets": { "type": "blade", "damage": "medium", "style": "military" } },
+        { "value": "machete", "sets": { "type": "blade", "damage": "high", "style": "savage" } },
+        { "value": "brass knuckles", "sets": { "type": "fist", "damage": "low", "style": "street" } },
+        { "value": "thermal katana", "sets": { "type": "blade", "damage": "extreme", "style": "high-tech" } },
+        { "value": "chain", "sets": { "type": "flexible", "damage": "medium", "style": "improvised" } }
+      ]
+    },
+    {
+      "id": "techGear",
+      "name": "Tech Gear",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["gear", "tech"],
+      "entries": [
+        { "value": "agent (smartphone)", "sets": { "function": "communication", "legality": "legal" } },
+        { "value": "pocket EMP", "sets": { "function": "disruption", "legality": "illegal" } },
+        { "value": "tech scanner", "sets": { "function": "detection", "legality": "legal" } },
+        { "value": "signal jammer", "sets": { "function": "interference", "legality": "restricted" } },
+        { "value": "hacking deck", "sets": { "function": "intrusion", "legality": "restricted" } },
+        { "value": "grapple gun", "sets": { "function": "mobility", "legality": "legal" } },
+        { "value": "medkit", "sets": { "function": "healing", "legality": "legal" } },
+        { "value": "trauma patch", "sets": { "function": "emergency", "legality": "legal" } },
+        { "value": "bug detector", "sets": { "function": "counter-surveillance", "legality": "legal" } },
+        { "value": "voice modulator", "sets": { "function": "disguise", "legality": "legal" } },
+        { "value": "binoculars with recording", "sets": { "function": "surveillance", "legality": "legal" } },
+        { "value": "lockbreaker", "sets": { "function": "intrusion", "legality": "illegal" } }
+      ]
+    },
+    {
+      "id": "vehicles",
+      "name": "Vehicles",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["vehicles"],
+      "entries": [
+        {
+          "value": "sport motorcycle",
+          "sets": { "type": "bike", "speed": "extreme", "armor": "none", "seats": "2" }
+        },
+        {
+          "value": "muscle car",
+          "sets": { "type": "car", "speed": "high", "armor": "light", "seats": "4" }
+        },
+        {
+          "value": "armored SUV",
+          "sets": { "type": "suv", "speed": "moderate", "armor": "heavy", "seats": "6" }
+        },
+        {
+          "value": "corporate limousine",
+          "sets": { "type": "luxury", "speed": "moderate", "armor": "moderate", "seats": "8" }
+        },
+        {
+          "value": "utility van",
+          "sets": { "type": "van", "speed": "low", "armor": "none", "seats": "12" }
+        },
+        {
+          "value": "AV-4 aerodyne",
+          "sets": { "type": "vtol", "speed": "extreme", "armor": "light", "seats": "4" }
+        },
+        {
+          "value": "combat AV",
+          "sets": { "type": "vtol", "speed": "high", "armor": "military", "seats": "6" }
+        },
+        {
+          "value": "street bike",
+          "sets": { "type": "bike", "speed": "high", "armor": "none", "seats": "1" }
+        },
+        {
+          "value": "cargo truck",
+          "sets": { "type": "truck", "speed": "low", "armor": "none", "seats": "3" }
+        },
+        {
+          "value": "nomad vehicle",
+          "sets": { "type": "custom", "speed": "moderate", "armor": "improvised", "seats": "varies" }
+        }
+      ]
+    },
+    {
+      "id": "armor",
+      "name": "Armor",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["armor", "gear"],
+      "entries": [
+        { "value": "leather jacket", "sets": { "protection": "minimal", "style": "street", "conceal": "obvious" } },
+        { "value": "armored vest", "sets": { "protection": "light", "style": "tactical", "conceal": "under clothes" } },
+        { "value": "corporate suit (lined)", "sets": { "protection": "light", "style": "professional", "conceal": "hidden" } },
+        { "value": "flak jacket", "sets": { "protection": "medium", "style": "military", "conceal": "obvious" } },
+        { "value": "metalgear", "sets": { "protection": "heavy", "style": "combat", "conceal": "impossible" } },
+        { "value": "powered armor", "sets": { "protection": "extreme", "style": "military", "conceal": "impossible" } },
+        { "value": "synth-leather coat", "sets": { "protection": "minimal", "style": "rocker", "conceal": "stylish" } },
+        { "value": "ballistic mesh", "sets": { "protection": "medium", "style": "modern", "conceal": "under clothes" } }
+      ]
+    },
+    {
+      "id": "streetDrugs",
+      "name": "Street Drugs",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["drugs", "street"],
+      "entries": [
+        {
+          "value": "black lace",
+          "description": "Combat stimulant, highly addictive",
+          "sets": { "effect": "aggression boost", "risk": "extreme", "duration": "short" }
+        },
+        {
+          "value": "syncomp",
+          "description": "Pain suppressant",
+          "sets": { "effect": "pain negation", "risk": "moderate", "duration": "medium" }
+        },
+        {
+          "value": "smash",
+          "description": "Strength enhancer",
+          "sets": { "effect": "strength boost", "risk": "high", "duration": "short" }
+        },
+        {
+          "value": "boost",
+          "description": "Reflex accelerator",
+          "sets": { "effect": "speed increase", "risk": "moderate", "duration": "short" }
+        },
+        {
+          "value": "glitter",
+          "description": "Euphoric party drug",
+          "sets": { "effect": "euphoria", "risk": "low", "duration": "medium" }
+        },
+        {
+          "value": "dorph",
+          "description": "Synthetic endorphins",
+          "sets": { "effect": "pleasure", "risk": "high", "duration": "long" }
+        },
+        {
+          "value": "blue glass",
+          "description": "Perception enhancer",
+          "sets": { "effect": "sensory boost", "risk": "moderate", "duration": "medium" }
+        },
+        {
+          "value": "synthcoke",
+          "description": "Stimulant upper",
+          "sets": { "effect": "energy boost", "risk": "moderate", "duration": "medium" }
+        }
+      ]
+    },
+    {
+      "id": "streetAppearance",
+      "name": "Street Appearance",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["appearance", "street"],
+      "entries": [
+        { "value": "covered in gang tattoos and chrome piercings", "sets": { "style": "gang" } },
+        { "value": "wearing a battered leather jacket with too many patches", "sets": { "style": "rocker" } },
+        { "value": "dressed in salvaged military surplus", "sets": { "style": "combat zone" } },
+        { "value": "sporting neon hair and glowing subdermal implants", "sets": { "style": "techno" } },
+        { "value": "hidden under layers of patched hoodies and scarves", "sets": { "style": "nomad" } },
+        { "value": "wearing obviously fake designer knockoffs", "sets": { "style": "wannabe" } },
+        { "value": "dressed in practical work clothes, stained with grease", "sets": { "style": "tech" } },
+        { "value": "decked out in garish colors and excessive accessories", "sets": { "style": "kitsch" } },
+        { "value": "wearing minimal clothing to show off extensive chrome", "sets": { "style": "chromer" } },
+        { "value": "dressed in dark, anonymous clothing to avoid attention", "sets": { "style": "gray" } }
+      ]
+    },
+    {
+      "id": "corpAppearance",
+      "name": "Corporate Appearance",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["appearance", "corporate"],
+      "entries": [
+        { "value": "impeccably dressed in designer suit, not a hair out of place", "sets": { "style": "executive" } },
+        { "value": "wearing smart-fabric that shifts colors subtly", "sets": { "style": "high-tech" } },
+        { "value": "sporting augmented reality glasses and subtle earpiece", "sets": { "style": "connected" } },
+        { "value": "dressed in tactical corporate security uniform", "sets": { "style": "security" } },
+        { "value": "wearing lab coat over expensive casual wear", "sets": { "style": "research" } },
+        { "value": "in a crisp uniform with corporate logo prominently displayed", "sets": { "style": "drone" } },
+        { "value": "wearing obviously expensive clothes that scream wealth", "sets": { "style": "flex" } },
+        { "value": "dressed conservatively but with subtle quality indicators", "sets": { "style": "old money" } }
+      ]
+    },
+    {
+      "id": "distinguishingFeatures",
+      "name": "Distinguishing Features",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["appearance", "features"],
+      "entries": [
+        { "value": "a prominent scar running across {{scarLocations}}" },
+        { "value": "obviously artificial {{cyberEyes}}" },
+        { "value": "a visible {{visibleCyberware}}" },
+        { "value": "extensive tattoos depicting {{tattooSubjects}}" },
+        { "value": "unusual hair: {{hairStyles}}" },
+        { "value": "burn scars covering {{burnLocations}}" },
+        { "value": "hands that shake slightly from stim abuse" },
+        { "value": "an unsettling lack of visible humanity" },
+        { "value": "a distinctive walk from {{walkingFeatures}}" },
+        { "value": "jewelry that's actually {{jewelrySecrets}}" }
+      ]
+    },
+    {
+      "id": "scarLocations",
+      "name": "Scar Locations",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "the left cheek" },
+        { "value": "the throat" },
+        { "value": "both arms" },
+        { "value": "the back of the head" },
+        { "value": "one eye, now replaced with chrome" }
+      ]
+    },
+    {
+      "id": "cyberEyes",
+      "name": "Cyber Eyes",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "eyes with glowing red irises" },
+        { "value": "eyes with visible scanning patterns" },
+        { "value": "eyes that are solid chrome" },
+        { "value": "eyes with unnatural neon colors" },
+        { "value": "eyes with visible targeting reticles" },
+        { "value": "mismatched eyes - one organic, one chrome" }
+      ]
+    },
+    {
+      "id": "visibleCyberware",
+      "name": "Visible Cyberware",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "chrome arm with exposed servos" },
+        { "value": "interface port at the temple" },
+        { "value": "metallic jaw replacement" },
+        { "value": "spine visible through transparent back panel" },
+        { "value": "hand with too-perfect movements" },
+        { "value": "neck full of interface cables" }
+      ]
+    },
+    {
+      "id": "tattooSubjects",
+      "name": "Tattoo Subjects",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "gang symbols and territory markers" },
+        { "value": "circuit patterns and code fragments" },
+        { "value": "memorial names and death dates" },
+        { "value": "corporate logos and brand icons" },
+        { "value": "traditional Yakuza imagery" },
+        { "value": "glitching animated AR-linked designs" }
+      ]
+    },
+    {
+      "id": "hairStyles",
+      "name": "Hair Styles",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "neon green mohawk" },
+        { "value": "chrome-threaded braids" },
+        { "value": "color-shifting smart-hair" },
+        { "value": "half-shaved with circuitry patterns" },
+        { "value": "completely absent, replaced with chrome plating" },
+        { "value": "unnaturally perfect corporate styling" }
+      ]
+    },
+    {
+      "id": "burnLocations",
+      "name": "Burn Locations",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "one side of the face" },
+        { "value": "both hands" },
+        { "value": "the neck and shoulders" },
+        { "value": "most of the torso" }
+      ]
+    },
+    {
+      "id": "walkingFeatures",
+      "name": "Walking Features",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "a cyberleg with a slight hitch" },
+        { "value": "unnaturally smooth movements from full body replacement" },
+        { "value": "old war wound that never healed right" },
+        { "value": "swagger that says they own the street" }
+      ]
+    },
+    {
+      "id": "jewelrySecrets",
+      "name": "Jewelry Secrets",
+      "type": "simple",
+      "hidden": true,
+      "resultType": "description",
+      "entries": [
+        { "value": "a hidden blade" },
+        { "value": "an emergency beacon" },
+        { "value": "a data chip concealment" },
+        { "value": "a single-use EMP" },
+        { "value": "a neurotoxin injector" }
+      ]
+    },
+    {
+      "id": "personalities",
+      "name": "Personalities",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["characters", "personality"],
+      "entries": [
+        { "value": "speaks in short, clipped sentences, always scanning for threats", "sets": { "type": "paranoid" } },
+        { "value": "radiates false warmth while calculating angles", "sets": { "type": "manipulative" } },
+        { "value": "carries themselves with quiet, dangerous confidence", "sets": { "type": "professional" } },
+        { "value": "twitchy and fast-talking, probably on stims", "sets": { "type": "wired" } },
+        { "value": "eerily calm, emotion seemingly edited out", "sets": { "type": "flat" } },
+        { "value": "laughs at inappropriate moments, maybe too much chrome", "sets": { "type": "unstable" } },
+        { "value": "world-weary and cynical, seen too much", "sets": { "type": "burned out" } },
+        { "value": "idealistic despite everything, still believes in something", "sets": { "type": "dreamer" } },
+        { "value": "aggressive and confrontational, looking for a fight", "sets": { "type": "hostile" } },
+        { "value": "smooth talker who could sell ice to a polar bear", "sets": { "type": "charmer" } },
+        { "value": "quiet and observant, speaks only when necessary", "sets": { "type": "watcher" } },
+        { "value": "jovial and friendly, but eyes stay hard", "sets": { "type": "mask" } }
+      ]
+    },
+    {
+      "id": "motivations",
+      "name": "Motivations",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["characters", "motivation"],
+      "entries": [
+        { "value": "wants revenge on the corpo who ruined their life" },
+        { "value": "needs money desperately for someone's medical treatment" },
+        { "value": "trying to buy their way out of the combat zone" },
+        { "value": "searching for a family member who disappeared" },
+        { "value": "wants to bring down the system from inside" },
+        { "value": "just trying to survive another day" },
+        { "value": "saving up to get off-world, start fresh" },
+        { "value": "proving themselves to a gang for membership" },
+        { "value": "paying off a massive debt to the wrong people" },
+        { "value": "gathering evidence to expose corporate crimes" },
+        { "value": "hunting the person who killed someone they loved" },
+        { "value": "wants to become legendary, remembered forever" }
+      ]
+    },
+    {
+      "id": "streetRoles",
+      "name": "Street Roles",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["characters", "roles"],
+      "entries": [
+        { "value": "solo", "description": "Combat specialist for hire", "sets": { "focus": "violence", "income": "gigs" } },
+        { "value": "netrunner", "description": "Hacker who runs the Net", "sets": { "focus": "data", "income": "theft" } },
+        { "value": "techie", "description": "Repairs and builds tech", "sets": { "focus": "machines", "income": "services" } },
+        { "value": "fixer", "description": "Connects people and resources", "sets": { "focus": "connections", "income": "percentage" } },
+        { "value": "nomad", "description": "Road warrior from the badlands", "sets": { "focus": "transport", "income": "smuggling" } },
+        { "value": "media", "description": "Underground journalist", "sets": { "focus": "truth", "income": "stories" } },
+        { "value": "rockerboy", "description": "Artist with a message", "sets": { "focus": "culture", "income": "performances" } },
+        { "value": "medtech", "description": "Street doctor", "sets": { "focus": "healing", "income": "medical" } },
+        { "value": "exec", "description": "Corporate power player", "sets": { "focus": "deals", "income": "salary" } },
+        { "value": "lawman", "description": "Cop in a lawless world", "sets": { "focus": "justice", "income": "badge" } }
+      ]
+    },
+    {
+      "id": "gigTypes",
+      "name": "Gig Types",
+      "type": "simple",
+      "description": "Types of jobs available on the street",
+      "resultType": "description",
+      "tags": ["gigs", "jobs"],
+      "entries": [
+        {
+          "value": "extraction",
+          "description": "Get someone out of somewhere they don't want to be",
+          "sets": { "risk": "high", "type": "retrieval", "violence": "likely" }
+        },
+        {
+          "value": "data theft",
+          "description": "Steal information from a secured system",
+          "sets": { "risk": "medium", "type": "theft", "violence": "possible" }
+        },
+        {
+          "value": "wetwork",
+          "description": "Someone needs to die",
+          "sets": { "risk": "extreme", "type": "assassination", "violence": "certain" }
+        },
+        {
+          "value": "bodyguard",
+          "description": "Keep someone alive who has enemies",
+          "sets": { "risk": "medium", "type": "protection", "violence": "likely" }
+        },
+        {
+          "value": "delivery",
+          "description": "Move something from A to B, no questions",
+          "sets": { "risk": "variable", "type": "transport", "violence": "possible" }
+        },
+        {
+          "value": "sabotage",
+          "description": "Break something important",
+          "sets": { "risk": "high", "type": "destruction", "violence": "possible" }
+        },
+        {
+          "value": "surveillance",
+          "description": "Watch someone and report back",
+          "sets": { "risk": "low", "type": "intelligence", "violence": "unlikely" }
+        },
+        {
+          "value": "retrieval",
+          "description": "Recover a specific item",
+          "sets": { "risk": "medium", "type": "theft", "violence": "possible" }
+        },
+        {
+          "value": "escort",
+          "description": "Get someone from here to there safely",
+          "sets": { "risk": "medium", "type": "transport", "violence": "likely" }
+        },
+        {
+          "value": "investigation",
+          "description": "Find out the truth about something",
+          "sets": { "risk": "variable", "type": "intelligence", "violence": "possible" }
+        },
+        {
+          "value": "intimidation",
+          "description": "Convince someone to do something they don't want to",
+          "sets": { "risk": "low", "type": "social", "violence": "threatened" }
+        },
+        {
+          "value": "cleanup",
+          "description": "Make a problem disappear, no traces",
+          "sets": { "risk": "medium", "type": "support", "violence": "none" }
+        }
+      ]
+    },
+    {
+      "id": "gigComplications",
+      "name": "Gig Complications",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["gigs", "complications"],
+      "entries": [
+        { "value": "The target is not who or what you were told." },
+        { "value": "Another crew is running the same job." },
+        { "value": "Your employer is setting you up." },
+        { "value": "Security is much heavier than expected." },
+        { "value": "A gang claims this is their territory." },
+        { "value": "An old enemy is involved." },
+        { "value": "The payment isn't real." },
+        { "value": "Innocent people are in the line of fire." },
+        { "value": "Corporate counter-intelligence is watching." },
+        { "value": "The job is personal for someone on the team." },
+        { "value": "Local law enforcement has been tipped off." },
+        { "value": "The extraction target doesn't want to leave." },
+        { "value": "Hidden security systems activate." },
+        { "value": "A netrunner is actively opposing you." },
+        { "value": "The real objective was never explained." },
+        { "value": "Multiple complications emerge: {{2*unique*again|\" Additionally, \"}}.", "weight": 1 }
+      ]
+    },
+    {
+      "id": "gigClients",
+      "name": "Gig Clients",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["gigs", "contacts"],
+      "entries": [
+        { "value": "a fixer you've worked with before", "sets": { "trust": "moderate", "pay": "fair" } },
+        { "value": "an anonymous corporate contact", "sets": { "trust": "low", "pay": "good" } },
+        { "value": "a gang leader needing outside help", "sets": { "trust": "variable", "pay": "variable" } },
+        { "value": "a desperate civilian with nowhere else to turn", "sets": { "trust": "high", "pay": "poor" } },
+        { "value": "a rival merc crew needing backup", "sets": { "trust": "low", "pay": "fair" } },
+        { "value": "a media looking for protection", "sets": { "trust": "moderate", "pay": "favors" } },
+        { "value": "a ripperdoc who needs something acquired", "sets": { "trust": "moderate", "pay": "services" } },
+        { "value": "an AI that somehow made contact", "sets": { "trust": "unknown", "pay": "unusual" } }
+      ]
+    },
+    {
+      "id": "gigPayments",
+      "name": "Gig Payments",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["gigs", "rewards"],
+      "entries": [
+        { "value": "{{dice:1d6*1000}} eddies, half up front" },
+        { "value": "{{dice:2d6*1000}} eddies on completion" },
+        { "value": "a favor from someone connected" },
+        { "value": "high-end cyberware installation" },
+        { "value": "a vehicle, slightly used" },
+        { "value": "data worth more than money" },
+        { "value": "erasure of an outstanding debt" },
+        { "value": "safe passage through hostile territory" },
+        { "value": "introduction to someone powerful" },
+        { "value": "military-grade weapons cache" }
+      ]
+    },
+    {
+      "id": "weather",
+      "name": "Weather Conditions",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["environment", "atmosphere"],
+      "entries": [
+        { "value": "Acid rain falls steadily, eating at exposed metal and skin.", "sets": { "severity": "hazardous", "visibility": "poor" } },
+        { "value": "Toxic smog blankets everything, requiring filters to breathe.", "sets": { "severity": "hazardous", "visibility": "terrible" } },
+        { "value": "Clear skies, if you can call the permanent gray haze clear.", "sets": { "severity": "normal", "visibility": "moderate" } },
+        { "value": "Heavy fog rolls in from the industrial zones.", "sets": { "severity": "mild", "visibility": "poor" } },
+        { "value": "Unseasonably hot, the heat island effect in full force.", "sets": { "severity": "uncomfortable", "visibility": "good" } },
+        { "value": "Electromagnetic storm causes AR glitches everywhere.", "sets": { "severity": "moderate", "visibility": "normal" } },
+        { "value": "Light drizzle, neon lights reflecting beautifully in puddles.", "sets": { "severity": "mild", "visibility": "moderate" } },
+        { "value": "Wind howls between the towers, carrying garbage and despair.", "sets": { "severity": "moderate", "visibility": "good" } }
+      ]
+    },
+    {
+      "id": "newsHeadlines",
+      "name": "News Headlines",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["atmosphere", "news"],
+      "entries": [
+        { "value": "BREAKING: {{megaCorporations}} Stock Plunges After Data Breach" },
+        { "value": "Combat Zone Violence Claims {{dice:2d6+5}} Lives Overnight" },
+        { "value": "New Drug Sweeping Streets, Authorities Powerless" },
+        { "value": "Corporate Merger Creates New Megacorp, Thousands Laid Off" },
+        { "value": "NCPD Crackdown in {{districts}} Sparks Riots" },
+        { "value": "Mysterious Net Blackout Affects Entire District" },
+        { "value": "Cyberpsycho Attack Leaves {{dice:1d6+2}} Dead at Mall" },
+        { "value": "Mayor Denies Corruption Allegations, Points to Success Metrics" },
+        { "value": "Traffic Advisory: Nomad Convoy Blocking Highway 101" },
+        { "value": "Warning: Scavenger Activity Reported in {{districts}}" },
+        { "value": "Braindance Addiction Reaches Epidemic Levels" },
+        { "value": "Corporate War Heats Up: Militech vs Arasaka Skirmish Reported" }
+      ]
+    },
+    {
+      "id": "rumors",
+      "name": "Street Rumors",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["story", "rumors"],
+      "entries": [
+        { "value": "Word is {{streetGangs}} is recruiting hard. Something big coming." },
+        { "value": "Heard there's a rogue AI living in the old net infrastructure." },
+        { "value": "{{megaCorporations}} is testing something new in the combat zone. Something bad." },
+        { "value": "A fixer got flatlined last week. The jobs they had are up for grabs." },
+        { "value": "Someone found a pre-war bunker in the badlands. Full of tech." },
+        { "value": "NCPD's been bought out by {{megaCorporations}}. More than usual, I mean." },
+        { "value": "There's a new drug on the streets. Makes black lace look like aspirin." },
+        { "value": "That ripperdoc on 5th? Scav connection. Watch yourself." },
+        { "value": "The mayor's got a body double. Real one's been dead for months." },
+        { "value": "Orbital's got a secret project. Satellite weapons, maybe." },
+        { "value": "Someone's offering big eddies for info on a certain merc crew." },
+        { "value": "The net's been weird lately. Echoes of something old waking up." }
+      ]
+    },
+    {
+      "id": "plotHooks",
+      "name": "Plot Hooks",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["story", "hooks"],
+      "entries": [
+        { "value": "A dying stranger presses a data chip into your hand. \"Keep it safe. They're coming.\"" },
+        { "value": "Your fixer hasn't been seen in three days. Their last job was for {{megaCorporations}}." },
+        { "value": "An old crew member shows up, desperate. They need help with something they can't explain." },
+        { "value": "Someone's been watching your apartment. Corporate surveillance or something worse?" },
+        { "value": "A client offers triple rates for a simple delivery. Too good to be true." },
+        { "value": "You wake up with {{dice:1d6}} hours missing from your memory and blood on your hands." },
+        { "value": "A child approaches you on the street. \"Jordan sent me. They need help.\"" },
+        { "value": "Your cyberware starts glitching, showing you glimpses of something else." },
+        { "value": "A notorious gang leader wants a private meeting. No weapons, no backup." },
+        { "value": "An anonymous tip leads to evidence that could bring down a megacorp." },
+        { "value": "Someone's taken out a contract on you. You don't know why." },
+        { "value": "The news reports your death. Someone's erasing you from the system." }
+      ]
+    },
+    {
+      "id": "iceTypes",
+      "name": "ICE Types",
+      "type": "simple",
+      "resultType": "description",
+      "tags": ["netrunning", "security"],
+      "entries": [
+        { "value": "password gate", "sets": { "threat": "minimal", "type": "barrier" } },
+        { "value": "trace program", "sets": { "threat": "low", "type": "detection" } },
+        { "value": "databomb", "sets": { "threat": "medium", "type": "trap" } },
+        { "value": "black ICE daemon", "sets": { "threat": "high", "type": "attack" } },
+        { "value": "neural feedback loop", "sets": { "threat": "extreme", "type": "lethal" } },
+        { "value": "decoy data structure", "sets": { "threat": "none", "type": "misdirection" } },
+        { "value": "system alarm", "sets": { "threat": "medium", "type": "alert" } },
+        { "value": "memory wipe protocol", "sets": { "threat": "high", "type": "attack" } },
+        { "value": "AI guardian", "sets": { "threat": "extreme", "type": "intelligent" } },
+        { "value": "reality anchor", "sets": { "threat": "medium", "type": "trap" } }
+      ]
+    },
+    {
+      "id": "netLocations",
+      "name": "Net Locations",
+      "type": "simple",
+      "resultType": "location",
+      "tags": ["netrunning", "locations"],
+      "entries": [
+        { "value": "corporate data fortress", "sets": { "security": "extreme", "contents": "valuable data" } },
+        { "value": "abandoned server architecture", "sets": { "security": "none", "contents": "ghosts and echoes" } },
+        { "value": "black market data haven", "sets": { "security": "moderate", "contents": "illegal goods" } },
+        { "value": "AI core nexus", "sets": { "security": "maximum", "contents": "artificial intelligence" } },
+        { "value": "government database", "sets": { "security": "high", "contents": "records and secrets" } },
+        { "value": "old net ruins", "sets": { "security": "variable", "contents": "pre-war artifacts" } },
+        { "value": "gambling den construct", "sets": { "security": "low", "contents": "credits and games" } },
+        { "value": "braindance archive", "sets": { "security": "moderate", "contents": "experiences" } }
+      ]
+    },
+    {
+      "id": "hackingTools",
+      "name": "Hacking Programs",
+      "type": "simple",
+      "resultType": "item",
+      "tags": ["netrunning", "programs"],
+      "entries": [
+        { "value": "breach protocol", "sets": { "function": "access", "legality": "illegal" } },
+        { "value": "daemon killer", "sets": { "function": "combat", "legality": "illegal" } },
+        { "value": "memory worm", "sets": { "function": "theft", "legality": "illegal" } },
+        { "value": "ghost in the machine", "sets": { "function": "stealth", "legality": "illegal" } },
+        { "value": "system reset", "sets": { "function": "disruption", "legality": "illegal" } },
+        { "value": "ICE pick", "sets": { "function": "bypass", "legality": "restricted" } },
+        { "value": "trace killer", "sets": { "function": "evasion", "legality": "legal" } },
+        { "value": "data miner", "sets": { "function": "extraction", "legality": "restricted" } }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "streetNPC",
+      "name": "Street NPC",
+      "description": "Generates a complete street-level character",
+      "resultType": "npc",
+      "tags": ["characters", "street", "generator"],
+      "shared": {
+        "$role": "{{streetRoles}}",
+        "$personality": "{{personalities}}",
+        "$appearance": "{{streetAppearance}}"
+      },
+      "pattern": "## Jordan\n\n**Role:** {{$role}}\n\n**Appearance:** They're {{$appearance}}, with {{distinguishingFeatures}}.\n\n**Personality:** {{$personality}}\n\n**Motivation:** {{motivations}}\n\n**Currently:** Working as a {{$role}}, {{$role.@focus}} is their bread and butter. Their {{$role.@income}} keeps them alive in this city."
+    },
+    {
+      "id": "corpNPC",
+      "name": "Corporate NPC",
+      "description": "Generates a corporate character",
+      "resultType": "npc",
+      "tags": ["characters", "corporate", "generator"],
+      "shared": {
+        "$corp": "{{megaCorporations}}",
+        "$title": "{{corpTitles}}",
+        "$division": "{{corpDivisions}}",
+        "$appearance": "{{corpAppearance}}"
+      },
+      "pattern": "## Jordan\n\n**Position:** {{$title}} at {{$corp}}\n\n**Division:** {{$division}}\n\n**Appearance:** {{$appearance}}\n\n**Personality:** {{personalities}}\n\n**Corporate Profile:**\n- Works in {{$division.@function}}\n- Authority level: {{$title.@authority}}\n- Corporation known for: {{$corp.@specialty}}\n\n**What they want:** {{motivations}}"
+    },
+    {
+      "id": "gigGenerator",
+      "name": "Gig Generator",
+      "description": "Creates a complete job/mission",
+      "resultType": "description",
+      "tags": ["gigs", "generator"],
+      "shared": {
+        "$gig": "{{gigTypes}}",
+        "$client": "{{gigClients}}",
+        "$complication": "{{gigComplications}}",
+        "$payment": "{{gigPayments}}"
+      },
+      "pattern": "## The Job\n\n**Type:** {{$gig}}\n\n**Risk Level:** {{$gig.@risk}}\n\n**Violence Expected:** {{$gig.@violence}}\n\n### The Client\n{{$client}}\n\n**Trust Level:** {{$client.@trust}}\n\n### The Pay\n{{$payment}}\n\n### The Twist\n{{$complication}}\n\n### Location\nThe job takes place in {{districts}}. {{locationAtmospheres}}"
+    },
+    {
+      "id": "locationDescription",
+      "name": "Location Generator",
+      "description": "Creates a detailed location",
+      "resultType": "location",
+      "tags": ["locations", "generator"],
+      "shared": {
+        "$district": "{{districts}}",
+        "$establishment": "{{establishments}}",
+        "$security": "{{securityLevels}}"
+      },
+      "pattern": "## {{$establishment}} in {{$district}}\n\n**District Type:** {{$district}}\n- Wealth Level: {{$district.@wealth}}\n- Standard Security: {{$district.@security}}\n- Danger: {{$district.@danger}}\n\n**This Specific Place:**\n- Type: {{$establishment.@type}}\n- Clientele: {{$establishment.@clientele}}\n- Security: {{$establishment.@security}}\n- Vibe: {{$establishment.@vibe}}\n\n**Atmosphere:** {{locationAtmospheres}}\n\n**Security Assessment:** {{$security}}"
+    },
+    {
+      "id": "gangProfile",
+      "name": "Gang Profile",
+      "description": "Details about a street gang",
+      "resultType": "faction",
+      "tags": ["gangs", "factions", "generator"],
+      "shared": {
+        "$gang": "{{streetGangs}}"
+      },
+      "pattern": "## {{$gang}}\n\n**Territory:** {{$gang.@territory}}\n\n**Style:** {{$gang.@style}}\n\n**Reputation:** {{$gang.@reputation}}\n\n**Colors:** {{$gang.@colors}}\n\n**Specialty:** {{$gang.@specialty}}\n\n**Description:** {{$gang.@description}}\n\n### Current Activity\n{{rumors}}\n\n### Notable Member\nA gang {{gangRoles}} called Jordan - {{personalities}}"
+    },
+    {
+      "id": "corpProfile",
+      "name": "Corporation Profile",
+      "description": "Details about a megacorp",
+      "resultType": "faction",
+      "tags": ["corporations", "factions", "generator"],
+      "shared": {
+        "$corp": "{{megaCorporations}}"
+      },
+      "pattern": "## {{$corp}}\n\n**Origin:** {{$corp.@origin}}\n\n**Specialty:** {{$corp.@specialty}}\n\n**Reputation:** {{$corp.@reputation}}\n\n**Corporate Colors:** {{$corp.@colors}}\n\n**Security Level:** {{$corp.@security}}\n\n**Description:** {{$corp.@description}}\n\n### Current News\n{{newsHeadlines}}\n\n### Key Division\nThe {{corpDivisions}} is particularly active right now.\n\n### Notable Employee\nJordan, a {{corpTitles}} - {{personalities}}"
+    },
+    {
+      "id": "cyberwarePackage",
+      "name": "Cyberware Package",
+      "description": "A set of cybernetic augmentations",
+      "resultType": "item",
+      "tags": ["cyberware", "generator"],
+      "shared": {
+        "$neural": "{{cyberwareNeural}}",
+        "$limb": "{{cyberwareLimbs}}",
+        "$sensory": "{{cyberwareSensory}}",
+        "$internal": "{{cyberwareInternal}}",
+        "$condition": "{{cyberwareConditions}}"
+      },
+      "pattern": "## Chrome Package\n\n**Overall Condition:** {{$condition}}\n\n**Quality:** {{$condition.@quality}}\n\n**Reliability:** {{$condition.@reliability}}\n\n### Neural\n**{{$neural}}** - {{$neural.@description}}\n- Function: {{$neural.@function}}\n- Humanity Cost: {{$neural.@humanity}}\n\n### Limbs\n**{{$limb}}** - {{$limb.@description}}\n- Function: {{$limb.@function}}\n- Appearance: {{$limb.@appearance}}\n\n### Sensory\n**{{$sensory}}** - {{$sensory.@description}}\n- Function: {{$sensory.@function}}\n\n### Internal\n**{{$internal}}** - {{$internal.@description}}\n- Function: {{$internal.@function}}"
+    },
+    {
+      "id": "streetScene",
+      "name": "Street Scene",
+      "description": "Environmental description of the city",
+      "resultType": "description",
+      "tags": ["atmosphere", "environment", "generator"],
+      "shared": {
+        "$district": "{{districts}}",
+        "$weather": "{{weather}}"
+      },
+      "pattern": "## Night in the City\n\n**Location:** {{$district}}\n\n**Weather:** {{$weather}}\n\n**The Scene:** {{locationAtmospheres}}\n\n**Visibility:** {{$weather.@visibility}}\n\n**What You Notice:**\n- {{3*unique*locationAtmospheres|\"\\n- \"}}\n\n**Headlines scrolling on a nearby display:**\n{{newsHeadlines}}\n\n**What people are saying:**\n\"{{rumors}}\""
+    },
+    {
+      "id": "quickNPC",
+      "name": "Quick NPC",
+      "description": "Fast NPC generation",
+      "resultType": "npc",
+      "tags": ["characters", "quick"],
+      "pattern": "**Jordan** - {{streetRoles}}, {{streetAppearance}}, {{personalities}}"
+    },
+    {
+      "id": "quickCorpNPC",
+      "name": "Quick Corp NPC",
+      "description": "Fast corporate NPC generation",
+      "resultType": "npc",
+      "tags": ["characters", "corporate", "quick"],
+      "pattern": "**Jordan** - {{corpTitles}} at {{megaCorporations}}, {{corpAppearance}}, {{personalities}}"
+    },
+    {
+      "id": "sessionStarter",
+      "name": "Session Starter",
+      "description": "Opening scenario for a game session",
+      "resultType": "description",
+      "tags": ["story", "generator"],
+      "shared": {
+        "$hook": "{{plotHooks}}",
+        "$district": "{{districts}}",
+        "$weather": "{{weather}}"
+      },
+      "pattern": "## Session Opening\n\n### The Weather\n{{$weather}}\n\n### The Location\n{{$district}} - {{$district.@atmosphere}}\n\n### The Hook\n{{$hook}}\n\n### What's In The News\n{{newsHeadlines}}\n\n### Street Talk\n\"{{rumors}}\"\n\n### Potential Complication\n{{gigComplications}}"
+    },
+    {
+      "id": "netrunEncounter",
+      "name": "Netrunning Encounter",
+      "description": "What you find in the Net",
+      "resultType": "encounter",
+      "tags": ["netrunning", "generator"],
+      "shared": {
+        "$location": "{{netLocations}}",
+        "$ice": "{{iceTypes}}"
+      },
+      "pattern": "## In The Net\n\n**Location:** {{$location}}\n\n**Security Level:** {{$location.@security}}\n\n**What's Here:** {{$location.@contents}}\n\n### Defenses Encountered\n- Primary: {{$ice}} ({{$ice.@threat}} threat, {{$ice.@type}} type)\n- Secondary: {{iceTypes}}\n- Tertiary: {{iceTypes}}\n\n### Available Programs\nYou've got {{hackingTools}} ready to deploy."
+    },
+    {
+      "id": "vehicleDescription",
+      "name": "Vehicle Description",
+      "description": "Details about a vehicle",
+      "resultType": "item",
+      "tags": ["vehicles", "generator"],
+      "shared": {
+        "$vehicle": "{{vehicles}}"
+      },
+      "pattern": "## The Ride\n\n**Type:** {{$vehicle}}\n\n**Speed:** {{$vehicle.@speed}}\n\n**Armor:** {{$vehicle.@armor}}\n\n**Seats:** {{$vehicle.@seats}}\n\n**Condition:** {{cyberwareConditions}}\n\n**Notable Features:**\n- {{distinguishingFeatures}}\n- {{techGear}} installed"
+    },
+    {
+      "id": "combatLoadout",
+      "name": "Combat Loadout",
+      "description": "Weapons and armor for a character",
+      "resultType": "item",
+      "tags": ["combat", "gear", "generator"],
+      "shared": {
+        "$ranged": "{{weaponsRanged}}",
+        "$melee": "{{weaponsMelee}}",
+        "$armor": "{{armor}}"
+      },
+      "pattern": "## Loadout\n\n### Primary Weapon\n**{{$ranged}}**\n- Type: {{$ranged.@type}}\n- Damage: {{$ranged.@damage}}\n- Concealability: {{$ranged.@conceal}}\n\n### Backup Weapon\n**{{$melee}}**\n- Type: {{$melee.@type}}\n- Damage: {{$melee.@damage}}\n- Style: {{$melee.@style}}\n\n### Protection\n**{{$armor}}**\n- Protection: {{$armor.@protection}}\n- Style: {{$armor.@style}}\n- Concealability: {{$armor.@conceal}}\n\n### Additional Gear\n- {{techGear}}\n- {{techGear}}"
+    },
+    {
+      "id": "fixerContact",
+      "name": "Fixer Contact",
+      "description": "A fixer NPC with their specialty",
+      "resultType": "npc",
+      "tags": ["characters", "contacts", "generator"],
+      "shared": {
+        "$type": "{{fixerTypes}}"
+      },
+      "pattern": "## Jordan the Fixer\n\n**Specialty:** {{$type}}\n\n**What they do:** {{$type.@description}}\n\n**Connections:** {{$type.@connections}}\n\n**Appearance:** {{streetAppearance}}, with {{distinguishingFeatures}}\n\n**Personality:** {{personalities}}\n\n**Their Cut:** Usually {{dice:1d6+4}}% of the take\n\n**Where to find them:** A {{establishments}} in {{districts}}"
+    }
+  ]
+}

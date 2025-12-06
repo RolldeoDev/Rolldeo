@@ -119,6 +119,9 @@ export const VirtualizedItemList = memo(function VirtualizedItemList({
           const row = virtualRows[virtualRow.index]
 
           if (row.type === 'group-header') {
+            // Check if we're showing templates (for color theming)
+            const isTemplateView = items.length > 0 && items[0].type === 'template'
+
             return (
               <div
                 key={row.uniqueKey}
@@ -131,10 +134,16 @@ export const VirtualizedItemList = memo(function VirtualizedItemList({
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
-                <div className="px-3 py-2 bg-background border-b border-white/5">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    {row.groupName}
-                  </span>
+                <div className="px-3 py-2.5 mt-1 bg-background/80 backdrop-blur-sm border-b border-white/[0.03] sticky top-0 z-10">
+                  <div className="flex items-center gap-2">
+                    {/* Connecting line indicator - lavender for templates, primary for tables */}
+                    <div className={`w-1 h-4 rounded-full ${isTemplateView ? 'bg-lavender/60' : 'bg-primary/40'}`} />
+                    <span className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider">
+                      {row.groupName}
+                    </span>
+                    {/* Decorative line extending to the right */}
+                    <div className={`flex-1 h-px bg-gradient-to-r ${isTemplateView ? 'from-lavender/20' : 'from-primary/15'} to-transparent`} />
+                  </div>
                 </div>
               </div>
             )

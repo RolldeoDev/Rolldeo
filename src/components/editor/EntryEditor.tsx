@@ -14,8 +14,9 @@ import { HighlightedInput, type HighlightedInputRef } from './PatternPreview/Hig
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
 import { ResultTypeSelector } from './ResultTypeSelector'
 import { KeyValueEditor } from './KeyValueEditor'
-import type { Entry } from '@/engine/types'
+import type { Entry, Table, Template } from '@/engine/types'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+import type { Suggestion } from '@/hooks/usePatternSuggestions'
 
 export interface EntryEditorProps {
   /** The entry to edit */
@@ -50,6 +51,12 @@ export interface EntryEditorProps {
   importedTables?: ImportedTableInfo[]
   /** Imported templates for insert dropdown */
   importedTemplates?: ImportedTemplateInfo[]
+  /** Suggestions for autocomplete */
+  suggestions?: Suggestion[]
+  /** Full table data for property lookups (keyed by table ID) */
+  tableMap?: Map<string, Table>
+  /** Full template data for property lookups (keyed by template ID) */
+  templateMap?: Map<string, Template>
 }
 
 export function EntryEditor({
@@ -69,6 +76,9 @@ export function EntryEditor({
   localTemplates = [],
   importedTables = [],
   importedTemplates = [],
+  suggestions,
+  tableMap,
+  templateMap,
 }: EntryEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [showPreview, setShowPreview] = useState(false)
@@ -497,6 +507,9 @@ export function EntryEditor({
               minHeight={60}
               hidePreviewWhenEmpty={true}
               hideLabel={true}
+              suggestions={suggestions}
+              tableMap={tableMap}
+              templateMap={templateMap}
             />
           </div>
 

@@ -7,6 +7,7 @@
 import { memo, useState, useRef, useEffect } from 'react'
 import { List, LayoutGrid, ChevronDown } from 'lucide-react'
 import type { BrowserViewMode, BrowserGroupBy } from '@/stores/uiStore'
+import { useUIStore } from '@/stores/uiStore'
 
 interface BrowserViewToggleProps {
   viewMode: BrowserViewMode
@@ -29,6 +30,8 @@ export const BrowserViewToggle = memo(function BrowserViewToggle({
 }: BrowserViewToggleProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const browserActiveTab = useUIStore((state) => state.browserActiveTab)
+  const isTemplateView = browserActiveTab === 'templates'
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -65,7 +68,11 @@ export const BrowserViewToggle = memo(function BrowserViewToggle({
         className={`
           flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium
           transition-colors duration-150
-          ${viewMode === 'flat' ? 'bg-primary/20 text-primary' : 'bg-white/5 text-muted-foreground hover:text-foreground'}
+          ${viewMode === 'flat'
+            ? isTemplateView
+              ? 'bg-lavender/20 text-lavender'
+              : 'bg-primary/20 text-primary'
+            : 'bg-white/5 text-muted-foreground hover:text-foreground'}
         `}
         onClick={handleViewModeToggle}
         aria-pressed={viewMode === 'flat'}
@@ -81,7 +88,11 @@ export const BrowserViewToggle = memo(function BrowserViewToggle({
           className={`
             flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium
             transition-colors duration-150
-            ${viewMode === 'grouped' ? 'bg-primary/20 text-primary' : 'bg-white/5 text-muted-foreground hover:text-foreground'}
+            ${viewMode === 'grouped'
+              ? isTemplateView
+                ? 'bg-lavender/20 text-lavender'
+                : 'bg-primary/20 text-primary'
+              : 'bg-white/5 text-muted-foreground hover:text-foreground'}
           `}
           onClick={() => {
             if (viewMode === 'grouped') {
@@ -118,7 +129,11 @@ export const BrowserViewToggle = memo(function BrowserViewToggle({
                 className={`
                   w-full px-3 py-2 text-left text-xs
                   transition-colors duration-150
-                  ${groupBy === option.value ? 'bg-primary/20 text-primary' : 'text-foreground hover:bg-white/5'}
+                  ${groupBy === option.value
+                    ? isTemplateView
+                      ? 'bg-lavender/20 text-lavender'
+                      : 'bg-primary/20 text-primary'
+                    : 'text-foreground hover:bg-white/5'}
                 `}
                 onClick={() => handleGroupBySelect(option.value)}
                 role="option"

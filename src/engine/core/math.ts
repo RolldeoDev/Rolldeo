@@ -6,7 +6,7 @@
  */
 
 import type { GenerationContext } from './context'
-import { resolveVariable, getPlaceholder, getCaptureSharedVariable } from './context'
+import { resolveVariable, getPlaceholder, getSharedVariable } from './context'
 import { rollDice } from '../dice'
 
 // ============================================================================
@@ -294,7 +294,7 @@ class MathParser {
         const varName = parts[0]
         const properties = parts.slice(1)
 
-        const captureItem = getCaptureSharedVariable(this.context, varName)
+        const captureItem = getSharedVariable(this.context, varName)
         if (!captureItem) {
           console.warn(`Capture variable not found: $${varName}`)
           return 0

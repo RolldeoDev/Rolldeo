@@ -40,6 +40,9 @@ export const PatternPreview = memo(
       sharedVariables,
       hidePreviewWhenEmpty = false,
       hideLabel = false,
+      suggestions,
+      tableMap,
+      templateMap,
     },
     ref
   ) {
@@ -97,6 +100,9 @@ export const PatternPreview = memo(
           onChange={onChange}
           placeholder={placeholder}
           minHeight={minHeight}
+          suggestions={suggestions}
+          tableMap={tableMap}
+          templateMap={templateMap}
         />
         {!hideLabel && (
           <p className="text-xs text-muted-foreground mt-1">

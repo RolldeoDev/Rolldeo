@@ -22,6 +22,7 @@ import { SortableList } from './SortableList'
 import { SortableItem } from './SortableItem'
 import type {
   Table,
+  Template,
   SimpleTable,
   CompositeTable,
   CollectionTable,
@@ -31,6 +32,7 @@ import type {
   TableSource,
 } from '@/engine/types'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+import type { Suggestion } from '@/hooks/usePatternSuggestions'
 
 export interface TableEditorProps {
   /** The table to edit */
@@ -59,6 +61,12 @@ export interface TableEditorProps {
   importedTables?: ImportedTableInfo[]
   /** Imported templates for insert dropdown */
   importedTemplates?: ImportedTemplateInfo[]
+  /** Suggestions for autocomplete */
+  suggestions?: Suggestion[]
+  /** Full table data for property lookups (keyed by table ID) */
+  tableMap?: Map<string, Table>
+  /** Full template data for property lookups (keyed by template ID) */
+  templateMap?: Map<string, Template>
 }
 
 export function TableEditor({
@@ -75,6 +83,9 @@ export function TableEditor({
   localTemplates = [],
   importedTables = [],
   importedTemplates = [],
+  suggestions,
+  tableMap,
+  templateMap,
 }: TableEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const prevDefaultExpandedRef = useRef(defaultExpanded)
@@ -485,6 +496,9 @@ export function TableEditor({
               localTemplates={localTemplates}
               importedTables={importedTables}
               importedTemplates={importedTemplates}
+              suggestions={suggestions}
+              tableMap={tableMap}
+              templateMap={templateMap}
             />
           )}
 
@@ -587,6 +601,9 @@ interface SimpleTableEditorProps {
   localTemplates?: TemplateInfo[]
   importedTables?: ImportedTableInfo[]
   importedTemplates?: ImportedTemplateInfo[]
+  suggestions?: Suggestion[]
+  tableMap?: Map<string, Table>
+  templateMap?: Map<string, Template>
 }
 
 function SimpleTableEditor({
@@ -597,6 +614,9 @@ function SimpleTableEditor({
   localTemplates = [],
   importedTables = [],
   importedTemplates = [],
+  suggestions,
+  tableMap,
+  templateMap,
 }: SimpleTableEditorProps) {
   const [focusedEntryIndex, setFocusedEntryIndex] = useState<number | null>(null)
   const [expandedEntryIndex, setExpandedEntryIndex] = useState<number | null>(null)
@@ -735,6 +755,9 @@ function SimpleTableEditor({
                 localTemplates={localTemplates}
                 importedTables={importedTables}
                 importedTemplates={importedTemplates}
+                suggestions={suggestions}
+                tableMap={tableMap}
+                templateMap={templateMap}
               />
             </SortableItem>
           ))}
