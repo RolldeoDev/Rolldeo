@@ -293,7 +293,7 @@ export const InlineResult = memo(function InlineResult({
   const hasMarkdownSyntax = useMemo(() => {
     const plainText = segments.map((s) => s.text).join('')
     // Simple heuristic: check for common markdown patterns
-    return /[*_#`\[\]|>-]|\n/.test(plainText)
+    return /[*_#`[\]|>-]|\n/.test(plainText)
   }, [segments])
 
   if (segments.length === 0) {

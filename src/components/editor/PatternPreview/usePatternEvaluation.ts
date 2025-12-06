@@ -8,6 +8,7 @@ import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { extractExpressions, parseExpression } from '@/engine/core/parser'
 import type { ExpressionToken, RollTrace } from '@/engine/core'
+import { getExpressionType } from '@/lib/expressionUtils'
 import type {
   EvaluatedSegment,
   ExpressionType,
@@ -23,9 +24,11 @@ function countTraceNodes(trace: RollTrace | null): number {
 }
 
 /**
- * Determine the expression type from a parsed token
+ * Determine the expression type from a parsed token.
+ * This provides more accurate type detection than string heuristics
+ * when a token is available from the parser.
  */
-function getExpressionType(token: ExpressionToken): ExpressionType {
+function getExpressionTypeFromToken(token: ExpressionToken): ExpressionType {
   // Check for switch modifiers on any token
   if ('switchModifiers' in token && token.switchModifiers) {
     return 'switch'
@@ -51,7 +54,7 @@ function getExpressionType(token: ExpressionToken): ExpressionType {
     case 'captureMultiRoll':
       return 'capture'
     case 'captureAccess':
-      return 'variable'
+      return 'capture-shared'
     case 'collect':
       return 'collect'
     case 'switch':
@@ -59,28 +62,6 @@ function getExpressionType(token: ExpressionToken): ExpressionType {
     default:
       return 'unknown'
   }
-}
-
-/**
- * Determine expression type from raw expression string (quick heuristic)
- */
-function getExpressionTypeFromString(expr: string): ExpressionType {
-  const trimmed = expr.trim()
-
-  // Switch expressions: switch[...] or expr.switch[...]
-  if (trimmed.startsWith('switch[') || trimmed.includes('.switch[')) return 'switch'
-
-  if (trimmed.startsWith('collect:')) return 'collect'
-  if (trimmed.includes(' >> $') || trimmed.includes('>>$')) return 'capture'
-  if (trimmed.startsWith('dice:')) return 'dice'
-  if (trimmed.startsWith('math:')) return 'math'
-  if (trimmed.startsWith('$')) return 'variable'
-  if (trimmed.startsWith('@')) return 'placeholder'
-  if (trimmed === 'again' || trimmed.endsWith('*again')) return 'again'
-  if (trimmed.startsWith('unique:')) return 'unique'
-  if (/^\d+\*/.test(trimmed)) return 'table' // multi-roll
-
-  return 'table' // default to table reference
 }
 
 interface UsePatternEvaluationOptions {
@@ -175,10 +156,10 @@ export function usePatternEvaluation(
         try {
           // Try to parse the expression to get its type
           const token = parseExpression(match.expression)
-          exprType = getExpressionType(token)
+          exprType = getExpressionTypeFromToken(token)
         } catch {
           // Fallback to heuristic type detection
-          exprType = getExpressionTypeFromString(match.expression)
+          exprType = getExpressionType(match.expression)
         }
 
         // Use engine-provided expression output if available
@@ -315,7 +296,7 @@ export function usePatternEvaluation(
           type: 'expression',
           text: `[error]`,
           originalExpression: match.raw,
-          expressionType: getExpressionTypeFromString(match.expression),
+          expressionType: getExpressionType(match.expression),
           startInPattern: match.start,
           endInPattern: match.end,
         })

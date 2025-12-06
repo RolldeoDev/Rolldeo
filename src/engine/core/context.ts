@@ -138,11 +138,8 @@ export function cloneContext(ctx: GenerationContext): GenerationContext {
  */
 export function resolveVariable(
   ctx: GenerationContext,
-  name: string,
-  _alias?: string
+  name: string
 ): string | number | undefined {
-  // TODO: Handle alias resolution when imports are implemented
-  // For now, we just look up the variable name directly
 
   // Check shared variables first (all shared vars are now CaptureItems)
   if (ctx.sharedVariables.has(name)) {

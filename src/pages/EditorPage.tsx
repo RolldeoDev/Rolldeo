@@ -16,6 +16,8 @@ import {
   Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SEO } from '@/components/common'
+import { PAGE_SEO } from '@/lib/seo'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { useUIStore } from '@/stores/uiStore'
 import { EditorWorkspace, formatJson, CollectionSwitcher, EditorHelpButton, ExportDialog } from '@/components/editor'
@@ -252,9 +254,11 @@ export function EditorPage() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <>
+      <SEO {...PAGE_SEO.editor} />
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold">
             {isNewCollection ? 'Create Collection' : 'Edit Collection'}
@@ -387,7 +391,8 @@ export function EditorPage() {
           collectionId={collectionId}
         />
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

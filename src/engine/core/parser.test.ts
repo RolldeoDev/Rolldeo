@@ -259,6 +259,26 @@ describe('parseExpression', () => {
       }
     })
 
+    it('should parse multi-roll with # in separator (not instance reference)', () => {
+      const token = parseExpression('3*tableName|"# "')
+      expect(token.type).toBe('multiRoll')
+      if (token.type === 'multiRoll') {
+        expect(token.count).toBe(3)
+        expect(token.tableId).toBe('tableName')
+        expect(token.separator).toBe('# ')
+      }
+    })
+
+    it('should parse multi-roll with markdown header in separator', () => {
+      const token = parseExpression('3*tableName|"\\n## "')
+      expect(token.type).toBe('multiRoll')
+      if (token.type === 'multiRoll') {
+        expect(token.count).toBe(3)
+        expect(token.tableId).toBe('tableName')
+        expect(token.separator).toBe('\\n## ')
+      }
+    })
+
     it('should parse variable count multi-roll', () => {
       const token = parseExpression('$count*tableName')
       expect(token.type).toBe('multiRoll')

@@ -23,6 +23,8 @@ import {
   RocketIcon,
 } from 'lucide-react'
 import { DownloadButton } from '@/components/guide'
+import { SEO } from '@/components/common'
+import { PAGE_SEO } from '@/lib/seo'
 
 // Import raw markdown files for download
 import specMd from '@/../docs/randomTableSpecV1.md?raw'
@@ -99,8 +101,10 @@ export function GuidePage() {
   const [sciFiExpanded, setSciFiExpanded] = useState(false)
 
   return (
-    <div className="space-y-12">
-      {/* Hero Section */}
+    <>
+      <SEO {...PAGE_SEO.guide} />
+      <div className="space-y-12">
+        {/* Hero Section */}
       <section className="text-center space-y-6 py-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium animate-fade-in">
           <BookOpen className="h-4 w-4" />
@@ -397,8 +401,9 @@ export function GuidePage() {
           title="Schema Validation"
           description="Import the JSON schema into your IDE for autocomplete and validation while editing."
         />
-      </section>
-    </div>
+        </section>
+      </div>
+    </>
   )
 }
 

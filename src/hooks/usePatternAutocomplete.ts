@@ -403,10 +403,10 @@ export function usePatternAutocomplete(
 
     // Show autocomplete if:
     // - We have regular suggestions, OR
-    // - This is a property trigger and we have tableMap for dynamic lookup
+    // - This is a property trigger and we have tableMap or templateMap for dynamic lookup
     const shouldShow = detected && (
       suggestions.length > 0 ||
-      (detected.type === 'property' && tableMap)
+      (detected.type === 'property' && (tableMap || templateMap))
     )
 
     if (shouldShow && detected) {

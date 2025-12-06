@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -217,21 +219,30 @@
     border-color: hsl(var(--rose) / 0.2);
   }
 
-  /* Result card - warm copper/bronze theme for roll results */
-  .card-result {
-    background: linear-gradient(135deg,
-      hsl(var(--copper) / 0.12) 0%,
-      hsl(var(--copper) / 0.04) 100%);
+  /* Result card - warm copper/bronze theme for roll results
+     Uses grain texture via SVG noise filter layered with gradient */
+  .card-result,
+  .card-elevated.card-result {
+    background:
+      url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"),
+      linear-gradient(135deg,
+        hsl(var(--copper) / 0.12) 0%,
+        hsl(var(--copper) / 0.04) 100%),
+      hsl(var(--card)) !important;
     border-color: hsl(var(--copper) / 0.25);
     box-shadow:
       0 0 20px hsl(var(--copper-glow) / 0.08),
       inset 0 1px 0 hsl(var(--copper-glow) / 0.1);
   }
 
-  .dark .card-result {
-    background: linear-gradient(135deg,
-      hsl(var(--copper) / 0.15) 0%,
-      hsl(var(--copper) / 0.05) 100%);
+  .dark .card-result,
+  .dark .card-elevated.card-result {
+    background:
+      url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"),
+      linear-gradient(135deg,
+        hsl(var(--copper) / 0.15) 0%,
+        hsl(var(--copper) / 0.05) 100%),
+      hsl(var(--card)) !important;
     border-color: hsl(var(--copper) / 0.3);
     box-shadow:
       0 0 30px hsl(var(--copper-glow) / 0.15),
@@ -1981,209 +1992,533 @@
 }
 
 /* ============================================================================
-   TTRPG RESULT THEME - "Parchment & Quill" Theme
+   DRAWER THEME CLASSES
 
-   A traditional tabletop RPG aesthetic with parchment backgrounds,
-   medieval flourishes, and the feel of classic gaming rulebooks.
+   Used by DescriptionsDrawer and SetsDrawer for consistent theming.
+   Each theme needs: drawer-{id}, drawer-header-{id}, drawer-entry-{id}
    ============================================================================ */
 
-/* Card styling for TTRPG theme */
-.card-result-ttrpg {
-  background: linear-gradient(180deg,
-    hsl(40, 45%, 94%) 0%,
-    hsl(38, 40%, 88%) 100%);
-  border: 2px solid hsl(30, 40%, 55%);
-  border-radius: 0.375rem;
-  position: relative;
-  box-shadow:
-    inset 0 0 30px hsl(35, 30%, 80%),
-    0 4px 12px hsl(30, 30%, 40% / 0.15);
+/* === DEFAULT DRAWER (copper accent) === */
+.drawer-default {
+  @apply dark:border-copper/30 border-copper/40;
+  @apply dark:bg-gradient-to-b dark:from-stone-900 dark:via-stone-900 dark:to-stone-950;
+  @apply bg-[#fdf6f0];
+  @apply dark:shadow-[-8px_0_32px_rgba(0,0,0,0.5)] shadow-[-8px_0_32px_rgba(0,0,0,0.15)];
 }
 
-/* Corner flourishes */
+.drawer-header-default {
+  @apply dark:border-copper/20 border-copper/25;
+  @apply dark:bg-gradient-to-r dark:from-copper/15 dark:via-transparent dark:to-copper/15;
+  @apply bg-copper/10;
+}
+
+.drawer-entry-default {
+  @apply dark:border-stone-700/40 dark:bg-stone-800/50;
+  @apply dark:hover:bg-stone-800/70 dark:hover:border-copper/30;
+  @apply border-copper/20 bg-white hover:bg-copper/5 hover:border-copper/30;
+}
+
+.drawer-entry-default.drawer-entry-expanded {
+  @apply dark:border-copper/30 dark:bg-gradient-to-br dark:from-copper/20 dark:to-stone-900/80;
+  @apply border-copper/40 bg-copper/10;
+}
+
+/* === TTRPG DRAWER (illuminated manuscript style) === */
+.drawer-ttrpg {
+  @apply border-[hsl(25,50%,45%)];
+  @apply shadow-[-8px_0_32px_rgba(59,36,18,0.2)];
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: linear-gradient(180deg,
+    hsl(38, 50%, 94%) 0%,
+    hsl(36, 48%, 90%) 50%,
+    hsl(34, 45%, 86%) 100%);
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, hsl(38, 50%, 94%) 0%, hsl(36, 48%, 90%) 50%, hsl(34, 45%, 86%) 100%);
+}
+
+.dark .drawer-ttrpg {
+  @apply border-[hsl(32,55%,35%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.6)];
+  background: linear-gradient(180deg,
+    hsl(25, 30%, 14%) 0%,
+    hsl(23, 28%, 11%) 50%,
+    hsl(20, 25%, 8%) 100%);
+  box-shadow:
+    -8px 0 32px rgba(0, 0, 0, 0.6),
+    inset 0 0 80px hsl(25, 30%, 6%),
+    0 0 25px hsl(35, 60%, 30%, 0.15);
+}
+
+.drawer-header-ttrpg {
+  @apply border-[hsl(25,45%,50%)];
+  background: linear-gradient(90deg,
+    hsl(35, 45%, 78%) 0%,
+    hsl(38, 50%, 82%) 50%,
+    hsl(35, 45%, 78%) 100%);
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+.dark .drawer-header-ttrpg {
+  @apply border-[hsl(32,50%,28%)];
+  background: linear-gradient(90deg,
+    hsl(25, 35%, 16%) 0%,
+    hsl(30, 40%, 20%) 50%,
+    hsl(25, 35%, 16%) 100%);
+}
+
+.drawer-entry-ttrpg {
+  @apply rounded-sm;
+  @apply border-[hsl(30,40%,70%)] bg-[hsl(40,45%,95%)];
+  @apply hover:bg-[hsl(38,50%,92%)] hover:border-[hsl(25,50%,50%)];
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.dark .drawer-entry-ttrpg {
+  @apply border-[hsl(25,35%,22%)] bg-[hsl(23,28%,13%)];
+}
+
+.dark .drawer-entry-ttrpg:hover {
+  @apply border-[hsl(32,50%,35%)] bg-[hsl(25,30%,16%)];
+}
+
+.drawer-entry-ttrpg.drawer-entry-expanded {
+  @apply border-[hsl(25,50%,45%)];
+  background: linear-gradient(135deg,
+    hsl(38, 50%, 92%) 0%,
+    hsl(36, 48%, 88%) 100%);
+}
+
+.dark .drawer-entry-ttrpg.drawer-entry-expanded {
+  @apply border-[hsl(32,55%,35%)];
+  background: linear-gradient(135deg,
+    hsl(25, 35%, 18%) 0%,
+    hsl(23, 28%, 12%) 100%);
+  box-shadow: 0 0 20px hsl(35, 60%, 30%, 0.1);
+}
+
+/* === CYBERPUNK DRAWER (neon tech style) === */
+.drawer-cyberpunk {
+  @apply border-[hsl(186,100%,40%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.15)];
+  background: linear-gradient(180deg,
+    hsl(220, 20%, 97%) 0%,
+    hsl(220, 15%, 94%) 100%);
+}
+
+.dark .drawer-cyberpunk {
+  @apply border-[hsl(186,100%,50%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.5)];
+  background: linear-gradient(180deg,
+    hsl(260, 30%, 8%) 0%,
+    hsl(280, 25%, 6%) 50%,
+    hsl(260, 30%, 8%) 100%);
+  box-shadow:
+    -8px 0 32px rgba(0, 0, 0, 0.5),
+    inset 0 0 60px hsl(260, 50%, 5%),
+    0 0 20px hsl(186, 100%, 50%, 0.2);
+}
+
+.drawer-header-cyberpunk {
+  @apply border-[hsl(186,100%,50%,0.5)];
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50%, 0.1) 0%,
+    transparent 50%,
+    hsl(300, 100%, 50%, 0.08) 100%);
+}
+
+.dark .drawer-header-cyberpunk {
+  @apply border-[hsl(186,100%,50%,0.4)];
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50%, 0.15) 0%,
+    transparent 50%,
+    hsl(300, 100%, 50%, 0.1) 100%);
+}
+
+.drawer-entry-cyberpunk {
+  @apply border-[hsl(186,80%,45%,0.3)];
+  @apply bg-[hsl(220,15%,96%)];
+  @apply hover:bg-[hsl(186,100%,50%,0.08)] hover:border-[hsl(186,100%,50%,0.5)];
+}
+
+.dark .drawer-entry-cyberpunk {
+  @apply border-[hsl(186,100%,50%,0.2)];
+  background: hsl(260, 30%, 10%);
+}
+
+.dark .drawer-entry-cyberpunk:hover {
+  @apply border-[hsl(186,100%,50%,0.4)];
+  background: hsl(260, 30%, 12%);
+}
+
+.drawer-entry-cyberpunk.drawer-entry-expanded {
+  @apply border-[hsl(186,100%,50%,0.5)];
+  background: linear-gradient(135deg,
+    hsl(186, 100%, 50%, 0.08) 0%,
+    hsl(220, 15%, 96%) 100%);
+}
+
+.dark .drawer-entry-cyberpunk.drawer-entry-expanded {
+  @apply border-[hsl(186,100%,50%,0.5)];
+  background: linear-gradient(135deg,
+    hsl(260, 35%, 12%) 0%,
+    hsl(280, 30%, 8%) 100%);
+  box-shadow: 0 0 15px hsl(186, 100%, 50%, 0.1);
+}
+
+/* === SLEEK DRAWER (refined editorial style) === */
+.drawer-sleek {
+  @apply border-[hsl(230,20%,85%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.08)];
+  font-family: 'Outfit', system-ui, sans-serif;
+  background: linear-gradient(180deg,
+    hsl(220, 25%, 99%) 0%,
+    hsl(220, 20%, 97%) 100%);
+}
+
+.dark .drawer-sleek {
+  @apply border-[hsl(230,25%,20%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.4)];
+  background: linear-gradient(180deg,
+    hsl(230, 20%, 12%) 0%,
+    hsl(230, 22%, 10%) 100%);
+}
+
+.drawer-header-sleek {
+  @apply border-[hsl(230,18%,88%)];
+  background: hsl(220, 22%, 98%);
+  font-family: 'Sora', system-ui, sans-serif;
+}
+
+.dark .drawer-header-sleek {
+  @apply border-[hsl(230,20%,18%)];
+  background: hsl(230, 20%, 13%);
+}
+
+.drawer-entry-sleek {
+  @apply border-[hsl(220,18%,90%)] bg-[hsl(220,20%,98%)];
+  @apply hover:bg-[hsl(250,30%,97%)] hover:border-[hsl(250,40%,80%)];
+  font-family: 'Outfit', system-ui, sans-serif;
+  border-radius: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .drawer-entry-sleek {
+  @apply border-[hsl(230,20%,18%)] bg-[hsl(230,18%,11%)];
+}
+
+.dark .drawer-entry-sleek:hover {
+  @apply border-[hsl(250,45%,45%)] bg-[hsl(230,20%,13%)];
+}
+
+.drawer-entry-sleek.drawer-entry-expanded {
+  @apply border-[hsl(250,40%,75%)];
+  background: hsl(250, 30%, 98%);
+}
+
+.dark .drawer-entry-sleek.drawer-entry-expanded {
+  @apply border-[hsl(250,50%,50%)];
+  background: hsl(250, 25%, 13%);
+}
+
+/* === WHIMSICAL DRAWER (playful colorful style) === */
+.drawer-whimsical {
+  @apply border-[hsl(175,65%,55%)] border-2;
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.1)];
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: linear-gradient(180deg,
+    hsl(45, 100%, 97%) 0%,
+    hsl(180, 50%, 97%) 50%,
+    hsl(330, 60%, 97%) 100%);
+}
+
+.dark .drawer-whimsical {
+  @apply border-[hsl(175,70%,50%)] border-2;
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.5)];
+  background: linear-gradient(180deg,
+    hsl(260, 30%, 14%) 0%,
+    hsl(200, 35%, 12%) 50%,
+    hsl(340, 30%, 14%) 100%);
+}
+
+.drawer-header-whimsical {
+  @apply border-[hsl(175,50%,70%)];
+  background: linear-gradient(90deg,
+    hsl(10, 85%, 95%) 0%,
+    hsl(45, 95%, 95%) 50%,
+    hsl(175, 70%, 95%) 100%);
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.dark .drawer-header-whimsical {
+  @apply border-[hsl(175,50%,35%)];
+  background: linear-gradient(90deg,
+    hsl(10, 50%, 18%) 0%,
+    hsl(45, 50%, 16%) 50%,
+    hsl(175, 40%, 16%) 100%);
+}
+
+.drawer-entry-whimsical {
+  @apply border-[hsl(10,70%,75%)] border-2 bg-[hsl(45,100%,98%)];
+  @apply hover:border-[hsl(280,60%,70%)] hover:bg-[hsl(280,50%,97%)];
+  font-family: 'Nunito', system-ui, sans-serif;
+  border-radius: 1rem;
+  box-shadow: 0 2px 0 hsl(10, 60%, 65%);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.drawer-entry-whimsical:hover {
+  box-shadow: 0 2px 0 hsl(280, 50%, 60%);
+  transform: translateY(-1px);
+}
+
+.dark .drawer-entry-whimsical {
+  @apply border-[hsl(10,65%,55%)] bg-[hsl(260,25%,13%)];
+  box-shadow: 0 2px 0 hsl(10, 55%, 40%);
+}
+
+.dark .drawer-entry-whimsical:hover {
+  @apply border-[hsl(280,55%,60%)] bg-[hsl(280,30%,15%)];
+  box-shadow: 0 2px 0 hsl(280, 45%, 45%);
+}
+
+.drawer-entry-whimsical.drawer-entry-expanded {
+  @apply border-[hsl(175,65%,55%)];
+  background: linear-gradient(135deg,
+    hsl(45, 100%, 97%) 0%,
+    hsl(175, 60%, 96%) 100%);
+  box-shadow: 0 3px 0 hsl(175, 55%, 45%);
+}
+
+.dark .drawer-entry-whimsical.drawer-entry-expanded {
+  @apply border-[hsl(175,60%,50%)];
+  background: linear-gradient(135deg,
+    hsl(260, 28%, 15%) 0%,
+    hsl(200, 32%, 13%) 100%);
+  box-shadow: 0 3px 0 hsl(175, 50%, 32%);
+}
+
+/* ============================================================================
+   TTRPG RESULT THEME - "The Chronicler's Codex"
+
+   An illuminated manuscript aesthetic with scholarly elegance.
+   Fonts: Cinzel Decorative (titles), Cinzel (headers), Cormorant Garamond (body)
+   Colors: Burgundy ink, aged gold accents, warm vellum parchment
+   ============================================================================ */
+
+/* Card styling for TTRPG theme - LIGHT MODE */
+.card-result-ttrpg {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: linear-gradient(180deg,
+    hsl(38, 55%, 95%) 0%,
+    hsl(36, 52%, 91%) 50%,
+    hsl(34, 48%, 87%) 100%);
+  border: 2px solid hsl(25, 55%, 42%);
+  border-radius: 0.25rem;
+  position: relative;
+  box-shadow:
+    inset 0 0 40px hsl(35, 40%, 85%),
+    0 4px 16px hsl(25, 40%, 30% / 0.15),
+    0 1px 3px hsl(25, 50%, 40% / 0.1);
+  /* Subtle paper texture via SVG noise */
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, hsl(38, 55%, 95%) 0%, hsl(36, 52%, 91%) 50%, hsl(34, 48%, 87%) 100%);
+}
+
+/* Corner flourishes - illuminated manuscript style */
 .card-result-ttrpg::before,
 .card-result-ttrpg::after {
-  content: '❧';
+  content: '❦';
   position: absolute;
-  font-size: 1.25rem;
-  color: hsl(30, 50%, 45%);
-  opacity: 0.6;
+  font-size: 1.5rem;
+  color: hsl(25, 65%, 38%);
+  opacity: 0.5;
+  font-family: Georgia, serif;
 }
 
 .card-result-ttrpg::before {
-  top: 0.25rem;
-  left: 0.5rem;
+  top: 0.375rem;
+  left: 0.625rem;
 }
 
 .card-result-ttrpg::after {
-  bottom: 0.25rem;
-  right: 0.5rem;
+  bottom: 0.375rem;
+  right: 0.625rem;
   transform: rotate(180deg);
 }
 
+/* Card styling for TTRPG theme - DARK MODE */
 .dark .card-result-ttrpg {
   background: linear-gradient(180deg,
-    hsl(30, 25%, 18%) 0%,
-    hsl(28, 22%, 14%) 100%);
-  border-color: hsl(35, 45%, 35%);
+    hsl(25, 32%, 14%) 0%,
+    hsl(23, 30%, 11%) 50%,
+    hsl(20, 28%, 8%) 100%);
+  border-color: hsl(32, 60%, 35%);
   box-shadow:
-    inset 0 0 40px hsl(28, 20%, 10%),
-    0 0 20px hsl(35, 50%, 25% / 0.3),
-    0 4px 12px hsl(0, 0%, 0% / 0.3);
+    inset 0 0 60px hsl(20, 30%, 5%),
+    0 0 25px hsl(35, 65%, 30% / 0.2),
+    0 4px 16px hsl(0, 0%, 0% / 0.4);
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, hsl(25, 32%, 14%) 0%, hsl(23, 30%, 11%) 50%, hsl(20, 28%, 8%) 100%);
 }
 
 .dark .card-result-ttrpg::before,
 .dark .card-result-ttrpg::after {
-  color: hsl(35, 60%, 50%);
-  opacity: 0.5;
+  color: hsl(35, 70%, 50%);
+  opacity: 0.45;
 }
 
-/* History item styling for TTRPG theme */
+/* History item styling for TTRPG theme - LIGHT MODE */
 .history-item-ttrpg {
+  font-family: 'Cormorant Garamond', Georgia, serif;
   background: linear-gradient(180deg,
-    hsl(42, 35%, 92%) 0%,
-    hsl(40, 30%, 88%) 100%);
-  border: 1px solid hsl(32, 35%, 65%);
+    hsl(40, 50%, 94%) 0%,
+    hsl(38, 48%, 90%) 100%);
+  border: 1px solid hsl(28, 45%, 65%);
   border-radius: 0.25rem;
   box-shadow:
-    inset 0 0 15px hsl(38, 25%, 85%),
-    0 2px 4px hsl(30, 25%, 50% / 0.1);
+    inset 0 0 20px hsl(36, 35%, 88%),
+    0 2px 6px hsl(25, 35%, 45% / 0.1);
 }
 
+/* History item styling for TTRPG theme - DARK MODE */
 .dark .history-item-ttrpg {
   background: linear-gradient(180deg,
-    hsl(30, 22%, 16%) 0%,
-    hsl(28, 20%, 12%) 100%);
-  border-color: hsl(35, 40%, 30%);
+    hsl(25, 28%, 13%) 0%,
+    hsl(23, 26%, 10%) 100%);
+  border-color: hsl(32, 45%, 28%);
   box-shadow:
-    inset 0 0 20px hsl(28, 18%, 8%),
-    0 2px 6px hsl(0, 0%, 0% / 0.25);
+    inset 0 0 25px hsl(20, 25%, 6%),
+    0 2px 8px hsl(0, 0%, 0% / 0.3);
 }
 
-/* Main TTRPG prose styling */
+/* Main TTRPG prose styling - LIGHT MODE */
 .prose-roll-ttrpg {
   @apply leading-relaxed;
-  font-size: 0.9375rem;
-  line-height: 1.75;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-  color: hsl(25, 45%, 18%);
+  font-size: 1rem;
+  line-height: 1.8;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  color: hsl(20, 50%, 15%);
 }
 
-/* === HEADERS - Medieval book styling === */
+/* === HEADERS - Illuminated manuscript hierarchy === */
 
 .prose-roll-ttrpg h1 {
-  @apply text-2xl mt-5 mb-3 pb-2 first:mt-0;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  @apply text-2xl mt-6 mb-4 pb-3 first:mt-0;
+  font-family: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
   font-weight: 700;
-  font-variant: small-caps;
-  letter-spacing: 0.08em;
-  color: hsl(25, 50%, 22%);
+  letter-spacing: 0.1em;
+  color: hsl(355, 55%, 30%);
   text-align: center;
   position: relative;
   border-bottom: none;
 }
 
-/* Decorative underline with flourishes */
+/* Ornate underline flourish for h1 */
 .prose-roll-ttrpg h1::after {
-  content: '✦ ━━━━━━━━━━━━━━━ ✦';
+  content: '◆ ─────────── ◆';
   display: block;
   text-align: center;
-  font-size: 0.7rem;
-  letter-spacing: 0;
-  color: hsl(30, 45%, 50%);
-  margin-top: 0.5rem;
+  font-size: 0.65rem;
+  font-family: Georgia, serif;
+  letter-spacing: 0.2em;
+  color: hsl(35, 60%, 45%);
+  margin-top: 0.75rem;
 }
 
 .prose-roll-ttrpg h2 {
-  @apply text-xl mt-5 mb-2 first:mt-0;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  @apply text-xl mt-6 mb-3 first:mt-0;
+  font-family: 'Cinzel', Georgia, serif;
   font-weight: 600;
-  font-variant: small-caps;
   letter-spacing: 0.06em;
-  color: hsl(25, 48%, 25%);
-  padding-left: 0;
+  color: hsl(355, 50%, 32%);
+  padding-left: 1.5em;
   position: relative;
 }
 
-/* Side flourish for h2 */
+/* Decorative pilcrow for h2 */
 .prose-roll-ttrpg h2::before {
-  content: '§';
+  content: '¶';
   position: absolute;
-  left: -1.25em;
-  color: hsl(30, 50%, 45%);
-  font-size: 1.1em;
+  left: 0;
+  color: hsl(35, 65%, 45%);
+  font-size: 1em;
   font-weight: 400;
+  font-family: Georgia, serif;
 }
 
 .prose-roll-ttrpg h3 {
-  @apply text-lg mt-4 mb-2 first:mt-0;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-  font-weight: 600;
-  font-style: italic;
-  color: hsl(25, 42%, 28%);
+  @apply text-lg mt-5 mb-2 first:mt-0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 500;
+  font-style: normal;
+  color: hsl(355, 45%, 35%);
 }
 
 .prose-roll-ttrpg h4 {
-  @apply text-base mt-3 mb-1 first:mt-0;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-  font-weight: 600;
+  @apply text-base mt-4 mb-2 first:mt-0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.75rem;
-  color: hsl(25, 38%, 35%);
+  letter-spacing: 0.15em;
+  font-size: 0.8rem;
+  color: hsl(25, 45%, 35%);
 }
 
 .prose-roll-ttrpg h5,
 .prose-roll-ttrpg h6 {
   @apply text-sm mt-3 mb-1 first:mt-0;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.7rem;
-  color: hsl(25, 30%, 42%);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: hsl(25, 40%, 38%);
 }
 
 /* === PARAGRAPHS & TEXT === */
 
 .prose-roll-ttrpg p {
   @apply my-3 first:mt-0 last:mb-0;
-  text-indent: 1.5em;
+  text-indent: 1.75em;
 }
 
 .prose-roll-ttrpg p:first-of-type {
   text-indent: 0;
 }
 
-/* Drop cap for first paragraph after headers */
+/* Illuminated drop cap after headers */
 .prose-roll-ttrpg h1 + p::first-letter,
 .prose-roll-ttrpg h2 + p::first-letter {
-  font-size: 2.5em;
+  font-size: 3.2em;
   float: left;
-  line-height: 0.8;
-  margin-right: 0.1em;
-  margin-top: 0.1em;
+  line-height: 0.75;
+  margin-right: 0.08em;
+  margin-top: 0.08em;
   font-weight: 700;
-  color: hsl(25, 55%, 35%);
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  color: hsl(355, 55%, 35%);
+  font-family: 'Cinzel Decorative', Georgia, serif;
+  text-shadow: 1px 1px 0 hsl(35, 60%, 50% / 0.3);
 }
 
 .prose-roll-ttrpg strong {
   font-weight: 700;
-  color: hsl(25, 50%, 15%);
+  color: hsl(20, 55%, 12%);
 }
 
 .prose-roll-ttrpg em {
   font-style: italic;
-  color: hsl(25, 45%, 25%);
+  color: hsl(20, 45%, 22%);
 }
 
-/* === LISTS - Ornate bullets === */
+/* === LISTS - Scholarly annotations === */
 
 .prose-roll-ttrpg ul,
 .prose-roll-ttrpg ol {
-  @apply my-3;
-  padding-left: 1.75em;
+  @apply my-4;
+  padding-left: 2em;
   list-style: none;
 }
 
@@ -2195,62 +2530,63 @@
 
 /* Unordered list - fleuron bullet */
 .prose-roll-ttrpg ul > li::before {
-  content: '❖';
+  content: '❧';
   position: absolute;
-  left: -1.5em;
-  color: hsl(30, 50%, 40%);
+  left: -1.6em;
+  color: hsl(355, 50%, 38%);
+  font-size: 0.85em;
+  top: 0.1em;
+}
+
+/* Nested unordered - smaller fleuron */
+.prose-roll-ttrpg ul ul > li::before {
+  content: '◇';
+  color: hsl(35, 60%, 45%);
   font-size: 0.75em;
   top: 0.2em;
 }
 
-/* Nested unordered */
-.prose-roll-ttrpg ul ul > li::before {
-  content: '✧';
-  color: hsl(32, 45%, 50%);
-  font-size: 0.7em;
-}
-
 /* Double nested */
 .prose-roll-ttrpg ul ul ul > li::before {
-  content: '•';
-  color: hsl(35, 40%, 55%);
-  font-size: 0.9em;
-  top: 0.15em;
+  content: '·';
+  color: hsl(25, 45%, 40%);
+  font-size: 1.2em;
+  top: -0.05em;
 }
 
-/* Ordered list - classic numbering */
+/* Ordered list - elegant numbering */
 .prose-roll-ttrpg ol {
-  counter-reset: ttrpg-counter;
+  counter-reset: codex-counter;
 }
 
 .prose-roll-ttrpg ol > li {
-  counter-increment: ttrpg-counter;
+  counter-increment: codex-counter;
 }
 
 .prose-roll-ttrpg ol > li::before {
-  content: counter(ttrpg-counter) '.';
+  content: counter(codex-counter) '.';
   position: absolute;
-  left: -2em;
-  color: hsl(30, 50%, 35%);
-  font-weight: 700;
+  left: -2.2em;
+  color: hsl(355, 50%, 35%);
+  font-weight: 600;
   font-size: 0.95em;
-  min-width: 1.5em;
+  min-width: 1.6em;
   text-align: right;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  font-family: 'Cinzel', Georgia, serif;
 }
 
 /* Nested ordered lists - roman numerals */
 .prose-roll-ttrpg ol ol {
-  counter-reset: ttrpg-nested;
+  counter-reset: codex-nested;
 }
 
 .prose-roll-ttrpg ol ol > li {
-  counter-increment: ttrpg-nested;
+  counter-increment: codex-nested;
 }
 
 .prose-roll-ttrpg ol ol > li::before {
-  content: counter(ttrpg-nested, lower-roman) '.';
-  color: hsl(32, 45%, 45%);
+  content: counter(codex-nested, lower-roman) '.';
+  color: hsl(35, 55%, 42%);
   font-weight: 500;
 }
 
@@ -2271,25 +2607,29 @@
 
 .prose-roll-ttrpg li.task-list-item input[type="checkbox"] {
   @apply mr-2;
-  accent-color: hsl(30, 50%, 40%);
+  accent-color: hsl(355, 50%, 40%);
 }
 
-/* === CODE - Manuscript style === */
+/* === CODE - Scribe's notation === */
 
 .prose-roll-ttrpg code {
-  @apply px-1.5 py-0.5 rounded text-sm;
+  @apply px-1.5 py-0.5 rounded-sm text-sm;
   font-family: 'Courier New', Courier, monospace;
-  background: hsl(40, 35%, 88%);
-  color: hsl(25, 60%, 25%);
-  border: 1px solid hsl(35, 30%, 70%);
+  background: hsl(38, 45%, 90%);
+  color: hsl(355, 50%, 28%);
+  border: 1px solid hsl(32, 40%, 72%);
   font-size: 0.85em;
 }
 
 .prose-roll-ttrpg pre {
-  @apply my-4 p-4 rounded-lg overflow-x-auto;
-  background: hsl(42, 30%, 90%);
-  border: 1px solid hsl(35, 30%, 65%);
-  box-shadow: inset 0 2px 4px hsl(35, 25%, 80%);
+  @apply my-5 p-4 rounded overflow-x-auto;
+  background: linear-gradient(135deg,
+    hsl(40, 48%, 92%) 0%,
+    hsl(38, 45%, 89%) 100%);
+  border: 1px solid hsl(30, 45%, 65%);
+  box-shadow:
+    inset 0 2px 6px hsl(35, 30%, 82%),
+    2px 2px 6px hsl(25, 30%, 50% / 0.1);
 }
 
 .prose-roll-ttrpg pre code {
@@ -2297,50 +2637,49 @@
   border: none;
   padding: 0;
   font-size: 0.8125rem;
+  color: hsl(20, 45%, 20%);
 }
 
-/* === BLOCKQUOTES - Scroll/proclamation style === */
+/* === BLOCKQUOTES - Royal proclamation === */
 
 .prose-roll-ttrpg blockquote {
-  @apply my-4 py-4 px-5;
-  border: 2px solid hsl(35, 40%, 60%);
-  border-radius: 0.25rem;
+  @apply my-5 py-4 px-6;
+  border: 2px solid hsl(32, 55%, 55%);
+  border-radius: 0.125rem;
   background: linear-gradient(180deg,
-    hsl(42, 40%, 92%) 0%,
-    hsl(40, 35%, 88%) 100%);
-  color: hsl(25, 40%, 22%);
+    hsl(40, 52%, 93%) 0%,
+    hsl(38, 50%, 89%) 100%);
+  color: hsl(20, 45%, 18%);
   font-style: italic;
   position: relative;
   box-shadow:
-    inset 0 0 20px hsl(38, 30%, 85%),
-    2px 2px 8px hsl(30, 25%, 50% / 0.15);
+    inset 0 0 25px hsl(36, 40%, 88%),
+    3px 3px 10px hsl(25, 35%, 45% / 0.12);
 }
 
-/* Scroll corners */
+/* Quotation ornaments */
 .prose-roll-ttrpg blockquote::before {
-  content: '❝';
+  content: '"';
   position: absolute;
-  top: -0.5em;
-  left: 0.5em;
-  font-size: 1.5em;
-  font-family: Georgia, serif;
-  color: hsl(30, 45%, 50%);
+  top: -0.3em;
+  left: 0.4em;
+  font-size: 2.5em;
+  font-family: 'Cinzel Decorative', Georgia, serif;
+  color: hsl(355, 50%, 40%);
   line-height: 1;
-  background: hsl(42, 40%, 92%);
-  padding: 0 0.25em;
+  opacity: 0.6;
 }
 
 .prose-roll-ttrpg blockquote::after {
-  content: '❞';
+  content: '"';
   position: absolute;
-  bottom: -0.5em;
-  right: 0.5em;
-  font-size: 1.5em;
-  font-family: Georgia, serif;
-  color: hsl(30, 45%, 50%);
+  bottom: -0.6em;
+  right: 0.4em;
+  font-size: 2.5em;
+  font-family: 'Cinzel Decorative', Georgia, serif;
+  color: hsl(355, 50%, 40%);
   line-height: 1;
-  background: hsl(40, 35%, 88%);
-  padding: 0 0.25em;
+  opacity: 0.6;
 }
 
 .prose-roll-ttrpg blockquote p {
@@ -2350,10 +2689,10 @@
   margin: 0;
 }
 
-/* === HORIZONTAL RULES - Ornate divider === */
+/* === HORIZONTAL RULES - Chapter divider === */
 
 .prose-roll-ttrpg hr {
-  @apply my-6;
+  @apply my-8;
   border: none;
   height: auto;
   text-align: center;
@@ -2362,59 +2701,62 @@
 }
 
 .prose-roll-ttrpg hr::before {
-  content: '⚜ ━━━━━ ❖ ━━━━━ ⚜';
+  content: '✦ ═══════ ❖ ═══════ ✦';
   display: block;
-  color: hsl(30, 45%, 50%);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
+  color: hsl(35, 60%, 45%);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
 }
 
 .prose-roll-ttrpg hr::after {
   display: none;
 }
 
-/* === LINKS - Parchment ink color === */
+/* === LINKS - Illuminated references === */
 
 .prose-roll-ttrpg a {
-  color: hsl(220, 60%, 35%);
+  color: hsl(220, 55%, 35%);
   text-decoration: none;
-  border-bottom: 1px solid hsl(220, 40%, 55%);
+  border-bottom: 1px solid hsl(220, 35%, 60%);
   transition: all 0.2s ease;
+  font-weight: 600;
 }
 
 .prose-roll-ttrpg a:hover {
-  color: hsl(220, 65%, 25%);
-  border-bottom-color: hsl(220, 55%, 40%);
+  color: hsl(355, 55%, 35%);
+  border-bottom-color: hsl(355, 45%, 50%);
 }
 
-/* === TABLES - Classic rulebook style === */
+/* === TABLES - Chronicle ledger === */
 
 .prose-roll-ttrpg table {
-  @apply w-full text-sm my-4;
+  @apply w-full text-sm my-5;
   border-collapse: collapse;
-  border: 2px solid hsl(30, 40%, 55%);
-  background: hsl(42, 35%, 93%);
+  border: 2px solid hsl(25, 50%, 45%);
+  background: hsl(40, 48%, 94%);
+  font-family: 'Cormorant Garamond', Georgia, serif;
 }
 
 .prose-roll-ttrpg thead {
-  background: hsl(30, 35%, 75%);
+  background: linear-gradient(180deg,
+    hsl(32, 50%, 70%) 0%,
+    hsl(30, 48%, 65%) 100%);
 }
 
 .prose-roll-ttrpg th {
-  @apply px-4 py-2.5 text-left;
-  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-  font-weight: 700;
-  font-variant: small-caps;
-  letter-spacing: 0.05em;
-  color: hsl(25, 45%, 18%);
-  border-bottom: 2px solid hsl(30, 40%, 50%);
-  font-size: 0.85rem;
+  @apply px-4 py-3 text-left;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: hsl(20, 50%, 15%);
+  border-bottom: 2px solid hsl(25, 55%, 42%);
+  font-size: 0.9rem;
 }
 
 .prose-roll-ttrpg td {
-  @apply px-4 py-2.5;
-  border-bottom: 1px solid hsl(35, 30%, 75%);
-  color: hsl(25, 40%, 22%);
+  @apply px-4 py-3;
+  border-bottom: 1px solid hsl(32, 35%, 75%);
+  color: hsl(20, 45%, 18%);
 }
 
 .prose-roll-ttrpg tbody tr:last-child td {
@@ -2422,189 +2764,2430 @@
 }
 
 .prose-roll-ttrpg tbody tr:hover {
-  background: hsl(42, 40%, 90%);
+  background: hsl(38, 50%, 90%);
 }
 
 /* Alternating row colors */
 .prose-roll-ttrpg tbody tr:nth-child(even) {
-  background: hsl(40, 30%, 91%);
+  background: hsl(38, 42%, 91%);
 }
 
 .prose-roll-ttrpg tbody tr:nth-child(even):hover {
-  background: hsl(42, 38%, 88%);
+  background: hsl(38, 50%, 88%);
 }
 
-/* === IMAGES === */
+/* === IMAGES - Framed illustration === */
 
 .prose-roll-ttrpg img {
-  @apply my-4 rounded;
-  border: 2px solid hsl(30, 35%, 60%);
-  box-shadow: 2px 2px 8px hsl(30, 25%, 50% / 0.2);
+  @apply my-5 rounded-sm;
+  border: 3px solid hsl(25, 50%, 50%);
+  box-shadow:
+    3px 3px 0 hsl(35, 55%, 45%),
+    4px 4px 10px hsl(25, 35%, 40% / 0.2);
 }
 
 /* ============================================================================
-   TTRPG DARK MODE - Aged Tome Theme
+   TTRPG DARK MODE - Ancient Grimoire
+   Warm candlelit tones on deep leather backgrounds
    ============================================================================ */
 
 :is(.dark .prose-roll-ttrpg) {
-  color: hsl(35, 25%, 80%);
+  color: hsl(35, 30%, 82%);
 }
 
-/* Dark mode headers */
+/* Dark mode headers - golden candlelight */
 :is(.dark .prose-roll-ttrpg) h1 {
-  color: hsl(38, 50%, 75%);
+  color: hsl(35, 70%, 65%);
+  text-shadow: 0 0 20px hsl(35, 60%, 40% / 0.3);
 }
 
 :is(.dark .prose-roll-ttrpg) h1::after {
-  color: hsl(35, 55%, 50%);
+  color: hsl(35, 65%, 50%);
 }
 
 :is(.dark .prose-roll-ttrpg) h2 {
-  color: hsl(38, 45%, 72%);
+  color: hsl(35, 65%, 62%);
 }
 
 :is(.dark .prose-roll-ttrpg) h2::before {
-  color: hsl(35, 55%, 55%);
+  color: hsl(35, 70%, 55%);
 }
 
 :is(.dark .prose-roll-ttrpg) h3 {
-  color: hsl(38, 40%, 68%);
+  color: hsl(35, 55%, 60%);
 }
 
 :is(.dark .prose-roll-ttrpg) h4 {
-  color: hsl(38, 35%, 60%);
+  color: hsl(32, 50%, 58%);
 }
 
 :is(.dark .prose-roll-ttrpg) h5,
 :is(.dark .prose-roll-ttrpg) h6 {
-  color: hsl(38, 30%, 55%);
+  color: hsl(30, 45%, 55%);
 }
 
 /* Dark mode text */
 :is(.dark .prose-roll-ttrpg) strong {
-  color: hsl(40, 60%, 78%);
+  color: hsl(38, 70%, 75%);
 }
 
 :is(.dark .prose-roll-ttrpg) em {
-  color: hsl(35, 40%, 72%);
+  color: hsl(35, 45%, 75%);
 }
 
-/* Dark mode drop cap */
+/* Dark mode illuminated drop cap */
 :is(.dark .prose-roll-ttrpg) h1 + p::first-letter,
 :is(.dark .prose-roll-ttrpg) h2 + p::first-letter {
-  color: hsl(35, 60%, 55%);
+  color: hsl(35, 75%, 55%);
+  text-shadow:
+    0 0 15px hsl(35, 70%, 45% / 0.4),
+    1px 1px 0 hsl(35, 60%, 35% / 0.5);
 }
 
 /* Dark mode list bullets */
 :is(.dark .prose-roll-ttrpg) ul > li::before {
-  color: hsl(35, 60%, 55%);
+  color: hsl(35, 65%, 55%);
 }
 
 :is(.dark .prose-roll-ttrpg) ul ul > li::before {
-  color: hsl(38, 55%, 60%);
+  color: hsl(35, 60%, 52%);
 }
 
 :is(.dark .prose-roll-ttrpg) ul ul ul > li::before {
-  color: hsl(40, 50%, 55%);
+  color: hsl(35, 50%, 50%);
 }
 
 :is(.dark .prose-roll-ttrpg) ol > li::before {
-  color: hsl(38, 60%, 60%);
+  color: hsl(35, 70%, 55%);
 }
 
 :is(.dark .prose-roll-ttrpg) ol ol > li::before {
-  color: hsl(40, 55%, 58%);
+  color: hsl(35, 60%, 52%);
 }
 
 :is(.dark .prose-roll-ttrpg) li.task-list-item input[type="checkbox"] {
-  accent-color: hsl(35, 60%, 55%);
+  accent-color: hsl(35, 65%, 50%);
 }
 
-/* Dark mode code */
+/* Dark mode code - scribe's ink on vellum */
 :is(.dark .prose-roll-ttrpg) code {
-  background: hsl(28, 25%, 20%);
-  color: hsl(38, 55%, 70%);
-  border-color: hsl(30, 30%, 35%);
+  background: hsl(25, 30%, 18%);
+  color: hsl(35, 60%, 72%);
+  border-color: hsl(28, 40%, 30%);
 }
 
 :is(.dark .prose-roll-ttrpg) pre {
-  background: hsl(26, 22%, 15%);
-  border-color: hsl(30, 28%, 30%);
-  box-shadow: inset 0 2px 4px hsl(25, 20%, 10%);
+  background: linear-gradient(135deg,
+    hsl(22, 28%, 12%) 0%,
+    hsl(20, 26%, 10%) 100%);
+  border-color: hsl(28, 45%, 28%);
+  box-shadow:
+    inset 0 2px 8px hsl(20, 30%, 6%),
+    0 0 15px hsl(35, 50%, 25% / 0.1);
 }
 
-/* Dark mode blockquote */
+:is(.dark .prose-roll-ttrpg) pre code {
+  color: hsl(35, 45%, 72%);
+}
+
+/* Dark mode blockquote - royal decree */
 :is(.dark .prose-roll-ttrpg) blockquote {
   background: linear-gradient(180deg,
-    hsl(30, 25%, 18%) 0%,
-    hsl(28, 22%, 14%) 100%);
-  border-color: hsl(35, 45%, 40%);
-  color: hsl(35, 30%, 75%);
+    hsl(25, 32%, 16%) 0%,
+    hsl(23, 30%, 12%) 100%);
+  border-color: hsl(32, 60%, 38%);
+  color: hsl(35, 35%, 78%);
   box-shadow:
-    inset 0 0 25px hsl(28, 20%, 10%),
-    2px 2px 10px hsl(0, 0%, 0% / 0.3);
+    inset 0 0 30px hsl(22, 28%, 8%),
+    3px 3px 12px hsl(0, 0%, 0% / 0.35),
+    0 0 20px hsl(35, 50%, 30% / 0.1);
 }
 
 :is(.dark .prose-roll-ttrpg) blockquote::before,
 :is(.dark .prose-roll-ttrpg) blockquote::after {
-  color: hsl(35, 55%, 50%);
-  background: hsl(30, 25%, 18%);
-}
-
-:is(.dark .prose-roll-ttrpg) blockquote::after {
-  background: hsl(28, 22%, 14%);
+  color: hsl(35, 70%, 50%);
+  opacity: 0.5;
 }
 
 /* Dark mode horizontal rule */
 :is(.dark .prose-roll-ttrpg) hr::before {
-  color: hsl(35, 55%, 50%);
+  color: hsl(35, 65%, 50%);
 }
 
-/* Dark mode links */
+/* Dark mode links - illuminated manuscript references */
 :is(.dark .prose-roll-ttrpg) a {
-  color: hsl(210, 60%, 65%);
-  border-bottom-color: hsl(210, 45%, 50%);
+  color: hsl(200, 55%, 65%);
+  border-bottom-color: hsl(200, 40%, 50%);
 }
 
 :is(.dark .prose-roll-ttrpg) a:hover {
-  color: hsl(210, 65%, 75%);
-  border-bottom-color: hsl(210, 55%, 60%);
+  color: hsl(35, 70%, 65%);
+  border-bottom-color: hsl(35, 60%, 50%);
 }
 
-/* Dark mode tables */
+/* Dark mode tables - chronicle ledger */
 :is(.dark .prose-roll-ttrpg) table {
-  border-color: hsl(30, 40%, 35%);
-  background: hsl(28, 22%, 14%);
+  border-color: hsl(28, 50%, 32%);
+  background: hsl(23, 28%, 11%);
 }
 
 :is(.dark .prose-roll-ttrpg) thead {
-  background: hsl(30, 30%, 25%);
+  background: linear-gradient(180deg,
+    hsl(28, 40%, 22%) 0%,
+    hsl(26, 38%, 18%) 100%);
 }
 
 :is(.dark .prose-roll-ttrpg) th {
-  color: hsl(38, 50%, 78%);
-  border-bottom-color: hsl(35, 45%, 40%);
+  color: hsl(35, 65%, 72%);
+  border-bottom-color: hsl(32, 55%, 38%);
 }
 
 :is(.dark .prose-roll-ttrpg) td {
-  border-bottom-color: hsl(30, 25%, 25%);
-  color: hsl(35, 28%, 75%);
+  border-bottom-color: hsl(26, 30%, 22%);
+  color: hsl(35, 32%, 78%);
 }
 
 :is(.dark .prose-roll-ttrpg) tbody tr:hover {
-  background: hsl(30, 25%, 18%);
+  background: hsl(26, 30%, 15%);
 }
 
 :is(.dark .prose-roll-ttrpg) tbody tr:nth-child(even) {
-  background: hsl(28, 20%, 12%);
+  background: hsl(23, 26%, 9%);
 }
 
 :is(.dark .prose-roll-ttrpg) tbody tr:nth-child(even):hover {
-  background: hsl(30, 22%, 16%);
+  background: hsl(26, 28%, 14%);
+}
+
+/* Dark mode images - aged frame */
+:is(.dark .prose-roll-ttrpg) img {
+  border-color: hsl(32, 55%, 35%);
+  box-shadow:
+    3px 3px 0 hsl(35, 50%, 30%),
+    4px 4px 15px hsl(0, 0%, 0% / 0.5);
+}
+
+/* Roll button styling for TTRPG theme - LIGHT MODE */
+.btn-roll-ttrpg {
+  font-family: 'Cinzel', Georgia, serif;
+  background: linear-gradient(180deg,
+    hsl(355, 50%, 38%) 0%,
+    hsl(355, 55%, 30%) 50%,
+    hsl(355, 50%, 25%) 100%);
+  color: hsl(40, 50%, 95%);
+  border: 2px solid hsl(32, 55%, 45%);
+  border-radius: 0.25rem;
+  text-shadow: 0 1px 2px hsl(0, 0%, 0% / 0.3);
+  box-shadow:
+    inset 0 1px 0 hsl(355, 40%, 50%),
+    0 3px 8px hsl(355, 40%, 20% / 0.3),
+    0 1px 2px hsl(0, 0%, 0% / 0.2);
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.btn-roll-ttrpg:hover:not(:disabled) {
+  background: linear-gradient(180deg,
+    hsl(355, 55%, 42%) 0%,
+    hsl(355, 58%, 34%) 50%,
+    hsl(355, 55%, 28%) 100%);
+  border-color: hsl(35, 65%, 55%);
+  box-shadow:
+    inset 0 1px 0 hsl(355, 45%, 55%),
+    0 4px 12px hsl(355, 45%, 25% / 0.4),
+    0 2px 4px hsl(0, 0%, 0% / 0.3);
+  transform: scale(1.02);
+}
+
+.btn-roll-ttrpg:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow:
+    inset 0 2px 4px hsl(355, 50%, 20%),
+    0 1px 2px hsl(0, 0%, 0% / 0.2);
+}
+
+.btn-roll-ttrpg:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Roll button styling for TTRPG theme - DARK MODE */
+.dark .btn-roll-ttrpg {
+  background: linear-gradient(180deg,
+    hsl(355, 45%, 32%) 0%,
+    hsl(355, 50%, 25%) 50%,
+    hsl(355, 45%, 18%) 100%);
+  color: hsl(40, 60%, 90%);
+  border-color: hsl(35, 65%, 40%);
+  box-shadow:
+    inset 0 1px 0 hsl(355, 40%, 40%),
+    0 0 15px hsl(35, 65%, 35% / 0.2),
+    0 4px 12px hsl(0, 0%, 0% / 0.4);
+}
+
+.dark .btn-roll-ttrpg:hover:not(:disabled) {
+  background: linear-gradient(180deg,
+    hsl(355, 50%, 38%) 0%,
+    hsl(355, 55%, 30%) 50%,
+    hsl(355, 50%, 22%) 100%);
+  border-color: hsl(35, 70%, 50%);
+  box-shadow:
+    inset 0 1px 0 hsl(355, 45%, 45%),
+    0 0 20px hsl(35, 70%, 40% / 0.3),
+    0 6px 16px hsl(0, 0%, 0% / 0.5);
+}
+
+/* ============================================================================
+   CYBERPUNK THEME - Neon-Drenched Future Tech
+   ============================================================================
+
+   Light mode: Corporate tech aesthetic - clean with sharp neon accents
+   Dark mode: Street-level cyberpunk - neon glows, scanlines, dystopian vibes
+
+   Fonts: Orbitron (headers), Rajdhani (body)
+   Colors: Cyan (#00f0ff), Magenta (#ff00ff), Electric Yellow (#ffff00)
+   ============================================================================ */
+
+/* Card styling for Cyberpunk theme - LIGHT MODE
+   Scanlines integrated into background for reliability */
+.card-result-cyberpunk {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(186, 100%, 50% / 0.06) 2px,
+      hsl(186, 100%, 50% / 0.06) 4px
+    ),
+    linear-gradient(135deg,
+      hsl(220, 20%, 97%) 0%,
+      hsl(220, 15%, 94%) 100%) !important;
+  border: 1px solid hsl(186, 100%, 40%);
+  border-radius: 0.25rem;
+  position: relative;
+  box-shadow:
+    0 0 0 1px hsl(186, 100%, 50% / 0.3),
+    0 4px 20px hsl(220, 50%, 20% / 0.1),
+    inset 0 1px 0 hsl(0, 0%, 100% / 0.8);
+  overflow: hidden;
+}
+
+/* Corner accent */
+.card-result-cyberpunk::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg,
+    transparent 50%,
+    hsl(186, 100%, 50% / 0.1) 50%);
+  pointer-events: none;
+}
+
+/* Card styling for Cyberpunk theme - DARK MODE */
+.dark .card-result-cyberpunk {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(186, 100%, 50% / 0.08) 2px,
+      hsl(186, 100%, 50% / 0.08) 4px
+    ),
+    linear-gradient(135deg,
+      hsl(260, 30%, 8%) 0%,
+      hsl(280, 25%, 6%) 50%,
+      hsl(260, 30%, 8%) 100%) !important;
+  border: 1px solid hsl(186, 100%, 50%);
+  box-shadow:
+    0 0 20px hsl(186, 100%, 50% / 0.3),
+    0 0 40px hsl(300, 100%, 50% / 0.1),
+    inset 0 0 60px hsl(260, 50%, 5%),
+    0 4px 20px hsl(0, 0%, 0% / 0.5);
+}
+
+.dark .card-result-cyberpunk::after {
+  background: linear-gradient(135deg,
+    transparent 50%,
+    hsl(186, 100%, 50% / 0.15) 50%);
+}
+
+/* History item styling for Cyberpunk theme - LIGHT MODE
+   Scanlines integrated into background for reliability */
+.history-item-cyberpunk {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(186, 100%, 50% / 0.06) 2px,
+      hsl(186, 100%, 50% / 0.06) 4px
+    ),
+    linear-gradient(90deg,
+      hsl(220, 15%, 96%) 0%,
+      hsl(220, 20%, 98%) 100%) !important;
+  border: 1px solid hsl(186, 80%, 45% / 0.5);
+  border-left: 3px solid hsl(186, 100%, 50%);
+  border-radius: 0.25rem;
+  box-shadow:
+    0 2px 8px hsl(220, 30%, 20% / 0.08);
+  position: relative;
+}
+
+/* History item styling for Cyberpunk theme - DARK MODE */
+.dark .history-item-cyberpunk {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(186, 100%, 50% / 0.1) 2px,
+      hsl(186, 100%, 50% / 0.1) 4px
+    ),
+    linear-gradient(90deg,
+      hsl(260, 30%, 10%) 0%,
+      hsl(280, 25%, 8%) 100%) !important;
+  border: 1px solid hsl(186, 100%, 50% / 0.4);
+  border-left: 3px solid hsl(186, 100%, 50%);
+  box-shadow:
+    0 0 15px hsl(186, 100%, 50% / 0.15),
+    0 2px 10px hsl(0, 0%, 0% / 0.3);
+}
+
+/* Main Cyberpunk prose styling - LIGHT MODE */
+.prose-roll-cyberpunk {
+  @apply leading-relaxed;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  font-family: 'Rajdhani', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 500;
+  color: hsl(220, 25%, 20%);
+  position: relative;
+  z-index: 2;
+}
+
+/* === HEADERS - Futuristic tech styling === */
+
+.prose-roll-cyberpunk h1 {
+  @apply text-2xl mt-5 mb-3 pb-2 first:mt-0;
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: hsl(186, 100%, 35%);
+  position: relative;
+  border-bottom: none;
+  text-shadow: 0 0 1px hsl(186, 100%, 50% / 0.5);
+}
+
+/* Glitch-style underline */
+.prose-roll-cyberpunk h1::after {
+  content: '▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰';
+  display: block;
+  font-size: 0.5rem;
+  letter-spacing: 0.3em;
+  color: hsl(186, 100%, 50%);
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+.prose-roll-cyberpunk h2 {
+  @apply text-xl mt-5 mb-2 first:mt-0;
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(300, 80%, 40%);
+  padding-left: 1em;
+  position: relative;
+}
+
+/* Neon bar accent for h2 */
+.prose-roll-cyberpunk h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 3px;
+  background: linear-gradient(180deg, hsl(186, 100%, 50%), hsl(300, 100%, 50%));
+  border-radius: 2px;
+}
+
+.prose-roll-cyberpunk h3 {
+  @apply text-lg mt-4 mb-2 first:mt-0;
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: hsl(186, 70%, 35%);
+}
+
+.prose-roll-cyberpunk h4 {
+  @apply text-base mt-3 mb-1 first:mt-0;
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  color: hsl(300, 60%, 40%);
+}
+
+.prose-roll-cyberpunk h5,
+.prose-roll-cyberpunk h6 {
+  @apply text-sm mt-3 mb-1 first:mt-0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.7rem;
+  color: hsl(186, 50%, 40%);
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll-cyberpunk p {
+  @apply my-3 first:mt-0 last:mb-0;
+}
+
+.prose-roll-cyberpunk strong {
+  font-weight: 700;
+  color: hsl(186, 100%, 30%);
+}
+
+.prose-roll-cyberpunk em {
+  font-style: italic;
+  color: hsl(300, 70%, 40%);
+}
+
+/* === LISTS - Tech/data styling === */
+
+.prose-roll-cyberpunk ul,
+.prose-roll-cyberpunk ol {
+  @apply my-3;
+  padding-left: 1.75em;
+  list-style: none;
+}
+
+.prose-roll-cyberpunk li {
+  @apply my-2;
+  position: relative;
+  padding-left: 0.5em;
+}
+
+/* Unordered list - chevron bullet */
+.prose-roll-cyberpunk ul > li::before {
+  content: '›';
+  position: absolute;
+  left: -1.2em;
+  color: hsl(186, 100%, 45%);
+  font-size: 1.2em;
+  font-weight: 700;
+  top: -0.1em;
+}
+
+/* Nested unordered */
+.prose-roll-cyberpunk ul ul > li::before {
+  content: '–';
+  color: hsl(300, 80%, 50%);
+  font-size: 1em;
+  top: 0;
+}
+
+/* Double nested */
+.prose-roll-cyberpunk ul ul ul > li::before {
+  content: '•';
+  color: hsl(60, 100%, 45%);
+  font-size: 0.8em;
+  top: 0.15em;
+}
+
+/* Ordered list - tech numbering */
+.prose-roll-cyberpunk ol {
+  counter-reset: cyber-counter;
+}
+
+.prose-roll-cyberpunk ol > li {
+  counter-increment: cyber-counter;
+}
+
+.prose-roll-cyberpunk ol > li::before {
+  content: '[' counter(cyber-counter, decimal-leading-zero) ']';
+  position: absolute;
+  left: -3em;
+  color: hsl(186, 100%, 40%);
+  font-weight: 600;
+  font-size: 0.85em;
+  font-family: 'Orbitron', monospace;
+  letter-spacing: -0.05em;
+}
+
+/* Nested ordered lists */
+.prose-roll-cyberpunk ol ol {
+  counter-reset: cyber-nested;
+}
+
+.prose-roll-cyberpunk ol ol > li {
+  counter-increment: cyber-nested;
+}
+
+.prose-roll-cyberpunk ol ol > li::before {
+  content: counter(cyber-nested, lower-alpha) '.';
+  color: hsl(300, 70%, 45%);
+  font-family: 'Rajdhani', sans-serif;
+  left: -2em;
+}
+
+/* Nested lists spacing */
+.prose-roll-cyberpunk li > ul,
+.prose-roll-cyberpunk li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items */
+.prose-roll-cyberpunk li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll-cyberpunk li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll-cyberpunk li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(186, 100%, 50%);
+}
+
+/* === CODE - Terminal style === */
+
+.prose-roll-cyberpunk code {
+  @apply px-1.5 py-0.5 rounded text-sm;
+  font-family: 'Share Tech Mono', 'Consolas', monospace;
+  background: hsl(220, 20%, 92%);
+  color: hsl(186, 100%, 30%);
+  border: 1px solid hsl(186, 50%, 70%);
+  font-size: 0.85em;
+}
+
+.prose-roll-cyberpunk pre {
+  @apply my-4 p-4 rounded overflow-x-auto;
+  background: hsl(220, 25%, 15%);
+  border: 1px solid hsl(186, 100%, 50% / 0.5);
+  box-shadow:
+    inset 0 0 30px hsl(260, 30%, 10%),
+    0 0 10px hsl(186, 100%, 50% / 0.2);
+}
+
+.prose-roll-cyberpunk pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: hsl(186, 100%, 70%);
+}
+
+/* === BLOCKQUOTES - Data transmission style === */
+
+.prose-roll-cyberpunk blockquote {
+  @apply my-4 py-4 px-5;
+  border: 1px solid hsl(186, 100%, 50% / 0.5);
+  border-left: 4px solid hsl(186, 100%, 50%);
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50% / 0.08) 0%,
+    transparent 100%);
+  color: hsl(220, 30%, 25%);
+  position: relative;
+}
+
+/* Data marker */
+.prose-roll-cyberpunk blockquote::before {
+  content: 'DATA://';
+  position: absolute;
+  top: -0.7em;
+  left: 1em;
+  font-size: 0.65rem;
+  font-family: 'Orbitron', monospace;
+  font-weight: 600;
+  color: hsl(186, 100%, 45%);
+  background: hsl(220, 20%, 97%);
+  padding: 0 0.5em;
+  letter-spacing: 0.1em;
+}
+
+.prose-roll-cyberpunk blockquote p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+/* === HORIZONTAL RULES - Circuit divider === */
+
+.prose-roll-cyberpunk hr {
+  @apply my-6;
+  border: none;
+  height: auto;
+  text-align: center;
+  background: none;
+  overflow: visible;
+}
+
+.prose-roll-cyberpunk hr::before {
+  content: '◢ ═══════════════════════ ◣';
+  display: block;
+  color: hsl(186, 100%, 50%);
+  font-size: 0.6rem;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.prose-roll-cyberpunk hr::after {
+  display: none;
+}
+
+/* === LINKS - Neon accent === */
+
+.prose-roll-cyberpunk a {
+  color: hsl(186, 100%, 35%);
+  text-decoration: none;
+  border-bottom: 1px solid hsl(186, 100%, 50% / 0.5);
+  transition: all 0.2s ease;
+}
+
+.prose-roll-cyberpunk a:hover {
+  color: hsl(300, 100%, 45%);
+  border-bottom-color: hsl(300, 100%, 50%);
+  text-shadow: 0 0 8px hsl(300, 100%, 50% / 0.5);
+}
+
+/* === TABLES - Data grid style === */
+
+.prose-roll-cyberpunk table {
+  @apply w-full text-sm my-4;
+  border-collapse: collapse;
+  border: 1px solid hsl(186, 100%, 50% / 0.5);
+  background: hsl(220, 15%, 97%);
+}
+
+.prose-roll-cyberpunk thead {
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50% / 0.15) 0%,
+    hsl(300, 100%, 50% / 0.1) 100%);
+}
+
+.prose-roll-cyberpunk th {
+  @apply px-4 py-2.5 text-left;
+  font-family: 'Orbitron', system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(186, 100%, 30%);
+  border-bottom: 2px solid hsl(186, 100%, 50%);
+  font-size: 0.75rem;
+}
+
+.prose-roll-cyberpunk td {
+  @apply px-4 py-2.5;
+  border-bottom: 1px solid hsl(186, 50%, 80%);
+  color: hsl(220, 25%, 25%);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+}
+
+.prose-roll-cyberpunk tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll-cyberpunk tbody tr:hover {
+  background: hsl(186, 100%, 50% / 0.08);
+}
+
+/* Alternating row colors */
+.prose-roll-cyberpunk tbody tr:nth-child(even) {
+  background: hsl(220, 20%, 95%);
+}
+
+.prose-roll-cyberpunk tbody tr:nth-child(even):hover {
+  background: hsl(186, 100%, 50% / 0.1);
+}
+
+/* === IMAGES === */
+
+.prose-roll-cyberpunk img {
+  @apply my-4 rounded;
+  border: 1px solid hsl(186, 100%, 50% / 0.5);
+  box-shadow: 0 0 20px hsl(186, 100%, 50% / 0.15);
+}
+
+/* ============================================================================
+   CYBERPUNK DARK MODE - Street-Level Neon
+   ============================================================================ */
+
+:is(.dark .prose-roll-cyberpunk) {
+  color: hsl(220, 20%, 85%);
+}
+
+/* Dark mode headers */
+:is(.dark .prose-roll-cyberpunk) h1 {
+  color: hsl(186, 100%, 60%);
+  text-shadow:
+    0 0 10px hsl(186, 100%, 50% / 0.8),
+    0 0 20px hsl(186, 100%, 50% / 0.4),
+    0 0 30px hsl(186, 100%, 50% / 0.2);
+}
+
+:is(.dark .prose-roll-cyberpunk) h1::after {
+  color: hsl(186, 100%, 60%);
+  opacity: 0.8;
+  text-shadow: 0 0 5px hsl(186, 100%, 50% / 0.5);
+}
+
+:is(.dark .prose-roll-cyberpunk) h2 {
+  color: hsl(300, 100%, 70%);
+  text-shadow:
+    0 0 8px hsl(300, 100%, 50% / 0.6),
+    0 0 15px hsl(300, 100%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll-cyberpunk) h2::before {
+  background: linear-gradient(180deg, hsl(186, 100%, 60%), hsl(300, 100%, 60%));
+  box-shadow: 0 0 8px hsl(186, 100%, 50% / 0.6);
+}
+
+:is(.dark .prose-roll-cyberpunk) h3 {
+  color: hsl(186, 100%, 65%);
+  text-shadow: 0 0 6px hsl(186, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) h4 {
+  color: hsl(300, 100%, 70%);
+  text-shadow: 0 0 5px hsl(300, 100%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll-cyberpunk) h5,
+:is(.dark .prose-roll-cyberpunk) h6 {
+  color: hsl(186, 80%, 60%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll-cyberpunk) strong {
+  color: hsl(186, 100%, 70%);
+  text-shadow: 0 0 4px hsl(186, 100%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll-cyberpunk) em {
+  color: hsl(300, 100%, 75%);
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll-cyberpunk) ul > li::before {
+  color: hsl(186, 100%, 60%);
+  text-shadow: 0 0 6px hsl(186, 100%, 50% / 0.5);
+}
+
+:is(.dark .prose-roll-cyberpunk) ul ul > li::before {
+  color: hsl(300, 100%, 70%);
+  text-shadow: 0 0 5px hsl(300, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) ul ul ul > li::before {
+  color: hsl(60, 100%, 60%);
+  text-shadow: 0 0 5px hsl(60, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) ol > li::before {
+  color: hsl(186, 100%, 60%);
+  text-shadow: 0 0 4px hsl(186, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) ol ol > li::before {
+  color: hsl(300, 100%, 70%);
+}
+
+:is(.dark .prose-roll-cyberpunk) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(186, 100%, 60%);
+}
+
+/* Dark mode code */
+:is(.dark .prose-roll-cyberpunk) code {
+  background: hsl(260, 30%, 15%);
+  color: hsl(186, 100%, 70%);
+  border-color: hsl(186, 100%, 50% / 0.4);
+  box-shadow: 0 0 5px hsl(186, 100%, 50% / 0.2);
+}
+
+:is(.dark .prose-roll-cyberpunk) pre {
+  background: linear-gradient(135deg,
+    hsl(260, 35%, 8%) 0%,
+    hsl(280, 30%, 6%) 100%);
+  border-color: hsl(186, 100%, 50% / 0.4);
+  box-shadow:
+    inset 0 0 40px hsl(260, 40%, 5%),
+    0 0 20px hsl(186, 100%, 50% / 0.15);
+}
+
+:is(.dark .prose-roll-cyberpunk) pre code {
+  color: hsl(186, 100%, 75%);
+  text-shadow: 0 0 2px hsl(186, 100%, 50% / 0.3);
+}
+
+/* Dark mode blockquote */
+:is(.dark .prose-roll-cyberpunk) blockquote {
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50% / 0.1) 0%,
+    transparent 100%);
+  border-color: hsl(186, 100%, 50% / 0.4);
+  border-left-color: hsl(186, 100%, 60%);
+  color: hsl(220, 20%, 80%);
+  box-shadow:
+    0 0 15px hsl(186, 100%, 50% / 0.1),
+    inset 0 0 30px hsl(260, 30%, 5% / 0.5);
+}
+
+:is(.dark .prose-roll-cyberpunk) blockquote::before {
+  color: hsl(186, 100%, 60%);
+  background: hsl(260, 30%, 8%);
+  text-shadow: 0 0 5px hsl(186, 100%, 50% / 0.5);
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll-cyberpunk) hr::before {
+  color: hsl(186, 100%, 60%);
+  text-shadow: 0 0 8px hsl(186, 100%, 50% / 0.6);
+}
+
+/* Dark mode links */
+:is(.dark .prose-roll-cyberpunk) a {
+  color: hsl(186, 100%, 65%);
+  border-bottom-color: hsl(186, 100%, 50% / 0.5);
+  text-shadow: 0 0 4px hsl(186, 100%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll-cyberpunk) a:hover {
+  color: hsl(300, 100%, 70%);
+  border-bottom-color: hsl(300, 100%, 60%);
+  text-shadow: 0 0 12px hsl(300, 100%, 50% / 0.6);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll-cyberpunk) table {
+  border-color: hsl(186, 100%, 50% / 0.4);
+  background: hsl(260, 30%, 8%);
+  box-shadow: 0 0 15px hsl(186, 100%, 50% / 0.1);
+}
+
+:is(.dark .prose-roll-cyberpunk) thead {
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50% / 0.2) 0%,
+    hsl(300, 100%, 50% / 0.15) 100%);
+}
+
+:is(.dark .prose-roll-cyberpunk) th {
+  color: hsl(186, 100%, 70%);
+  border-bottom-color: hsl(186, 100%, 50%);
+  text-shadow: 0 0 4px hsl(186, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) td {
+  border-bottom-color: hsl(260, 30%, 20%);
+  color: hsl(220, 15%, 80%);
+}
+
+:is(.dark .prose-roll-cyberpunk) tbody tr:hover {
+  background: hsl(186, 100%, 50% / 0.1);
+}
+
+:is(.dark .prose-roll-cyberpunk) tbody tr:nth-child(even) {
+  background: hsl(260, 25%, 10%);
+}
+
+:is(.dark .prose-roll-cyberpunk) tbody tr:nth-child(even):hover {
+  background: hsl(186, 100%, 50% / 0.12);
 }
 
 /* Dark mode images */
-:is(.dark .prose-roll-ttrpg) img {
-  border-color: hsl(30, 35%, 35%);
-  box-shadow: 2px 2px 12px hsl(0, 0%, 0% / 0.4);
+:is(.dark .prose-roll-cyberpunk) img {
+  border-color: hsl(186, 100%, 50% / 0.5);
+  box-shadow:
+    0 0 20px hsl(186, 100%, 50% / 0.25),
+    0 0 40px hsl(300, 100%, 50% / 0.1);
+}
+
+/* Roll button styling for Cyberpunk theme - LIGHT MODE */
+.btn-roll-cyberpunk {
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  background: linear-gradient(135deg,
+    hsl(220, 20%, 95%) 0%,
+    hsl(220, 15%, 90%) 100%);
+  color: hsl(186, 100%, 30%);
+  border: 2px solid hsl(186, 100%, 45%);
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  box-shadow:
+    0 0 0 1px hsl(186, 100%, 50% / 0.3),
+    0 4px 15px hsl(186, 100%, 40% / 0.2),
+    inset 0 1px 0 hsl(0, 0%, 100% / 0.5);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Scanline effect */
+.btn-roll-cyberpunk::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsl(186, 100%, 50% / 0.05) 2px,
+    hsl(186, 100%, 50% / 0.05) 4px
+  );
+  pointer-events: none;
+}
+
+.btn-roll-cyberpunk:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    hsl(186, 100%, 97%) 0%,
+    hsl(186, 50%, 92%) 100%);
+  border-color: hsl(186, 100%, 50%);
+  color: hsl(186, 100%, 25%);
+  box-shadow:
+    0 0 0 1px hsl(186, 100%, 50% / 0.5),
+    0 0 20px hsl(186, 100%, 50% / 0.3),
+    0 6px 20px hsl(186, 100%, 40% / 0.25),
+    inset 0 1px 0 hsl(0, 0%, 100% / 0.6);
+  transform: scale(1.02);
+}
+
+.btn-roll-cyberpunk:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow:
+    0 0 0 1px hsl(186, 100%, 50% / 0.4),
+    inset 0 2px 8px hsl(186, 100%, 30% / 0.2);
+}
+
+.btn-roll-cyberpunk:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Roll button styling for Cyberpunk theme - DARK MODE */
+.dark .btn-roll-cyberpunk {
+  background: linear-gradient(135deg,
+    hsl(260, 30%, 12%) 0%,
+    hsl(280, 25%, 8%) 100%);
+  color: hsl(186, 100%, 65%);
+  border: 2px solid hsl(186, 100%, 50%);
+  text-shadow: 0 0 8px hsl(186, 100%, 50% / 0.5);
+  box-shadow:
+    0 0 20px hsl(186, 100%, 50% / 0.3),
+    0 0 40px hsl(300, 100%, 50% / 0.1),
+    inset 0 0 30px hsl(260, 40%, 5%);
+}
+
+.dark .btn-roll-cyberpunk::before {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsl(186, 100%, 50% / 0.08) 2px,
+    hsl(186, 100%, 50% / 0.08) 4px
+  );
+}
+
+.dark .btn-roll-cyberpunk:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    hsl(260, 35%, 15%) 0%,
+    hsl(280, 30%, 10%) 100%);
+  border-color: hsl(186, 100%, 60%);
+  color: hsl(186, 100%, 75%);
+  text-shadow: 0 0 12px hsl(186, 100%, 50% / 0.7);
+  box-shadow:
+    0 0 30px hsl(186, 100%, 50% / 0.4),
+    0 0 60px hsl(300, 100%, 50% / 0.15),
+    inset 0 0 40px hsl(260, 40%, 8%);
+  transform: scale(1.02);
+}
+
+.dark .btn-roll-cyberpunk:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow:
+    0 0 15px hsl(186, 100%, 50% / 0.3),
+    inset 0 3px 10px hsl(260, 50%, 5%);
+}
+
+/* ============================================================================
+   SLEEK THEME - Refined Editorial Elegance
+   A sophisticated, minimal design with exceptional typography and subtle depth.
+   Fonts: Sora (headers), Outfit (body)
+   Colors: Cool slate grays with refined indigo accents
+   ============================================================================ */
+
+/* Card styling for Sleek theme - LIGHT MODE */
+.card-result-sleek {
+  font-family: 'Outfit', system-ui, sans-serif;
+  background: linear-gradient(180deg,
+    hsl(220, 25%, 99%) 0%,
+    hsl(220, 20%, 97%) 100%);
+  border: 1px solid hsl(220, 20%, 90%);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px hsl(220, 30%, 85% / 0.3),
+    0 4px 12px hsl(220, 30%, 80% / 0.08),
+    0 8px 24px hsl(220, 30%, 70% / 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle accent line at top */
+.card-result-sleek::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    hsl(240, 50%, 65%) 0%,
+    hsl(260, 45%, 60%) 50%,
+    hsl(280, 40%, 65%) 100%);
+  opacity: 0.7;
+}
+
+/* Card styling for Sleek theme - DARK MODE */
+.dark .card-result-sleek {
+  background: linear-gradient(180deg,
+    hsl(230, 20%, 12%) 0%,
+    hsl(230, 22%, 10%) 100%);
+  border-color: hsl(230, 25%, 20%);
+  box-shadow:
+    0 1px 2px hsl(230, 30%, 5% / 0.4),
+    0 4px 16px hsl(230, 30%, 5% / 0.3),
+    0 8px 32px hsl(230, 30%, 5% / 0.2),
+    inset 0 1px 0 hsl(230, 20%, 18%);
+}
+
+.dark .card-result-sleek::before {
+  background: linear-gradient(90deg,
+    hsl(240, 60%, 70%) 0%,
+    hsl(260, 55%, 68%) 50%,
+    hsl(280, 50%, 72%) 100%);
+  opacity: 0.6;
+}
+
+/* History item styling for Sleek theme - LIGHT MODE */
+.history-item-sleek {
+  font-family: 'Outfit', system-ui, sans-serif;
+  background: hsl(220, 20%, 98%);
+  border: 1px solid hsl(220, 18%, 92%);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 3px hsl(220, 25%, 85% / 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.history-item-sleek:hover {
+  background: hsl(220, 22%, 97%);
+  border-color: hsl(250, 40%, 80%);
+  box-shadow:
+    0 2px 8px hsl(250, 30%, 75% / 0.15);
+}
+
+/* History item styling for Sleek theme - DARK MODE */
+.dark .history-item-sleek {
+  background: hsl(230, 18%, 11%);
+  border-color: hsl(230, 20%, 18%);
+  box-shadow:
+    0 1px 3px hsl(230, 25%, 5% / 0.3),
+    inset 0 1px 0 hsl(230, 18%, 15%);
+}
+
+.dark .history-item-sleek:hover {
+  background: hsl(230, 20%, 13%);
+  border-color: hsl(250, 45%, 45%);
+  box-shadow:
+    0 2px 12px hsl(250, 50%, 40% / 0.15);
+}
+
+/* ============================================================================
+   SLEEK PROSE STYLING - LIGHT MODE
+   Clean, editorial typography with refined spacing
+   ============================================================================ */
+
+.prose-roll-sleek {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.75;
+  font-weight: 400;
+  color: hsl(220, 20%, 20%);
+  letter-spacing: -0.01em;
+}
+
+/* === HEADERS - Clean hierarchy with Sora === */
+
+.prose-roll-sleek h1 {
+  @apply text-2xl mt-8 mb-4 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: hsl(230, 25%, 15%);
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+/* Minimal underline accent */
+.prose-roll-sleek h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 2.5rem;
+  height: 2px;
+  background: linear-gradient(90deg,
+    hsl(250, 50%, 60%) 0%,
+    hsl(260, 45%, 65%) 100%);
+  border-radius: 1px;
+}
+
+.prose-roll-sleek h2 {
+  @apply text-xl mt-7 mb-3 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: hsl(230, 22%, 18%);
+}
+
+.prose-roll-sleek h3 {
+  @apply text-lg mt-6 mb-3 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: hsl(230, 20%, 22%);
+}
+
+.prose-roll-sleek h4 {
+  @apply text-base mt-5 mb-2 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: hsl(230, 18%, 28%);
+}
+
+.prose-roll-sleek h5,
+.prose-roll-sleek h6 {
+  @apply text-sm mt-4 mb-2 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(230, 15%, 45%);
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll-sleek p {
+  @apply my-4 first:mt-0 last:mb-0;
+}
+
+.prose-roll-sleek strong {
+  font-weight: 600;
+  color: hsl(230, 25%, 15%);
+}
+
+.prose-roll-sleek em {
+  font-style: italic;
+  color: hsl(230, 18%, 30%);
+}
+
+/* === LISTS - Clean minimal bullets === */
+
+.prose-roll-sleek ul,
+.prose-roll-sleek ol {
+  @apply my-4;
+  padding-left: 1.5rem;
+}
+
+.prose-roll-sleek li {
+  @apply my-2;
+  position: relative;
+}
+
+/* Unordered list - simple dot */
+.prose-roll-sleek ul {
+  list-style: none;
+}
+
+.prose-roll-sleek ul > li::before {
+  content: '';
+  position: absolute;
+  left: -1.25rem;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  background: linear-gradient(135deg,
+    hsl(250, 50%, 60%) 0%,
+    hsl(260, 45%, 55%) 100%);
+  border-radius: 50%;
+}
+
+.prose-roll-sleek ul ul > li::before {
+  background: hsl(230, 15%, 65%);
+  width: 4px;
+  height: 4px;
+}
+
+.prose-roll-sleek ul ul ul > li::before {
+  background: hsl(230, 10%, 75%);
+  width: 3px;
+  height: 3px;
+}
+
+/* Ordered list - clean numbers */
+.prose-roll-sleek ol {
+  list-style: none;
+  counter-reset: sleek-counter;
+}
+
+.prose-roll-sleek ol > li {
+  counter-increment: sleek-counter;
+}
+
+.prose-roll-sleek ol > li::before {
+  content: counter(sleek-counter);
+  position: absolute;
+  left: -1.5rem;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.85em;
+  color: hsl(250, 45%, 55%);
+}
+
+.prose-roll-sleek ol ol > li::before {
+  color: hsl(230, 20%, 55%);
+  font-size: 0.8em;
+}
+
+/* Nested lists spacing */
+.prose-roll-sleek li > ul,
+.prose-roll-sleek li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items */
+.prose-roll-sleek li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll-sleek li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll-sleek li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(250, 50%, 55%);
+}
+
+/* === CODE - Refined monospace === */
+
+.prose-roll-sleek code {
+  @apply px-1.5 py-0.5 rounded text-sm;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  background: hsl(230, 25%, 95%);
+  color: hsl(250, 50%, 45%);
+  border: 1px solid hsl(230, 20%, 90%);
+  font-size: 0.875em;
+}
+
+.prose-roll-sleek pre {
+  @apply my-5 p-5 rounded-lg overflow-x-auto;
+  background: linear-gradient(180deg,
+    hsl(230, 25%, 97%) 0%,
+    hsl(230, 22%, 95%) 100%);
+  border: 1px solid hsl(230, 20%, 90%);
+  box-shadow:
+    inset 0 1px 3px hsl(230, 20%, 90% / 0.5);
+}
+
+.prose-roll-sleek pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: hsl(230, 20%, 25%);
+}
+
+/* === BLOCKQUOTES - Elegant sidebar accent === */
+
+.prose-roll-sleek blockquote {
+  @apply my-6 py-4 px-6;
+  background: hsl(250, 30%, 98%);
+  border: none;
+  border-left: 3px solid hsl(250, 50%, 60%);
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: hsl(230, 18%, 30%);
+  font-style: italic;
+  position: relative;
+}
+
+.prose-roll-sleek blockquote p {
+  margin: 0;
+}
+
+/* === HORIZONTAL RULES - Subtle divider === */
+
+.prose-roll-sleek hr {
+  @apply my-10;
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(230, 20%, 85%) 20%,
+    hsl(250, 30%, 75%) 50%,
+    hsl(230, 20%, 85%) 80%,
+    transparent 100%);
+}
+
+/* === LINKS - Refined underline === */
+
+.prose-roll-sleek a {
+  color: hsl(250, 55%, 50%);
+  text-decoration: none;
+  border-bottom: 1px solid hsl(250, 40%, 75%);
+  transition: all 0.2s ease;
+}
+
+.prose-roll-sleek a:hover {
+  color: hsl(260, 60%, 45%);
+  border-bottom-color: hsl(260, 50%, 55%);
+}
+
+/* === TABLES - Clean modern grid === */
+
+.prose-roll-sleek table {
+  @apply w-full text-sm my-6;
+  border-collapse: collapse;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px hsl(230, 20%, 85% / 0.3);
+}
+
+.prose-roll-sleek thead {
+  background: hsl(230, 25%, 96%);
+}
+
+.prose-roll-sleek th {
+  @apply px-4 py-3 text-left;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(230, 15%, 45%);
+  border-bottom: 1px solid hsl(230, 18%, 88%);
+}
+
+.prose-roll-sleek td {
+  @apply px-4 py-3;
+  border-bottom: 1px solid hsl(230, 15%, 92%);
+  color: hsl(230, 18%, 25%);
+}
+
+.prose-roll-sleek tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll-sleek tbody tr:hover {
+  background: hsl(250, 30%, 98%);
+}
+
+/* === IMAGES - Clean frame === */
+
+.prose-roll-sleek img {
+  @apply my-6 rounded-lg;
+  box-shadow:
+    0 2px 8px hsl(230, 20%, 80% / 0.3),
+    0 8px 24px hsl(230, 20%, 70% / 0.15);
+}
+
+/* ============================================================================
+   SLEEK DARK MODE
+   Deep slate with refined violet accents
+   ============================================================================ */
+
+:is(.dark .prose-roll-sleek) {
+  color: hsl(220, 15%, 85%);
+}
+
+/* Dark mode headers */
+:is(.dark .prose-roll-sleek) h1 {
+  color: hsl(220, 20%, 95%);
+}
+
+:is(.dark .prose-roll-sleek) h1::after {
+  background: linear-gradient(90deg,
+    hsl(250, 60%, 70%) 0%,
+    hsl(265, 55%, 72%) 100%);
+}
+
+:is(.dark .prose-roll-sleek) h2 {
+  color: hsl(220, 18%, 92%);
+}
+
+:is(.dark .prose-roll-sleek) h3 {
+  color: hsl(220, 16%, 88%);
+}
+
+:is(.dark .prose-roll-sleek) h4 {
+  color: hsl(220, 14%, 82%);
+}
+
+:is(.dark .prose-roll-sleek) h5,
+:is(.dark .prose-roll-sleek) h6 {
+  color: hsl(220, 12%, 60%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll-sleek) strong {
+  color: hsl(220, 20%, 95%);
+}
+
+:is(.dark .prose-roll-sleek) em {
+  color: hsl(220, 15%, 78%);
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll-sleek) ul > li::before {
+  background: linear-gradient(135deg,
+    hsl(250, 60%, 68%) 0%,
+    hsl(265, 55%, 65%) 100%);
+}
+
+:is(.dark .prose-roll-sleek) ul ul > li::before {
+  background: hsl(230, 20%, 50%);
+}
+
+:is(.dark .prose-roll-sleek) ul ul ul > li::before {
+  background: hsl(230, 15%, 40%);
+}
+
+:is(.dark .prose-roll-sleek) ol > li::before {
+  color: hsl(250, 55%, 70%);
+}
+
+:is(.dark .prose-roll-sleek) ol ol > li::before {
+  color: hsl(230, 25%, 55%);
+}
+
+:is(.dark .prose-roll-sleek) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(250, 55%, 65%);
+}
+
+/* Dark mode code */
+:is(.dark .prose-roll-sleek) code {
+  background: hsl(230, 22%, 15%);
+  color: hsl(250, 60%, 75%);
+  border-color: hsl(230, 20%, 22%);
+}
+
+:is(.dark .prose-roll-sleek) pre {
+  background: linear-gradient(180deg,
+    hsl(230, 22%, 11%) 0%,
+    hsl(230, 24%, 9%) 100%);
+  border-color: hsl(230, 20%, 18%);
+  box-shadow:
+    inset 0 1px 4px hsl(230, 25%, 5% / 0.4);
+}
+
+:is(.dark .prose-roll-sleek) pre code {
+  color: hsl(220, 15%, 80%);
+}
+
+/* Dark mode blockquote */
+:is(.dark .prose-roll-sleek) blockquote {
+  background: hsl(250, 25%, 12%);
+  border-left-color: hsl(250, 55%, 60%);
+  color: hsl(220, 15%, 78%);
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll-sleek) hr {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(230, 20%, 25%) 20%,
+    hsl(250, 35%, 45%) 50%,
+    hsl(230, 20%, 25%) 80%,
+    transparent 100%);
+}
+
+/* Dark mode links */
+:is(.dark .prose-roll-sleek) a {
+  color: hsl(250, 65%, 72%);
+  border-bottom-color: hsl(250, 45%, 50%);
+}
+
+:is(.dark .prose-roll-sleek) a:hover {
+  color: hsl(260, 70%, 78%);
+  border-bottom-color: hsl(260, 55%, 65%);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll-sleek) table {
+  box-shadow: 0 1px 3px hsl(230, 25%, 5% / 0.4);
+}
+
+:is(.dark .prose-roll-sleek) thead {
+  background: hsl(230, 22%, 14%);
+}
+
+:is(.dark .prose-roll-sleek) th {
+  color: hsl(220, 15%, 60%);
+  border-bottom-color: hsl(230, 20%, 20%);
+}
+
+:is(.dark .prose-roll-sleek) td {
+  border-bottom-color: hsl(230, 18%, 16%);
+  color: hsl(220, 15%, 80%);
+}
+
+:is(.dark .prose-roll-sleek) tbody tr:hover {
+  background: hsl(250, 30%, 14%);
+}
+
+/* Dark mode images */
+:is(.dark .prose-roll-sleek) img {
+  box-shadow:
+    0 2px 8px hsl(230, 25%, 5% / 0.4),
+    0 8px 24px hsl(230, 25%, 5% / 0.3);
+}
+
+/* Roll button styling for Sleek theme - LIGHT MODE */
+.btn-roll-sleek {
+  font-family: 'Sora', system-ui, sans-serif;
+  background: linear-gradient(180deg,
+    hsl(250, 50%, 55%) 0%,
+    hsl(255, 48%, 50%) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  box-shadow:
+    0 1px 2px hsl(250, 50%, 30% / 0.2),
+    0 4px 12px hsl(250, 50%, 40% / 0.25),
+    inset 0 1px 0 hsl(250, 60%, 70% / 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-roll-sleek:hover:not(:disabled) {
+  background: linear-gradient(180deg,
+    hsl(250, 55%, 58%) 0%,
+    hsl(255, 52%, 53%) 100%);
+  box-shadow:
+    0 2px 4px hsl(250, 50%, 30% / 0.2),
+    0 8px 20px hsl(250, 50%, 40% / 0.3),
+    inset 0 1px 0 hsl(250, 65%, 75% / 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-roll-sleek:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 2px hsl(250, 50%, 30% / 0.2),
+    inset 0 2px 4px hsl(250, 60%, 35% / 0.2);
+}
+
+.btn-roll-sleek:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Roll button styling for Sleek theme - DARK MODE */
+.dark .btn-roll-sleek {
+  background: linear-gradient(180deg,
+    hsl(250, 55%, 58%) 0%,
+    hsl(255, 50%, 52%) 100%);
+  box-shadow:
+    0 1px 2px hsl(230, 30%, 5% / 0.3),
+    0 4px 16px hsl(250, 60%, 40% / 0.25),
+    inset 0 1px 0 hsl(250, 70%, 75% / 0.2);
+}
+
+.dark .btn-roll-sleek:hover:not(:disabled) {
+  background: linear-gradient(180deg,
+    hsl(250, 60%, 62%) 0%,
+    hsl(255, 55%, 56%) 100%);
+  box-shadow:
+    0 2px 4px hsl(230, 30%, 5% / 0.3),
+    0 8px 24px hsl(250, 60%, 45% / 0.3),
+    inset 0 1px 0 hsl(250, 75%, 80% / 0.2);
+}
+
+/* ============================================================================
+   WHIMSICAL THEME - Playful Colors & Joy
+   A vibrant, colorful design bursting with complementary hues and playful energy.
+   Fonts: Fredoka (headers - bubbly & rounded), Nunito (body - soft & readable)
+   Colors: Coral, Teal, Sunny Yellow, Lavender, Mint - a joyful complementary palette
+   ============================================================================ */
+
+/* Card styling for Whimsical theme - LIGHT MODE */
+.card-result-whimsical {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: linear-gradient(135deg,
+    hsl(45, 100%, 97%) 0%,
+    hsl(180, 60%, 97%) 50%,
+    hsl(330, 70%, 97%) 100%);
+  border: 2px solid hsl(175, 65%, 55%);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 4px 0 hsl(175, 65%, 45%),
+    0 8px 20px hsl(175, 50%, 50% / 0.15),
+    inset 0 2px 0 hsl(45, 100%, 95%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Colorful corner decorations */
+.card-result-whimsical::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle,
+    hsl(10, 85%, 65%) 0%,
+    hsl(10, 85%, 65%) 30%,
+    transparent 30%),
+    radial-gradient(circle at 60% 60%,
+    hsl(45, 95%, 60%) 0%,
+    hsl(45, 95%, 60%) 20%,
+    transparent 20%),
+    radial-gradient(circle at 30% 70%,
+    hsl(280, 70%, 70%) 0%,
+    hsl(280, 70%, 70%) 15%,
+    transparent 15%);
+  opacity: 0.8;
+}
+
+.card-result-whimsical::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: -20px;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle,
+    hsl(160, 70%, 55%) 0%,
+    hsl(160, 70%, 55%) 25%,
+    transparent 25%),
+    radial-gradient(circle at 70% 30%,
+    hsl(200, 80%, 60%) 0%,
+    hsl(200, 80%, 60%) 18%,
+    transparent 18%);
+  opacity: 0.7;
+}
+
+/* Card styling for Whimsical theme - DARK MODE */
+.dark .card-result-whimsical {
+  background: linear-gradient(135deg,
+    hsl(260, 30%, 15%) 0%,
+    hsl(200, 35%, 12%) 50%,
+    hsl(340, 30%, 15%) 100%);
+  border-color: hsl(175, 70%, 50%);
+  box-shadow:
+    0 4px 0 hsl(175, 60%, 35%),
+    0 8px 25px hsl(175, 50%, 30% / 0.3),
+    0 0 40px hsl(280, 60%, 40% / 0.1),
+    inset 0 1px 0 hsl(260, 30%, 22%);
+}
+
+.dark .card-result-whimsical::before {
+  background: radial-gradient(circle,
+    hsl(10, 80%, 60%) 0%,
+    hsl(10, 80%, 60%) 30%,
+    transparent 30%),
+    radial-gradient(circle at 60% 60%,
+    hsl(45, 90%, 55%) 0%,
+    hsl(45, 90%, 55%) 20%,
+    transparent 20%),
+    radial-gradient(circle at 30% 70%,
+    hsl(280, 65%, 65%) 0%,
+    hsl(280, 65%, 65%) 15%,
+    transparent 15%);
+  opacity: 0.6;
+}
+
+.dark .card-result-whimsical::after {
+  background: radial-gradient(circle,
+    hsl(160, 65%, 50%) 0%,
+    hsl(160, 65%, 50%) 25%,
+    transparent 25%),
+    radial-gradient(circle at 70% 30%,
+    hsl(200, 75%, 55%) 0%,
+    hsl(200, 75%, 55%) 18%,
+    transparent 18%);
+  opacity: 0.5;
+}
+
+/* History item styling for Whimsical theme - LIGHT MODE */
+.history-item-whimsical {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: linear-gradient(90deg,
+    hsl(45, 100%, 96%) 0%,
+    hsl(180, 50%, 96%) 100%);
+  border: 2px solid hsl(10, 80%, 70%);
+  border-radius: 1rem;
+  box-shadow:
+    0 3px 0 hsl(10, 70%, 60%),
+    0 6px 12px hsl(10, 60%, 50% / 0.1);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.history-item-whimsical:hover {
+  border-color: hsl(280, 65%, 65%);
+  box-shadow:
+    0 3px 0 hsl(280, 55%, 55%),
+    0 8px 16px hsl(280, 50%, 50% / 0.15);
+  transform: translateY(-2px);
+}
+
+/* History item styling for Whimsical theme - DARK MODE */
+.dark .history-item-whimsical {
+  background: linear-gradient(90deg,
+    hsl(260, 25%, 14%) 0%,
+    hsl(200, 30%, 13%) 100%);
+  border-color: hsl(10, 75%, 60%);
+  box-shadow:
+    0 3px 0 hsl(10, 65%, 45%),
+    0 6px 15px hsl(0, 0%, 0% / 0.25);
+}
+
+.dark .history-item-whimsical:hover {
+  border-color: hsl(280, 60%, 60%);
+  box-shadow:
+    0 3px 0 hsl(280, 50%, 45%),
+    0 8px 20px hsl(280, 50%, 40% / 0.2);
+}
+
+/* ============================================================================
+   WHIMSICAL PROSE STYLING - LIGHT MODE
+   Colorful, playful typography with joyful accents
+   ============================================================================ */
+
+.prose-roll-whimsical {
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.8;
+  font-weight: 500;
+  color: hsl(220, 30%, 25%);
+}
+
+/* === HEADERS - Bubbly Fredoka with color variety === */
+
+.prose-roll-whimsical h1 {
+  @apply text-2xl mt-8 mb-4 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  color: hsl(10, 75%, 50%);
+  position: relative;
+  display: inline-block;
+}
+
+/* Decorative underline with gradient */
+.prose-roll-whimsical h1::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    hsl(10, 85%, 60%) 0%,
+    hsl(45, 95%, 55%) 33%,
+    hsl(175, 70%, 45%) 66%,
+    hsl(280, 65%, 60%) 100%);
+  border-radius: 2px;
+}
+
+.prose-roll-whimsical h2 {
+  @apply text-xl mt-7 mb-3 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  color: hsl(175, 65%, 40%);
+}
+
+.prose-roll-whimsical h3 {
+  @apply text-lg mt-6 mb-3 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 500;
+  color: hsl(280, 55%, 50%);
+}
+
+.prose-roll-whimsical h4 {
+  @apply text-base mt-5 mb-2 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 500;
+  color: hsl(45, 80%, 40%);
+}
+
+.prose-roll-whimsical h5,
+.prose-roll-whimsical h6 {
+  @apply text-sm mt-4 mb-2 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 500;
+  color: hsl(200, 70%, 45%);
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll-whimsical p {
+  @apply my-4 first:mt-0 last:mb-0;
+}
+
+.prose-roll-whimsical strong {
+  font-weight: 700;
+  color: hsl(10, 70%, 45%);
+}
+
+.prose-roll-whimsical em {
+  font-style: italic;
+  color: hsl(280, 50%, 45%);
+}
+
+/* === LISTS - Colorful playful bullets === */
+
+.prose-roll-whimsical ul,
+.prose-roll-whimsical ol {
+  @apply my-4;
+  padding-left: 1.75rem;
+}
+
+.prose-roll-whimsical li {
+  @apply my-2;
+  position: relative;
+}
+
+/* Unordered list - colorful circles */
+.prose-roll-whimsical ul {
+  list-style: none;
+}
+
+.prose-roll-whimsical ul > li::before {
+  content: '●';
+  position: absolute;
+  left: -1.5rem;
+  color: hsl(10, 80%, 60%);
+  font-size: 0.75em;
+  top: 0.35em;
+}
+
+.prose-roll-whimsical ul > li:nth-child(2n)::before {
+  color: hsl(175, 70%, 45%);
+}
+
+.prose-roll-whimsical ul > li:nth-child(3n)::before {
+  color: hsl(280, 60%, 60%);
+}
+
+.prose-roll-whimsical ul > li:nth-child(4n)::before {
+  color: hsl(45, 90%, 50%);
+}
+
+.prose-roll-whimsical ul ul > li::before {
+  content: '○';
+  color: hsl(200, 70%, 50%);
+  font-size: 0.7em;
+}
+
+.prose-roll-whimsical ul ul ul > li::before {
+  content: '◆';
+  color: hsl(160, 60%, 45%);
+  font-size: 0.55em;
+  top: 0.45em;
+}
+
+/* Ordered list - colorful numbers */
+.prose-roll-whimsical ol {
+  list-style: none;
+  counter-reset: whimsy-counter;
+}
+
+.prose-roll-whimsical ol > li {
+  counter-increment: whimsy-counter;
+}
+
+.prose-roll-whimsical ol > li::before {
+  content: counter(whimsy-counter);
+  position: absolute;
+  left: -1.75rem;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.9em;
+  color: hsl(175, 65%, 45%);
+  background: hsl(175, 65%, 92%);
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 0.15em;
+}
+
+.prose-roll-whimsical ol > li:nth-child(2n)::before {
+  color: hsl(10, 75%, 50%);
+  background: hsl(10, 80%, 92%);
+}
+
+.prose-roll-whimsical ol > li:nth-child(3n)::before {
+  color: hsl(280, 55%, 55%);
+  background: hsl(280, 60%, 92%);
+}
+
+.prose-roll-whimsical ol ol > li::before {
+  font-size: 0.75em;
+  width: 1.2em;
+  height: 1.2em;
+  background: hsl(45, 90%, 88%);
+  color: hsl(45, 80%, 40%);
+}
+
+/* Nested lists spacing */
+.prose-roll-whimsical li > ul,
+.prose-roll-whimsical li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items */
+.prose-roll-whimsical li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll-whimsical li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll-whimsical li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(175, 70%, 45%);
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* === CODE - Playful code blocks === */
+
+.prose-roll-whimsical code {
+  @apply px-2 py-1 rounded-lg text-sm;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  background: linear-gradient(135deg,
+    hsl(280, 50%, 95%) 0%,
+    hsl(200, 50%, 95%) 100%);
+  color: hsl(280, 60%, 45%);
+  border: 1px solid hsl(280, 40%, 85%);
+  font-size: 0.875em;
+}
+
+.prose-roll-whimsical pre {
+  @apply my-5 p-5 rounded-2xl overflow-x-auto;
+  background: linear-gradient(135deg,
+    hsl(45, 60%, 97%) 0%,
+    hsl(175, 40%, 96%) 50%,
+    hsl(280, 40%, 97%) 100%);
+  border: 2px solid hsl(175, 50%, 70%);
+  box-shadow:
+    0 4px 0 hsl(175, 45%, 60%),
+    0 8px 16px hsl(175, 40%, 50% / 0.1);
+}
+
+.prose-roll-whimsical pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: hsl(220, 25%, 30%);
+}
+
+/* === BLOCKQUOTES - Fun colorful callout === */
+
+.prose-roll-whimsical blockquote {
+  @apply my-6 py-4 px-6;
+  background: linear-gradient(135deg,
+    hsl(45, 100%, 95%) 0%,
+    hsl(45, 90%, 92%) 100%);
+  border: 2px solid hsl(45, 85%, 60%);
+  border-left-width: 6px;
+  border-radius: 0 1rem 1rem 0;
+  color: hsl(30, 50%, 30%);
+  position: relative;
+  box-shadow:
+    0 3px 0 hsl(45, 75%, 50%),
+    0 6px 12px hsl(45, 60%, 50% / 0.1);
+}
+
+.prose-roll-whimsical blockquote::before {
+  content: '💬';
+  position: absolute;
+  top: -12px;
+  left: 12px;
+  font-size: 1.25rem;
+  background: hsl(45, 100%, 95%);
+  padding: 0 4px;
+}
+
+.prose-roll-whimsical blockquote p {
+  margin: 0;
+}
+
+/* === HORIZONTAL RULES - Rainbow divider === */
+
+.prose-roll-whimsical hr {
+  @apply my-10;
+  border: none;
+  height: 4px;
+  background: linear-gradient(90deg,
+    hsl(10, 85%, 60%) 0%,
+    hsl(45, 95%, 55%) 25%,
+    hsl(160, 70%, 50%) 50%,
+    hsl(200, 80%, 55%) 75%,
+    hsl(280, 65%, 60%) 100%);
+  border-radius: 2px;
+  box-shadow: 0 2px 4px hsl(200, 50%, 50% / 0.2);
+}
+
+/* === LINKS - Colorful bouncy links === */
+
+.prose-roll-whimsical a {
+  color: hsl(200, 75%, 45%);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 2px solid hsl(200, 60%, 70%);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.prose-roll-whimsical a:hover {
+  color: hsl(10, 80%, 50%);
+  border-bottom-color: hsl(10, 70%, 60%);
+  transform: translateY(-1px);
+}
+
+/* === TABLES - Colorful playful grid === */
+
+.prose-roll-whimsical table {
+  @apply w-full text-sm my-6;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 2px solid hsl(175, 60%, 55%);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow:
+    0 4px 0 hsl(175, 50%, 45%),
+    0 8px 16px hsl(175, 40%, 50% / 0.1);
+}
+
+.prose-roll-whimsical thead {
+  background: linear-gradient(90deg,
+    hsl(10, 80%, 65%) 0%,
+    hsl(45, 90%, 60%) 50%,
+    hsl(175, 65%, 50%) 100%);
+}
+
+.prose-roll-whimsical th {
+  @apply px-4 py-3 text-left;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px hsl(0, 0%, 0% / 0.2);
+}
+
+.prose-roll-whimsical td {
+  @apply px-4 py-3;
+  border-bottom: 1px solid hsl(175, 40%, 85%);
+  color: hsl(220, 25%, 30%);
+}
+
+.prose-roll-whimsical tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll-whimsical tbody tr:nth-child(even) {
+  background: hsl(175, 50%, 96%);
+}
+
+.prose-roll-whimsical tbody tr:hover {
+  background: hsl(45, 80%, 94%);
+}
+
+/* === IMAGES - Fun bordered frame === */
+
+.prose-roll-whimsical img {
+  @apply my-6 rounded-2xl;
+  border: 3px solid hsl(280, 55%, 60%);
+  box-shadow:
+    0 4px 0 hsl(280, 45%, 50%),
+    0 8px 20px hsl(280, 40%, 50% / 0.15);
+}
+
+/* ============================================================================
+   WHIMSICAL DARK MODE
+   Rich deep colors with vibrant accents
+   ============================================================================ */
+
+:is(.dark .prose-roll-whimsical) {
+  color: hsl(45, 30%, 88%);
+}
+
+/* Dark mode headers - vibrant colors */
+:is(.dark .prose-roll-whimsical) h1 {
+  color: hsl(10, 80%, 65%);
+}
+
+:is(.dark .prose-roll-whimsical) h1::after {
+  background: linear-gradient(90deg,
+    hsl(10, 80%, 60%) 0%,
+    hsl(45, 90%, 58%) 33%,
+    hsl(175, 65%, 50%) 66%,
+    hsl(280, 60%, 65%) 100%);
+}
+
+:is(.dark .prose-roll-whimsical) h2 {
+  color: hsl(175, 70%, 55%);
+}
+
+:is(.dark .prose-roll-whimsical) h3 {
+  color: hsl(280, 60%, 70%);
+}
+
+:is(.dark .prose-roll-whimsical) h4 {
+  color: hsl(45, 85%, 60%);
+}
+
+:is(.dark .prose-roll-whimsical) h5,
+:is(.dark .prose-roll-whimsical) h6 {
+  color: hsl(200, 75%, 60%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll-whimsical) strong {
+  color: hsl(10, 75%, 65%);
+}
+
+:is(.dark .prose-roll-whimsical) em {
+  color: hsl(280, 55%, 72%);
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll-whimsical) ul > li::before {
+  color: hsl(10, 75%, 65%);
+}
+
+:is(.dark .prose-roll-whimsical) ul > li:nth-child(2n)::before {
+  color: hsl(175, 65%, 55%);
+}
+
+:is(.dark .prose-roll-whimsical) ul > li:nth-child(3n)::before {
+  color: hsl(280, 55%, 70%);
+}
+
+:is(.dark .prose-roll-whimsical) ul > li:nth-child(4n)::before {
+  color: hsl(45, 85%, 60%);
+}
+
+:is(.dark .prose-roll-whimsical) ul ul > li::before {
+  color: hsl(200, 70%, 60%);
+}
+
+:is(.dark .prose-roll-whimsical) ul ul ul > li::before {
+  color: hsl(160, 55%, 55%);
+}
+
+:is(.dark .prose-roll-whimsical) ol > li::before {
+  color: hsl(175, 60%, 50%);
+  background: hsl(175, 40%, 20%);
+}
+
+:is(.dark .prose-roll-whimsical) ol > li:nth-child(2n)::before {
+  color: hsl(10, 70%, 60%);
+  background: hsl(10, 50%, 20%);
+}
+
+:is(.dark .prose-roll-whimsical) ol > li:nth-child(3n)::before {
+  color: hsl(280, 50%, 68%);
+  background: hsl(280, 35%, 20%);
+}
+
+:is(.dark .prose-roll-whimsical) ol ol > li::before {
+  background: hsl(45, 60%, 22%);
+  color: hsl(45, 75%, 60%);
+}
+
+:is(.dark .prose-roll-whimsical) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(175, 65%, 50%);
+}
+
+/* Dark mode code */
+:is(.dark .prose-roll-whimsical) code {
+  background: linear-gradient(135deg,
+    hsl(280, 35%, 18%) 0%,
+    hsl(200, 35%, 18%) 100%);
+  color: hsl(280, 60%, 75%);
+  border-color: hsl(280, 35%, 30%);
+}
+
+:is(.dark .prose-roll-whimsical) pre {
+  background: linear-gradient(135deg,
+    hsl(260, 25%, 12%) 0%,
+    hsl(200, 30%, 11%) 50%,
+    hsl(340, 25%, 12%) 100%);
+  border-color: hsl(175, 55%, 45%);
+  box-shadow:
+    0 4px 0 hsl(175, 45%, 32%),
+    0 8px 20px hsl(0, 0%, 0% / 0.3);
+}
+
+:is(.dark .prose-roll-whimsical) pre code {
+  color: hsl(45, 30%, 85%);
+}
+
+/* Dark mode blockquote */
+:is(.dark .prose-roll-whimsical) blockquote {
+  background: linear-gradient(135deg,
+    hsl(45, 50%, 15%) 0%,
+    hsl(45, 40%, 12%) 100%);
+  border-color: hsl(45, 75%, 50%);
+  color: hsl(45, 40%, 80%);
+  box-shadow:
+    0 3px 0 hsl(45, 60%, 35%),
+    0 6px 15px hsl(0, 0%, 0% / 0.25);
+}
+
+:is(.dark .prose-roll-whimsical) blockquote::before {
+  background: hsl(45, 50%, 15%);
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll-whimsical) hr {
+  background: linear-gradient(90deg,
+    hsl(10, 75%, 55%) 0%,
+    hsl(45, 85%, 55%) 25%,
+    hsl(160, 60%, 45%) 50%,
+    hsl(200, 70%, 55%) 75%,
+    hsl(280, 55%, 60%) 100%);
+  box-shadow: 0 2px 6px hsl(200, 50%, 40% / 0.3);
+}
+
+/* Dark mode links */
+:is(.dark .prose-roll-whimsical) a {
+  color: hsl(200, 80%, 65%);
+  border-bottom-color: hsl(200, 60%, 50%);
+}
+
+:is(.dark .prose-roll-whimsical) a:hover {
+  color: hsl(10, 75%, 65%);
+  border-bottom-color: hsl(10, 65%, 55%);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll-whimsical) table {
+  border-color: hsl(175, 55%, 45%);
+  box-shadow:
+    0 4px 0 hsl(175, 45%, 32%),
+    0 8px 20px hsl(0, 0%, 0% / 0.3);
+}
+
+:is(.dark .prose-roll-whimsical) thead {
+  background: linear-gradient(90deg,
+    hsl(10, 70%, 50%) 0%,
+    hsl(45, 80%, 48%) 50%,
+    hsl(175, 55%, 42%) 100%);
+}
+
+:is(.dark .prose-roll-whimsical) th {
+  color: white;
+}
+
+:is(.dark .prose-roll-whimsical) td {
+  border-bottom-color: hsl(200, 25%, 22%);
+  color: hsl(45, 25%, 82%);
+}
+
+:is(.dark .prose-roll-whimsical) tbody tr:nth-child(even) {
+  background: hsl(200, 30%, 13%);
+}
+
+:is(.dark .prose-roll-whimsical) tbody tr:hover {
+  background: hsl(45, 40%, 15%);
+}
+
+/* Dark mode images */
+:is(.dark .prose-roll-whimsical) img {
+  border-color: hsl(280, 50%, 55%);
+  box-shadow:
+    0 4px 0 hsl(280, 40%, 40%),
+    0 8px 24px hsl(0, 0%, 0% / 0.35);
+}
+
+/* Roll button styling for Whimsical theme - LIGHT MODE */
+.btn-roll-whimsical {
+  font-family: 'Fredoka', system-ui, sans-serif;
+  background: linear-gradient(135deg,
+    hsl(10, 85%, 60%) 0%,
+    hsl(25, 90%, 55%) 100%);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow:
+    0 4px 0 hsl(10, 75%, 45%),
+    0 8px 16px hsl(10, 70%, 50% / 0.25);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-shadow: 0 1px 2px hsl(0, 0%, 0% / 0.2);
+}
+
+.btn-roll-whimsical:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    hsl(175, 70%, 45%) 0%,
+    hsl(185, 75%, 42%) 100%);
+  box-shadow:
+    0 5px 0 hsl(175, 60%, 35%),
+    0 10px 20px hsl(175, 60%, 40% / 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-roll-whimsical:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 hsl(175, 60%, 35%),
+    0 4px 8px hsl(175, 60%, 40% / 0.2);
+}
+
+.btn-roll-whimsical:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Roll button styling for Whimsical theme - DARK MODE */
+.dark .btn-roll-whimsical {
+  background: linear-gradient(135deg,
+    hsl(10, 75%, 55%) 0%,
+    hsl(25, 80%, 50%) 100%);
+  box-shadow:
+    0 4px 0 hsl(10, 65%, 38%),
+    0 8px 20px hsl(10, 60%, 35% / 0.35);
+}
+
+.dark .btn-roll-whimsical:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    hsl(175, 65%, 48%) 0%,
+    hsl(185, 70%, 45%) 100%);
+  box-shadow:
+    0 5px 0 hsl(175, 55%, 32%),
+    0 10px 24px hsl(175, 55%, 35% / 0.35);
 }

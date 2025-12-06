@@ -140,11 +140,12 @@ export function useBrowserFilter({
           groupKeys = item.tags?.length ? item.tags : ['Untagged']
           break
 
-        case 'alpha':
+        case 'alpha': {
           // Group by first letter
           const firstChar = item.name.charAt(0).toUpperCase()
           groupKeys = [/[A-Z]/.test(firstChar) ? firstChar : '#']
           break
+        }
 
         default:
           groupKeys = ['Other']

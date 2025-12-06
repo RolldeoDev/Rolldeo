@@ -194,8 +194,7 @@ function parseHeader(text: string): HeaderInfo {
  * Extract entries from text, handling various formats
  */
 function extractEntries(
-  text: string,
-  _dieType: number | null
+  text: string
 ): { entries: RawEntry[]; warnings: string[] } {
   const warnings: string[] = []
   const entries: RawEntry[] = []
@@ -424,7 +423,7 @@ export function parseTableText(
       : header.tableName
 
   // Extract entries
-  const extractResult = extractEntries(header.remainingText || normalized, header.dieType)
+  const extractResult = extractEntries(header.remainingText || normalized)
   warnings.push(...extractResult.warnings)
 
   if (extractResult.entries.length === 0) {

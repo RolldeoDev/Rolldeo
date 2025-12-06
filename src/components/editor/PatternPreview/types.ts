@@ -6,6 +6,10 @@ import type { RollTrace } from '@/engine/core'
 import type { CaptureVariable, Table, Template } from '@/engine/types'
 import type { Suggestion } from '@/hooks/usePatternSuggestions'
 
+// Import and re-export ExpressionType from the unified utility
+import type { ExpressionType } from '@/lib/expressionUtils'
+export type { ExpressionType }
+
 /**
  * A segment of evaluated pattern output.
  * Patterns are split into alternating literal text and evaluated expressions.
@@ -24,24 +28,6 @@ export interface EvaluatedSegment {
   /** End position in original pattern */
   endInPattern: number
 }
-
-/**
- * Expression types for color coding
- */
-export type ExpressionType =
-  | 'dice'
-  | 'math'
-  | 'table'
-  | 'variable'
-  | 'placeholder'
-  | 'again'
-  | 'unique'
-  | 'capture'
-  | 'capture-shared'
-  | 'collect'
-  | 'switch'
-  | 'template'
-  | 'unknown'
 
 /**
  * Result of pattern evaluation with segment mapping

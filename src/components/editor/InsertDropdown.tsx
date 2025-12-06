@@ -310,7 +310,7 @@ export function InsertDropdown({
           e.preventDefault()
           setIsOpen(false)
           break
-        case 'Tab':
+        case 'Tab': {
           e.preventDefault()
           // Cycle through tabs
           const tabs: TabType[] = ['tables', 'templates', 'syntax']
@@ -320,6 +320,7 @@ export function InsertDropdown({
             : (currentIndex + 1) % tabs.length
           setActiveTab(tabs[nextIndex])
           break
+        }
       }
     },
     [filteredItems, highlightedIndex, onInsert, activeTab]

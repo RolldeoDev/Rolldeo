@@ -1372,7 +1372,7 @@
         "$surname": "{{$culture.@surnames}}",
         "$gangHandle": "{{gangHandles}}"
       },
-      "pattern": "## \"{{$gangHandle}}\"\n\n**Street Name:** {{$gangHandle}}\n\n**Legal Name:** {{$firstName}} {{$surname}}\n\n**Gang Affiliation:** {{$gangHandle.@gang}}\n\n**Cultural Background:** {{$culture}}\n\n**Gender:** {{$gender}}"
+      "pattern": "## \"{{$gangHandle}}\"\\n\\n**Street Name:** {{$gangHandle}}\n\n**Legal Name:** {{$firstName}} {{$surname}}\n\n**Gang Affiliation:** {{$gangHandle.@gang}}\n\n**Cultural Background:** {{$culture}}\n\n**Gender:** {{$gender}}"
     },
     {
       "id": "netrunnerIdentity",

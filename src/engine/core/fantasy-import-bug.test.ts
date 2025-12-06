@@ -66,12 +66,10 @@ describe('Template reference with shared variables bug', () => {
 
     // Roll the fullName template directly - should work
     const directResult = engine.rollTemplate('fullName', 'test')
-    console.log('Direct fullName result:', directResult.text)
     expect(directResult.text).toMatch(/Aelindra|Caelynn|Erevan/)
 
     // Roll the detailedNpc template which references fullName - THIS IS THE BUG
     const nestedResult = engine.rollTemplate('detailedNpc', 'test')
-    console.log('Nested result:', nestedResult.text)
 
     // The bug: fullName returns blank because the isolated context's placeholders are empty
     // Expected: "Name: Aelindra" (or Caelynn or Erevan)
@@ -136,7 +134,6 @@ describe('Template reference with shared variables bug', () => {
     engine.loadCollection(doc, 'test')
 
     const result = engine.rollTemplate('detailedNpc', 'test')
-    console.log('No conflict result:', result.text)
     // This should still fail because isolated context placeholders are empty
     // regardless of shared variable name collision
     expect(result.text).toBe('Name: Aelindra')

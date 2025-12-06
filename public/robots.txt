@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://rolldeo.com/sitemap.xml
+
+# Disallow dynamic routes with parameters (these are user-specific)
+Disallow: /roll/*/*
+Disallow: /editor/*

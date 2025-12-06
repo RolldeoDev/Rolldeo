@@ -12,6 +12,8 @@ import { useKeyboardShortcuts, type KeyboardShortcut } from '../hooks'
 import { useUIStore } from '../stores/uiStore'
 import { useCollectionStore } from '../stores/collectionStore'
 import { DropZone, ImportDialog } from '../components/upload'
+import { SEO } from '../components/common'
+import { PAGE_SEO } from '../lib/seo'
 import {
   LibraryFilterBar,
   CollectionCard,
@@ -234,12 +236,14 @@ export function LibraryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-1">Library</h1>
-        <p className="text-muted-foreground">Browse and manage your table collections</p>
-      </div>
+    <>
+      <SEO {...PAGE_SEO.library} />
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold mb-1">Library</h1>
+          <p className="text-muted-foreground">Browse and manage your table collections</p>
+        </div>
 
       {/* Import dropzone - always visible at top */}
       <DropZone
@@ -386,6 +390,7 @@ export function LibraryPage() {
         skippedCount={skippedCount}
         isDeleting={isDeleting}
       />
-    </div>
+      </div>
+    </>
   )
 }

@@ -1,8 +1,8 @@
 /**
  * DescriptionsDrawer Component
  *
- * A slide-in drawer from the right that displays entry descriptions in a grimoire-style panel.
- * Shared between CurrentRollResult and RollHistoryList items.
+ * A slide-in drawer from the right that displays entry descriptions.
+ * Uses CSS classes for theming to support multiple result themes.
  */
 
 import { memo, useState, useCallback, useEffect, useRef } from 'react'
@@ -10,14 +10,14 @@ import { ChevronRight, BookOpen, X, ChevronsUpDown, ChevronsDownUp, Copy, Check 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { EntryDescription } from '@/engine/types'
-import { useUIStore } from '@/stores/uiStore'
+import { useUIStore, type ResultTheme } from '@/stores/uiStore'
 import { cn } from '@/lib/utils'
 
 interface DescriptionsDrawerProps {
   descriptions: EntryDescription[] | null
   isOpen: boolean
   onClose: () => void
-  sourceLabel?: string // e.g., "Character" or table name to show what roll these descriptions are from
+  sourceLabel?: string
 }
 
 export const DescriptionsDrawer = memo(function DescriptionsDrawer({
@@ -29,7 +29,7 @@ export const DescriptionsDrawer = memo(function DescriptionsDrawer({
   const [expandedItems, setExpandedItems] = useState<Set<number>>(() => new Set())
   const drawerRef = useRef<HTMLDivElement>(null)
   const resultTheme = useUIStore((state) => state.resultTheme)
-  const isTtrpg = resultTheme === 'ttrpg'
+  const isThemedResult = resultTheme !== 'default'
 
   // Reset expanded state when descriptions change
   useEffect(() => {
@@ -117,75 +117,20 @@ export const DescriptionsDrawer = memo(function DescriptionsDrawer({
         )}
       >
         <div className={cn(
-          'h-full flex flex-col overflow-hidden',
-          'border-l',
-          isTtrpg ? (
-            // TTRPG theme - parchment style
-            cn(
-              'dark:border-[hsl(35,45%,35%)]',
-              'dark:bg-gradient-to-b dark:from-[hsl(30,25%,18%)] dark:via-[hsl(28,22%,15%)] dark:to-[hsl(26,20%,12%)]',
-              'dark:shadow-[-8px_0_32px_rgba(0,0,0,0.5)]',
-              'border-[hsl(30,40%,55%)]',
-              'bg-gradient-to-b from-[hsl(40,45%,94%)] via-[hsl(39,42%,91%)] to-[hsl(38,40%,88%)]',
-              'shadow-[-8px_0_32px_rgba(0,0,0,0.15)]',
-              // Parchment texture overlay
-              'before:absolute before:inset-0 before:opacity-[0.03] before:pointer-events-none',
-              "before:bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiLz48cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwIi8+PC9zdmc+')]"
-            )
-          ) : (
-            // Default copper theme
-            cn(
-              'dark:border-copper/30',
-              'dark:bg-gradient-to-b dark:from-stone-900 dark:via-stone-900 dark:to-stone-950',
-              'dark:shadow-[-8px_0_32px_rgba(0,0,0,0.5)]',
-              'border-copper/40',
-              'bg-[#fdf6f0]',
-              'shadow-[-8px_0_32px_rgba(0,0,0,0.15)]',
-              // Subtle texture overlay
-              'before:absolute before:inset-0 before:opacity-[0.02] before:pointer-events-none',
-              "before:bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiLz48cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwIi8+PC9zdmc+')]"
-            )
-          )
+          'h-full flex flex-col overflow-hidden border-l',
+          isThemedResult ? `drawer-${resultTheme}` : 'drawer-default'
         )}>
           {/* Header */}
           <div className={cn(
-            'flex items-center justify-between px-4 py-3 flex-shrink-0',
-            'border-b',
-            isTtrpg ? (
-              // TTRPG theme header
-              cn(
-                'dark:border-[hsl(35,45%,30%)]',
-                'dark:bg-gradient-to-r dark:from-[hsl(35,40%,22%)] dark:via-transparent dark:to-[hsl(35,40%,22%)]',
-                'border-[hsl(30,40%,60%)]',
-                'bg-[hsl(35,35%,82%)]'
-              )
-            ) : (
-              // Default copper theme header
-              cn(
-                'dark:border-copper/20',
-                'dark:bg-gradient-to-r dark:from-copper/15 dark:via-transparent dark:to-copper/15',
-                'border-copper/25',
-                'bg-copper/10'
-              )
-            )
+            'flex items-center justify-between px-4 py-3 flex-shrink-0 border-b',
+            isThemedResult ? `drawer-header-${resultTheme}` : 'drawer-header-default'
           )}>
             <div className="flex items-center gap-3">
-              <div className={cn(
-                'p-2 rounded-lg',
-                // Dark mode - copper glow
-                'dark:bg-copper/15 dark:border-copper/25',
-                'dark:shadow-[0_0_12px_hsl(var(--copper-glow)/0.2)]',
-                // Light mode - copper accent
-                'bg-copper/20 border border-copper/30',
-                'shadow-[0_0_12px_hsl(var(--copper-glow)/0.15)]'
-              )}>
-                <BookOpen className="w-5 h-5 text-copper" />
+              <div className="icon-container icon-copper">
+                <BookOpen className="w-5 h-5" />
               </div>
               <div>
-                <h2 className={cn(
-                  'text-base font-semibold tracking-wide',
-                  'text-copper dark:text-copper'
-                )}>
+                <h2 className="text-base font-semibold tracking-wide text-copper dark:text-copper">
                   Descriptions
                 </h2>
                 <p className="text-[11px] text-copper/60 dark:text-copper/50 font-medium tracking-wider uppercase">
@@ -200,11 +145,7 @@ export const DescriptionsDrawer = memo(function DescriptionsDrawer({
               {descriptions.length > 1 && (
                 <button
                   onClick={allExpanded ? collapseAll : expandAll}
-                  className={cn(
-                    'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs',
-                    'text-copper/50 hover:text-copper/80 dark:text-copper/50 dark:hover:text-copper/80',
-                    'hover:bg-copper/10 transition-colors duration-200'
-                  )}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-copper/50 hover:text-copper/80 hover:bg-copper/10 transition-colors duration-200"
                   title={allExpanded ? 'Collapse all' : 'Expand all'}
                 >
                   {allExpanded || allCollapsed ? (
@@ -221,11 +162,7 @@ export const DescriptionsDrawer = memo(function DescriptionsDrawer({
               {/* Close */}
               <button
                 onClick={onClose}
-                className={cn(
-                  'p-2 rounded-lg',
-                  'text-copper/40 hover:text-copper/80 dark:text-copper/40 dark:hover:text-copper/80',
-                  'hover:bg-copper/10 transition-colors duration-200'
-                )}
+                className="p-2 rounded-lg text-copper/40 hover:text-copper/80 hover:bg-copper/10 transition-colors duration-200"
                 title="Close (Esc)"
               >
                 <X className="w-5 h-5" />
@@ -242,7 +179,8 @@ export const DescriptionsDrawer = memo(function DescriptionsDrawer({
                 isExpanded={expandedItems.has(index)}
                 onToggle={() => toggleItem(index)}
                 index={index}
-                isTtrpg={isTtrpg}
+                resultTheme={resultTheme}
+                isThemedResult={isThemedResult}
               />
             ))}
           </div>
@@ -257,7 +195,8 @@ interface DescriptionEntryProps {
   isExpanded: boolean
   onToggle: () => void
   index: number
-  isTtrpg: boolean
+  resultTheme: ResultTheme
+  isThemedResult: boolean
 }
 
 const DescriptionEntry = memo(function DescriptionEntry({
@@ -265,12 +204,13 @@ const DescriptionEntry = memo(function DescriptionEntry({
   isExpanded,
   onToggle,
   index,
-  isTtrpg,
+  resultTheme,
+  isThemedResult,
 }: DescriptionEntryProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent toggling the accordion
+    e.stopPropagation()
     try {
       await navigator.clipboard.writeText(description.description)
       setCopied(true)
@@ -283,37 +223,18 @@ const DescriptionEntry = memo(function DescriptionEntry({
   return (
     <div
       className={cn(
-        'overflow-hidden transition-all duration-300',
-        'border',
-        isTtrpg ? (
-          // TTRPG parchment style
-          cn(
-            'rounded',
-            isExpanded
-              ? 'dark:border-[hsl(35,45%,35%)] dark:bg-gradient-to-br dark:from-[hsl(35,40%,22%)] dark:to-[hsl(28,22%,14%)] border-[hsl(30,40%,55%)] bg-[hsl(42,40%,90%)]'
-              : 'dark:border-[hsl(30,30%,25%)] dark:bg-[hsl(28,22%,16%)] dark:hover:bg-[hsl(30,25%,18%)] dark:hover:border-[hsl(35,45%,35%)] border-[hsl(32,35%,65%)] bg-[hsl(42,35%,94%)] hover:bg-[hsl(42,40%,90%)] hover:border-[hsl(30,40%,55%)]'
-          )
-        ) : (
-          // Default copper style
-          cn(
-            'rounded-lg',
-            isExpanded
-              ? 'dark:border-copper/30 dark:bg-gradient-to-br dark:from-copper/20 dark:to-stone-900/80 border-copper/40 bg-copper/10'
-              : 'dark:border-stone-700/40 dark:bg-stone-800/50 dark:hover:bg-stone-800/70 dark:hover:border-copper/30 border-copper/20 bg-white hover:bg-copper/5 hover:border-copper/30'
-          )
-        )
+        'overflow-hidden transition-all duration-300 border rounded-lg',
+        isThemedResult
+          ? `drawer-entry-${resultTheme}`
+          : 'drawer-entry-default',
+        isExpanded && 'drawer-entry-expanded'
       )}
-      style={{
-        animationDelay: `${index * 50}ms`,
-      }}
+      style={{ animationDelay: `${index * 50}ms` }}
     >
       {/* Entry Header - clickable to expand */}
       <button
         onClick={onToggle}
-        className={cn(
-          'w-full flex items-start gap-3 px-3 py-2.5 text-left',
-          'transition-colors duration-200'
-        )}
+        className="w-full flex items-start gap-3 px-3 py-2.5 text-left transition-colors duration-200"
       >
         {/* Chevron indicator */}
         <ChevronRight
@@ -326,12 +247,7 @@ const DescriptionEntry = memo(function DescriptionEntry({
         <div className="flex-1 min-w-0 space-y-1">
           {/* Table name as attribution badge */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={cn(
-              'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold',
-              'tracking-wider uppercase',
-              'dark:bg-copper/15 dark:text-copper dark:border-copper/25',
-              'bg-copper/20 text-copper border border-copper/30'
-            )}>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase dark:bg-copper/15 dark:text-copper dark:border-copper/25 bg-copper/20 text-copper border border-copper/30">
               {description.tableName}
             </span>
           </div>
@@ -355,10 +271,7 @@ const DescriptionEntry = memo(function DescriptionEntry({
         )}
       >
         <div className="overflow-hidden">
-          <div className={cn(
-            'px-3 pb-3 pt-1 ml-7',
-            'border-l-2 border-copper/30'
-          )}>
+          <div className="px-3 pb-3 pt-1 ml-7 border-l-2 border-copper/30">
             {/* Decorative flourish with copy button */}
             <div className="flex items-center gap-2 mb-2">
               <div className="h-px flex-1 bg-gradient-to-r from-copper/30 to-transparent" />
@@ -374,18 +287,14 @@ const DescriptionEntry = memo(function DescriptionEntry({
                 )}
                 title={copied ? 'Copied!' : 'Copy description'}
               >
-                {copied ? (
-                  <Check className="w-3.5 h-3.5" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
 
-            {/* Description text with markdown */}
+            {/* Description text with markdown - uses theme prose classes */}
             <div className={cn(
               "text-[13px]",
-              isTtrpg ? "prose-roll-ttrpg" : "prose-description"
+              isThemedResult ? `prose-roll-${resultTheme}` : "prose-description"
             )}>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {description.description}

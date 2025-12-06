@@ -13,6 +13,8 @@ import { useCollections } from '@/hooks/useCollections'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { useUIStore } from '@/stores/uiStore'
 import { useKeyboardShortcuts, type KeyboardShortcut } from '@/hooks'
+import { SEO } from '@/components/common'
+import { PAGE_SEO } from '@/lib/seo'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
 import {
   SplitPanelLayout,
@@ -233,8 +235,10 @@ export function RollerPage() {
   const selectedItemId = selectedItemState?.item.id || null
 
   return (
-    <div className="h-[calc(100vh-4rem)]">
-      <SplitPanelLayout
+    <>
+      <SEO {...PAGE_SEO.roll} />
+      <div className="h-[calc(100vh-4rem)]">
+        <SplitPanelLayout
         leftPanel={({ onMobileClose }) => (
           <BrowserPanel
             selectedItemId={selectedItemId}
@@ -295,6 +299,7 @@ export function RollerPage() {
           onClose={() => setViewDetailsModal(null)}
         />
       )}
-    </div>
+      </div>
+    </>
   )
 }

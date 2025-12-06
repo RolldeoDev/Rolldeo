@@ -413,7 +413,7 @@ const TraceNodeDetails = memo(function TraceNodeDetails({
         </div>
       )
 
-    case 'entry_select':
+    case 'entry_select': {
       const probabilityPct = (node.metadata.probability * 100).toFixed(1)
       return (
         <div
@@ -437,6 +437,7 @@ const TraceNodeDetails = memo(function TraceNodeDetails({
           </div>
         </div>
       )
+    }
 
     case 'variable':
       return (
