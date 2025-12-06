@@ -28,6 +28,7 @@ export const TraceToggle = memo(function TraceToggle({
           ? 'text-copper border-copper/40 bg-copper/10'
           : 'text-muted-foreground border-border/50 hover:border-border'}
       `}
+      title="Enable tracing to see how the result was generated, including dice rolls and table lookups"
     >
       <input
         type="checkbox"
@@ -35,6 +36,7 @@ export const TraceToggle = memo(function TraceToggle({
         onChange={(e) => onChange(e.target.checked)}
         disabled={disabled}
         className="sr-only peer"
+        aria-label="Enable trace mode"
       />
       <div
         className="relative w-8 h-4 rounded-full transition-colors"

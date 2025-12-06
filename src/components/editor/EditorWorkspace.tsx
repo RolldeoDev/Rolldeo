@@ -27,6 +27,7 @@ import type {
   SimpleTable,
 } from '@/engine/types'
 import { useCollectionStore } from '@/stores/collectionStore'
+import { usePatternSuggestions } from '@/hooks/usePatternSuggestions'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
 
 interface EditorWorkspaceProps {
@@ -258,6 +259,35 @@ export function EditorWorkspace({
     if (!collectionId) return []
     return useCollectionStore.getState().getImportedTemplateList(collectionId)
   }, [collectionId, importsVersion])
+
+  // Build table map for property lookups in autocomplete
+  const tableMap = useMemo(() => {
+    const map = new Map<string, Table>()
+    for (const table of document.tables) {
+      map.set(table.id, table)
+    }
+    return map
+  }, [document.tables])
+
+  // Build template map for property lookups in autocomplete
+  const templateMap = useMemo(() => {
+    const map = new Map<string, Template>()
+    for (const template of document.templates || []) {
+      map.set(template.id, template)
+    }
+    return map
+  }, [document.templates])
+
+  // Build suggestions for pattern autocomplete
+  const suggestions = usePatternSuggestions({
+    localTables,
+    localTemplates,
+    importedTables,
+    importedTemplates,
+    variables: document.variables || {},
+    sharedVariables: document.shared || {},
+    tableMap,
+  })
 
   // Update handlers
   const updateMetadata = useCallback(
@@ -547,6 +577,9 @@ export function EditorWorkspace({
                       localTemplates={localTemplates}
                       importedTables={importedTables}
                       importedTemplates={importedTemplates}
+                      suggestions={suggestions}
+                      tableMap={tableMap}
+                      templateMap={templateMap}
                     />
                   </div>
                 ))}
@@ -581,6 +614,9 @@ export function EditorWorkspace({
                         localTemplates={localTemplates}
                         importedTables={importedTables}
                         importedTemplates={importedTemplates}
+                        suggestions={suggestions}
+                        tableMap={tableMap}
+                        templateMap={templateMap}
                         defaultExpanded={lastExplicitItemId === template.id || (document.templates?.length || 0) === 1}
                         collectionId={collectionId}
                         onFocus={() => setFocusedItemId(template.id)}

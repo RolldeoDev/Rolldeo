@@ -250,6 +250,7 @@ export function RollerPage() {
         rightPanel={
           <ResultsPanel
             selectedItem={selectedItem}
+            collectionId={selectedItemState?.collectionId ?? null}
             currentResult={currentResult}
             isRolling={isRolling}
             rollError={rollError}

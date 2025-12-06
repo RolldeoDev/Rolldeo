@@ -129,7 +129,7 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
         className={`
           flex items-center gap-2 px-3 py-3 cursor-pointer
           transition-colors duration-150 relative z-10 bg-background
-          ${isExpanded ? 'bg-primary/10' : 'hover:bg-white/5'}
+          ${isExpanded ? 'bg-copper/10 border-l-2 border-l-copper/50' : 'border-l-2 border-l-transparent hover:bg-white/5'}
         `}
         onClick={onToggleExpand}
         onKeyDown={handleKeyDown}
@@ -139,8 +139,8 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
       >
         {/* Expand/Collapse Icon */}
         <ChevronIcon
-          className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
-            isExpanded ? 'rotate-0' : ''
+          className={`w-4 h-4 transition-all duration-200 ${
+            isExpanded ? 'text-copper' : 'text-muted-foreground'
           }`}
         />
 
@@ -152,10 +152,15 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
           {collection.name}
         </span>
 
-        {/* Counts */}
-        <span className="text-xs text-muted-foreground flex-shrink-0">
-          {collection.tableCount}T / {collection.templateCount}P
-        </span>
+        {/* Counts - differentiated badges */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-mint/15 text-mint border border-mint/20">
+            {collection.tableCount}
+          </span>
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-lavender/15 text-lavender border border-lavender/20">
+            {collection.templateCount}
+          </span>
+        </div>
       </div>
 
       {/* Accordion Content */}

@@ -8,6 +8,7 @@
 import { memo, useState, useCallback, useEffect, useRef } from 'react'
 import { ChevronRight, ListOrdered, X, ChevronsUpDown, ChevronsDownUp, Copy, Check } from 'lucide-react'
 import type { EvaluatedSets, CaptureItem } from '@/engine/types'
+import { useUIStore } from '@/stores/uiStore'
 import { cn } from '@/lib/utils'
 
 interface SetsDrawerProps {
@@ -31,6 +32,8 @@ export const SetsDrawer = memo(function SetsDrawer({
   const setKeys = sets ? Object.keys(sets) : []
   const [expandedItems, setExpandedItems] = useState<Set<string>>(() => new Set(setKeys))
   const drawerRef = useRef<HTMLDivElement>(null)
+  const resultTheme = useUIStore((state) => state.resultTheme)
+  const isTtrpg = resultTheme === 'ttrpg'
 
   // Reset expanded state when sets change - default to all expanded
   useEffect(() => {
@@ -136,28 +139,55 @@ export const SetsDrawer = memo(function SetsDrawer({
         <div className={cn(
           'h-full flex flex-col overflow-hidden',
           'border-l',
-          // Dark mode - rose theme
-          'dark:border-rose/30',
-          'dark:bg-gradient-to-b dark:from-stone-900 dark:via-stone-900 dark:to-stone-950',
-          'dark:shadow-[-8px_0_32px_rgba(0,0,0,0.5)]',
-          // Light mode - warm rose-tinted background
-          'border-rose/40',
-          'bg-[#fdf6f8]',
-          'shadow-[-8px_0_32px_rgba(0,0,0,0.15)]',
-          // Subtle texture overlay
-          'before:absolute before:inset-0 before:opacity-[0.02] before:pointer-events-none',
-          "before:bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiLz48cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwIi8+PC9zdmc+')]"
+          isTtrpg ? (
+            // TTRPG theme - parchment style
+            cn(
+              'dark:border-[hsl(35,45%,35%)]',
+              'dark:bg-gradient-to-b dark:from-[hsl(30,25%,18%)] dark:via-[hsl(28,22%,15%)] dark:to-[hsl(26,20%,12%)]',
+              'dark:shadow-[-8px_0_32px_rgba(0,0,0,0.5)]',
+              'border-[hsl(30,40%,55%)]',
+              'bg-gradient-to-b from-[hsl(40,45%,94%)] via-[hsl(39,42%,91%)] to-[hsl(38,40%,88%)]',
+              'shadow-[-8px_0_32px_rgba(0,0,0,0.15)]',
+              // Parchment texture overlay
+              'before:absolute before:inset-0 before:opacity-[0.03] before:pointer-events-none',
+              "before:bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiLz48cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwIi8+PC9zdmc+')]"
+            )
+          ) : (
+            // Default rose theme
+            cn(
+              'dark:border-rose/30',
+              'dark:bg-gradient-to-b dark:from-stone-900 dark:via-stone-900 dark:to-stone-950',
+              'dark:shadow-[-8px_0_32px_rgba(0,0,0,0.5)]',
+              'border-rose/40',
+              'bg-[#fdf6f8]',
+              'shadow-[-8px_0_32px_rgba(0,0,0,0.15)]',
+              // Subtle texture overlay
+              'before:absolute before:inset-0 before:opacity-[0.02] before:pointer-events-none',
+              "before:bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiLz48cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwIi8+PC9zdmc+')]"
+            )
+          )
         )}>
           {/* Header */}
           <div className={cn(
             'flex items-center justify-between px-4 py-3 flex-shrink-0',
             'border-b',
-            // Dark mode - rose theme
-            'dark:border-rose/20',
-            'dark:bg-gradient-to-r dark:from-rose/15 dark:via-transparent dark:to-rose/15',
-            // Light mode - rose background
-            'border-rose/25',
-            'bg-rose/10'
+            isTtrpg ? (
+              // TTRPG theme header
+              cn(
+                'dark:border-[hsl(35,45%,30%)]',
+                'dark:bg-gradient-to-r dark:from-[hsl(35,40%,22%)] dark:via-transparent dark:to-[hsl(35,40%,22%)]',
+                'border-[hsl(30,40%,60%)]',
+                'bg-[hsl(35,35%,82%)]'
+              )
+            ) : (
+              // Default rose theme header
+              cn(
+                'dark:border-rose/20',
+                'dark:bg-gradient-to-r dark:from-rose/15 dark:via-transparent dark:to-rose/15',
+                'border-rose/25',
+                'bg-rose/10'
+              )
+            )
           )}>
             <div className="flex items-center gap-3">
               <div className={cn(
@@ -255,6 +285,7 @@ export const SetsDrawer = memo(function SetsDrawer({
                 isExpanded={expandedItems.has(key)}
                 onToggle={() => toggleItem(key)}
                 index={index}
+                isTtrpg={isTtrpg}
               />
             ))}
           </div>
@@ -270,6 +301,7 @@ interface SetEntryProps {
   isExpanded: boolean
   onToggle: () => void
   index: number
+  isTtrpg: boolean
 }
 
 const SetEntry = memo(function SetEntry({

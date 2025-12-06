@@ -4,7 +4,7 @@
  * Visual editor for template patterns with syntax helper buttons.
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import {
   Trash2,
   ChevronDown,
@@ -18,14 +18,16 @@ import {
   Grab,
   ListOrdered,
   FolderOpen,
+  CircleDot,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { KeyValueEditor } from './KeyValueEditor'
 import { InsertDropdown } from './InsertDropdown'
 import { PatternPreview, type EditablePatternRef } from './PatternPreview'
 import { ResultTypeSelector } from './ResultTypeSelector'
-import type { Template, SharedVariables } from '@/engine/types'
+import type { Template, SharedVariables, Table } from '@/engine/types'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+import type { Suggestion } from '@/hooks/usePatternSuggestions'
 
 export interface TemplateEditorProps {
   /** The template to edit */
@@ -42,6 +44,12 @@ export interface TemplateEditorProps {
   importedTables?: ImportedTableInfo[]
   /** Templates from imported collections */
   importedTemplates?: ImportedTemplateInfo[]
+  /** Suggestions for autocomplete */
+  suggestions?: Suggestion[]
+  /** Full table data for property lookups (keyed by table ID) */
+  tableMap?: Map<string, Table>
+  /** Full template data for property lookups (keyed by template ID) */
+  templateMap?: Map<string, Template>
   /** Whether the template card is expanded */
   defaultExpanded?: boolean
   /** Collection ID for live preview evaluation */
@@ -62,6 +70,9 @@ export function TemplateEditor({
   localTemplates = [],
   importedTables = [],
   importedTemplates = [],
+  suggestions,
+  tableMap,
+  templateMap,
   defaultExpanded = false,
   collectionId,
   onFocus,
@@ -122,6 +133,40 @@ export function TemplateEditor({
     },
     [template.pattern, updateField]
   )
+
+  // Augment suggestions with template-level shared variables
+  const augmentedSuggestions = useMemo(() => {
+    if (!suggestions) return []
+
+    const templateShared = template.shared as Record<string, string> | undefined
+    if (!templateShared || Object.keys(templateShared).length === 0) {
+      return suggestions
+    }
+
+    // Create suggestions for template's shared variables
+    const templateSharedSuggestions: Suggestion[] = Object.keys(templateShared).map(varName => {
+      // Handle both cases: varName might be "heroName" or "$heroName"
+      const displayName = varName.startsWith('$') ? varName : `$${varName}`
+      return {
+        id: `template-shared-${varName}`,
+        label: displayName,
+        insertText: displayName,
+        category: 'variable' as const,
+        description: `Template shared: ${templateShared[varName]}`,
+        icon: CircleDot,
+        source: 'Template',
+        colorClass: 'pink' as const,
+      }
+    })
+
+    // Filter out any document-level variables with the same name (template takes precedence)
+    const templateVarNames = new Set(Object.keys(templateShared).map(v => v.startsWith('$') ? v : `$${v}`))
+    const filteredSuggestions = suggestions.filter(
+      s => !(s.category === 'variable' && templateVarNames.has(s.label))
+    )
+
+    return [...filteredSuggestions, ...templateSharedSuggestions]
+  }, [suggestions, template.shared])
 
   return (
     <div className={cn("editor-card", isExpanded && "editor-card-expanded-lavender")} onFocus={handleFocus} onBlur={handleBlur}>
@@ -351,6 +396,9 @@ export function TemplateEditor({
               availableTableIds={localTables.map(t => t.id)}
               availableTemplateIds={localTemplates.filter(t => t.id !== template.id).map(t => t.id)}
               sharedVariables={template.shared as Record<string, string> | undefined}
+              suggestions={augmentedSuggestions}
+              tableMap={tableMap}
+              templateMap={templateMap}
             />
           </div>
 

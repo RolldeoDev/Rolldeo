@@ -901,7 +901,7 @@
         "$monsterType": "{{monsters}}",
         "$hazard": "{{environmentalHazards}}"
       },
-      "pattern": "## Monster Encounter\n\n**Enemies:** {{$monsterCount}} {{$monsterType}}\n\n**Threat Level:** {{switch[@threat==\"low\":\"Low\"].switch[@threat==\"medium\":\"Medium\"].else[\"High\"]}}\n\n**Creature Type:** {{@type}}\n\n---\n\n**Environmental Hazard:** The area contains {{$hazard}}.\n\n**Hazard Severity:** {{switch[@severity==\"minor\":\"Minor\"].switch[@severity==\"moderate\":\"Moderate\"].else[\"Severe\"]}}"
+      "pattern": "## Monster Encounter\n\n**Enemies:** {{$monsterCount}} {{$monsterType}}\n\n**Threat Level:** {{switch[$monsterType.@threat==\"low\":\"Low\"].switch[$monsterType.@threat==\"medium\":\"Medium\"].else[\"High\"]}}\n\n**Creature Type:** {{$monsterType.@type}}\n\n---\n\n**Environmental Hazard:** The area contains {{$hazard}}.\n\n**Hazard Severity:** {{switch[$hazard.@severity==\"minor\":\"Minor\"].switch[$hazard.@severity==\"moderate\":\"Moderate\"].else[\"Severe\"]}}"
     }
   ]
 }

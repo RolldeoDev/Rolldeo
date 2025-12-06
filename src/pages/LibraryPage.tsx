@@ -12,9 +12,16 @@ import { useKeyboardShortcuts, type KeyboardShortcut } from '../hooks'
 import { useUIStore } from '../stores/uiStore'
 import { useCollectionStore } from '../stores/collectionStore'
 import { DropZone, ImportDialog } from '../components/upload'
-import { LibraryFilterBar, CollectionCard, NamespaceAccordion } from '../components/library'
+import {
+  LibraryFilterBar,
+  CollectionCard,
+  NamespaceAccordion,
+  ConfirmDeleteDialog,
+} from '../components/library'
 import { generateUniqueId } from '../services/import'
+import { exportAsJson, exportAsZip } from '../services/export'
 import type { ImportResult, ImportedCollection } from '../services/import'
+import type { CollectionMeta } from '../stores/collectionStore'
 
 export function LibraryPage() {
   const {
@@ -30,7 +37,7 @@ export function LibraryPage() {
     deleteCollection,
   } = useCollections()
 
-  const { importFiles, saveImportedCollections } = useCollectionStore()
+  const { importFiles, saveImportedCollections, getCollectionDocument } = useCollectionStore()
   const storeCollections = useCollectionStore((state) => state.collections)
 
   const existingIds = useMemo(
@@ -48,10 +55,89 @@ export function LibraryPage() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null)
   const [showImportDialog, setShowImportDialog] = useState(false)
 
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
   // Get total count before filtering
   const totalCount = useMemo(() => {
     return Array.from(storeCollections.values()).length
   }, [storeCollections])
+
+  // Get selected collections metadata
+  const selectedCollections = useMemo<CollectionMeta[]>(() => {
+    return Array.from(selectedIds)
+      .map((id) => collections.find((c) => c.id === id))
+      .filter((c): c is CollectionMeta => c !== undefined)
+  }, [selectedIds, collections])
+
+  // Get deletable collections (non-preloaded)
+  const deletableCollections = useMemo<CollectionMeta[]>(() => {
+    return selectedCollections.filter((c) => !c.isPreloaded)
+  }, [selectedCollections])
+
+  // Count of preloaded collections that will be skipped
+  const skippedCount = selectedCollections.length - deletableCollections.length
+
+  // Selection handlers
+  const handleSelectionChange = useCallback((id: string, selected: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (selected) {
+        next.add(id)
+      } else {
+        next.delete(id)
+      }
+      return next
+    })
+  }, [])
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedIds(new Set(collections.map((c) => c.id)))
+  }, [collections])
+
+  const handleSelectNone = useCallback(() => {
+    setSelectedIds(new Set())
+  }, [])
+
+  const handleBatchDelete = useCallback(() => {
+    if (deletableCollections.length > 0) {
+      setShowDeleteDialog(true)
+    }
+  }, [deletableCollections.length])
+
+  const confirmBatchDelete = useCallback(async () => {
+    setIsDeleting(true)
+    try {
+      for (const collection of deletableCollections) {
+        await deleteCollection(collection.id)
+      }
+      setSelectedIds(new Set())
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }, [deletableCollections, deleteCollection])
+
+  const handleBatchExport = useCallback(async () => {
+    const collectionsToExport = selectedCollections
+      .map((meta) => {
+        const doc = getCollectionDocument(meta.id)
+        return doc ? { id: meta.id, document: doc } : null
+      })
+      .filter((c): c is { id: string; document: NonNullable<ReturnType<typeof getCollectionDocument>> } => c !== null)
+
+    if (collectionsToExport.length === 0) return
+
+    if (collectionsToExport.length === 1) {
+      exportAsJson(collectionsToExport[0].document)
+    } else {
+      await exportAsZip(collectionsToExport, 'rolldeo-collections.zip')
+    }
+
+    setSelectedIds(new Set())
+  }, [selectedCollections, getCollectionDocument])
 
   const handleFilesSelected = useCallback(async (files: File[]) => {
     setIsImporting(true)
@@ -168,6 +254,12 @@ export function LibraryPage() {
         allTags={allTags}
         totalCount={totalCount}
         filteredCount={collections.length}
+        selectedCount={selectedIds.size}
+        deletableCount={deletableCollections.length}
+        onDelete={handleBatchDelete}
+        onExport={handleBatchExport}
+        onSelectAll={handleSelectAll}
+        onSelectNone={handleSelectNone}
       />
 
       {/* Loading state */}
@@ -188,6 +280,8 @@ export function LibraryPage() {
             <NamespaceAccordion
               groupedCollections={groupedCollections}
               onDeleteCollection={handleDelete}
+              selectedIds={selectedIds}
+              onSelectionChange={handleSelectionChange}
             />
           ) : (
             /* Grid View - Original Layout */
@@ -209,6 +303,8 @@ export function LibraryPage() {
                         collection={collection}
                         onDelete={() => handleDelete(collection.id, collection.name)}
                         index={index}
+                        isSelected={selectedIds.has(collection.id)}
+                        onSelectionChange={handleSelectionChange}
                       />
                     ))}
                   </div>
@@ -253,6 +349,8 @@ export function LibraryPage() {
                           key={collection.id}
                           collection={collection}
                           index={index}
+                          isSelected={selectedIds.has(collection.id)}
+                          onSelectionChange={handleSelectionChange}
                         />
                       ))}
                     </div>
@@ -277,6 +375,16 @@ export function LibraryPage() {
         onClose={handleCloseDialog}
         result={importResult}
         isImporting={isImporting}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={confirmBatchDelete}
+        collections={deletableCollections}
+        skippedCount={skippedCount}
+        isDeleting={isDeleting}
       />
     </div>
   )

@@ -165,15 +165,11 @@ export function HomePage() {
     <div className="space-y-12">
       {/* Hero Section */}
       <section className="text-center space-y-4 py-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium animate-fade-in">
-          <Sparkles className="h-4 w-4" />
-          Random Table Engine
-        </div>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight animate-slide-up">
-          Find the Perfect <span className="gradient-text">Random Roll</span>
+          Share the Perfect <span className="gradient-text">Random Table</span>
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto animate-slide-up stagger-1">
-          An offline-first, open source, CC0 application built with the intent to share your tables with fellow GMs.
+          Create, share, and roll on random tables with fellow GMs. Offline-first, open source, and CC0 licensed.
         </p>
       </section>
 

@@ -18,11 +18,17 @@ interface NamespaceAccordionProps {
   groupedCollections: Map<string, CollectionMeta[]>
   /** Callback when a collection is deleted */
   onDeleteCollection?: (id: string, name: string) => void
+  /** Set of selected collection IDs */
+  selectedIds?: Set<string>
+  /** Callback when selection changes */
+  onSelectionChange?: (id: string, selected: boolean) => void
 }
 
 export const NamespaceAccordion = memo(function NamespaceAccordion({
   groupedCollections,
   onDeleteCollection,
+  selectedIds = new Set(),
+  onSelectionChange,
 }: NamespaceAccordionProps) {
   const { libraryExpandedNamespaces, toggleLibraryNamespaceExpanded } = useUIStore()
 
@@ -50,6 +56,8 @@ export const NamespaceAccordion = memo(function NamespaceAccordion({
           onToggle={() => toggleLibraryNamespaceExpanded(namespace)}
           onDeleteCollection={onDeleteCollection}
           groupIndex={groupIndex}
+          selectedIds={selectedIds}
+          onSelectionChange={onSelectionChange}
         />
       ))}
     </div>
@@ -63,6 +71,8 @@ interface NamespaceGroupProps {
   onToggle: () => void
   onDeleteCollection?: (id: string, name: string) => void
   groupIndex: number
+  selectedIds?: Set<string>
+  onSelectionChange?: (id: string, selected: boolean) => void
 }
 
 const NamespaceGroup = memo(function NamespaceGroup({
@@ -72,6 +82,8 @@ const NamespaceGroup = memo(function NamespaceGroup({
   onToggle,
   onDeleteCollection,
   groupIndex,
+  selectedIds = new Set(),
+  onSelectionChange,
 }: NamespaceGroupProps) {
   const handleDelete = useCallback((id: string, name: string) => {
     if (onDeleteCollection) {
@@ -175,6 +187,8 @@ const NamespaceGroup = memo(function NamespaceGroup({
                         onDelete={() => handleDelete(collection.id, collection.name)}
                         index={index}
                         compact
+                        isSelected={selectedIds.has(collection.id)}
+                        onSelectionChange={onSelectionChange}
                       />
                     ))}
                 </div>
@@ -198,6 +212,8 @@ const NamespaceGroup = memo(function NamespaceGroup({
                         collection={collection}
                         index={index}
                         compact
+                        isSelected={selectedIds.has(collection.id)}
+                        onSelectionChange={onSelectionChange}
                       />
                     ))}
                 </div>

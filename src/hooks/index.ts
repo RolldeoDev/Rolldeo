@@ -19,3 +19,19 @@ export { useResizable } from './useResizable'
 
 export { useBrowserFilter } from './useBrowserFilter'
 export type { BrowserItem, GroupedItems } from './useBrowserFilter'
+
+export { usePatternSuggestions, filterSuggestions } from './usePatternSuggestions'
+export type {
+  Suggestion,
+  SuggestionCategory,
+  SuggestionColorClass,
+  UsePatternSuggestionsOptions,
+} from './usePatternSuggestions'
+
+export { usePatternAutocomplete } from './usePatternAutocomplete'
+export type {
+  TriggerType,
+  TriggerInfo,
+  UsePatternAutocompleteOptions,
+  UsePatternAutocompleteReturn,
+} from './usePatternAutocomplete'

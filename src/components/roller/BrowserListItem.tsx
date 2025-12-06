@@ -6,7 +6,8 @@
  * Supports right-click context menu for additional actions.
  */
 
-import { memo, useState, useCallback } from 'react'
+import { memo, useState, useCallback, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Dices, EyeOff, Pencil, ClipboardCopy, Hash, Info } from 'lucide-react'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
 import { getResultTypeIcon } from '@/lib/resultTypeIcons'
@@ -34,6 +35,20 @@ export const BrowserListItem = memo(function BrowserListItem({
   onViewDetails,
 }: BrowserListItemProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const [showTagsTooltip, setShowTagsTooltip] = useState(false)
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)
+  const tagsButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Update tooltip position when showing
+  useEffect(() => {
+    if (showTagsTooltip && tagsButtonRef.current) {
+      const rect = tagsButtonRef.current.getBoundingClientRect()
+      setTooltipPosition({
+        x: rect.right,
+        y: rect.bottom + 4,
+      })
+    }
+  }, [showTagsTooltip])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -103,14 +118,14 @@ export const BrowserListItem = memo(function BrowserListItem({
     <>
     <div
       className={`
-        flex items-center gap-3 px-3 py-2.5 cursor-pointer
-        border-l-2 transition-colors duration-150
+        group flex items-center gap-3 px-3 py-2.5 cursor-pointer
+        border-l-2 transition-all duration-150
         ${
           isSelected
             ? item.type === 'template'
               ? 'bg-[hsl(var(--lavender)/0.12)] border-l-lavender'
               : 'bg-primary/10 border-l-primary'
-            : 'border-l-transparent hover:bg-white/5'
+            : 'border-l-transparent hover:bg-white/[0.03] hover:border-l-muted-foreground/30'
         }
         ${item.hidden ? 'opacity-50' : ''}
       `}
@@ -149,44 +164,72 @@ export const BrowserListItem = memo(function BrowserListItem({
         )}
       </div>
 
-      {/* Tags */}
-      {item.tags && item.tags.length > 0 && (
-        <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
-          {item.tags.slice(0, 2).map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded text-muted-foreground"
+      {/* Action Buttons - show on hover or when selected */}
+      <div className={`flex items-center gap-1 flex-shrink-0 transition-opacity duration-150 ${
+        isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+      }`}>
+        {/* Tags Info Icon */}
+        {item.tags && item.tags.length > 0 && (
+          <>
+            <button
+              ref={tagsButtonRef}
+              className="p-1.5 rounded-md transition-colors duration-150 text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/5"
+              onClick={(e) => e.stopPropagation()}
+              onMouseEnter={() => setShowTagsTooltip(true)}
+              onMouseLeave={() => setShowTagsTooltip(false)}
+              aria-label={`Tags: ${item.tags.join(', ')}`}
+              title="View tags"
             >
-              {tag}
-            </span>
-          ))}
-          {item.tags.length > 2 && (
-            <span className="text-[10px] text-muted-foreground">
-              +{item.tags.length - 2}
-            </span>
-          )}
-        </div>
-      )}
+              <Info className="w-3.5 h-3.5" />
+            </button>
+            {/* Tags Tooltip Portal */}
+            {showTagsTooltip && tooltipPosition && createPortal(
+              <div
+                className="fixed z-[9999] pointer-events-none"
+                style={{
+                  left: tooltipPosition.x,
+                  top: tooltipPosition.y,
+                  transform: 'translateX(-100%)',
+                }}
+              >
+                <div className="bg-popover border border-border rounded-md shadow-lg px-2 py-1.5 min-w-max max-w-48">
+                  <div className="flex flex-wrap gap-1">
+                    {item.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded text-muted-foreground border border-white/10"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
+          </>
+        )}
 
-      {/* Roll Button */}
-      <button
-        className={`
-          p-1.5 rounded-md transition-colors duration-150
-          ${isSelected
-            ? item.type === 'template'
-              ? 'bg-lavender/20 text-lavender hover:bg-lavender/30'
-              : 'bg-primary/20 text-primary hover:bg-primary/30'
-            : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground'}
-        `}
-        onClick={(e) => {
-          e.stopPropagation()
-          onRoll()
-        }}
-        aria-label={`Roll ${item.name}`}
-        title="Roll (or double-click)"
-      >
-        <Dices className="w-4 h-4" />
-      </button>
+        {/* Roll Button */}
+        <button
+          className={`
+            p-1.5 rounded-md transition-all duration-150
+            ${isSelected
+              ? item.type === 'template'
+                ? 'bg-lavender/20 text-lavender hover:bg-lavender/30'
+                : 'bg-primary/20 text-primary hover:bg-primary/30'
+              : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground'}
+          `}
+          onClick={(e) => {
+            e.stopPropagation()
+            onRoll()
+          }}
+          aria-label={`Roll ${item.name}`}
+          title="Roll (double-click or Enter)"
+        >
+          <Dices className="w-4 h-4" />
+        </button>
+      </div>
     </div>
 
     {/* Context Menu */}

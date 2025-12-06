@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Dices, Library, PenSquare, Home, Menu, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import { ThemeSwitcher } from '@/components/common'
+import { ResultThemeSwitcher, ThemeSwitcher } from '@/components/common'
 import rollifyLogo from '@/assets/rollifyLogo.png'
 
 const navItems = [
@@ -68,8 +68,10 @@ export function Layout() {
             })}
           </nav>
 
-          {/* Theme Switcher & Mobile menu button */}
+          {/* Theme Switchers & Mobile menu button */}
           <div className="flex items-center gap-2">
+            {/* Result theme switcher - only on roller page */}
+            {location.pathname.startsWith('/roll') && <ResultThemeSwitcher />}
             <ThemeSwitcher />
             <button
               className="md:hidden p-2 rounded-xl hover:bg-accent transition-colors"

@@ -5,6 +5,7 @@
  * - Textarea handles all editing natively (cursor, selection, undo/redo, IME)
  * - Transparent textarea text with visible caret
  * - Overlay div shows syntax-highlighted version
+ * - Optional autocomplete on {{ $ @ triggers
  */
 
 import {
@@ -22,6 +23,8 @@ import {
   EXPRESSION_COLORS,
   getExpressionTypeFromContent,
 } from './expressionColors'
+import { usePatternAutocomplete } from '@/hooks/usePatternAutocomplete'
+import { AutocompleteDropdown } from '../AutocompleteDropdown'
 import type { EditablePatternProps } from './types'
 
 /**
@@ -90,12 +93,22 @@ export interface EditablePatternRef {
  */
 export const EditablePattern = memo(
   forwardRef<EditablePatternRef, EditablePatternProps>(function EditablePattern(
-    { value, onChange, placeholder, minHeight = 250, id },
+    { value, onChange, placeholder, minHeight = 250, id, suggestions = [], tableMap, templateMap },
     ref
   ) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const overlayRef = useRef<HTMLDivElement>(null)
     const [textareaHeight, setTextareaHeight] = useState<number>(minHeight)
+
+    // Autocomplete hook - only active when suggestions are provided
+    const autocomplete = usePatternAutocomplete({
+      textareaRef,
+      suggestions,
+      value,
+      onValueChange: onChange,
+      tableMap,
+      templateMap,
+    })
 
     /**
      * Sync scroll position between textarea and overlay
@@ -124,8 +137,20 @@ export const EditablePattern = memo(
         onChange(e.target.value)
         // Sync dimensions after content change
         requestAnimationFrame(syncDimensions)
+        // Trigger autocomplete detection
+        autocomplete.handleInput()
       },
-      [onChange, syncDimensions]
+      [onChange, syncDimensions, autocomplete]
+    )
+
+    /**
+     * Handle keyboard events - pass through autocomplete first
+     */
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        autocomplete.handleKeyDown(e)
+      },
+      [autocomplete]
     )
 
     /**
@@ -227,6 +252,7 @@ export const EditablePattern = memo(
           id={id}
           value={value}
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
           onScroll={syncScroll}
           placeholder="" // Placeholder shown in overlay
           className={cn(
@@ -244,6 +270,18 @@ export const EditablePattern = memo(
           }}
           spellCheck={false}
         />
+
+        {/* Autocomplete dropdown */}
+        {autocomplete.isOpen && autocomplete.triggerInfo && (
+          <AutocompleteDropdown
+            suggestions={autocomplete.filteredSuggestions}
+            selectedIndex={autocomplete.selectedIndex}
+            position={autocomplete.triggerInfo.position}
+            onSelect={autocomplete.setSelectedIndex}
+            onConfirm={autocomplete.confirm}
+            onClose={autocomplete.close}
+          />
+        )}
       </div>
     )
   })

@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Rolldeo - Random Table Roller',
+        name: 'Rolldeo - Share the Perfect Random Table',
         short_name: 'Rolldeo',
-        description: 'A PWA for Game Masters to roll on random tables',
+        description: 'Share the perfect random table. Create, share, and roll on random tables with fellow GMs.',
         theme_color: '#1a1a2e',
         background_color: '#1a1a2e',
         display: 'standalone',

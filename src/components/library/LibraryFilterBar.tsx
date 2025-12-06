@@ -18,6 +18,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/stores/uiStore'
 import { formatNamespace } from '@/lib/namespaceUtils'
+import { SelectionActionBar } from './SelectionActionBar'
 
 interface LibraryFilterBarProps {
   /** All unique namespaces available */
@@ -28,6 +29,18 @@ interface LibraryFilterBarProps {
   totalCount: number
   /** Filtered collection count */
   filteredCount: number
+  /** Number of selected items */
+  selectedCount?: number
+  /** Number of deletable items (non-preloaded) */
+  deletableCount?: number
+  /** Callback for delete action */
+  onDelete?: () => void
+  /** Callback for export action */
+  onExport?: () => void
+  /** Callback for select all */
+  onSelectAll?: () => void
+  /** Callback for select none */
+  onSelectNone?: () => void
 }
 
 export const LibraryFilterBar = memo(function LibraryFilterBar({
@@ -35,6 +48,12 @@ export const LibraryFilterBar = memo(function LibraryFilterBar({
   allTags,
   totalCount,
   filteredCount,
+  selectedCount = 0,
+  deletableCount = 0,
+  onDelete,
+  onExport,
+  onSelectAll,
+  onSelectNone,
 }: LibraryFilterBarProps) {
   const {
     searchQuery,
@@ -274,6 +293,22 @@ export const LibraryFilterBar = memo(function LibraryFilterBar({
           <span className="text-sm text-muted-foreground">
             {filteredCount} of {totalCount}
           </span>
+        )}
+
+        {/* Selection action bar */}
+        {selectedCount > 0 && onDelete && onExport && onSelectAll && onSelectNone && (
+          <>
+            <div className="w-px h-6 bg-border" />
+            <SelectionActionBar
+              selectedCount={selectedCount}
+              deletableCount={deletableCount}
+              onDelete={onDelete}
+              onExport={onExport}
+              onSelectAll={onSelectAll}
+              onSelectNone={onSelectNone}
+              totalVisibleCount={filteredCount}
+            />
+          </>
         )}
       </div>
 

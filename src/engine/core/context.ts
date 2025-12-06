@@ -17,11 +17,12 @@ export interface GenerationContext {
   /** Static variables (loaded from document at engine init) */
   staticVariables: Map<string, string>
 
-  /** Shared variables (evaluated once per generation) */
-  sharedVariables: Map<string, string | number>
-
-  /** Tracks which table/template set each shared variable (for multi-roll re-evaluation) */
-  sharedVariableSources: Map<string, string>
+  /**
+   * Shared variables - all shared variables are now capture-aware.
+   * Stores CaptureItem with value, sets, and description.
+   * Keys are stored WITHOUT $ prefix (stripped during evaluation if present).
+   */
+  sharedVariables: Map<string, CaptureItem>
 
   /** Document-level shared variable names (for shadowing prevention) */
   documentSharedNames: Set<string>
@@ -40,9 +41,6 @@ export interface GenerationContext {
 
   /** Capture variables for roll capture system: {{N*table >> $var}} */
   captureVariables: Map<string, CaptureVariable>
-
-  /** Capture-aware shared variables: keys starting with $ capture full roll with sets */
-  captureSharedVariables: Map<string, CaptureItem>
 
   /** Engine configuration */
   config: EngineConfig
@@ -89,14 +87,12 @@ export function createContext(
   return {
     staticVariables: staticVariables ?? new Map(),
     sharedVariables: new Map(),
-    sharedVariableSources: new Map(),
     documentSharedNames: new Set(),
     placeholders: new Map(),
     recursionDepth: 0,
     usedEntries: new Map(),
     instanceResults: new Map(),
     captureVariables: new Map(),
-    captureSharedVariables: new Map(),
     config,
     currentTableId: undefined,
     currentEntryId: undefined,
@@ -114,15 +110,13 @@ export function createContext(
 export function cloneContext(ctx: GenerationContext): GenerationContext {
   return {
     staticVariables: ctx.staticVariables, // Shared reference (immutable during generation)
-    sharedVariables: ctx.sharedVariables, // Shared reference
-    sharedVariableSources: ctx.sharedVariableSources, // Shared reference
+    sharedVariables: ctx.sharedVariables, // Shared reference - shared vars persist across nested calls
     documentSharedNames: ctx.documentSharedNames, // Shared reference (immutable after init)
     placeholders: new Map(ctx.placeholders), // Shallow clone for isolation
     recursionDepth: ctx.recursionDepth,
     usedEntries: ctx.usedEntries, // Shared reference for unique tracking
     instanceResults: ctx.instanceResults, // Shared reference
     captureVariables: ctx.captureVariables, // Shared reference - captures persist across nested calls
-    captureSharedVariables: ctx.captureSharedVariables, // Shared reference - capture-aware shared vars persist
     config: ctx.config,
     currentTableId: ctx.currentTableId,
     currentEntryId: ctx.currentEntryId,
@@ -140,6 +134,7 @@ export function cloneContext(ctx: GenerationContext): GenerationContext {
 /**
  * Resolve a variable by name.
  * Lookup order: shared → static
+ * Returns the string value (for shared variables, extracts from CaptureItem).
  */
 export function resolveVariable(
   ctx: GenerationContext,
@@ -149,15 +144,9 @@ export function resolveVariable(
   // TODO: Handle alias resolution when imports are implemented
   // For now, we just look up the variable name directly
 
-  // Check shared variables first
+  // Check shared variables first (all shared vars are now CaptureItems)
   if (ctx.sharedVariables.has(name)) {
-    return ctx.sharedVariables.get(name)
-  }
-
-  // Check capture-aware shared variables (return the .value string)
-  // This allows $varName in conditions to work for capture-aware shared vars
-  if (ctx.captureSharedVariables.has(name)) {
-    const captureItem = ctx.captureSharedVariables.get(name)
+    const captureItem = ctx.sharedVariables.get(name)
     return captureItem?.value
   }
 
@@ -170,26 +159,37 @@ export function resolveVariable(
 }
 
 /**
- * Set a shared variable (during generation)
- * @param source - The table/template ID that set this variable (for multi-roll re-evaluation tracking)
+ * Get a shared variable's CaptureItem (for property access).
+ * All shared variables are now capture-aware and store CaptureItems.
+ */
+export function getSharedVariable(
+  ctx: GenerationContext,
+  name: string
+): CaptureItem | undefined {
+  return ctx.sharedVariables.get(name)
+}
+
+/**
+ * Set a shared variable.
+ * All shared variables are stored as CaptureItems.
+ * The name should NOT include the $ prefix (stripped during evaluation if present).
  */
 export function setSharedVariable(
   ctx: GenerationContext,
   name: string,
-  value: string | number,
-  source?: string
+  item: CaptureItem
 ): void {
-  ctx.sharedVariables.set(name, value)
-  if (source) {
-    ctx.sharedVariableSources.set(name, source)
-  }
+  ctx.sharedVariables.set(name, item)
 }
 
 /**
- * Get the source (table/template ID) that set a shared variable
+ * Check if a shared variable exists
  */
-export function getSharedVariableSource(ctx: GenerationContext, name: string): string | undefined {
-  return ctx.sharedVariableSources.get(name)
+export function hasSharedVariable(
+  ctx: GenerationContext,
+  name: string
+): boolean {
+  return ctx.sharedVariables.has(name)
 }
 
 /**
@@ -391,49 +391,11 @@ export function setCaptureVariable(
 export function hasVariableConflict(
   ctx: GenerationContext,
   name: string
-): 'capture' | 'captureShared' | 'shared' | 'static' | null {
+): 'capture' | 'shared' | 'static' | null {
   if (ctx.captureVariables.has(name)) return 'capture'
-  if (ctx.captureSharedVariables.has(name)) return 'captureShared'
   if (ctx.sharedVariables.has(name)) return 'shared'
   if (ctx.staticVariables.has(name)) return 'static'
   return null
-}
-
-// ============================================================================
-// Capture-Aware Shared Variables
-// ============================================================================
-
-/**
- * Get a capture-aware shared variable by name.
- * These are shared variables with keys starting with $ that capture full roll results with sets.
- */
-export function getCaptureSharedVariable(
-  ctx: GenerationContext,
-  name: string
-): CaptureItem | undefined {
-  return ctx.captureSharedVariables.get(name)
-}
-
-/**
- * Set a capture-aware shared variable.
- * The name should NOT include the $ prefix (stripped during evaluation).
- */
-export function setCaptureSharedVariable(
-  ctx: GenerationContext,
-  name: string,
-  item: CaptureItem
-): void {
-  ctx.captureSharedVariables.set(name, item)
-}
-
-/**
- * Check if a capture-aware shared variable exists
- */
-export function hasCaptureSharedVariable(
-  ctx: GenerationContext,
-  name: string
-): boolean {
-  return ctx.captureSharedVariables.has(name)
 }
 
 // ============================================================================
