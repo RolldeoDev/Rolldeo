@@ -222,7 +222,7 @@ describe('evaluateWhenClause - value resolution', () => {
     expect(evaluateWhenClause('$strength >= 15', ctx)).toBe(true)
   })
 
-  it('should resolve $var.@property for capture-aware shared variables', () => {
+  it('should resolve $var.@property for shared variables', () => {
     const ctx = createTestContext()
     setSharedVariable(ctx, 'hero', createCaptureItem('Knight', { alignment: 'good' }))
 

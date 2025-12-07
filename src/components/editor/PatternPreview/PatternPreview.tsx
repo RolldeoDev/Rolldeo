@@ -43,6 +43,7 @@ export const PatternPreview = memo(
       suggestions,
       tableMap,
       templateMap,
+      autocompleteSharedVariables,
     },
     ref
   ) {
@@ -103,6 +104,7 @@ export const PatternPreview = memo(
           suggestions={suggestions}
           tableMap={tableMap}
           templateMap={templateMap}
+          sharedVariables={autocompleteSharedVariables}
         />
         {!hideLabel && (
           <p className="text-xs text-muted-foreground mt-1">

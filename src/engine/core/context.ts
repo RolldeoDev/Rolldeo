@@ -18,7 +18,7 @@ export interface GenerationContext {
   staticVariables: Map<string, string>
 
   /**
-   * Shared variables - all shared variables are now capture-aware.
+   * Shared variables store full roll results including sets.
    * Stores CaptureItem with value, sets, and description.
    * Keys are stored WITHOUT $ prefix (stripped during evaluation if present).
    */
@@ -53,6 +53,9 @@ export interface GenerationContext {
 
   /** Current entry's description (for {{@self.description}}) */
   currentEntryDescription?: string
+
+  /** Current entry's raw value (for {{@self.value}}) */
+  currentEntryValue?: string
 
   /** Current collection ID */
   currentCollectionId?: string
@@ -96,6 +99,7 @@ export function createContext(
     config,
     currentTableId: undefined,
     currentEntryId: undefined,
+    currentEntryValue: undefined,
     currentCollectionId: undefined,
     trace: options?.enableTrace ? createTraceContext() : undefined,
     collectedDescriptions: [],
@@ -120,6 +124,7 @@ export function cloneContext(ctx: GenerationContext): GenerationContext {
     config: ctx.config,
     currentTableId: ctx.currentTableId,
     currentEntryId: ctx.currentEntryId,
+    currentEntryValue: ctx.currentEntryValue,
     currentCollectionId: ctx.currentCollectionId,
     trace: ctx.trace, // Shared reference - trace tree is built across all nested calls
     collectedDescriptions: ctx.collectedDescriptions, // Shared reference - descriptions persist across nested calls
@@ -157,7 +162,7 @@ export function resolveVariable(
 
 /**
  * Get a shared variable's CaptureItem (for property access).
- * All shared variables are now capture-aware and store CaptureItems.
+ * All shared variables store CaptureItems with full results.
  */
 export function getSharedVariable(
   ctx: GenerationContext,
@@ -419,6 +424,16 @@ export function setCurrentEntryDescription(
   description?: string
 ): void {
   ctx.currentEntryDescription = description
+}
+
+/**
+ * Set the current entry's raw value (for {{@self.value}})
+ */
+export function setCurrentEntryValue(
+  ctx: GenerationContext,
+  value?: string
+): void {
+  ctx.currentEntryValue = value
 }
 
 /**

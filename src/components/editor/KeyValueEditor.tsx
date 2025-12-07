@@ -5,13 +5,304 @@
  * Used for variables, shared variables, and other key-value data.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import { Plus, Trash2, RefreshCw } from 'lucide-react'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
 import { HighlightedInput, type HighlightedInputRef } from './PatternPreview/HighlightedInput'
 import { InsertDropdown } from './InsertDropdown'
 import { cn } from '@/lib/utils'
+import { parseTemplate } from '@/engine/core/parser'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+import type { Suggestion } from '@/hooks/usePatternSuggestions'
+import type { Table, Template } from '@/engine/types'
+
+/**
+ * Reference types for smart variable highlighting.
+ * Each type corresponds to a distinct border color for the key input.
+ */
+export type VariableRefType =
+  | 'template'   // Purple - references a template
+  | 'table'      // Green - references a table
+  | 'variable'   // Pink - references another variable
+  | 'dice'       // Amber/Orange - dice or math expression
+  | 'property'   // Cyan - property/set placeholder (static text)
+  | 'mixed'      // Multiple expression types
+  | 'none'       // No expression detected
+
+/**
+ * Analyze a string value to determine what type of reference it contains.
+ * Used recursively to check property values.
+ */
+function analyzeValueType(
+  value: string,
+  templateIds: Set<string>,
+  tableIds: Set<string>,
+  _tableMap?: Map<string, Table>,
+  _templateMap?: Map<string, Template>,
+  _sharedVariables?: Record<string, string>
+): VariableRefType {
+  if (!value || !value.includes('{{')) return 'property' // Static text = property (cyan)
+
+  try {
+    const tokens = parseTemplate(value)
+    const types = new Set<VariableRefType>()
+
+    for (const token of tokens) {
+      if (token.type === 'literal') continue
+
+      switch (token.type) {
+        case 'table':
+        case 'multiRoll':
+        case 'captureMultiRoll':
+        case 'instance':
+          const tableId = token.tableId
+          if (templateIds.has(tableId)) {
+            types.add('template')
+          } else if (tableIds.has(tableId)) {
+            types.add('table')
+          } else {
+            types.add('table')
+          }
+          break
+
+        case 'variable':
+        case 'captureAccess':
+        case 'collect':
+          types.add('variable')
+          break
+
+        case 'dice':
+        case 'math':
+          types.add('dice')
+          break
+
+        case 'placeholder':
+          types.add('property')
+          break
+
+        case 'switch':
+          types.add('mixed')
+          break
+
+        case 'again':
+          types.add('table')
+          break
+      }
+    }
+
+    types.delete('none')
+
+    if (types.size === 0) return 'property' // No expressions = static text
+    if (types.size === 1) return Array.from(types)[0]
+    return 'mixed'
+  } catch {
+    return 'property' // Parse error = treat as static text
+  }
+}
+
+/**
+ * Look up a property value from a table's defaultSets or entry sets.
+ */
+function lookupTableProperty(
+  tableId: string,
+  propertyName: string,
+  tableMap?: Map<string, Table>
+): string | undefined {
+  if (!tableMap) return undefined
+  const table = tableMap.get(tableId)
+  if (!table) return undefined
+
+  // Check defaultSets first
+  if (table.defaultSets && propertyName in table.defaultSets) {
+    return table.defaultSets[propertyName]
+  }
+
+  // Check first entry's sets as a representative sample
+  if (table.type === 'simple' && table.entries.length > 0) {
+    const firstEntry = table.entries[0]
+    if (firstEntry.sets && propertyName in firstEntry.sets) {
+      return firstEntry.sets[propertyName]
+    }
+  }
+
+  return undefined
+}
+
+/**
+ * Look up a property value from a shared variable that references a table.
+ */
+function lookupVariableProperty(
+  varName: string,
+  propertyName: string,
+  sharedVariables?: Record<string, string>,
+  tableMap?: Map<string, Table>,
+  _templateMap?: Map<string, Template>
+): string | undefined {
+  if (!sharedVariables) return undefined
+
+  // Get the variable value (e.g., "{{gender}}")
+  const varValue = sharedVariables[varName] || sharedVariables[varName.replace(/^\$/, '')]
+  if (!varValue) return undefined
+
+  // Parse to find what table it references
+  try {
+    const tokens = parseTemplate(varValue)
+    for (const token of tokens) {
+      if (token.type === 'table' || token.type === 'instance') {
+        // Found a table reference - look up the property in that table
+        return lookupTableProperty(token.tableId, propertyName, tableMap)
+      }
+    }
+  } catch {
+    // Parse error
+  }
+
+  return undefined
+}
+
+/**
+ * Analyze a variable value to determine what type of reference it contains.
+ * Returns the primary reference type for border coloring.
+ *
+ * This function now deeply inspects property accesses like {{table.@prop}}
+ * to determine what the property value actually contains.
+ */
+function getVariableRefType(
+  value: string,
+  templateIds: Set<string>,
+  tableIds: Set<string>,
+  _variableNames: Set<string>,
+  tableMap?: Map<string, Table>,
+  templateMap?: Map<string, Template>,
+  sharedVariables?: Record<string, string>
+): VariableRefType {
+  if (!value || !value.includes('{{')) return 'none'
+
+  try {
+    const tokens = parseTemplate(value)
+    const types = new Set<VariableRefType>()
+
+    for (const token of tokens) {
+      if (token.type === 'literal') continue
+
+      switch (token.type) {
+        case 'table':
+        case 'multiRoll':
+        case 'captureMultiRoll':
+        case 'instance': {
+          const tableId = token.tableId
+
+          // Check if this has a property access (e.g., {{table.@prop}})
+          // The parser puts the property in a separate placeholder token after
+          // But for patterns like {{gender.@possessive}}, we need to check the raw value
+          const propMatch = value.match(new RegExp(`\\{\\{${tableId}\\.@(\\w+)\\}\\}`))
+          if (propMatch) {
+            const propName = propMatch[1]
+            const propValue = lookupTableProperty(tableId, propName, tableMap)
+            if (propValue !== undefined) {
+              // Analyze what the property value contains
+              const propType = analyzeValueType(propValue, templateIds, tableIds, tableMap, templateMap, sharedVariables)
+              types.add(propType)
+              break
+            }
+          }
+
+          // No property access or couldn't resolve - classify as table/template
+          if (templateIds.has(tableId)) {
+            types.add('template')
+          } else if (tableIds.has(tableId)) {
+            types.add('table')
+          } else {
+            types.add('table')
+          }
+          break
+        }
+
+        case 'variable': {
+          // Check for property access on variable (e.g., {{$hero.@name}})
+          const varName = token.name
+          const varPropMatch = value.match(new RegExp(`\\{\\{\\$${varName}\\.@(\\w+)\\}\\}`))
+          if (varPropMatch) {
+            const propName = varPropMatch[1]
+            const propValue = lookupVariableProperty(varName, propName, sharedVariables, tableMap, templateMap)
+            if (propValue !== undefined) {
+              const propType = analyzeValueType(propValue, templateIds, tableIds, tableMap, templateMap, sharedVariables)
+              types.add(propType)
+              break
+            }
+          }
+          types.add('variable')
+          break
+        }
+
+        case 'captureAccess': {
+          // Check for property access (e.g., {{$items[0].@name}})
+          // For now, treat as variable since we can't easily resolve capture contents
+          types.add('variable')
+          break
+        }
+
+        case 'collect':
+          types.add('variable')
+          break
+
+        case 'dice':
+        case 'math':
+          types.add('dice')
+          break
+
+        case 'placeholder':
+          types.add('property')
+          break
+
+        case 'switch':
+          types.add('mixed')
+          break
+
+        case 'again':
+          types.add('table')
+          break
+      }
+    }
+
+    types.delete('none')
+
+    if (types.size === 0) return 'none'
+    if (types.size === 1) return Array.from(types)[0]
+    return 'mixed'
+  } catch {
+    return 'none'
+  }
+}
+
+/**
+ * Get the inline style for the border color based on reference type.
+ * Using inline styles because Tailwind JIT doesn't generate dynamic arbitrary values.
+ */
+function getRefTypeBorderStyle(refType: VariableRefType): React.CSSProperties {
+  const baseStyle: React.CSSProperties = {
+    borderLeftWidth: '4px',
+    borderLeftStyle: 'solid',
+  }
+
+  switch (refType) {
+    case 'template':
+      return { ...baseStyle, borderLeftColor: 'hsl(var(--lavender))' }
+    case 'table':
+      return { ...baseStyle, borderLeftColor: 'hsl(var(--mint))' }
+    case 'variable':
+      return { ...baseStyle, borderLeftColor: 'hsl(var(--pink))' }
+    case 'dice':
+      return { ...baseStyle, borderLeftColor: 'hsl(var(--amber))' }
+    case 'property':
+      return { ...baseStyle, borderLeftColor: 'hsl(var(--cyan))' }
+    case 'mixed':
+      return { ...baseStyle, borderLeftColor: 'hsl(var(--copper))' }
+    case 'none':
+    default:
+      return {}
+  }
+}
 
 export interface KeyValueEditorProps {
   value: Record<string, string>
@@ -23,8 +314,6 @@ export interface KeyValueEditorProps {
   valueSupportsExpressions?: boolean
   /** Collection ID for evaluating expressions */
   collectionId?: string
-  /** Highlight keys starting with $ as capture-aware (content-aware) variables */
-  highlightCaptureAware?: boolean
   /** Show insert button for adding table/template references */
   showInsertButton?: boolean
   /** Local tables for insert dropdown */
@@ -35,6 +324,14 @@ export interface KeyValueEditorProps {
   importedTables?: ImportedTableInfo[]
   /** Imported templates for insert dropdown */
   importedTemplates?: ImportedTemplateInfo[]
+  /** Suggestions for autocomplete */
+  suggestions?: Suggestion[]
+  /** Full table data for property lookups */
+  tableMap?: Map<string, Table>
+  /** Full template data for property lookups */
+  templateMap?: Map<string, Template>
+  /** Shared variables for variable property lookups */
+  sharedVariables?: Record<string, string>
 }
 
 export function KeyValueEditor({
@@ -46,12 +343,15 @@ export function KeyValueEditor({
   keyError,
   valueSupportsExpressions,
   collectionId,
-  highlightCaptureAware,
   showInsertButton,
   localTables = [],
   localTemplates = [],
   importedTables = [],
   importedTemplates = [],
+  suggestions,
+  tableMap,
+  templateMap,
+  sharedVariables,
 }: KeyValueEditorProps) {
   const entries = Object.entries(value)
   const [newKey, setNewKey] = useState('')
@@ -82,6 +382,39 @@ export function KeyValueEditor({
     importedTables.length > 0 ||
     importedTemplates.length > 0
   )
+
+  // Build lookup sets for smart variable highlighting
+  const templateIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const t of localTemplates) ids.add(t.id)
+    for (const t of importedTemplates) ids.add(t.id)
+    return ids
+  }, [localTemplates, importedTemplates])
+
+  const tableIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const t of localTables) ids.add(t.id)
+    for (const t of importedTables) ids.add(t.id)
+    return ids
+  }, [localTables, importedTables])
+
+  const variableNames = useMemo(() => {
+    const names = new Set<string>()
+    for (const key of Object.keys(value)) names.add(key)
+    if (sharedVariables) {
+      for (const key of Object.keys(sharedVariables)) names.add(key)
+    }
+    return names
+  }, [value, sharedVariables])
+
+  // Compute reference types for all entries (for smart key highlighting)
+  const refTypes = useMemo(() => {
+    const types: Record<string, VariableRefType> = {}
+    for (const [key, val] of Object.entries(value)) {
+      types[key] = getVariableRefType(val, templateIds, tableIds, variableNames, tableMap, templateMap, sharedVariables)
+    }
+    return types
+  }, [value, templateIds, tableIds, variableNames, tableMap, templateMap, sharedVariables])
 
   const validateKey = useCallback(
     (key: string): boolean => {
@@ -198,15 +531,12 @@ export function KeyValueEditor({
       {entries.map(([key, val], index) => {
         const isEditing = editingKeyIndex === index
         const displayKey = isEditing ? editingKeyValue : key
-        const isCaptureAware = highlightCaptureAware && displayKey.startsWith('$')
+        const keyBorderStyle = getRefTypeBorderStyle(refTypes[key] || 'none')
         return (
         <div key={index} className="editor-entry-row flex-col md:flex-row items-stretch md:items-start">
           <div className="flex-1">
-            <label className={cn(
-              "block md:hidden text-sm font-medium mb-1.5",
-              isCaptureAware ? "text-pink" : "text-muted-foreground"
-            )}>
-              {isCaptureAware ? "Key (capture-aware)" : "Key"}
+            <label className="block md:hidden text-sm font-medium mb-1.5 text-muted-foreground">
+              Key
             </label>
             <input
               type="text"
@@ -222,18 +552,10 @@ export function KeyValueEditor({
                   setEditingKeyValue('')
                 }
               }}
-              className={cn(
-                "editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0",
-                isCaptureAware && "capture-aware"
-              )}
+              className="editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0"
+              style={keyBorderStyle}
               placeholder={keyPlaceholder}
-              title={isCaptureAware ? "Capture-aware: use {{$" + displayKey.slice(1) + ".@property}} to access sets" : undefined}
             />
-            {isCaptureAware && (
-              <p className="text-xs text-pink mt-1">
-                Captures sets. Access with: <code className="px-1 bg-pink/20 rounded">{`{{${displayKey}.@property}}`}</code>
-              </p>
-            )}
           </div>
           <div className="flex-1">
             <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">Value</label>
@@ -255,6 +577,10 @@ export function KeyValueEditor({
                   hasInsertData && "pr-10"
                 )}
                 placeholder={valuePlaceholder}
+                suggestions={suggestions}
+                tableMap={tableMap}
+                templateMap={templateMap}
+                sharedVariables={sharedVariables}
               />
               {hasInsertData && (focusedValueIndex === index || openDropdownIndex === index) && (
                 <div className="absolute right-1 top-1/2 -translate-y-1/2 z-10">
@@ -288,16 +614,10 @@ export function KeyValueEditor({
 
       {/* Add new entry */}
       <div className="pt-3 md:pt-2 border-t border-border/50 space-y-3 md:space-y-2">
-        {(() => {
-          const newKeyIsCaptureAware = highlightCaptureAware && newKey.startsWith('$')
-          return (
         <div className="flex flex-col md:flex-row gap-3 md:gap-2 items-stretch md:items-start">
           <div className="flex-1">
-            <label className={cn(
-              "block md:hidden text-sm font-medium mb-1.5",
-              newKeyIsCaptureAware ? "text-pink" : "text-muted-foreground"
-            )}>
-              {newKeyIsCaptureAware ? "New Key (capture-aware)" : "New Key"}
+            <label className="block md:hidden text-sm font-medium mb-1.5 text-muted-foreground">
+              New Key
             </label>
             <input
               ref={newKeyInputRef}
@@ -308,10 +628,7 @@ export function KeyValueEditor({
                 setKeyValidationError(null)
               }}
               onKeyDown={(e) => e.key === 'Enter' && addEntry()}
-              className={cn(
-                "editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0",
-                newKeyIsCaptureAware && "capture-aware"
-              )}
+              className="editor-input text-base md:text-sm font-mono min-h-[48px] md:min-h-0"
               placeholder={keyPlaceholder}
             />
           </div>
@@ -333,6 +650,10 @@ export function KeyValueEditor({
                   hasInsertData && "pr-10"
                 )}
                 placeholder={valuePlaceholder}
+                suggestions={suggestions}
+                tableMap={tableMap}
+                templateMap={templateMap}
+                sharedVariables={sharedVariables}
               />
               {hasInsertData && (newValueFocused || newValueDropdownOpen) && (
                 <div className="absolute right-1 top-1/2 -translate-y-1/2 z-10">
@@ -359,31 +680,21 @@ export function KeyValueEditor({
             Add
           </button>
         </div>
-          )
-        })()}
         {keyValidationError && (
           <p className="text-sm md:text-xs text-destructive">{keyValidationError}</p>
         )}
       </div>
 
       {valueSupportsExpressions && (
-        <div className="text-sm md:text-xs text-muted-foreground p-4 md:p-3 bg-muted/30 rounded-xl md:rounded-lg space-y-2">
+        <div className="text-sm md:text-xs text-muted-foreground p-4 md:p-3 bg-muted/30 rounded-xl md:rounded-lg">
           <p>
             <strong>Tip:</strong> Shared variables support expressions like{' '}
             <code className="px-1.5 md:px-1 py-0.5 bg-muted rounded">{'{{dice:2d6}}'}</code>,{' '}
             <code className="px-1.5 md:px-1 py-0.5 bg-muted rounded">{'{{math:$var + 5}}'}</code>,
             or table references. They're evaluated in order, so later variables can
-            reference earlier ones.
+            reference earlier ones. Access properties with{' '}
+            <code className="px-1.5 md:px-1 py-0.5 bg-muted rounded">{'{{$varName.@property}}'}</code>.
           </p>
-          {highlightCaptureAware && (
-            <p className="text-pink">
-              <strong>Capture-aware:</strong> Name starting with{' '}
-              <code className="px-1.5 md:px-1 py-0.5 bg-pink/20 rounded">$</code>{' '}
-              (e.g., <code className="px-1.5 md:px-1 py-0.5 bg-pink/20 rounded">$hero</code>){' '}
-              captures the full roll including sets. Access properties with{' '}
-              <code className="px-1.5 md:px-1 py-0.5 bg-pink/20 rounded">{'{{$hero.@property}}'}</code>.
-            </p>
-          )}
         </div>
       )}
     </div>

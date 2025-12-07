@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -1427,17 +1428,6 @@
 .dark .editor-input:focus {
   background: hsl(0, 0%, 16%);
   border-color: hsl(var(--primary) / 0.5);
-}
-
-/* Capture-aware variable styling (pink border - lighter to avoid error confusion) */
-.editor-input.capture-aware {
-  border-color: hsl(var(--pink));
-  color: hsl(var(--pink));
-}
-
-.editor-input.capture-aware:focus {
-  border-color: hsl(var(--pink));
-  --tw-ring-color: hsl(var(--pink) / 0.4);
 }
 
 /* Editor input - compact variant for inline/row items */
@@ -3937,7 +3927,7 @@
   font-family: 'Sora', system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.03em;
-  color: hsl(230, 25%, 15%);
+  color: hsl(252, 48%, 28%);  /* Rich royal violet */
   position: relative;
   padding-bottom: 0.75rem;
 }
@@ -3951,8 +3941,8 @@
   width: 2.5rem;
   height: 2px;
   background: linear-gradient(90deg,
-    hsl(250, 50%, 60%) 0%,
-    hsl(260, 45%, 65%) 100%);
+    hsl(252, 65%, 55%) 0%,
+    hsl(280, 55%, 58%) 100%);
   border-radius: 1px;
 }
 
@@ -3961,7 +3951,7 @@
   font-family: 'Sora', system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: hsl(230, 22%, 18%);
+  color: hsl(248, 42%, 34%);  /* Violet with depth */
 }
 
 .prose-roll-sleek h3 {
@@ -3969,7 +3959,7 @@
   font-family: 'Sora', system-ui, sans-serif;
   font-weight: 500;
   letter-spacing: -0.015em;
-  color: hsl(230, 20%, 22%);
+  color: hsl(244, 36%, 40%);  /* Medium violet-indigo */
 }
 
 .prose-roll-sleek h4 {
@@ -3977,7 +3967,7 @@
   font-family: 'Sora', system-ui, sans-serif;
   font-weight: 500;
   letter-spacing: 0;
-  color: hsl(230, 18%, 28%);
+  color: hsl(240, 32%, 46%);  /* Softer indigo */
 }
 
 .prose-roll-sleek h5,
@@ -3987,7 +3977,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: hsl(230, 15%, 45%);
+  color: hsl(268, 28%, 50%);  /* Dusty violet for small caps */
 }
 
 /* === PARAGRAPHS & TEXT === */
@@ -3998,12 +3988,12 @@
 
 .prose-roll-sleek strong {
   font-weight: 600;
-  color: hsl(230, 25%, 15%);
+  color: hsl(225, 55%, 25%);  /* Deep sapphire-blue - anchoring emphasis */
 }
 
 .prose-roll-sleek em {
   font-style: italic;
-  color: hsl(230, 18%, 30%);
+  color: hsl(280, 32%, 42%);  /* Dusty orchid - ethereal and distinctive */
 }
 
 /* === LISTS - Clean minimal bullets === */
@@ -4032,19 +4022,19 @@
   width: 5px;
   height: 5px;
   background: linear-gradient(135deg,
-    hsl(250, 50%, 60%) 0%,
-    hsl(260, 45%, 55%) 100%);
+    hsl(252, 55%, 52%) 0%,
+    hsl(280, 45%, 50%) 100%);
   border-radius: 50%;
 }
 
 .prose-roll-sleek ul ul > li::before {
-  background: hsl(230, 15%, 65%);
+  background: hsl(244, 30%, 58%);
   width: 4px;
   height: 4px;
 }
 
 .prose-roll-sleek ul ul ul > li::before {
-  background: hsl(230, 10%, 75%);
+  background: hsl(240, 20%, 68%);
   width: 3px;
   height: 3px;
 }
@@ -4066,11 +4056,11 @@
   font-family: 'Sora', system-ui, sans-serif;
   font-weight: 500;
   font-size: 0.85em;
-  color: hsl(250, 45%, 55%);
+  color: hsl(252, 50%, 48%);  /* Rich violet numbers */
 }
 
 .prose-roll-sleek ol ol > li::before {
-  color: hsl(230, 20%, 55%);
+  color: hsl(244, 35%, 52%);
   font-size: 0.8em;
 }
 
@@ -4099,9 +4089,9 @@
 .prose-roll-sleek code {
   @apply px-1.5 py-0.5 rounded text-sm;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  background: hsl(230, 25%, 95%);
-  color: hsl(250, 50%, 45%);
-  border: 1px solid hsl(230, 20%, 90%);
+  background: hsl(252, 30%, 95%);
+  color: hsl(252, 55%, 42%);  /* Rich violet for inline code */
+  border: 1px solid hsl(252, 25%, 88%);
   font-size: 0.875em;
 }
 
@@ -4127,11 +4117,11 @@
 
 .prose-roll-sleek blockquote {
   @apply my-6 py-4 px-6;
-  background: hsl(250, 30%, 98%);
+  background: hsl(252, 35%, 97%);
   border: none;
-  border-left: 3px solid hsl(250, 50%, 60%);
+  border-left: 3px solid hsl(252, 55%, 55%);  /* Rich violet accent */
   border-radius: 0 0.5rem 0.5rem 0;
-  color: hsl(230, 18%, 30%);
+  color: hsl(280, 25%, 38%);  /* Subtle orchid tone */
   font-style: italic;
   position: relative;
 }
@@ -4148,24 +4138,24 @@
   height: 1px;
   background: linear-gradient(90deg,
     transparent 0%,
-    hsl(230, 20%, 85%) 20%,
-    hsl(250, 30%, 75%) 50%,
-    hsl(230, 20%, 85%) 80%,
+    hsl(252, 25%, 82%) 20%,
+    hsl(268, 40%, 65%) 50%,  /* Rich violet center */
+    hsl(252, 25%, 82%) 80%,
     transparent 100%);
 }
 
 /* === LINKS - Refined underline === */
 
 .prose-roll-sleek a {
-  color: hsl(250, 55%, 50%);
+  color: hsl(252, 58%, 48%);  /* Rich violet link */
   text-decoration: none;
-  border-bottom: 1px solid hsl(250, 40%, 75%);
+  border-bottom: 1px solid hsl(252, 45%, 72%);
   transition: all 0.2s ease;
 }
 
 .prose-roll-sleek a:hover {
-  color: hsl(260, 60%, 45%);
-  border-bottom-color: hsl(260, 50%, 55%);
+  color: hsl(280, 55%, 45%);  /* Shifts toward orchid on hover */
+  border-bottom-color: hsl(280, 50%, 55%);
 }
 
 /* === TABLES - Clean modern grid === */
@@ -4227,62 +4217,62 @@
 
 /* Dark mode headers */
 :is(.dark .prose-roll-sleek) h1 {
-  color: hsl(220, 20%, 95%);
+  color: hsl(252, 70%, 82%);  /* Luminous violet */
 }
 
 :is(.dark .prose-roll-sleek) h1::after {
   background: linear-gradient(90deg,
-    hsl(250, 60%, 70%) 0%,
-    hsl(265, 55%, 72%) 100%);
+    hsl(252, 75%, 72%) 0%,
+    hsl(280, 65%, 74%) 100%);
 }
 
 :is(.dark .prose-roll-sleek) h2 {
-  color: hsl(220, 18%, 92%);
+  color: hsl(248, 62%, 78%);  /* Soft violet */
 }
 
 :is(.dark .prose-roll-sleek) h3 {
-  color: hsl(220, 16%, 88%);
+  color: hsl(244, 55%, 74%);  /* Medium violet */
 }
 
 :is(.dark .prose-roll-sleek) h4 {
-  color: hsl(220, 14%, 82%);
+  color: hsl(240, 48%, 70%);  /* Light indigo */
 }
 
 :is(.dark .prose-roll-sleek) h5,
 :is(.dark .prose-roll-sleek) h6 {
-  color: hsl(220, 12%, 60%);
+  color: hsl(268, 40%, 62%);  /* Dusty violet for small caps */
 }
 
 /* Dark mode text */
 :is(.dark .prose-roll-sleek) strong {
-  color: hsl(220, 20%, 95%);
+  color: hsl(200, 65%, 82%);  /* Cool cyan-white - pops against dark */
 }
 
 :is(.dark .prose-roll-sleek) em {
-  color: hsl(220, 15%, 78%);
+  color: hsl(285, 50%, 75%);  /* Soft orchid/lavender */
 }
 
 /* Dark mode list bullets */
 :is(.dark .prose-roll-sleek) ul > li::before {
   background: linear-gradient(135deg,
-    hsl(250, 60%, 68%) 0%,
-    hsl(265, 55%, 65%) 100%);
+    hsl(252, 65%, 70%) 0%,
+    hsl(280, 55%, 68%) 100%);
 }
 
 :is(.dark .prose-roll-sleek) ul ul > li::before {
-  background: hsl(230, 20%, 50%);
+  background: hsl(244, 45%, 58%);
 }
 
 :is(.dark .prose-roll-sleek) ul ul ul > li::before {
-  background: hsl(230, 15%, 40%);
+  background: hsl(240, 30%, 48%);
 }
 
 :is(.dark .prose-roll-sleek) ol > li::before {
-  color: hsl(250, 55%, 70%);
+  color: hsl(252, 60%, 72%);  /* Luminous violet numbers */
 }
 
 :is(.dark .prose-roll-sleek) ol ol > li::before {
-  color: hsl(230, 25%, 55%);
+  color: hsl(244, 45%, 62%);
 }
 
 :is(.dark .prose-roll-sleek) li.task-list-item input[type="checkbox"] {
@@ -4291,73 +4281,73 @@
 
 /* Dark mode code */
 :is(.dark .prose-roll-sleek) code {
-  background: hsl(230, 22%, 15%);
-  color: hsl(250, 60%, 75%);
-  border-color: hsl(230, 20%, 22%);
+  background: hsl(252, 28%, 15%);
+  color: hsl(252, 65%, 78%);  /* Luminous violet */
+  border-color: hsl(252, 25%, 22%);
 }
 
 :is(.dark .prose-roll-sleek) pre {
   background: linear-gradient(180deg,
-    hsl(230, 22%, 11%) 0%,
-    hsl(230, 24%, 9%) 100%);
-  border-color: hsl(230, 20%, 18%);
+    hsl(252, 25%, 11%) 0%,
+    hsl(252, 28%, 9%) 100%);
+  border-color: hsl(252, 22%, 18%);
   box-shadow:
-    inset 0 1px 4px hsl(230, 25%, 5% / 0.4);
+    inset 0 1px 4px hsl(252, 30%, 5% / 0.4);
 }
 
 :is(.dark .prose-roll-sleek) pre code {
-  color: hsl(220, 15%, 80%);
+  color: hsl(220, 18%, 82%);
 }
 
 /* Dark mode blockquote */
 :is(.dark .prose-roll-sleek) blockquote {
-  background: hsl(250, 25%, 12%);
-  border-left-color: hsl(250, 55%, 60%);
-  color: hsl(220, 15%, 78%);
+  background: hsl(252, 30%, 12%);
+  border-left-color: hsl(252, 60%, 62%);  /* Luminous violet accent */
+  color: hsl(285, 35%, 78%);  /* Soft orchid tone */
 }
 
 /* Dark mode horizontal rule */
 :is(.dark .prose-roll-sleek) hr {
   background: linear-gradient(90deg,
     transparent 0%,
-    hsl(230, 20%, 25%) 20%,
-    hsl(250, 35%, 45%) 50%,
-    hsl(230, 20%, 25%) 80%,
+    hsl(252, 25%, 28%) 20%,
+    hsl(268, 50%, 55%) 50%,  /* Rich violet center */
+    hsl(252, 25%, 28%) 80%,
     transparent 100%);
 }
 
 /* Dark mode links */
 :is(.dark .prose-roll-sleek) a {
-  color: hsl(250, 65%, 72%);
-  border-bottom-color: hsl(250, 45%, 50%);
+  color: hsl(252, 70%, 75%);  /* Luminous violet */
+  border-bottom-color: hsl(252, 50%, 55%);
 }
 
 :is(.dark .prose-roll-sleek) a:hover {
-  color: hsl(260, 70%, 78%);
-  border-bottom-color: hsl(260, 55%, 65%);
+  color: hsl(280, 65%, 80%);  /* Shifts toward orchid */
+  border-bottom-color: hsl(280, 55%, 65%);
 }
 
 /* Dark mode tables */
 :is(.dark .prose-roll-sleek) table {
-  box-shadow: 0 1px 3px hsl(230, 25%, 5% / 0.4);
+  box-shadow: 0 1px 3px hsl(252, 30%, 5% / 0.4);
 }
 
 :is(.dark .prose-roll-sleek) thead {
-  background: hsl(230, 22%, 14%);
+  background: hsl(252, 25%, 14%);
 }
 
 :is(.dark .prose-roll-sleek) th {
-  color: hsl(220, 15%, 60%);
-  border-bottom-color: hsl(230, 20%, 20%);
+  color: hsl(252, 40%, 68%);  /* Subtle violet for headers */
+  border-bottom-color: hsl(252, 22%, 20%);
 }
 
 :is(.dark .prose-roll-sleek) td {
-  border-bottom-color: hsl(230, 18%, 16%);
-  color: hsl(220, 15%, 80%);
+  border-bottom-color: hsl(252, 20%, 16%);
+  color: hsl(220, 18%, 82%);
 }
 
 :is(.dark .prose-roll-sleek) tbody tr:hover {
-  background: hsl(250, 30%, 14%);
+  background: hsl(252, 35%, 14%);
 }
 
 /* Dark mode images */

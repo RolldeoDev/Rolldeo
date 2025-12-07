@@ -247,8 +247,8 @@ export interface CaptureAccessMetadata {
   found: boolean
   /** Total items in capture variable */
   totalItems?: number
-  /** Whether this is a capture-aware shared variable (not from >> syntax) */
-  isCaptureShared?: boolean
+  /** Whether this is a shared variable (not from >> capture syntax) */
+  isSharedVariable?: boolean
 }
 
 export interface CollectMetadata {

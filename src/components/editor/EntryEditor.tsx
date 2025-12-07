@@ -57,6 +57,8 @@ export interface EntryEditorProps {
   tableMap?: Map<string, Table>
   /** Full template data for property lookups (keyed by template ID) */
   templateMap?: Map<string, Template>
+  /** Combined shared variables for autocomplete (document + table level) */
+  sharedVariables?: Record<string, string>
 }
 
 export function EntryEditor({
@@ -79,6 +81,7 @@ export function EntryEditor({
   suggestions,
   tableMap,
   templateMap,
+  sharedVariables,
 }: EntryEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [showPreview, setShowPreview] = useState(false)
@@ -207,6 +210,10 @@ export function EntryEditor({
           placeholder="Entry value (supports {{...}} templates)"
           wrapperClassName="flex-1 min-w-0"
           className="w-full p-2 border rounded-md bg-background text-sm"
+          suggestions={suggestions}
+          tableMap={tableMap}
+          templateMap={templateMap}
+          sharedVariables={sharedVariables}
         />
 
         <div className="flex items-center gap-2">
@@ -323,6 +330,10 @@ export function EntryEditor({
               onKeyDown={handleKeyDown}
               placeholder="Entry value (supports {{...}} templates)"
               className="w-full p-3 border rounded-xl bg-background text-base min-h-[48px]"
+              suggestions={suggestions}
+              tableMap={tableMap}
+              templateMap={templateMap}
+              sharedVariables={sharedVariables}
             />
           </div>
 
@@ -510,6 +521,7 @@ export function EntryEditor({
               suggestions={suggestions}
               tableMap={tableMap}
               templateMap={templateMap}
+              autocompleteSharedVariables={sharedVariables}
             />
           </div>
 
@@ -543,6 +555,10 @@ export function EntryEditor({
               localTemplates={localTemplates}
               importedTables={importedTables}
               importedTemplates={importedTemplates}
+              suggestions={suggestions}
+              tableMap={tableMap}
+              templateMap={templateMap}
+              sharedVariables={sharedVariables}
             />
           </div>
 

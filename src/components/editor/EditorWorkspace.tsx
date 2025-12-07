@@ -580,6 +580,7 @@ export function EditorWorkspace({
                       suggestions={suggestions}
                       tableMap={tableMap}
                       templateMap={templateMap}
+                      sharedVariables={document.shared}
                     />
                   </div>
                 ))}
@@ -617,6 +618,7 @@ export function EditorWorkspace({
                         suggestions={suggestions}
                         tableMap={tableMap}
                         templateMap={templateMap}
+                        documentShared={document.shared}
                         defaultExpanded={lastExplicitItemId === template.id || (document.templates?.length || 0) === 1}
                         collectionId={collectionId}
                         onFocus={() => setFocusedItemId(template.id)}
@@ -653,6 +655,9 @@ export function EditorWorkspace({
                 localTemplates={localTemplates}
                 importedTables={importedTables}
                 importedTemplates={importedTemplates}
+                suggestions={suggestions}
+                tableMap={tableMap}
+                templateMap={templateMap}
               />
             </div>
           )}

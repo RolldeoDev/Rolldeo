@@ -32,7 +32,8 @@ import type {
   TableSource,
 } from '@/engine/types'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
-import type { Suggestion } from '@/hooks/usePatternSuggestions'
+import { getTableProperties, type Suggestion } from '@/hooks/usePatternSuggestions'
+import { AtSign } from 'lucide-react'
 
 export interface TableEditorProps {
   /** The table to edit */
@@ -67,6 +68,8 @@ export interface TableEditorProps {
   tableMap?: Map<string, Table>
   /** Full template data for property lookups (keyed by template ID) */
   templateMap?: Map<string, Template>
+  /** Document-level shared variables for autocomplete */
+  sharedVariables?: Record<string, string>
 }
 
 export function TableEditor({
@@ -86,6 +89,7 @@ export function TableEditor({
   suggestions,
   tableMap,
   templateMap,
+  sharedVariables,
 }: TableEditorProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const prevDefaultExpandedRef = useRef(defaultExpanded)
@@ -444,18 +448,21 @@ export function TableEditor({
                     onChange={(shared) =>
                       updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
                     }
-                    keyPlaceholder="Variable name ($ prefix to capture sets)"
+                    keyPlaceholder="Variable name"
                     valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
                     keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
-                    keyError="Must start with optional $, then letter/underscore, alphanumeric only"
+                    keyError="Must start with letter/underscore, alphanumeric only"
                     valueSupportsExpressions
                     collectionId={collectionId}
-                    highlightCaptureAware
                     showInsertButton
                     localTables={localTables}
                     localTemplates={localTemplates}
                     importedTables={importedTables}
                     importedTemplates={importedTemplates}
+                    suggestions={suggestions}
+                    tableMap={tableMap}
+                    templateMap={templateMap}
+                    sharedVariables={{ ...sharedVariables, ...table.shared as Record<string, string> }}
                   />
                 </div>
               )}
@@ -480,6 +487,10 @@ export function TableEditor({
                     localTemplates={localTemplates}
                     importedTables={importedTables}
                     importedTemplates={importedTemplates}
+                    suggestions={suggestions}
+                    tableMap={tableMap}
+                    templateMap={templateMap}
+                    sharedVariables={{ ...sharedVariables, ...table.shared as Record<string, string> }}
                   />
                 </div>
               )}
@@ -499,6 +510,7 @@ export function TableEditor({
               suggestions={suggestions}
               tableMap={tableMap}
               templateMap={templateMap}
+              sharedVariables={sharedVariables}
             />
           )}
 
@@ -604,6 +616,7 @@ interface SimpleTableEditorProps {
   suggestions?: Suggestion[]
   tableMap?: Map<string, Table>
   templateMap?: Map<string, Template>
+  sharedVariables?: Record<string, string>
 }
 
 function SimpleTableEditor({
@@ -617,11 +630,42 @@ function SimpleTableEditor({
   suggestions,
   tableMap,
   templateMap,
+  sharedVariables,
 }: SimpleTableEditorProps) {
   const [focusedEntryIndex, setFocusedEntryIndex] = useState<number | null>(null)
   const [expandedEntryIndex, setExpandedEntryIndex] = useState<number | null>(null)
   const [collapsedEntryIndex, setCollapsedEntryIndex] = useState<number | null>(null)
   const [clonedEntryIndex, setClonedEntryIndex] = useState<number | null>(null)
+
+  // Build placeholder suggestions from this table's set keys
+  // This includes defaultSets and all entry.sets keys
+  const suggestionsWithTableSets = useMemo(() => {
+    const tableSetKeys = getTableProperties(table)
+    // Filter out 'value' and 'description' as they're always available and less useful to show
+    const setKeys = tableSetKeys.filter(k => k !== 'value' && k !== 'description')
+
+    if (setKeys.length === 0) {
+      return suggestions || []
+    }
+
+    // Build placeholder suggestions for each set key
+    const placeholderSuggestions: Suggestion[] = setKeys.map(key => ({
+      id: `placeholder-table-${table.id}-${key}`,
+      label: `@${key}`,
+      insertText: `@${key}`,
+      category: 'placeholder' as const,
+      description: `Set property from ${table.name || table.id}`,
+      icon: AtSign,
+      source: 'This Table',
+      colorClass: 'cyan' as const,
+    }))
+
+    // Merge with existing suggestions, avoiding duplicates
+    const existingIds = new Set((suggestions || []).map(s => s.id))
+    const newSuggestions = placeholderSuggestions.filter(s => !existingIds.has(s.id))
+
+    return [...(suggestions || []), ...newSuggestions]
+  }, [suggestions, table])
 
   // Clear focus state after it's been applied
   useEffect(() => {
@@ -755,9 +799,10 @@ function SimpleTableEditor({
                 localTemplates={localTemplates}
                 importedTables={importedTables}
                 importedTemplates={importedTemplates}
-                suggestions={suggestions}
+                suggestions={suggestionsWithTableSets}
                 tableMap={tableMap}
                 templateMap={templateMap}
+                sharedVariables={{ ...sharedVariables, ...table.shared }}
               />
             </SortableItem>
           ))}

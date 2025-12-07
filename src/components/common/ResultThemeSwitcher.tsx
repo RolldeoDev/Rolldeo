@@ -59,7 +59,7 @@ export const ResultThemeSwitcher = memo(function ResultThemeSwitcher() {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const config = themeConfig[resultTheme]
+  const config = themeConfig[resultTheme] ?? themeConfig.default
   const Icon = config.icon
 
   // Update dropdown position when opening

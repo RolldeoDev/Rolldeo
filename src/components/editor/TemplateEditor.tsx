@@ -50,6 +50,8 @@ export interface TemplateEditorProps {
   tableMap?: Map<string, Table>
   /** Full template data for property lookups (keyed by template ID) */
   templateMap?: Map<string, Template>
+  /** Document-level shared variables for autocomplete */
+  documentShared?: Record<string, string>
   /** Whether the template card is expanded */
   defaultExpanded?: boolean
   /** Collection ID for live preview evaluation */
@@ -73,6 +75,7 @@ export function TemplateEditor({
   suggestions,
   tableMap,
   templateMap,
+  documentShared,
   defaultExpanded = false,
   collectionId,
   onFocus,
@@ -289,18 +292,21 @@ export function TemplateEditor({
                 onChange={(shared) =>
                   updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
                 }
-                keyPlaceholder="Variable name ($ prefix to capture sets)"
+                keyPlaceholder="Variable name"
                 valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
                 keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
-                keyError="Must start with optional $, then letter/underscore, alphanumeric only"
+                keyError="Must start with letter/underscore, alphanumeric only"
                 valueSupportsExpressions
                 collectionId={collectionId}
-                highlightCaptureAware
                 showInsertButton
                 localTables={localTables}
                 localTemplates={localTemplates.filter(t => t.id !== template.id)}
                 importedTables={importedTables}
                 importedTemplates={importedTemplates.filter(t => t.id !== template.id)}
+                suggestions={suggestions}
+                tableMap={tableMap}
+                templateMap={templateMap}
+                sharedVariables={{ ...documentShared, ...(template.shared as Record<string, string> | undefined) }}
               />
             </div>
           </details>
@@ -399,6 +405,7 @@ export function TemplateEditor({
               suggestions={augmentedSuggestions}
               tableMap={tableMap}
               templateMap={templateMap}
+              autocompleteSharedVariables={{ ...documentShared, ...(template.shared as Record<string, string> | undefined) }}
             />
           </div>
 

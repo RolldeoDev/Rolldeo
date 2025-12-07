@@ -3,11 +3,16 @@
  *
  * Single-line input with syntax highlighting for {{...}} expressions.
  * Uses the same overlay technique as EditablePattern but for input elements.
+ * Optionally supports autocomplete for table/template references.
  */
 
 import { memo, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { cn } from '@/lib/utils'
 import { renderHighlightedText } from './highlightUtils'
+import { usePatternAutocomplete } from '@/hooks/usePatternAutocomplete'
+import { AutocompleteDropdown } from '../AutocompleteDropdown'
+import type { Suggestion } from '@/hooks/usePatternSuggestions'
+import type { Table, Template } from '@/engine/types'
 
 export interface HighlightedInputProps {
   value: string
@@ -20,6 +25,14 @@ export interface HighlightedInputProps {
   onFocus?: () => void
   onBlur?: () => void
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  /** Suggestions for autocomplete (optional - if not provided, autocomplete is disabled) */
+  suggestions?: Suggestion[]
+  /** Full table data for property lookups (keyed by table ID) */
+  tableMap?: Map<string, Table>
+  /** Full template data for property lookups (keyed by template ID) */
+  templateMap?: Map<string, Template>
+  /** Shared variables map for variable property lookups (keyed by variable name without $) */
+  sharedVariables?: Record<string, string>
 }
 
 export interface HighlightedInputRef {
@@ -38,11 +51,23 @@ export interface HighlightedInputRef {
  */
 export const HighlightedInput = memo(
   forwardRef<HighlightedInputRef, HighlightedInputProps>(function HighlightedInput(
-    { value, onChange, placeholder, className, wrapperClassName, onFocus, onBlur, onKeyDown },
+    { value, onChange, placeholder, className, wrapperClassName, onFocus, onBlur, onKeyDown, suggestions = [], tableMap, templateMap, sharedVariables },
     ref
   ) {
     const inputRef = useRef<HTMLInputElement>(null)
     const overlayRef = useRef<HTMLDivElement>(null)
+
+    // Autocomplete hook - uses a ref adapter since usePatternAutocomplete expects textarea
+    // We cast the input ref to work with the hook (both have same selectionStart/value properties)
+    const autocomplete = usePatternAutocomplete({
+      textareaRef: inputRef as unknown as React.RefObject<HTMLTextAreaElement>,
+      suggestions,
+      value,
+      onValueChange: onChange,
+      tableMap,
+      templateMap,
+      sharedVariables,
+    })
 
     /**
      * Sync scroll position between input and overlay
@@ -59,8 +84,27 @@ export const HighlightedInput = memo(
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange(e.target.value)
+        // Trigger autocomplete detection after value change
+        autocomplete.handleInput()
       },
-      [onChange]
+      [onChange, autocomplete]
+    )
+
+    /**
+     * Handle keyboard events - integrate with autocomplete
+     */
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        // Let autocomplete handle navigation keys first
+        if (autocomplete.isOpen) {
+          autocomplete.handleKeyDown(e as unknown as React.KeyboardEvent<HTMLTextAreaElement>)
+          // If autocomplete handled the key, don't propagate
+          if (e.defaultPrevented) return
+        }
+        // Pass through to parent handler
+        onKeyDown?.(e)
+      },
+      [autocomplete, onKeyDown]
     )
 
     /**
@@ -147,7 +191,7 @@ export const HighlightedInput = memo(
           onScroll={syncScroll}
           onFocus={onFocus}
           onBlur={onBlur}
-          onKeyDown={onKeyDown}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={cn(
             className,
@@ -156,6 +200,19 @@ export const HighlightedInput = memo(
           )}
           spellCheck={false}
         />
+
+        {/* Autocomplete dropdown */}
+        {autocomplete.isOpen && autocomplete.triggerInfo && (
+          <AutocompleteDropdown
+            suggestions={autocomplete.filteredSuggestions}
+            selectedIndex={autocomplete.selectedIndex}
+            position={autocomplete.triggerInfo.position}
+            onSelect={autocomplete.setSelectedIndex}
+            onConfirm={autocomplete.confirm}
+            onClose={autocomplete.close}
+            isPropertyTrigger={autocomplete.triggerInfo.type === 'property'}
+          />
+        )}
       </div>
     )
   })

@@ -36,6 +36,8 @@ export interface TriggerInfo {
   targetId?: string
   /** For 'property' trigger: the property chain so far (e.g., ["race"] for tableName.race.) */
   propertyChain?: string[]
+  /** For 'property' trigger: whether this is a variable property access (e.g., $varName.@prop) */
+  isVariable?: boolean
 }
 
 /**
@@ -54,6 +56,8 @@ export interface UsePatternAutocompleteOptions {
   tableMap?: Map<string, Table>
   /** Full template data for property lookups (keyed by template ID) */
   templateMap?: Map<string, Template>
+  /** Shared variables map (keyed by variable name without $) */
+  sharedVariables?: Record<string, string>
 }
 
 /**
@@ -155,11 +159,11 @@ function getCaretCoordinates(
 }
 
 /**
- * Parse a property access chain like "tableName.@prop1.@prop2" or "@tableName.@prop1"
+ * Parse a property access chain like "tableName.@prop1.@prop2", "@tableName.@prop1", or "$varName.@prop"
  * Returns the target ID and property chain (without @ prefixes), or null if not a valid chain
  */
-function parsePropertyChain(text: string): { targetId: string; propertyChain: string[]; isPlaceholder: boolean } | null {
-  // Match patterns like: tableName.@prop1.@prop2. or @tableName.@prop1.
+function parsePropertyChain(text: string): { targetId: string; propertyChain: string[]; isPlaceholder: boolean; isVariable: boolean } | null {
+  // Match patterns like: tableName.@prop1.@prop2. or @tableName.@prop1. or $varName.@prop.
   // The text should end with a dot (indicating we want to complete the next property)
   if (!text.endsWith('.')) {
     return null
@@ -170,7 +174,9 @@ function parsePropertyChain(text: string): { targetId: string; propertyChain: st
 
   // Check if it starts with @ (placeholder access like @tableName.prop)
   const isPlaceholder = chainText.startsWith('@')
-  const cleanChain = isPlaceholder ? chainText.slice(1) : chainText
+  // Check if it starts with $ (variable access like $varName.prop)
+  const isVariable = chainText.startsWith('$')
+  const cleanChain = (isPlaceholder || isVariable) ? chainText.slice(1) : chainText
 
   // Split by dots, but handle @-prefixed properties
   // e.g., "tableName.@prop1.@prop2" -> ["tableName", "@prop1", "@prop2"]
@@ -179,7 +185,7 @@ function parsePropertyChain(text: string): { targetId: string; propertyChain: st
     return null
   }
 
-  // First part is the target ID (table/template name)
+  // First part is the target ID (table/template/variable name)
   const targetId = parts[0]
   // Rest are the property chain - strip @ prefix from each
   const propertyChain = parts.slice(1).map(p => p.startsWith('@') ? p.slice(1) : p)
@@ -196,7 +202,7 @@ function parsePropertyChain(text: string): { targetId: string; propertyChain: st
     }
   }
 
-  return { targetId, propertyChain, isPlaceholder }
+  return { targetId, propertyChain, isPlaceholder, isVariable }
 }
 
 /**
@@ -226,7 +232,7 @@ function detectTrigger(
   // We're inside an unclosed {{ block
 
   // Check for property access trigger (.) - highest priority when after identifier.
-  // Look for patterns like: tableName. or tableName.prop1. or @tableName.prop1.
+  // Look for patterns like: tableName. or tableName.prop1. or @tableName.prop1. or $varName.prop1.
   const lastDot = textAfterBrace.lastIndexOf('.')
   if (lastDot !== -1) {
     // Get text from start of expression to just after the last dot
@@ -234,8 +240,8 @@ function detectTrigger(
 
     // Find the start of this identifier chain (skip any prefix like unique:, 3*, etc.)
     // Look backwards from the last dot to find the start of the identifier chain
-    // Pattern: optional @ + identifier, then any number of (.@?identifier) segments, ending with .
-    const chainMatch = textUpToDot.match(/(@?[a-zA-Z_][a-zA-Z0-9_]*(?:\.@?[a-zA-Z_][a-zA-Z0-9_]*)*\.)$/)
+    // Pattern: optional @/$ + identifier, then any number of (.@?identifier) segments, ending with .
+    const chainMatch = textUpToDot.match(/([@$]?[a-zA-Z_][a-zA-Z0-9_]*(?:\.@?[a-zA-Z_][a-zA-Z0-9_]*)*\.)$/)
     if (chainMatch) {
       const chainText = chainMatch[1]
       const parsed = parsePropertyChain(chainText)
@@ -248,6 +254,7 @@ function detectTrigger(
           partialInput: textAfterBrace.substring(lastDot + 1), // Text after the last dot
           targetId: parsed.targetId,
           propertyChain: parsed.propertyChain,
+          isVariable: parsed.isVariable,
         }
       }
     }
@@ -356,7 +363,7 @@ function insertSuggestion(
 export function usePatternAutocomplete(
   options: UsePatternAutocompleteOptions
 ): UsePatternAutocompleteReturn {
-  const { textareaRef, suggestions, value, onValueChange, tableMap, templateMap } = options
+  const { textareaRef, suggestions, value, onValueChange, tableMap, templateMap, sharedVariables } = options
 
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -372,6 +379,8 @@ export function usePatternAutocomplete(
         templateMap,
         targetId: triggerInfo.targetId,
         propertyChain: triggerInfo.propertyChain,
+        isVariable: triggerInfo.isVariable,
+        sharedVariables,
       }
     : {}
 
@@ -403,10 +412,10 @@ export function usePatternAutocomplete(
 
     // Show autocomplete if:
     // - We have regular suggestions, OR
-    // - This is a property trigger and we have tableMap or templateMap for dynamic lookup
+    // - This is a property trigger and we have tableMap, templateMap, or sharedVariables for dynamic lookup
     const shouldShow = detected && (
       suggestions.length > 0 ||
-      (detected.type === 'property' && (tableMap || templateMap))
+      (detected.type === 'property' && (tableMap || templateMap || sharedVariables))
     )
 
     if (shouldShow && detected) {
@@ -426,16 +435,17 @@ export function usePatternAutocomplete(
       setIsOpen(false)
       setTriggerInfo(null)
     }
-  }, [suggestions, textareaRef, tableMap, templateMap])
+  }, [suggestions, textareaRef, tableMap, templateMap, sharedVariables])
 
   /**
    * Handle input events - called after value changes
    */
   const handleInput = useCallback(() => {
-    // Small delay to ensure cursor position is updated
-    requestAnimationFrame(() => {
+    // Use setTimeout(0) instead of requestAnimationFrame for more reliable timing
+    // This ensures the DOM is updated but runs sooner than next animation frame
+    setTimeout(() => {
       updateTrigger()
-    })
+    }, 0)
   }, [updateTrigger])
 
   /**
@@ -528,12 +538,16 @@ export function usePatternAutocomplete(
 
   /**
    * Close dropdown when suggestions become empty
+   * Note: Don't close for property triggers - the dropdown component
+   * already handles empty state by not rendering
    */
   useEffect(() => {
-    if (isOpen && filteredSuggestions.length === 0) {
+    // Only close for non-property triggers when suggestions are empty
+    // For property triggers, let the user see "no matches" or keep typing
+    if (isOpen && filteredSuggestions.length === 0 && triggerInfo?.type !== 'property') {
       close()
     }
-  }, [isOpen, filteredSuggestions.length, close])
+  }, [isOpen, filteredSuggestions.length, triggerInfo?.type, close])
 
   /**
    * Reset selected index when filtered suggestions change

@@ -78,10 +78,22 @@ Optional properties for tracking content origin and licensing.
 |----------|------|---------|-------------|
 | source.book | string | - | Name of the source book or product |
 | source.publisher | string | - | Publisher name |
+| source.pages | string | - | Page number(s) or range (see formats below) |
 | source.isbn | string | - | ISBN if applicable |
 | source.url | string | - | URL to product page or official source |
 | source.license | string | - | License under which content is used (e.g., `OGL 1.0a`, `CC BY 4.0`, `Original`) |
 | source.copyright | string \| object | - | Copyright notice (string for simple notice, or structured object) |
+
+**Page Reference Formats:**
+
+The `source.pages` property supports multiple formats:
+
+| Format | Example | Description |
+|--------|---------|-------------|
+| Single page | `"47"` | A single page number |
+| Page range | `"47-89"` | Continuous page range |
+| Multiple pages | `"12, 45-67"` | Non-contiguous pages and ranges |
+| Named sections | `"Appendix A"` | Non-numeric page references |
 
 #### 1.3.1 Structured Copyright Object
 
@@ -401,10 +413,22 @@ Tables can include their own source attribution to track where specific tables o
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | source.book | string | No | Source book name |
-| source.page | integer/string | No | Page number or range (e.g., `47` or `"47-49"`) |
+| source.page | integer/string | No | Page number or range (see formats below) |
 | source.section | string | No | Section or chapter name |
 | source.url | string | No | Direct URL to source if available online |
 | source.license | string | No | License for this specific table (overrides file-level) |
+
+**Page Number Formats:**
+
+The `source.page` property supports multiple formats:
+
+| Format | Example | Description |
+|--------|---------|-------------|
+| Single page (integer) | `47` | A single page number |
+| Single page (string) | `"47"` | A single page as string |
+| Page range | `"47-89"` | Continuous page range |
+| Multiple pages | `"12, 45-67"` | Non-contiguous pages and ranges |
+| Named sections | `"Appendix A"` | Non-numeric page references |
 
 **Example:**
 
@@ -1175,9 +1199,30 @@ Result expressions can be:
 | String literal | `"text"` or `'text'` | `"he"`, `"Critical Hit!"` |
 | Capture property | `$var.@property` | `$race.@maleName` |
 | Table reference | `{{tableId}}` | `{{spellBook}}` |
+| Unwrapped table ID | `tableName` | `wizardSpells` |
 | Placeholder | `@name.property` | `@creature.type` |
 
 **Important:** Results require explicit paths. Use `$race.@maleName` not just `@maleName` to avoid ambiguity when multiple captures have the same property names.
+
+**Automatic Table Resolution in Shared Variables:**
+
+When a switch expression is used as a shared variable, the engine automatically resolves table references in the winning result and captures the full roll including sets:
+
+```json
+{
+  "shared": {
+    "hairStyle": "{{switch[$gender==\"male\":maleHairStyles].else[femaleHairStyles]}}"
+  },
+  "pattern": "Hair: {{$hairStyle}}, Color: {{$hairStyle.@color}}"
+}
+```
+
+In this example:
+1. The switch evaluates to either `maleHairStyles` or `femaleHairStyles` (an unwrapped table ID)
+2. The engine recognizes this as a table reference and rolls on it
+3. The full result including sets is captured, enabling `{{$hairStyle.@color}}` access
+
+This also works with wrapped table references like `{{wizardSpells}}` in switch results.
 
 #### 5.10.5 Examples
 
@@ -1405,16 +1450,16 @@ For many cultures, consider putting name table references in the culture entry's
 }
 ```
 
-Then use capture-aware shared variables:
+Then use shared variables with property access:
 
 ```json
 {
   "shared": {
-    "$gender": "{{gender}}",
-    "$culture": "{{culture}}",
-    "$firstName": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}",
-    "$surname": "{{$culture.@surnames}}",
-    "$fullName": "{{$firstName}} {{$surname}}"
+    "gender": "{{gender}}",
+    "culture": "{{culture}}",
+    "firstName": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}",
+    "surname": "{{$culture.@surnames}}",
+    "fullName": "{{$firstName}} {{$surname}}"
   },
   "pattern": "**{{$fullName}}** is a {{$gender}} {{$culture}}."
 }
@@ -1677,37 +1722,37 @@ When rolling `childTable` directly:
 1. `$count` is set to 1d6 result (e.g., 5)
 2. Entry uses 5
 
-### 8.9 Capture-Aware Shared Variables
+### 8.9 Shared Variables with Property Access
 
-Shared variable keys starting with `$` are **capture-aware**: they capture the full roll result including its `sets` (placeholder values), enabling property access syntax with dynamic table resolution.
+Shared variables capture the full roll result including its `sets` (placeholder values), enabling property access syntax with dynamic table resolution.
 
 #### 8.9.1 Purpose
 
-Capture-aware shared variables solve the problem of needing multiple independent "instances" from the same table. For example, when generating two NPCs (a hero and an enemy), each needs their own race and corresponding race-specific name:
+Shared variables solve the problem of needing multiple independent "instances" from the same table. For example, when generating two NPCs (a hero and an enemy), each needs their own race and corresponding race-specific name:
 
 ```json
 {
   "shared": {
-    "$hero": "{{race}}",
-    "$enemy": "{{race}}"
+    "hero": "{{race}}",
+    "enemy": "{{race}}"
   },
   "pattern": "{{$hero.@firstName}} the {{$hero}} battles {{$enemy.@firstName}} the {{$enemy}}"
 }
 ```
 
-Without capture-aware variables, both characters would share the same placeholder values, causing both to use the same name.
+Each variable captures its own roll result independently, including all set properties.
 
 #### 8.9.2 Syntax
 
 | Syntax | Description | Example |
 |--------|-------------|---------|
-| `"$varName": "{{table}}"` | Define capture-aware variable in shared block | `"$hero": "{{race}}"` |
+| `"varName": "{{table}}"` | Define shared variable | `"hero": "{{race}}"` |
 | `{{$varName}}` | Access the captured value | `{{$hero}}` → `"Elf"` |
 | `{{$varName.@property}}` | Access captured set property | `{{$hero.@firstName}}` |
 
 #### 8.9.3 How It Works
 
-1. **Definition**: Keys in the `shared` block starting with `$` are capture-aware
+1. **Definition**: Define variables in the `shared` block
 2. **Capture**: When evaluated, the full roll result (value + sets) is captured
 3. **Value Access**: `{{$varName}}` returns the string value
 4. **Property Access**: `{{$varName.@prop}}` returns the specified set property (already evaluated if it contained a pattern)
@@ -1741,8 +1786,8 @@ Without capture-aware variables, both characters would share the same placeholde
       "id": "rivals",
       "name": "Rival Characters",
       "shared": {
-        "$hero": "{{race}}",
-        "$enemy": "{{race}}"
+        "hero": "{{race}}",
+        "enemy": "{{race}}"
       },
       "pattern": "**{{$hero.@firstName}}** the {{$hero}} from the {{$hero.@homeland}} vs **{{$enemy.@firstName}}** the {{$enemy}} from the {{$enemy.@homeland}}"
     }
@@ -1758,16 +1803,7 @@ Each character has independent:
 - First name (evaluated from `{{elfNames}}` or `{{dwarfNames}}` at selection time)
 - Homeland property (`Forest` vs `Mountain`)
 
-#### 8.9.5 Key Differences from Regular Shared Variables
-
-| Feature | Regular Shared | Capture-Aware (`$` prefix) |
-|---------|----------------|---------------------------|
-| Key syntax | `"varName"` | `"$varName"` |
-| Captures sets | No | Yes |
-| Property access | No | Yes (`{{$var.@prop}}`) |
-| Value access | `{{$varName}}` | `{{$varName}}` |
-
-#### 8.9.6 Pattern Evaluation in Sets
+#### 8.9.5 Pattern Evaluation in Sets
 
 Set values can contain `{{pattern}}` expressions that are evaluated when the entry is selected (at merge time). This enables dynamic content in placeholder values:
 
@@ -1787,6 +1823,61 @@ When accessing `{{$hero.@firstName}}`:
 2. The resolved string value is returned directly
 
 This enables powerful patterns where entry sets define dynamic values that are evaluated once and then accessed consistently throughout the template.
+
+#### 8.9.7 Deep Property Chaining
+
+When a set property value is a single table reference (e.g., `"{{childTable}}"`), the engine captures the full result including its own sets. This enables multi-level property access through nested structures.
+
+**Syntax:**
+
+| Pattern | Description |
+|---------|-------------|
+| `{{$var.@prop1.@prop2}}` | Two levels deep |
+| `{{$var.@prop1.@prop2.@prop3}}` | Three levels deep |
+| `{{$var[0].@prop1.@prop2}}` | Indexed access with chain |
+
+**Example: Nested Structure**
+
+```json
+{
+  "tables": [
+    {
+      "id": "conflict",
+      "type": "simple",
+      "entries": [
+        { "value": "War", "sets": { "situation": "{{warSituation}}" } }
+      ]
+    },
+    {
+      "id": "warSituation",
+      "type": "simple",
+      "entries": [
+        { "value": "Border Dispute", "sets": { "focus": "Territory" } }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "scenario",
+      "shared": { "conflict": "{{conflict}}" },
+      "pattern": "Conflict: {{$conflict}}, Focus: {{$conflict.@situation.@focus}}"
+    }
+  ]
+}
+```
+
+**Output:** `Conflict: War, Focus: Territory`
+
+**How It Works:**
+
+1. `$conflict` captures `"War"` with sets `{ situation: { value: "Border Dispute", sets: { focus: "Territory" } } }`
+2. `{{$conflict.@situation}}` returns `"Border Dispute"` (the nested value)
+3. `{{$conflict.@situation.@focus}}` traverses into the nested sets and returns `"Territory"`
+
+**Behavior Notes:**
+- If any property in the chain is a plain string (not a CaptureItem), chaining stops and returns empty
+- Non-existent properties return empty string with a console warning
+- This works with both shared variables and placeholder access
 
 ---
 
@@ -1866,6 +1957,41 @@ Since set values containing `{{pattern}}` are evaluated when the entry is select
 
 When accessed, `{{@race.firstName}}` returns the already-evaluated name (e.g., `"Aelindra"`), not the original pattern. This ensures consistent values when the same placeholder is accessed multiple times in a pattern.
 
+**Nested CaptureItem Access:**
+
+When a set value is a single table reference (e.g., `"{{childTable}}"`), the engine captures the full result including its sets as a nested structure. This enables chained placeholder access:
+
+```json
+{
+  "tables": [
+    {
+      "id": "person",
+      "type": "simple",
+      "entries": [
+        { "value": "A traveler", "sets": { "culture": "{{culture}}" } }
+      ]
+    },
+    {
+      "id": "culture",
+      "type": "simple",
+      "entries": [
+        { "value": "Elvish", "sets": { "greeting": "Mae govannen", "farewell": "Namárië" } }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "meeting",
+      "pattern": "{{person}} says '{{@person.culture.@greeting}}' and later '{{@person.culture.@farewell}}'"
+    }
+  ]
+}
+```
+
+**Output:** `A traveler says 'Mae govannen' and later 'Namárië'`
+
+The `@person.culture` property contains a CaptureItem (not just a string), so you can access its nested sets via `@person.culture.@greeting`. This pattern works to any depth where set values are single table references.
+
 ### 9.3 Placeholder vs Variable Separation
 
 | Prefix | Source | Syntax | Example |
@@ -1882,6 +2008,7 @@ The `@self` placeholder provides access to properties of the current entry being
 | Syntax | Description |
 |--------|-------------|
 | `{{@self.description}}` | The current entry's `description` field |
+| `{{@self.value}}` | The current entry's raw (unevaluated) `value` string |
 
 **Example:**
 
@@ -1913,7 +2040,25 @@ The `@self` placeholder provides access to properties of the current entry being
 **Behavior:**
 - If the entry has no `description` field, `{{@self.description}}` returns an empty string
 - Expressions within the description (like `{{dice:1d6}}`) are evaluated when accessed
+- `{{@self.value}}` returns the raw value string before any expression evaluation
 - In nested rolls, `@self` refers to the innermost entry being evaluated
+
+**@self.value Example:**
+
+```json
+{
+  "entries": [
+    {
+      "value": "The pattern was: {{@self.value}}",
+      "description": "a debug entry"
+    }
+  ]
+}
+```
+
+This would output: `The pattern was: The pattern was: {{@self.value}}`
+
+The `@self.value` property is useful for debugging or when you need to reference the entry's own template structure.
 
 ---
 
@@ -2784,6 +2929,11 @@ Implementations should handle errors gracefully with clear messages.
 | `MATH_SYNTAX_ERROR` | Malformed math expression (unbalanced parens, invalid operator) | Return error marker with position |
 | `DIVISION_BY_ZERO` | Division by zero in math expression | Return 0 with warning |
 | `COERCION_FAILURE` | Non-numeric string in math expression | Coerce to 0 with warning |
+| `CAPTURE_FORWARD_REF` | Capture variable references another capture not yet declared | Error at generation time |
+| `CAPTURE_NAME_CONFLICT` | Capture variable name conflicts with existing variable | Error at generation time |
+| `CAPTURE_OVERWRITE_WARNING` | Overwriting existing capture variable (non-fatal) | Log warning, continue |
+| `CAPTURE_INDEX_OUT_OF_BOUNDS` | Index access exceeds capture array bounds | Return empty string with warning |
+| `CAPTURE_MISSING_PROPERTY` | Property access on non-existent set property | Return empty string with warning |
 
 ### 16.2 Error Message Format
 

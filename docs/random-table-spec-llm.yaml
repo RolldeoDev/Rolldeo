@@ -1,825 +1,35 @@
-# Random Table JSON Template Specification v1.0 - LLM Reference
+# Random Table JSON Specification v1.0 - LLM Reference
 # Purpose: Token-efficient spec for LLM-driven JSON generation
 # Schema: https://rolldeo.com/schemas/random-table-spec-v1.0.json
-# Validate output against schema URL above
 
 # =============================================================================
-# DECISION GUIDE: When to Use Each Feature
+# DECISION GUIDE
 # =============================================================================
 decision_guide:
 
-  # ---------------------------------------------------------------------------
-  # TABLE TYPE SELECTION
-  # ---------------------------------------------------------------------------
-  table_type_selection:
-    simple:
-      use_when: "You have a flat list of items to pick from randomly"
-      examples:
-        - "List of monster names"
-        - "Random treasure items"
-        - "NPC personality traits"
-        - "Weather conditions"
-        - "Rumors, plot hooks, events"
-        - "Any d20/d100 table from a book"
-      input_pattern: "Any bulleted list, numbered list, comma-separated items, or traditional dice-range table"
+  table_type:
+    simple: "Flat list of items to pick randomly (most tables)"
+    composite: "Weighted selection BETWEEN categories, then roll on chosen category"
+    collection: "Merge multiple tables into one unified pool"
 
-    composite:
-      use_when: "You need WEIGHTED SELECTION between different CATEGORIES, then pick one item from chosen category"
-      examples:
-        - "70% common monsters, 25% uncommon, 5% rare - pick ONE from that tier"
-        - "Encounter by region: 60% local creatures, 30% travelers, 10% monsters"
-        - "Loot quality: mostly mundane, sometimes magical, rarely legendary"
-        - "Shop inventory: common goods weighted higher than rare goods"
-      input_pattern: "Text describes probabilities/frequencies for GROUPS of things"
-      key_difference: "Composite picks WHICH TABLE first, then rolls once on that table"
-      decision_test: "Are there distinct TIERS or CATEGORIES with different frequencies?"
+  composite_vs_collection:
+    composite: "Use when text gives percentages/frequencies for categories ('70% common, 25% uncommon, 5% rare')"
+    collection: "Use when combining related tables without preference ('any weapon from swords, axes, or polearms')"
 
-    collection:
-      use_when: "You want to MERGE multiple tables into ONE UNIFIED POOL"
-      examples:
-        - "Combine 'Swords' + 'Axes' + 'Polearms' into 'All Melee Weapons'"
-        - "Merge all regional creature lists into 'World Bestiary'"
-        - "Combine male + female + neutral name tables into 'All Names'"
-        - "Unite multiple source book tables into master table"
-      input_pattern: "Text lists multiple related categories that should be treated as one pool"
-      key_difference: "Collection FLATTENS tables. All entries compete equally by their weights."
-      decision_test: "Do you want ANY item from multiple sources with no category preference?"
-
-  composite_vs_collection_decision:
-    question: "When source mentions multiple sub-tables..."
-    composite_signals:
-      - "Text gives percentages or frequencies for categories"
-      - "'Usually X, sometimes Y, rarely Z'"
-      - "'Roll for type first, then roll on that type's table'"
-      - "Distinct rarity tiers (common/uncommon/rare)"
-    collection_signals:
-      - "Just lists related tables to combine"
-      - "'Any of these weapons' or 'all creatures from regions A, B, C'"
-      - "No frequency/probability language"
-      - "Master list aggregating smaller lists"
-
-  # ---------------------------------------------------------------------------
-  # WEIGHT VS RANGE
-  # ---------------------------------------------------------------------------
   weight_vs_range:
-    weight:
-      use_when: "Source uses relative probability, not dice ranges"
-      examples:
-        - "Goblin (common), Orc (uncommon), Dragon (rare)"
-        - "Sword appears 3x as often as axe"
-        - "No specific dice mentioned, just frequency words"
-      syntax: '"weight": 3'
-      note: "Weights are relative. weight:6 vs weight:2 = 75%/25%"
+    weight: "Relative probability (weight:3 vs weight:1 = 75%/25%)"
+    range: "Explicit dice ranges from source ('[1,50]' = weight 50)"
 
-    range:
-      use_when: "Source explicitly uses dice ranges like d100 tables"
-      examples:
-        - "1-50: Nothing, 51-75: Encounter, 76-100: Treasure"
-        - "Classic d100 random encounter tables"
-        - "Any 'roll d20, 1-5 = X, 6-10 = Y' format"
-      syntax: '"range": [1, 50]'
-      conversion: "Automatically becomes weight = (max - min + 1)"
-      note: "Use range when preserving original dice-table format matters"
-
-  # ---------------------------------------------------------------------------
-  # TEMPLATES VS TABLES
-  # ---------------------------------------------------------------------------
   template_vs_table:
-    use_table_alone:
-      when: "Output is just picking one item from a list"
-      examples:
-        - "Random monster name"
-        - "Random weather"
-        - "Single treasure item"
-
-    use_template:
-      when: "Output combines multiple rolls into formatted text"
-      examples:
-        - "NPC: {{race}} {{occupation}} named {{name}} who {{quirk}}"
-        - "Encounter: {{dice:1d4+1}} {{creatures}} in a {{location}}"
-        - "Treasure: {{dice:3d6*10}}gp, {{dice:1d4}} gems, and {{magicItem}}"
-        - "Room description with multiple random elements"
-      signals:
-        - "Multiple tables combined in one output"
-        - "Narrative/sentence structure needed"
-        - "Dice expressions mixed with table rolls"
-        - "Calculations or formatting required"
-
-  # ---------------------------------------------------------------------------
-  # INHERITANCE (extends)
-  # ---------------------------------------------------------------------------
-  inheritance:
-    use_when:
-      - "Creating a VARIANT of an existing table"
-      - "Overriding specific entries while keeping others"
-      - "Adding entries to an existing table"
-      - "Disabling certain entries from a parent table"
-    examples:
-      - "Rich treasure extends base treasure (upgrades coin amounts)"
-      - "Elite monsters extends common monsters (adds boss variants)"
-      - "Regional bestiary extends base bestiary (disables some, adds local)"
-      - "Cursed items extends magic items (same items, different properties)"
-    how_it_works:
-      - "Child inherits ALL parent entries"
-      - "Child entries with same ID override parent entries"
-      - "New IDs in child are added to pool"
-      - 'Set weight:0 to disable inherited entry'
-    requirement: "Entries being overridden MUST have explicit IDs in parent"
-
-  # ---------------------------------------------------------------------------
-  # HIDDEN TABLES
-  # ---------------------------------------------------------------------------
-  hidden_tables:
-    use_when:
-      - "Table is a HELPER used by other tables/templates, not rolled directly"
-      - "Building blocks that shouldn't appear in user-facing lists"
-      - "Lookup tables for name components, adjectives, etc."
-    examples:
-      - "elfFirstNames, dwarfFirstNames (used by race table's sets)"
-      - "weaponAdjectives (used in '{{weaponAdjectives}} sword')"
-      - "Internal formatting helpers"
-    syntax: '"hidden": true'
-    note: "Hidden tables are still fully functional, just not shown in UI"
-
-  # ---------------------------------------------------------------------------
-  # AGAIN KEYWORD (self-reference)
-  # ---------------------------------------------------------------------------
-  again_keyword:
-    use_when: "An entry should trigger additional rolls on the SAME table"
-    examples:
-      - "Wild magic: 'Roll twice more!' → {{2*unique*again}}"
-      - "Treasure: 'Double loot! Roll again and add 100gp'"
-      - "Critical hit: 'Maximum damage AND {{again}}'"
-      - "Encounter: 'Mixed group: {{again}} and {{again}}'"
-    safety: "The triggering entry is automatically excluded from re-rolls"
-    variants:
-      once: "{{again}}"
-      multiple: "{{3*again}}"
-      unique: "{{2*unique*again}}"
-      dice_count: "{{dice:1d4*again}}"
-      with_separator: '{{3*again|" and "}}'
-      unique_separator: '{{2*unique*again|"; "}}'
-
-  # ---------------------------------------------------------------------------
-  # MULTIPLE ROLL PATTERNS
-  # ---------------------------------------------------------------------------
-  multiple_rolls:
-    fixed_count:
-      syntax: "{{3*tableId}}"
-      use_when: "Always roll exactly N times"
-      example: "Generate 3 traits: {{3*traits}}"
-
-    dice_count:
-      syntax: "{{dice:1d4*tableId}}"
-      use_when: "Random number of rolls"
-      example: "Find {{dice:1d4*treasureItems}}"
-
-    variable_count:
-      syntax: "{{$count*tableId}}"
-      use_when: "Count determined by earlier shared variable"
-      example: "shared: encounterSize={{dice:2d4}}, then {{$encounterSize*monsters}}"
-
-    unique_modifier:
-      syntax: "{{3*unique*tableId}}"
-      use_when: "No duplicate results allowed"
-      example: "3 unique skills: {{3*unique*skills}}"
-
-    custom_separator:
-      syntax: '{{3*tableId|", "}}'
-      default: '", "'
-      examples:
-        - '{{3*items|" and "}}'
-        - '{{2*names|" vs "}}'
-
-  # ---------------------------------------------------------------------------
-  # SETS AND PLACEHOLDERS
-  # ---------------------------------------------------------------------------
-  sets_and_placeholders:
-    use_when: "Entries have ASSOCIATED PROPERTIES beyond display text"
-    common_patterns:
-      creatures: "hp, ac, speed, size, type, abilities, cr"
-      items: "price, weight, rarity, magical, cursed, attunement"
-      npcs: "occupation, personality, secret, motivation, appearance"
-      locations: "size, population, government, danger, resources"
-      spells: "level, school, components, duration, range"
-
-    reserved_set_names:
-      description: |
-        NEVER use "description" as a set key. The entry has a dedicated "description"
-        field for this purpose. Using "description" in sets can cause unexpected behavior
-        when accessing {{@self.description}} or when the UI displays entry information.
-      avoid: ["description"]
-      reason: |
-        The "description" property is reserved at the entry level for providing
-        human-readable descriptions of what the entry represents. Place descriptions
-        in the entry's "description" field, not in sets.
-      correct_example: |
-        {
-          "value": "Deep One",
-          "description": "A batrachian humanoid with glistening scales",
-          "sets": { "origin": "ocean depths", "threat": "high" }
-        }
-      incorrect_example: |
-        {
-          "value": "Deep One",
-          "sets": { "description": "A batrachian humanoid...", "origin": "ocean depths" }
-        }
-
-    defaultSets_vs_entry_sets:
-      defaultSets:
-        use_when: "Property applies to ALL or MOST entries in table"
-        example: '"defaultSets": {"terrain": "forest"} on forestCreatures table'
-      entry_sets:
-        use_when: "Property is specific to that entry"
-        example: '"sets": {"hp": "{{dice:2d6}}", "flies": "true"} on specific creature'
-      merge_behavior: "Entry sets override defaultSets for same key"
-
-    dynamic_sets:
-      use_when: "Property value should be rolled, not static"
-      syntax: '"hp": "{{dice:2d8+4}}"'
-      examples:
-        - '"price": "{{dice:3d6*10}}"'
-        - '"name": "{{elfFirstNames}}"'
-      note: "Evaluated once when entry selected, consistent thereafter"
-
-    child_table_references:
-      use_when: "Parent entries need TYPE-SPECIFIC sub-tables (each category has its own related tables)"
-      pattern:
-        step1: "Create hidden child tables for each category/type"
-        step2: "Parent entry sets reference child tables with {{childTableId}}"
-        step3: "Capture parent with $prefix, then access via {{$parent.@property}}"
-      examples:
-        world_tags: |
-          # Each world tag has its own enemies, friends, complications
-          "sets": {
-            "enemy": "{{abandonedColonyEnemies}}",
-            "friend": "{{abandonedColonyFriends}}",
-            "complication": "{{abandonedColonyComplications}}"
-          }
-        system_poi: |
-          # Each point of interest type has specific occupants and situations
-          "sets": {
-            "occupant": "{{occupantsDeepSpace}}",
-            "situation": "{{situationDeepSpace}}"
-          }
-        template_usage: |
-          # Template captures parent, accesses child tables via sets
-          "shared": { "$point": "{{pointType}}" }
-          "pattern": "{{$point}} occupied by {{$point.@occupant}}"
-      benefits:
-        - "Eliminates complex conditionals for routing"
-        - "Self-contained entries - everything needed is in the entry's sets"
-        - "Naturally scales - add new types by adding entries with their sets"
-        - "Template stays simple: {{$result.@propertyName}}"
-      contrast_with_conditionals: |
-        AVOID: Rolling a type, then using conditionals to route to different tables
-        PREFER: Each type entry directly includes its child table references in sets
-      decision_test: "Does each category/type need its own set of related sub-tables?"
-      nested_access_support: |
-        CHAINED ACCESS IS SUPPORTED via intermediate capture-aware shared variables.
-        When a set value is a single table reference like "{{childTable}}", the engine
-        captures the full result including nested sets, enabling chained property access.
-        See nested_property_access section in capture_aware_shared for patterns.
-
-  # ---------------------------------------------------------------------------
-  # SELF-REFERENCE (@self placeholder)
-  # ---------------------------------------------------------------------------
-  self_reference:
-    use_when: "Entry value needs to include its own description field"
-    syntax: "{{@self.description}}"
-    example: '{"value": "{{@self.description}} sword", "description": "A gleaming silver"}'
-    note: "Returns empty string if no description defined. Expressions in description are evaluated."
-
-  # ---------------------------------------------------------------------------
-  # CAPTURES (roll capture system)
-  # ---------------------------------------------------------------------------
-  captures:
-    use_when: "Need to ACCESS individual results or their properties from multiple rolls"
-
-    basic_capture:
-      syntax: "{{3*items >> $loot}}"
-      result: "Rolls 3 items, stores all in $loot, outputs joined text"
-      access:
-        all_values: "{{$loot}}"
-        by_index: "{{$loot[0]}}, {{$loot[1]}}"
-        property: "{{$loot[0].@price}}"
-        count: "{{$loot.count}}"
-
-    silent_capture:
-      syntax: "{{3*items >> $loot|silent}}"
-      use_when: "Capture without outputting the values inline"
-      example: "Roll items silently, then format them specially later"
-
-    collect_aggregation:
-      syntax: "{{collect:$loot.@price}}"
-      use_when: "Aggregate a property across all captured items"
-      examples:
-        - "List all enemies: {{collect:$encounters.@enemy}}"
-        - "Unique only: {{collect:$rolls.@type|unique}}"
-
-    decision_test: "Do you need to reference INDIVIDUAL rolled items or their properties AFTER rolling?"
-
-  # ---------------------------------------------------------------------------
-  # CAPTURE-AWARE SHARED VARIABLES
-  # ---------------------------------------------------------------------------
-  capture_aware_shared:
-    syntax: '"$hero": "{{raceTable}}"'
-    key_feature: "The $ prefix in the shared KEY captures the full result INCLUDING its sets"
-
-    use_when:
-      - "Multiple INDEPENDENT instances from same table"
-      - "Each instance needs its OWN placeholder values"
-      - "Generating paired/rival entities"
-
-    examples:
-      rivals: |
-        shared: { "$hero": "{{race}}", "$villain": "{{race}}" }
-        pattern: "{{$hero.@name}} the {{$hero}} fights {{$villain.@name}} the {{$villain}}"
-        # Each gets their own race-appropriate name!
-
-      party: |
-        shared: { "$fighter": "{{class}}", "$mage": "{{class}}", "$rogue": "{{class}}" }
-        # Each has independent class-specific properties
-
-    without_capture_aware:
-      problem: "Rolling {{race}} twice shares placeholders - both use same @name"
-      symptom: "Two elves with identical names, two orcs with identical traits"
-
-    with_capture_aware:
-      solution: "Each $prefixed variable gets isolated placeholder context"
-      result: "Each character has independent name, traits, etc."
-
-    # -------------------------------------------------------------------------
-    # Nested Property Access (Chained CaptureItems)
-    # -------------------------------------------------------------------------
-    nested_property_access:
-      description: |
-        When a set value contains a SINGLE TABLE REFERENCE (e.g., "{{childTable}}"),
-        the engine captures the full result including nested sets. This enables
-        chained property access either directly or via intermediate capture-aware shared variables.
-
-      how_it_works: |
-        1. Set value "situation": "{{situationTable}}" is evaluated
-        2. Engine detects single table reference and captures full result
-        3. Result is stored as a nested CaptureItem (value + sets) not just a string
-        4. Properties can be accessed via direct chained syntax OR intermediate variables
-
-      direct_chained_syntax:
-        description: "Access nested properties directly without intermediate variables"
-        syntax: "{{$var.@prop1.@prop2.@prop3}}"
-        examples:
-          - "{{$conflict.@situation.@focus}} - two levels deep"
-          - "{{$root.@a.@b.@c.@d}} - four levels deep"
-          - "{{$items[0].@weapon.@damage}} - indexed access with chain"
-        note: "This is the PREFERRED approach for most use cases"
-
-      intermediate_variable_syntax:
-        description: "Use intermediate capture-aware shared variables to chain access"
-        syntax: |
-          "$child": "{{$parent.@property}}"
-          Then access: {{$child.@nestedProperty}}
-        when_to_use:
-          - "When you need to reuse an intermediate result multiple times"
-          - "When debugging complex nested structures"
-          - "Backward compatibility with existing templates"
-
-      example_direct_access:
-        description: "Accessing properties three levels deep with direct syntax"
-        tables: |
-          # Level 1: conflictType has situation that references a table
-          conflictType:
-            entries:
-              - value: "Money"
-                sets:
-                  situation: "{{moneyConflict}}"  # Table reference captured as CaptureItem
-
-          # Level 2: moneyConflict has focus property
-          moneyConflict:
-            entries:
-              - value: "Debt"
-                sets:
-                  focus: "Collection Agency"
-
-        template: |
-          "shared": {
-            "$conflict": "{{conflictType}}"
-          },
-          "pattern": "Conflict: {{$conflict}}, Focus: {{$conflict.@situation.@focus}}"
-
-        result: "Conflict: Money, Focus: Collection Agency"
-
-      example_intermediate_variables:
-        description: "Same result using intermediate capture-aware shared variables"
-        template: |
-          "shared": {
-            "$conflict": "{{conflictType}}",
-            "$situation": "{{$conflict.@situation}}"  # Captures the nested CaptureItem
-          },
-          "pattern": "Conflict: {{$conflict}}, Situation: {{$situation}}, Focus: {{$situation.@focus}}"
-
-        result: "Conflict: Money, Situation: Debt, Focus: Collection Agency"
-
-      requirements:
-        - "Set value must be a SINGLE table reference: \"{{tableId}}\""
-        - "Each @ prefix accesses the next level of nested properties"
-        - "Properties are stored without @ prefix internally"
-
-      when_it_doesnt_work:
-        - "Static string values (no {{}}): Chain breaks, returns empty string"
-        - "Complex expressions (dice + table): Falls back to empty sets"
-        - "Missing property in chain: Returns empty string with warning"
-
-      fallback_for_static_strings: |
-        If a property contains a static string (not a table reference),
-        accessing further nested properties returns empty string.
-        Example: If @situation = "Static text" (no {{}}),
-        then {{$conflict.@situation.@focus}} returns "" with a console warning.
-        However, {{$conflict.@situation}} correctly returns "Static text".
-
-  # ---------------------------------------------------------------------------
-  # SHARED VARIABLES
-  # ---------------------------------------------------------------------------
-  shared_variables:
-    document_level:
-      use_when: "Value rolled/calculated ONCE, used MULTIPLE times throughout"
-      examples:
-        - "encounterSize: roll once, use for monster count AND treasure count"
-        - "weather: roll once, reference in multiple descriptions"
-        - "partyLevel: calculate once, scale multiple encounters"
-
-    table_template_level:
-      use_when: "Value only relevant when that specific table/template is used"
-      syntax: '"shared": {...} inside a table or template object'
-      behavior: "Evaluated lazily only when that table/template rolls"
-
-    math_expressions:
-      use_when: "Need to calculate derived values"
-      examples:
-        - '"modifier": "{{math:($score - 10) / 2}}"'
-        - '"totalGold": "{{math:$baseGold + dice:2d6*10}}"'
-        - '"scaledDifficulty": "{{math:$partyLevel * 2 + $dangerMod}}"'
-
-  # ---------------------------------------------------------------------------
-  # COMMON TTRPG TABLE PATTERNS
-  # ---------------------------------------------------------------------------
-  ttrpg_patterns:
-
-    random_encounter_table:
-      structure: "simple table with entries, optionally with range for d100 style"
-      example_entries:
-        - '{"value": "{{dice:2d6}} Goblins", "range": [1, 40]}'
-        - '{"value": "{{dice:1d4}} Wolves", "range": [41, 70]}'
-      sets_to_include: "cr, terrain, time_of_day"
-
-    name_generator:
-      structure: "Simple tables for components, template to combine"
-      pattern: |
-        tables: [firstNames, lastNames, titles]
-        template: "{{titles}} {{firstNames}} {{lastNames}}"
-      race_specific: "Use sets with {{raceFirstNames}} pattern, or capture-aware for race→name chain"
-
-    # -------------------------------------------------------------------------
-    # CONDITIONAL SUB-SELECTION PATTERN
-    # -------------------------------------------------------------------------
-    # One of the most common and powerful patterns in table design.
-    # Use whenever you need to select sub-tables or values based on
-    # one or more previously rolled factors.
-    # -------------------------------------------------------------------------
-    conditional_sub_selection:
-      description: |
-        Select different sub-tables or values based on multiple rolled factors.
-        This pattern combines switch expressions with capture-aware variables
-        to route to appropriate sub-content based on earlier rolls.
-
-      core_concept: |
-        1. Roll one or more "selector" tables (e.g., region, gender, faction)
-        2. Use switch expressions to pick sub-tables based on selector values
-        3. Store results in variables for reuse throughout the template
-        4. Each selector entry can contain sets pointing to its own sub-tables
-
-      use_when:
-        - "Output depends on 2+ independent factors"
-        - "Each category has its own pool of related sub-tables"
-        - "You need to reuse selected values multiple times in the template"
-        - "Different combinations require different sub-table selections"
-
-      # =======================================================================
-      # APPROACH 1: SWITCH-BASED (Good for few options)
-      # =======================================================================
-      switch_approach:
-        description: "Use switch expressions to route based on variable values"
-        when_to_use: "2-3 options per factor, simple routing logic"
-
-        basic_syntax: |
-          {{switch[$factor=="value1":{{subTable1}}].switch[$factor=="value2":{{subTable2}}].else[{{defaultTable}}]}}
-
-        multi_factor_syntax: |
-          {{switch[$factorA=="X" && $factorB=="Y":{{tableXY}}].switch[$factorA=="X" && $factorB=="Z":{{tableXZ}}].else[{{defaultTable}}]}}
-
-        example_region_attack:
-          description: "Select attack capabilities based on region type"
-          shared: |
-            "$region": "{{regionTable}}",
-            "$attackVector": "{{switch[$region==\"Land\":{{landAttacks}}].switch[$region==\"Air\":{{airAttacks}}].switch[$region==\"Sea\":{{seaAttacks}}].else[{{genericAttacks}}]}}"
-          pattern: '"The {{$region}} forces deploy: {{$attackVector}}"'
-
-        example_gender_names:
-          description: "Select names based on gender"
-          shared: |
-            "$gender": "{{gender}}",
-            "$firstName": "{{switch[$gender==\"male\":{{maleNames}}].else[{{femaleNames}}]}}"
-          pattern: '"Meet {{$firstName}}, a {{$gender}} warrior."'
-
-      # =======================================================================
-      # APPROACH 2: SETS-BASED (Preferred for many options)
-      # =======================================================================
-      sets_approach:
-        description: "Embed sub-table references in entry sets for cleaner scaling"
-        when_to_use: "4+ options, complex sub-table relationships, extensibility needed"
-
-        concept: |
-          Instead of giant switch chains, each entry in the "selector" table
-          contains sets that reference its own sub-tables. The template then
-          accesses these via capture-aware variables: $selector.@propertyName
-
-        example_region_with_sets:
-          description: "Region table with embedded sub-table references"
-          table: |
-            {
-              "id": "region",
-              "entries": [
-                {
-                  "value": "Land",
-                  "sets": {
-                    "attacks": "{{landAttacks}}",
-                    "defenses": "{{landDefenses}}",
-                    "units": "{{landUnits}}"
-                  }
-                },
-                {
-                  "value": "Air",
-                  "sets": {
-                    "attacks": "{{airAttacks}}",
-                    "defenses": "{{airDefenses}}",
-                    "units": "{{airUnits}}"
-                  }
-                },
-                {
-                  "value": "Sea",
-                  "sets": {
-                    "attacks": "{{seaAttacks}}",
-                    "defenses": "{{seaDefenses}}",
-                    "units": "{{seaUnits}}"
-                  }
-                }
-              ]
-            }
-          template: |
-            {
-              "shared": {
-                "$region": "{{region}}"
-              },
-              "pattern": "The {{$region}} theater deploys {{$region.@units}} using {{$region.@attacks}}. Defense: {{$region.@defenses}}."
-            }
-          benefit: "Adding 'Space' region = one new entry. No template changes needed."
-
-        example_culture_gender_names:
-          description: "Culture table with gender-specific name sub-tables"
-          table: |
-            {
-              "id": "culture",
-              "entries": [
-                {
-                  "value": "Dragonborn",
-                  "sets": {
-                    "maleNames": "{{maleDragonbornNames}}",
-                    "femaleNames": "{{femaleDragonbornNames}}",
-                    "surnames": "{{dragonbornSurnames}}"
-                  }
-                },
-                {
-                  "value": "Elf",
-                  "sets": {
-                    "maleNames": "{{maleElfNames}}",
-                    "femaleNames": "{{femaleElfNames}}",
-                    "surnames": "{{elfSurnames}}"
-                  }
-                }
-              ]
-            }
-          template: |
-            {
-              "shared": {
-                "$gender": "{{gender}}",
-                "$culture": "{{culture}}",
-                "$firstName": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}",
-                "$surname": "{{$culture.@surnames}}",
-                "$fullName": "{{$firstName}} {{$surname}}"
-              },
-              "pattern": "**{{$fullName}}** is a {{$gender}} {{$culture}}."
-            }
-          note: "Switch handles binary gender choice; sets handle culture routing."
-
-      # =======================================================================
-      # STORING PARTS FOR LATER REFERENCE
-      # =======================================================================
-      variable_storage:
-        description: "Store individual components and composites for reuse"
-        concept: |
-          Capture each rolled part in its own shared variable, then compose
-          them into combined variables. Reference any level of detail.
-
-        example: |
-          "shared": {
-            "$gender": "{{gender}}",
-            "$culture": "{{culture}}",
-            "$firstName": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}",
-            "$surname": "{{$culture.@surnames}}",
-            "$fullName": "{{$firstName}} {{$surname}}",
-            "$title": "{{titles}}",
-            "$formalName": "{{$title}} {{$fullName}}"
-          }
-
-        access_patterns:
-          - "{{$firstName}} - just first name"
-          - "{{$surname}} - just surname"
-          - "{{$fullName}} - first + surname"
-          - "{{$formalName}} - title + first + surname"
-          - "{{$gender}} - for pronouns or conditionals"
-
-      # =======================================================================
-      # MORE EXAMPLES
-      # =======================================================================
-      more_examples:
-        encounter_by_terrain_and_time:
-          factors: ["terrain (forest/desert/mountain)", "timeOfDay (day/night)"]
-          approach: "Sets on terrain entries with dayEncounters/nightEncounters"
-          template_snippet: |
-            "$terrain": "{{terrain}}",
-            "$encounter": "{{switch[$time==\"day\":$terrain.@dayEncounters].else[$terrain.@nightEncounters]}}"
-
-        loot_by_enemy_and_difficulty:
-          factors: ["enemyType (undead/beast/humanoid)", "difficulty (easy/hard)"]
-          approach: "Sets on enemy entries with easyLoot/hardLoot tables"
-          template_snippet: |
-            "$enemy": "{{enemyType}}",
-            "$loot": "{{switch[$difficulty==\"hard\":$enemy.@hardLoot].else[$enemy.@easyLoot]}}"
-
-        npc_by_faction_and_role:
-          factors: ["faction (empire/rebels/merchants)", "role (leader/soldier/spy)"]
-          approach: "Faction entries have sets for each role's name/trait tables"
-          template_snippet: |
-            "$faction": "{{faction}}",
-            "$role": "{{role}}",
-            "$name": "{{switch[$role==\"leader\":$faction.@leaderNames].switch[$role==\"spy\":$faction.@spyNames].else[$faction.@soldierNames]}}"
-
-        vehicle_by_environment:
-          factors: ["environment (land/air/sea/space)"]
-          approach: "Environment entries have sets for vehicles/weapons/crew tables"
-          template_snippet: |
-            "$env": "{{environment}}",
-            "pattern": "A {{$env.@vehicles}} armed with {{$env.@weapons}}, crewed by {{$env.@crew}}"
-
-        spell_by_school_and_level:
-          factors: ["school (evocation/illusion/necromancy)", "level (cantrip/low/high)"]
-          approach: "School entries have sets for level-appropriate spell tables"
-
-      # =======================================================================
-      # DECISION GUIDE
-      # =======================================================================
-      decision_guide:
-        few_options_per_factor: "Use switch expressions directly"
-        many_options_one_factor: "Put sub-table refs in that factor's entry sets"
-        many_options_multiple_factors: "Combine sets approach with switch for remaining factors"
-        need_extensibility: "Always prefer sets approach - adding entries is easier than updating switches"
-
-    npc_generator:
-      structure: "Multiple trait tables + template"
-      tables: [race, occupation, personality, secret, appearance, motivation]
-      template: "A {{race}} {{occupation}} who is {{personality}}. They {{motivation}}. Secret: {{secret}}"
-      sets: "Each entry can have related properties (race→typical names, occupation→income)"
-
-    treasure_hoard:
-      structure: "Template with dice expressions and multiple table rolls"
-      example: "{{dice:3d6*100}}gp, {{dice:2d4*unique*gems}}, {{dice:1d4*magicItems}}"
-      tiered: "Use composite for 'common/uncommon/rare loot' selection"
-
-    dungeon_room:
-      structure: "Template combining multiple elements"
-      tables: [roomShape, roomFeature, monster, treasure, trap, lighting]
-      template: "A {{roomShape}} room with {{lighting}}. {{roomFeature}}. Contains: {{monster}}. {{trap}}"
-
-    wild_magic_table:
-      structure: "Simple table with self-referential entries"
-      key_entry: '{"value": "Roll twice! {{2*unique*again|\" AND \"}}", "weight": 1}'
-
-    reaction_roll:
-      structure: "Range-based for 2d6 or similar"
-      note: "Use ranges like [2,2], [3,5], [6,8], [9,11], [12,12] for 2d6 distribution"
-
-    monster_stat_block:
-      structure: "Table with extensive sets"
-      sets: "name, hp, ac, speed, str, dex, con, int, wis, cha, cr, abilities, actions"
-      access: "Template uses {{@monster.hp}}, {{@monster.abilities}}, etc."
-
-    shop_inventory:
-      structure: "Template with variable-count unique rolls"
-      shared: '"stockSize": "{{dice:2d6+3}}"'
-      pattern: "This shop has: {{$stockSize*unique*merchandise}}"
-
-    quest_hook_generator:
-      structure: "Template combining problem + location + reward + complication"
-      tables: [questType, questGiver, location, target, reward, complication, timeline]
-      template: "{{questGiver}} needs help with {{questType}} at {{location}}. Reward: {{reward}}. But: {{complication}}"
-
-    settlement_generator:
-      structure: "Size determines other properties via switch expressions"
-      tables: [settlementSize, government, mainIndustry, problem, landmark]
-      switch_example: |
-        "pattern": "{{settlementSize}}{{switch[@size.value==\"city\":\" Has defensive walls and multiple districts.\"].switch[@size.value==\"village\":\" Everyone knows each other.\"].else[\"\"]}}"
-
-    weather_table:
-      structure: "Simple or composite by season"
-      composite_example: "sources: [{tableId: springWeather, weight:1}, {tableId: summerWeather, weight:1}]"
-      note: "Caller can pick seasonal table or use composite for random season"
-
-    categorized_generator:
-      structure: "Parent table with entries that each reference their own child tables via sets"
-      tables: "One parent table + multiple hidden child tables per category"
-      pattern: |
-        Parent entry: "sets": {"property": "{{categorySpecificTable}}"}
-        Template shared: {"$parent": "{{parentTable}}"}
-        Template pattern: {{$parent.@property}}
-      examples:
-        - "World tags with enemies/friends/things/places per tag"
-        - "Creature types with abilities/attacks/loot per type"
-        - "Location types with NPCs/hazards/treasure per location"
-        - "System POIs with occupants/situations per point type"
-      note: "Preferred over conditionals when each parent category has its own set of sub-tables"
-      reference: "See child_table_references in sets_and_placeholders section"
-
-  # ---------------------------------------------------------------------------
-  # ORGANIZATION PATTERNS
-  # ---------------------------------------------------------------------------
-  organization:
-    when_to_use_imports:
-      - "Shared content across multiple files (common names, core tables)"
-      - "Modular content packs"
-      - "Separating large collections into manageable files"
-
-    file_naming_convention:
-      format: "[publisher].[sourcebook].[contents].json"
-      components:
-        publisher: "Company or creator name in camelCase"
-        sourcebook: "Book or product name in camelCase"
-        contents: "What the file contains in camelCase"
-      examples:
-        - "koboldPress.tomeOfBeasts.oozes.json"
-        - "sineNomine.starsWithoutNumber.pointsOfInterest.json"
-        - "wizardsOfTheCoast.monsterManual.dragons.json"
-        - "paizo.pathfinder2e.criticalHits.json"
-      notes:
-        - "Use camelCase for multi-word segments"
-        - "Keep segments descriptive but concise"
-        - "Contents segment should describe the tables within"
-
-    namespace_conventions:
-      format: "publisher.product.category"
-      examples: ["fantasy.core", "scifi.starships", "horror.creatures"]
-
-    file_organization:
-      small_project: "Single file with all tables"
-      medium_project: "Core file + imports for categories (creatures, items, npcs)"
-      large_project: "Namespace hierarchy with multiple import levels"
-
-  # ---------------------------------------------------------------------------
-  # DECISION FLOWCHART
-  # ---------------------------------------------------------------------------
-  quick_decision_flow:
-    step1_what_output:
-      single_item: "Use simple table"
-      formatted_text: "Use template"
-
-    step2_multiple_sources:
-      weighted_categories: "Composite table"
-      merged_pool: "Collection table"
-      no: "Simple table"
-
-    step3_need_properties:
-      yes: "Add sets to entries"
-      shared_properties: "Use defaultSets"
-
-    step4_reuse_value:
-      multiple_times: "Put in shared block"
-      independent_instances: "Use capture-aware ($prefix)"
-
-    step5_conditional_output:
-      simple_conditions: "Use inline switch expressions"
-      type_specific_subtables: "Use child_table_references in sets instead (see categorized_generator pattern)"
-      multi_factor_routing: "Use conditional_sub_selection pattern (switch + sets + capture-aware variables)"
-
-    step6_variant_table:
-      yes: "Use extends inheritance"
+    table_alone: "Output is picking one item"
+    template: "Output combines multiple rolls into formatted text"
+
+  when_to_use:
+    extends: "Creating variants, overriding specific entries, disabling entries (weight:0)"
+    hidden: "Helper tables not shown in UI but still functional"
+    again: "Entry triggers additional rolls on same table"
+    shared: "Value rolled once, used multiple times; supports property access"
+    sets: "Entries have associated properties beyond display text"
 
 # =============================================================================
 # FILE STRUCTURE
@@ -827,507 +37,417 @@ decision_guide:
 file_structure:
   required: [metadata, tables]
   optional: [imports, templates, variables, shared]
-  minimal_valid: |
-    {"metadata":{"name":"X","namespace":"x.y","version":"1.0.0","specVersion":"1.0"},"tables":[{"id":"t","name":"T","type":"simple","entries":[{"value":"v"}]}]}
+  minimal: '{"metadata":{"name":"X","namespace":"x.y","version":"1.0.0","specVersion":"1.0"},"tables":[{"id":"t","name":"T","type":"simple","entries":[{"value":"v"}]}]}'
 
 # =============================================================================
 # METADATA
 # =============================================================================
 metadata:
   required:
-    name: {type: string, desc: "collection name"}
-    namespace: {type: string, pattern: "^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)*$", example: "fantasy.core"}
-    version: {type: string, pattern: "semver", example: "1.0.0"}
-    specVersion: {type: string, const: "1.0"}
+    name: string
+    namespace: {pattern: "publisher.product.category", example: "fantasy.core"}
+    version: {pattern: "semver", example: "1.0.0"}
+    specVersion: {const: "1.0"}
   optional:
     author: string
-    description:
-      type: string
-      markdown: true
-      guidance: |
-        ALWAYS include a description. Write a markdown summary (2-5 sentences) explaining:
-        - What types of content/tables are in the file
-        - The intended use case or game system
-        - Key features (e.g., "includes 40 name tables across 10 cultures")
-        - Any notable structure (e.g., "parent tables with child sub-tables for each category")
-      examples:
-        - |
-          Name generators for Stars Without Number covering 10 cultural backgrounds
-          (Arabic, Chinese, English, Greek, Indian, Japanese, Latin, Nigerian, Russian, Spanish).
-          Each culture includes male names, female names, surnames, and place names.
-          Templates provided for generating full names with culture-appropriate ordering.
-        - |
-          World tag generator for sci-fi sandbox campaigns. Contains 100 world tags,
-          each with associated enemies, friends, complications, things, and places.
-          Use the worldTagGenerator template for complete tag generation with all sub-elements.
+    description: {type: string, markdown: true, guidance: "2-5 sentences explaining content, use case, key features"}
     instructions: {type: string, markdown: true}
-    tags:
-      type: string[]
-      guidance: |
-        ALWAYS include relevant tags. Choose tags that help users discover and filter content.
-        Include tags from these categories as applicable:
-        - **Game system**: dnd5e, pathfinder2e, swn, mothership, osr, system-agnostic
-        - **Genre**: fantasy, sci-fi, horror, modern, historical, post-apocalyptic
-        - **Content type**: names, npcs, encounters, treasure, locations, world-building, generators
-        - **Specifics**: creatures, items, spells, factions, weather, rumors, plot-hooks
-        - **Source**: if from a specific book or publisher, include identifiers
-      examples:
-        - ["swn", "sci-fi", "names", "generators", "world-building"]
-        - ["fantasy", "osr", "encounters", "dungeons", "creatures", "treasure"]
-        - ["dnd5e", "npcs", "generators", "personality", "backgrounds"]
-    created: {type: string, format: "ISO8601 datetime"}
-    updated: {type: string, format: "ISO8601 datetime"}
+    tags: {type: "string[]", guidance: "Include: game system, genre, content type, specifics"}
+    created: "ISO8601"
+    updated: "ISO8601"
   source:
     book: string
     publisher: string
+    pages: {examples: ["47", "47-89", "12, 45-67", "Appendix A"]}
     isbn: string
-    url: {type: string, format: uri}
-    license: {type: string, examples: ["OGL 1.0a", "CC BY 4.0", "CC0", "Original"]}
-    copyright: # string OR object
-      simple: string
-      structured:
-        year: {type: string, pattern: "^\\d{4}(-\\d{4})?$"}
-        holder: string
-        notice: string
+    url: string
+    license: {examples: ["OGL 1.0a", "CC BY 4.0", "CC0"]}
+    copyright: {simple: string, or_structured: {year: string, holder: string, notice: string}}
   rights:
     type: {enum: [proprietary, open-content, fan-content, licensed]}
     official: {type: boolean, default: false}
-    productIdentity: string[]
-    trademarks: string[]
-    compatibilityNotice: string
-    permissions:
-      commercialUse: {type: boolean, default: false}
-      modification: {type: boolean, default: false}
-      redistribution: {type: boolean, default: false}
-      derivativeWorks: {type: boolean, default: false}
-      attributionRequired: {type: boolean, default: true}
-    contact:
-      licensing: string
-      dmca: string
-      general: string
-    termsUrl: {type: string, format: uri}
-    communityPolicyUrl: {type: string, format: uri}
+    permissions: {commercialUse: false, modification: false, redistribution: false, derivativeWorks: false, attributionRequired: true}
+    productIdentity: "string[]"
+    trademarks: "string[]"
+    contact: {licensing: string, dmca: string}
+    termsUrl: string
   engine_config:
-    maxRecursionDepth: {type: integer, default: 50, min: 1}
-    maxExplodingDice: {type: integer, default: 100, min: 1}
-    maxInheritanceDepth: {type: integer, default: 5, min: 1}
-    uniqueOverflowBehavior: {enum: [stop, cycle, error], default: stop}
+    maxRecursionDepth: {default: 50}
+    maxExplodingDice: {default: 100}
+    maxInheritanceDepth: {default: 5}
+    uniqueOverflowBehavior:
+      stop: "Return available entries (default)"
+      cycle: "Refill pool and continue"
+      error: "Throw error"
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 imports:
   structure:
-    path: {type: string, required: true, desc: "relative path, parent path, or https URL"}
-    alias: {type: string, required: true, constraint: "unique, no periods, alphanumeric+underscore"}
-    description: {type: string, optional: true}
-  reference_syntax:
+    path: {required: true, formats: ["./relative.json", "../parent.json", "https://url.com/file.json"]}
+    alias: {required: true, constraint: "unique, no periods"}
+    description: string
+  referencing:
     table: "{{alias.tableId}}"
     template: "{{alias.templateId}}"
     variable: "{{$alias.variableName}}"
     extends: '"extends": "alias.tableId"'
+  behavior:
+    - "Imports resolved before processing"
+    - "Circular imports rejected"
+    - "Imported shared blocks are evaluated but variables not available to importer"
 
 # =============================================================================
 # TABLES
 # =============================================================================
 tables:
   common_properties:
-    id: {type: string, required: true, constraint: "unique in namespace, no periods, not reserved word"}
-    name: {type: string, required: true}
-    type: {enum: [simple, composite, collection], required: true}
-    description: {type: string, markdown: true}
-    tags: string[]
-    hidden: {type: boolean, default: false, desc: "UI hint only, table still accessible"}
-    extends: {type: string, desc: "parent table ID, supports alias.tableId"}
-    defaultSets: {type: object, desc: "key-value pairs applied to all entries"}
-    resultType: {type: string, case_insensitive: true}
-    shared: {type: object, desc: "table-level generation-time variables"}
-    source:
-      book: string
-      page: {type: "integer|string", examples: [47, "47-49"]}
-      section: string
-      url: string
-      license: string
+    id: {required: true, constraint: "no periods, unique in namespace"}
+    name: {required: true}
+    type: {required: true, enum: [simple, composite, collection]}
+    description: {markdown: true}
+    tags: "string[]"
+    hidden: {default: false, note: "UI hint only"}
+    extends: "parent table ID (supports alias.tableId)"
+    defaultSets: "object - key-value pairs for all entries"
+    resultType: {case_insensitive: true}
+    shared: "table-level generation-time variables (lazy evaluation)"
+    source: {book: string, page: "int|string", section: string}
 
   simple_table:
-    type: "simple"
-    entries: {type: "Entry[]", required: true, minItems: 1}
+    entries: {required: true, type: "Entry[]"}
 
   composite_table:
-    type: "composite"
-    desc: "Weighted selection BETWEEN tables, then single roll on chosen table"
-    sources:
-      required: true
-      items:
-        tableId: {type: string, required: true}
-        weight: {type: number, default: 1, min: 0}
+    desc: "Weighted selection BETWEEN tables, roll once on chosen table"
+    sources: [{tableId: {required: true}, weight: {default: 1}}]
 
   collection_table:
-    type: "collection"
-    desc: "Merges all entries from multiple tables into single pool"
-    collections: {type: "string[]", required: true, desc: "array of tableIds to combine"}
+    desc: "Merges all entries from multiple tables"
+    collections: {type: "string[]", desc: "tableIds to combine"}
 
 # =============================================================================
 # ENTRY PROPERTIES
 # =============================================================================
 entry:
-  id: {type: string, optional: true, auto_format: "{tableId}{NNN}", constraint: "required for inheritance override"}
-  value: {type: string, required: true, markdown: true, supports: "{{}} template syntax"}
-  weight: {type: number, default: 1, min: 0, mutually_exclusive: range, note: "0 disables from random selection"}
-  range: {type: "[int,int]", mutually_exclusive: weight, conversion: "weight = range[1] - range[0] + 1", example: "[1,50]"}
-  description: {type: string, markdown: true}
-  tags: string[]
-  sets: {type: object, desc: "key-value pairs for @placeholder access, values can contain {{patterns}}"}
-  assets: {type: object, common_keys: [image, token, thumbnail, portrait, sound, music, handout, statblock]}
-  resultType: {type: string, overrides: "table resultType"}
+  id: {optional: true, auto_format: "{tableId}{NNN}", note: "REQUIRED for inheritance overrides"}
+  value: {required: true, markdown: true, supports: "{{}} template syntax"}
+  weight: {default: 1, min: 0, note: "0 disables entry; mutually exclusive with range"}
+  range: {format: "[min, max]", conversion: "weight = max - min + 1"}
+  description: {markdown: true, accessed_via: "{{@self.description}}"}
+  tags: "string[]"
+  sets:
+    desc: "key-value pairs for @placeholder access"
+    note: "Values can contain {{patterns}} evaluated at selection"
+    RESERVED: ["description - use entry's description field instead"]
+  assets: {common_keys: [image, token, thumbnail, portrait, sound, music, handout, statblock]}
+  resultType: "overrides table resultType"
 
 # =============================================================================
 # TEMPLATES
 # =============================================================================
 template:
-  id: {type: string, required: true}
-  name: {type: string, required: true}
-  pattern: {type: string, required: true, markdown: true, desc: "template string with {{}} syntax"}
-  description: {type: string, markdown: true}
-  tags: string[]
-  resultType: string
-  shared: {type: object, desc: "template-level generation-time variables"}
+  id: {required: true}
+  name: {required: true}
+  pattern: {required: true, markdown: true}
+  description: {markdown: true}
+  tags: "string[]"
+  resultType: "overrides all table resultTypes"
+  shared: "template-level generation-time variables"
 
 # =============================================================================
-# TEMPLATE SYNTAX REFERENCE (all {{}} patterns)
+# TEMPLATE SYNTAX REFERENCE
 # =============================================================================
-template_syntax:
-  # Basic references
+syntax:
+  # Table references
   table_roll: "{{tableId}}"
   imported_table: "{{alias.tableId}}"
-  namespaced_table: "{{namespace.tableId}}"
+  multiple: "{{N*tableId}}"
+  multiple_unique: "{{N*unique*tableId}}"
+  multiple_separator: '{{N*tableId|"sep"}}'
+  dice_count: "{{dice:XdY*tableId}}"
+  variable_count: "{{$var*tableId}}"
+  instance: "{{tableId#instanceName}}"
 
-  # Again (self-reference, auto-excludes current entry)
-  again_once: "{{again}}"
+  # Again (in entry values only, auto-excludes self)
+  again: "{{again}}"
   again_n: "{{N*again}}"
   again_unique: "{{N*unique*again}}"
   again_dice: "{{dice:XdY*again}}"
   again_separator: '{{N*again|"sep"}}'
-  again_unique_separator: '{{N*unique*again|"sep"}}'
-
-  # Multiple rolls
-  multiple: "{{N*tableId}}"
-  multiple_unique: "{{N*unique*tableId}}"
-  multiple_dice: "{{dice:XdY*tableId}}"
-  multiple_separator: '{{N*tableId|"sep"}}'
-  multiple_unique_sep: '{{N*unique*tableId|"sep"}}'
-
-  # Variables
-  variable: "{{$variableName}}"
-  imported_variable: "{{$alias.variableName}}"
-  variable_as_count: "{{$var*tableId}}"
-  variable_unique_count: "{{$var*unique*tableId}}"
 
   # Dice
-  dice_basic: "{{dice:XdY}}"
-  dice_add: "{{dice:XdY+Z}}"
-  dice_sub: "{{dice:XdY-Z}}"
-  dice_mult: "{{dice:XdY*Z}}"
-  dice_keep_high: "{{dice:XdYkN}}"
+  dice: "{{dice:XdY}}"
+  dice_modifiers: "+Z, -Z, *Z"
+  dice_keep_high: "{{dice:XdYkN}} or {{dice:XdYkhN}}"
   dice_keep_low: "{{dice:XdYklN}}"
   dice_exploding: "{{dice:XdY!}}"
-  dice_exploding_mod: "{{dice:XdY!+Z}}"
 
-  # Math expressions
-  math_basic: "{{math:$a + $b}}"
+  # Math
+  math: "{{math:expression}}"
   math_operators: "+ - * / (parentheses)"
-  math_with_dice: "{{math:dice:2d6 + $modifier}}"
-  math_with_placeholder: "{{math:@creature.hd * 4}}"
+  math_operands: ["integers", "$variable", "@placeholder.property", "dice:XdY"]
+  math_notes:
+    - "Integer division rounds toward zero"
+    - "Division by zero = 0 with warning"
+    - "Non-numeric values coerce to 0"
 
-  # Placeholders (from entry sets)
+  # Variables & Placeholders
+  variable: "{{$variableName}}"
+  imported_variable: "{{$alias.varName}}"
   placeholder: "{{@placeholder.property}}"
 
-  # Self-reference (access current entry properties)
-  self_description: "{{@self.description}}"
+  # Self reference
+  self_description: "{{@self.description}} - current entry's description field"
+  self_value: "{{@self.value}} - current entry's raw value string"
+  self_notes: "Returns empty string if undefined; expressions in description are evaluated"
 
-  # Instance references (for conditionals)
-  instance: "{{tableId#instanceName}}"
-
-  # Roll captures
+  # Captures
   capture: "{{N*table >> $var}}"
   capture_unique: "{{N*unique*table >> $var}}"
   capture_silent: "{{N*table >> $var|silent}}"
   capture_separator: '{{N*table >> $var|"sep"}}'
-  capture_access_value: "{{$var[0]}}"
-  capture_access_prop: "{{$var[0].@property}}"
-  capture_count: "{{$var.count}}"
-  capture_collect: "{{collect:$var.@property}}"
-  capture_collect_unique: "{{collect:$var.@property|unique}}"
-  capture_collect_sep: '{{collect:$var.@property|"sep"}}'
 
-  # Switch expressions (inline conditionals)
-  switch_standalone: '{{switch[condition:result].else[fallback]}}'
-  switch_multiple: '{{switch[cond1:res1].switch[cond2:res2].else[fallback]}}'
-  switch_attached: '{{expr.switch[condition:result].else[fallback]}}'
-  switch_implicit_subject: '$' # In attached switch, $ refers to base expression result
-  switch_result_types:
+  # Capture access
+  capture_all: "{{$var}}"
+  capture_all_sep: '{{$var|"sep"}}'
+  capture_count: "{{$var.count}}"
+  capture_index: "{{$var[0]}}"
+  capture_negative: "{{$var[-1]}} - last item"
+  capture_prop: "{{$var[0].@property}}"
+
+  # Property aggregation
+  collect: "{{collect:$var.@prop}}"
+  collect_unique: "{{collect:$var.@prop|unique}}"
+  collect_separator: '{{collect:$var.@prop|"sep"}}'
+
+  # Switch expressions
+  switch_standalone: '{{switch[cond:result].switch[cond2:result2].else[fallback]}}'
+  switch_attached: '{{expr.switch[cond:result].else[fallback]}}'
+  switch_implicit: "$ in attached switch refers to base expression result"
+  switch_operators: ["==", "!=", ">", "<", ">=", "<=", "contains", "matches", "&&", "||", "!", "()"]
+  switch_results:
     - '"literal string"'
-    - '"interpolated {{$var}} string"'  # Quoted strings with {{}} are interpolated
+    - '"interpolated {{$var}} string" - patterns in quotes are evaluated'
     - '$var.@property'
     - '{{tableReference}}'
-    - '@placeholder'
+    - 'tableId (unwrapped, auto-resolved in shared variable context)'
   switch_examples:
     pronoun: '{{switch[$gender=="male":"he"].switch[$gender=="female":"she"].else["they"]}}'
-    dice_outcome: '{{dice:1d20.switch[$>=20:"Critical!"].switch[$>=10:"Hit"].else["Miss"]}}'
-    name_selection: '{{switch[$gender=="male":$race.@maleName].else[$race.@femaleName]}}'
-    complex_condition: '{{switch[$class=="wizard" && $level>=5:{{powerSpell}}].else[{{basicSpell}}]}}'
-    interpolation: '{{switch[$color=="none":", no glow"].else[", glowing {{$color}} light"]}}'
-    # For multi-factor routing patterns, see conditional_sub_selection in ttrpg_patterns
-    multi_factor_routing: '{{switch[$region=="Land":{{landAttacks}}].switch[$region=="Air":{{airAttacks}}].else[{{seaAttacks}}]}}'
+    dice: '{{dice:1d20.switch[$>=20:"Critical!"].switch[$>=10:"Hit"].else["Miss"]}}'
+    conditional_text: '{{switch[$danger=="high":"\n\n*Warning!*"].else[""]}}'
 
-  # Escape literal braces
-  escape: "\\{{ and \\}}"
+  # Escaping
+  literal_braces: "\\{{ and \\}}"
+  literal_quote_in_separator: '\\"'
 
 # =============================================================================
-# VARIABLES (static, load-time)
+# VARIABLES
 # =============================================================================
 variables:
   desc: "Static key-value pairs, evaluated once at file load"
-  type: object
-  key_constraint: "alphanumeric+underscore, no digits first, not reserved"
-  value_type: string
   reference: "{{$variableName}}"
+  constraint: "Cannot shadow or conflict with reserved words"
 
 # =============================================================================
-# SHARED (generation-time)
+# SHARED BLOCK
 # =============================================================================
 shared:
   document_level:
-    desc: "Evaluated once per generation run, in declaration order"
+    desc: "Evaluated once per generation, in declaration order"
     rules:
       - "Cannot shadow static variables"
       - "Cannot forward-reference later shared variables"
-      - "Evaluated before any table/template processing"
-    supports: ["{{dice:...}}", "{{tableId}}", "{{$priorShared}}", "{{math:...}}"]
+      - "Supports dice, table rolls, math, prior shared references"
 
   table_template_level:
-    desc: "Defined on individual tables/templates, evaluated lazily when rolled"
+    desc: "Lazy evaluation - only when that table/template is rolled"
     rules:
-      - "Cannot shadow document-level shared"
-      - "Cannot shadow static variables"
       - "Propagates to nested table references"
-      - "Parent shared takes precedence over child shared"
+      - "Parent shared takes precedence over child"
+      - "Cannot shadow document-level shared"
 
-  capture_aware:
-    desc: "Keys starting with $ capture full result including sets"
-    syntax: '"$hero": "{{raceTable}}"'
+  property_access:
+    desc: "All shared variables capture full result including sets"
+    syntax: '"hero": "{{raceTable}}"'
     access_value: "{{$hero}}"
     access_property: "{{$hero.@firstName}}"
+    use_case: "Multiple independent instances from same table with isolated placeholder contexts"
+    chained_access: "{{$var.@prop1.@prop2}} - works when set values are single table references"
 
 # =============================================================================
-# VALIDATION RULES
+# INHERITANCE
 # =============================================================================
-validation:
-  reserved_words: [dice, unique, again, true, false, null, and, or, not, contains, matches, shared, math]
-
-  identifier_patterns:
-    table_id: "^(?!reserved)[a-zA-Z_][a-zA-Z0-9_]*$"
-    entry_id: "^(?!reserved)[a-zA-Z_][a-zA-Z0-9_]*$"
-    namespace: "^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)*$"
-    alias: "^[a-zA-Z_][a-zA-Z0-9_]*$"
-
-  weight_rules:
-    - "Must be >= 0"
-    - "Decimals allowed"
-    - "0 disables entry from random selection"
-    - "Cannot have both weight and range"
-
-  range_rules:
-    - "Two-element array [min, max]"
-    - "Both non-negative integers"
-    - "min <= max"
-    - "Converted to weight: (max - min) + 1"
-
-  inheritance_rules:
+inheritance:
+  syntax: '"extends": "parentTableId"'
+  cross_file: '"extends": "alias.tableId"'
+  rules:
     - "Only entries with explicit IDs can be overridden"
     - "Single parent only (no diamond)"
     - "Depth limited by maxInheritanceDepth"
-    - "Child values always override parent"
-    - "No circular inheritance"
-    - "Tags not inherited"
-    - "ResultType not inherited"
+    - "Child values override parent"
+    - "Tags and resultType NOT inherited"
 
-  circular_detection:
-    - "Import cycles rejected at load"
-    - "Inheritance cycles rejected at load"
-    - "Template reference cycles detected at generation"
-    - "again keyword auto-excludes self"
+  property_merge:
+    - "Unspecified properties inherited from parent"
+    - "assets and sets are deep-merged (child keys override)"
+    - "Set property to null to remove inherited value"
+    - "defaultSets deep-merged through chain"
+
+  disable_entry: "Override with weight: 0"
 
 # =============================================================================
-# RESULT TYPES (recommended vocabulary)
+# RESULT TYPES
 # =============================================================================
 result_types:
   standard: [creature, npc, faction, item, loot, location, encounter, event, hook, complication, name, trait, effect, environment, ability, description, rumor, dialogue, statistic, number, currency, time, weather]
   custom_format: "namespace/category/type"
   precedence:
-    simple_table: ["entry.resultType", "table.resultType", "undefined"]
-    composite_table: ["entry.resultType", "sourceTable.resultType", "compositeTable.resultType", "undefined"]
-    template: ["template.resultType", "undefined"]
+    simple: "entry → table → undefined"
+    composite: "entry → sourceTable → compositeTable → undefined"
+    template: "template.resultType (always wins)"
 
 # =============================================================================
-# COMPREHENSIVE EXAMPLE
+# MARKDOWN SUPPORT
+# =============================================================================
+markdown:
+  enabled_fields: [metadata.description, metadata.instructions, table.description, entry.value, entry.description, template.pattern, template.description]
+  supported: ["**bold**", "*italic*", "`code`", "[link](url)", "- bullet", "1. numbered"]
+  note: "Template syntax resolved first, then markdown rendered"
+
+# =============================================================================
+# VALIDATION
+# =============================================================================
+validation:
+  reserved_words: [dice, unique, again, true, false, null, and, or, not, contains, matches, shared, math]
+
+  identifiers:
+    table_id: "alphanumeric+underscore, no digits first, no periods"
+    entry_id: "same as table_id; required for inheritance"
+    variable: "same as table_id"
+    namespace: "dot-separated segments"
+    alias: "same as table_id, no periods"
+
+  weight: "Must be >= 0; decimals allowed; 0 disables entry"
+  range: "[min, max] where min <= max; mutually exclusive with weight"
+
+  circular_detection:
+    - "Import cycles - rejected at load"
+    - "Inheritance cycles - rejected at load"
+    - "Template cycles - detected at generation"
+    - "again auto-excludes self"
+
+# =============================================================================
+# COMMON PATTERNS
+# =============================================================================
+patterns:
+
+  # Sets with child table references - preferred for scalable designs
+  sets_based_routing:
+    desc: "Each entry contains sets pointing to its own sub-tables"
+    table_example: |
+      "entries": [
+        {"value": "Land", "sets": {"units": "{{landUnits}}", "attacks": "{{landAttacks}}"}},
+        {"value": "Sea", "sets": {"units": "{{seaUnits}}", "attacks": "{{seaAttacks}}"}}
+      ]
+    template_example: |
+      "shared": {"$region": "{{region}}"},
+      "pattern": "Deploy {{$region.@units}} using {{$region.@attacks}}"
+    benefit: "Adding new types = new entries, no template changes"
+
+  # Switch for simple conditionals
+  switch_routing:
+    when: "2-3 options, simple routing"
+    example: '{{switch[$gender=="male":{{maleNames}}].else[{{femaleNames}}]}}'
+
+  # Combining both
+  multi_factor:
+    desc: "Sets for primary factor, switch for secondary"
+    example: |
+      "$culture": "{{culture}}",  // has sets: maleNames, femaleNames
+      "$name": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}"
+
+  # Name generator
+  name_generator:
+    tables: "[firstNames, lastNames, titles]"
+    template: '"{{titles}} {{firstNames}} {{lastNames}}"'
+    with_gender: 'Use switch or culture sets with maleNames/femaleNames'
+
+  # Treasure
+  treasure:
+    simple: '"{{dice:3d6*10}}gp, {{dice:1d4*gems}}"'
+    tiered: "Use composite for common/uncommon/rare selection"
+
+  # Encounter
+  encounter:
+    pattern: '"{{dice:1d4+1}} {{creatures}} in {{location}}"'
+    scaled: 'shared: {"$count": "{{dice:2d4}}"}, pattern uses {{$count*monsters}}'
+
+  # Wild magic / roll again
+  roll_again: '{"value": "Roll twice! {{2*unique*again|\" AND \"}}", "weight": 1}'
+
+# =============================================================================
+# EXAMPLE (MINIMAL)
 # =============================================================================
 example: |
   {
     "metadata": {
-      "name": "Fantasy Encounter Generator",
+      "name": "Fantasy Encounters",
       "namespace": "fantasy.encounters",
       "version": "1.0.0",
       "specVersion": "1.0",
-      "author": "Game Master",
-      "description": "Random encounter generator for fantasy TTRPGs. Includes common and elite creature tables with HP/AC stats, a tiered treasure system with inheritance (base and rich variants), and magic item generation. The fullEncounter template combines creatures, leaders, and treasure into formatted encounter blocks with danger ratings.",
-      "tags": ["fantasy", "osr", "system-agnostic", "encounters", "creatures", "treasure", "generators"],
-      "source": {
-        "license": "CC0",
-        "copyright": {
-          "year": "2024",
-          "holder": "Public Domain",
-          "notice": "Released to public domain under CC0"
-        }
-      },
-      "rights": {
-        "type": "open-content",
-        "permissions": {
-          "commercialUse": true,
-          "modification": true,
-          "redistribution": true,
-          "derivativeWorks": true,
-          "attributionRequired": false
-        }
-      },
-      "maxRecursionDepth": 30,
-      "maxInheritanceDepth": 5
-    },
-    "imports": [
-      {
-        "path": "./creatures/monsters.json",
-        "alias": "monsters",
-        "description": "Monster tables"
-      }
-    ],
-    "variables": {
-      "setting": "fantasy",
-      "separator": ", "
+      "description": "Encounter generator with tiered creatures and treasure.",
+      "tags": ["fantasy", "encounters", "creatures"]
     },
     "shared": {
       "encounterSize": "{{dice:1d4+1}}",
-      "treasureMultiplier": "{{math:$encounterSize * 10}}",
       "$leader": "{{eliteCreatures}}"
     },
     "tables": [
       {
-        "id": "commonCreatures",
+        "id": "creatures",
         "name": "Common Creatures",
         "type": "simple",
         "resultType": "creature",
-        "tags": ["creatures", "common"],
-        "defaultSets": {
-          "rarity": "common",
-          "terrain": "any"
-        },
+        "defaultSets": {"terrain": "any"},
         "entries": [
-          {
-            "id": "goblin",
-            "value": "Goblin",
-            "weight": 5,
-            "tags": ["humanoid", "low-level"],
-            "sets": { "hp": "{{dice:2d6}}", "ac": "15" },
-            "assets": { "token": "tokens/goblin.webp" }
-          },
-          {
-            "id": "wolf",
-            "value": "Wolf",
-            "weight": 3,
-            "sets": { "hp": "{{dice:2d8+2}}", "terrain": "forest" }
-          },
-          {
-            "value": "Giant Rat",
-            "range": [1, 30]
-          },
-          {
-            "value": "Skeleton",
-            "range": [31, 50],
-            "sets": { "type": "undead" }
-          }
+          {"id": "goblin", "value": "Goblin", "weight": 5, "sets": {"hp": "{{dice:2d6}}"}},
+          {"value": "Wolf", "weight": 3, "sets": {"terrain": "forest"}},
+          {"value": "Skeleton", "range": [31, 50]}
         ]
       },
       {
         "id": "eliteCreatures",
         "name": "Elite Creatures",
         "type": "simple",
-        "resultType": "creature",
         "entries": [
-          { "value": "Ogre", "sets": { "title": "Brute" } },
-          { "value": "Troll", "sets": { "title": "Regenerator" } },
-          { "value": "Wraith", "sets": { "title": "Shadow" } }
+          {"value": "Ogre", "sets": {"title": "Brute"}},
+          {"value": "Troll", "sets": {"title": "Regenerator"}}
         ]
       },
       {
-        "id": "treasureBase",
-        "name": "Base Treasure",
+        "id": "treasure",
+        "name": "Treasure",
         "type": "simple",
         "resultType": "loot",
         "entries": [
-          { "id": "coins", "value": "{{dice:3d6*10}} gold coins", "weight": 5 },
-          { "id": "gems", "value": "{{dice:1d4}} gemstones", "weight": 2 },
-          { "id": "potion", "value": "Healing potion", "weight": 1 }
-        ]
-      },
-      {
-        "id": "richTreasure",
-        "name": "Rich Treasure",
-        "type": "simple",
-        "extends": "treasureBase",
-        "entries": [
-          { "id": "coins", "value": "{{dice:6d6*10}} gold coins" },
-          { "id": "artifact", "value": "Magical {{magicItems}}", "weight": 1 }
-        ]
-      },
-      {
-        "id": "magicItems",
-        "name": "Magic Items",
-        "type": "simple",
-        "hidden": true,
-        "resultType": "item",
-        "entries": [
-          { "value": "sword" },
-          { "value": "ring" },
-          { "value": "amulet" }
-        ]
-      },
-      {
-        "id": "encounterType",
-        "name": "Encounter Type",
-        "type": "composite",
-        "resultType": "encounter",
-        "sources": [
-          { "tableId": "commonCreatures", "weight": 7 },
-          { "tableId": "eliteCreatures", "weight": 2 },
-          { "tableId": "monsters.rareMonsters", "weight": 1 }
+          {"id": "coins", "value": "{{dice:3d6*10}} gold coins", "weight": 5},
+          {"value": "{{dice:1d4}} gemstones", "weight": 2}
         ]
       },
       {
         "id": "allCreatures",
         "name": "All Creatures",
         "type": "collection",
-        "resultType": "creature",
-        "collections": ["commonCreatures", "eliteCreatures"]
+        "collections": ["creatures", "eliteCreatures"]
       }
     ],
     "templates": [
       {
-        "id": "fullEncounter",
+        "id": "encounter",
         "name": "Full Encounter",
         "resultType": "encounter",
-        "shared": {
-          "dangerLevel": "{{dice:1d6}}"
-        },
-        "pattern": "## Encounter (Danger: {{$dangerLevel}})\n\nYou encounter **{{$encounterSize}} {{encounterType}}** led by **{{$leader.@title}} {{$leader}}**.\n\n### Treasure\n{{$encounterSize*unique*richTreasure|\", \"}}\n\n**Total value:** ~{{$treasureMultiplier}} gold{{switch[@rarity.value==\"common\":\"\n\n_This is a common encounter._\"].else[\"\"]}}{{switch[$dangerLevel>=5:\"\n\n**HIGH DANGER!**\"].else[\"\"]}}"
+        "pattern": "**{{$encounterSize}} {{creatures}}** led by {{$leader.@title}} {{$leader}}.\n\nTreasure: {{$encounterSize*unique*treasure|\", \"}}"
       }
     ]
   }

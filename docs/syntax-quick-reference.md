@@ -57,6 +57,7 @@
 | `{{$alias.variableName}}` | Variable from imported file |
 | `{{@placeholder.property}}` | Placeholder property |
 | `{{@self.description}}` | Current entry's description |
+| `{{@self.value}}` | Current entry's raw value string |
 
 ## Roll Capture
 
@@ -157,20 +158,20 @@ Apply switch to transform any expression result. Use `$` to reference the base r
 }
 ```
 
-## Capture-Aware Shared Variables
+## Shared Variables with Property Access
 
-Keys starting with `$` capture sets for property access:
+Variables capture sets for property access:
 
 ```json
 "shared": {
-  "$hero": "{{race}}",
-  "$enemy": "{{race}}"
+  "hero": "{{race}}",
+  "enemy": "{{race}}"
 }
 ```
 
 | Syntax | Description |
 |--------|-------------|
-| `"$varName": "{{table}}"` | Define capture-aware variable |
+| `"varName": "{{table}}"` | Define shared variable |
 | `{{$varName}}` | Access captured value |
 | `{{$varName.@property}}` | Access captured set property |
 

@@ -32,6 +32,7 @@ import {
   registerDocumentSharedName,
   addDescription,
   setCurrentEntryDescription,
+  setCurrentEntryValue,
   type GenerationContext,
 } from './context'
 import { rollSimpleTable, buildWeightedPool, calculateTotalWeight } from '../tables/simple'
@@ -992,6 +993,11 @@ export class RandomTableEngine {
     // Update context with entry info
     setCurrentTable(context, table.id, selected.id)
 
+    // Store description and raw value in context for {{@self.description}} and {{@self.value}} access
+    // Must be set BEFORE evaluating sets so they can reference these values
+    setCurrentEntryDescription(context, selected.entry.description)
+    setCurrentEntryValue(context, selected.entry.value)
+
     // Evaluate and merge placeholders
     // Set values containing {{patterns}} are evaluated at merge time for consistency
     let evaluatedSets: EvaluatedSets = selected.mergedSets
@@ -1000,15 +1006,13 @@ export class RandomTableEngine {
       mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
-    // Store description in context for {{@self.description}} access
-    setCurrentEntryDescription(context, selected.entry.description)
-
     // Evaluate the entry value (may contain expressions)
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
     const text = this.evaluator.evaluatePattern(selected.entry.value ?? '', context, collectionId)
 
-    // Clear description from context after evaluation
+    // Clear description and value from context after evaluation
     setCurrentEntryDescription(context, undefined)
+    setCurrentEntryValue(context, undefined)
 
     // Capture description if present
     if (selected.entry.description) {
@@ -1151,6 +1155,11 @@ export class RandomTableEngine {
     // Update context
     setCurrentTable(context, table.id, selected.id)
 
+    // Store description and raw value in context for {{@self.description}} and {{@self.value}} access
+    // Must be set BEFORE evaluating sets so they can reference these values
+    setCurrentEntryDescription(context, selected.entry.description)
+    setCurrentEntryValue(context, selected.entry.value)
+
     // Evaluate and merge placeholders
     // Set values containing {{patterns}} are evaluated at merge time for consistency
     let evaluatedSets: EvaluatedSets = selected.mergedSets
@@ -1159,15 +1168,13 @@ export class RandomTableEngine {
       mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
-    // Store description in context for {{@self.description}} access
-    setCurrentEntryDescription(context, selected.entry.description)
-
     // Evaluate the entry value
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
     const text = this.evaluator.evaluatePattern(selected.entry.value ?? '', context, collectionId)
 
-    // Clear description from context after evaluation
+    // Clear description and value from context after evaluation
     setCurrentEntryDescription(context, undefined)
+    setCurrentEntryValue(context, undefined)
 
     // Capture description if present
     if (selected.entry.description) {

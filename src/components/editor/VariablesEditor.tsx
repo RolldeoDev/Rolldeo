@@ -6,8 +6,9 @@
 
 import { Info } from 'lucide-react'
 import { KeyValueEditor } from './KeyValueEditor'
-import type { Variables, SharedVariables } from '@/engine/types'
+import type { Variables, SharedVariables, Table, Template } from '@/engine/types'
 import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+import type { Suggestion } from '@/hooks/usePatternSuggestions'
 
 export interface VariablesEditorProps {
   /** Static variables (evaluated at load time) */
@@ -28,6 +29,12 @@ export interface VariablesEditorProps {
   importedTables?: ImportedTableInfo[]
   /** Imported templates for insert dropdown */
   importedTemplates?: ImportedTemplateInfo[]
+  /** Suggestions for autocomplete */
+  suggestions?: Suggestion[]
+  /** Full table data for property lookups */
+  tableMap?: Map<string, Table>
+  /** Full template data for property lookups */
+  templateMap?: Map<string, Template>
 }
 
 export function VariablesEditor({
@@ -40,6 +47,9 @@ export function VariablesEditor({
   localTemplates,
   importedTables,
   importedTemplates,
+  suggestions,
+  tableMap,
+  templateMap,
 }: VariablesEditorProps) {
   return (
     <div className="space-y-6">
@@ -86,9 +96,7 @@ export function VariablesEditor({
                   generation and remain constant for that run.
                 </p>
                 <p className="mb-2">
-                  <strong>Capture-aware:</strong> Keys starting with{' '}
-                  <code className="px-1 bg-muted rounded">$</code> (e.g., "$hero")
-                  capture the full roll including sets, allowing{' '}
+                  Variables capture the full roll result including sets, enabling{' '}
                   <code className="px-1 bg-muted rounded">{'{{$hero.@prop}}'}</code>{' '}
                   syntax with dynamic table resolution.
                 </p>
@@ -96,25 +104,28 @@ export function VariablesEditor({
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Evaluated once per generation. Use <code className="px-1 bg-muted rounded text-xs">$</code> prefix to capture sets.
+            Evaluated once per generation. Access properties with <code className="px-1 bg-muted rounded text-xs">{'{{$name.@prop}}'}</code>.
           </p>
         </div>
         <div className="p-4">
           <KeyValueEditor
             value={shared}
             onChange={onSharedChange}
-            keyPlaceholder="Variable name (use $ prefix to capture sets)"
+            keyPlaceholder="Variable name"
             valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
             keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
             keyError="Must start with optional $, then letter/underscore, alphanumeric only"
             valueSupportsExpressions
             collectionId={collectionId}
-            highlightCaptureAware
             showInsertButton
             localTables={localTables}
             localTemplates={localTemplates}
             importedTables={importedTables}
             importedTemplates={importedTemplates}
+            suggestions={suggestions}
+            tableMap={tableMap}
+            templateMap={templateMap}
+            sharedVariables={shared as Record<string, string>}
           />
         </div>
       </section>

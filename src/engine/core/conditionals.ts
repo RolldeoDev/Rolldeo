@@ -116,7 +116,7 @@ function resolveValue(
     const property = parts[1]
     return getPlaceholder(context, name, property)
   } else if (ref.startsWith('$')) {
-    // Check for capture-aware shared variable with property access: $var.@property
+    // Check for shared variable with property access: $var.@property
     const propMatch = ref.match(/^\$([a-zA-Z_][a-zA-Z0-9_]*)\.@([a-zA-Z_][a-zA-Z0-9_]*)$/)
     if (propMatch) {
       const varName = propMatch[1]

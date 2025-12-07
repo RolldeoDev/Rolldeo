@@ -38,7 +38,7 @@ export interface EditablePatternRef {
  */
 export const EditablePattern = memo(
   forwardRef<EditablePatternRef, EditablePatternProps>(function EditablePattern(
-    { value, onChange, placeholder, minHeight = 250, id, suggestions = [], tableMap, templateMap },
+    { value, onChange, placeholder, minHeight = 250, id, suggestions = [], tableMap, templateMap, sharedVariables },
     ref
   ) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -53,6 +53,7 @@ export const EditablePattern = memo(
       onValueChange: onChange,
       tableMap,
       templateMap,
+      sharedVariables,
     })
 
     /**
@@ -225,6 +226,7 @@ export const EditablePattern = memo(
             onSelect={autocomplete.setSelectedIndex}
             onConfirm={autocomplete.confirm}
             onClose={autocomplete.close}
+            isPropertyTrigger={autocomplete.triggerInfo.type === 'property'}
           />
         )}
       </div>
