@@ -1412,9 +1412,16 @@
   @apply w-full px-3 py-2 rounded-lg transition-all duration-200;
   @apply border border-border/60;
   @apply placeholder:text-muted-foreground/60;
-  @apply focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50;
+  @apply focus:outline-none;
+  /* Use --focus-color if set, otherwise fall back to primary */
+  --_focus-color: var(--focus-color, hsl(var(--primary)));
   background: hsl(var(--card));
   box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04);
+}
+
+.editor-input:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--_focus-color) 40%, transparent);
+  border-color: color-mix(in srgb, var(--_focus-color) 50%, transparent);
 }
 
 .dark .editor-input {
@@ -1427,7 +1434,8 @@
 
 .dark .editor-input:focus {
   background: hsl(0, 0%, 16%);
-  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--_focus-color) 40%, transparent);
+  border-color: color-mix(in srgb, var(--_focus-color) 50%, transparent);
 }
 
 /* Editor input - compact variant for inline/row items */

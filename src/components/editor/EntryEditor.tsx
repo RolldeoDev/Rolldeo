@@ -121,11 +121,17 @@ export function EntryEditor({
     return extractExpressions(entry.value).length > 0
   }, [entry.value])
 
+  // Extract template IDs for expression type detection (lavender vs mint)
+  const templateIds = useMemo(() => {
+    if (!templateMap || templateMap.size === 0) return undefined
+    return new Set(templateMap.keys())
+  }, [templateMap])
+
   // Evaluate for preview (only when preview is shown)
   const { result, reroll } = usePatternEvaluation(
     showPreview ? entry.value : '',
     collectionId,
-    { enableTrace: false, debounceMs: 200 }
+    { enableTrace: false, debounceMs: 200, templateIds }
   )
 
   const updateField = useCallback(

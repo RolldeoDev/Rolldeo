@@ -5,7 +5,7 @@
  * Used for variables, shared variables, and other key-value data.
  */
 
-import { useState, useCallback, useRef, useMemo } from 'react'
+import { useState, useCallback, useRef, useMemo, memo } from 'react'
 import { Plus, Trash2, RefreshCw } from 'lucide-react'
 import { usePatternEvaluation } from './PatternPreview/usePatternEvaluation'
 import { HighlightedInput, type HighlightedInputRef } from './PatternPreview/HighlightedInput'
@@ -21,11 +21,12 @@ import type { Table, Template } from '@/engine/types'
  * Each type corresponds to a distinct border color for the key input.
  */
 export type VariableRefType =
-  | 'template'   // Purple - references a template
+  | 'template'   // Lavender - references a template
   | 'table'      // Green - references a table
   | 'variable'   // Pink - references another variable
   | 'dice'       // Amber/Orange - dice or math expression
   | 'property'   // Cyan - property/set placeholder (static text)
+  | 'switch'     // Purple - switch statement with branching paths
   | 'mixed'      // Multiple expression types
   | 'none'       // No expression detected
 
@@ -81,7 +82,7 @@ function analyzeValueType(
           break
 
         case 'switch':
-          types.add('mixed')
+          types.add('switch')
           break
 
         case 'again':
@@ -94,6 +95,8 @@ function analyzeValueType(
 
     if (types.size === 0) return 'property' // No expressions = static text
     if (types.size === 1) return Array.from(types)[0]
+    // If switch is present, prioritize it since it has branching paths
+    if (types.has('switch')) return 'switch'
     return 'mixed'
   } catch {
     return 'property' // Parse error = treat as static text
@@ -256,7 +259,7 @@ function getVariableRefType(
           break
 
         case 'switch':
-          types.add('mixed')
+          types.add('switch')
           break
 
         case 'again':
@@ -269,6 +272,8 @@ function getVariableRefType(
 
     if (types.size === 0) return 'none'
     if (types.size === 1) return Array.from(types)[0]
+    // If switch is present, prioritize it since it has branching paths
+    if (types.has('switch')) return 'switch'
     return 'mixed'
   } catch {
     return 'none'
@@ -276,32 +281,36 @@ function getVariableRefType(
 }
 
 /**
- * Get the inline style for the border color based on reference type.
+ * Color values for each reference type.
+ * Used for both border and focus ring colors.
+ */
+const REF_TYPE_COLORS: Record<VariableRefType, string | null> = {
+  template: 'hsl(var(--lavender))',
+  table: 'hsl(var(--mint))',
+  variable: 'hsl(var(--pink))',
+  dice: 'hsl(var(--amber))',
+  property: 'hsl(var(--cyan))',
+  switch: 'rgb(168, 85, 247)', // Purple (purple-500) for branching paths
+  mixed: 'hsl(var(--copper))',
+  none: null,
+}
+
+/**
+ * Get the inline style for the border and focus color based on reference type.
  * Using inline styles because Tailwind JIT doesn't generate dynamic arbitrary values.
+ * Sets --focus-color CSS custom property for focus ring styling.
  */
 function getRefTypeBorderStyle(refType: VariableRefType): React.CSSProperties {
-  const baseStyle: React.CSSProperties = {
+  const color = REF_TYPE_COLORS[refType]
+  if (!color) return {}
+
+  return {
     borderLeftWidth: '4px',
     borderLeftStyle: 'solid',
-  }
-
-  switch (refType) {
-    case 'template':
-      return { ...baseStyle, borderLeftColor: 'hsl(var(--lavender))' }
-    case 'table':
-      return { ...baseStyle, borderLeftColor: 'hsl(var(--mint))' }
-    case 'variable':
-      return { ...baseStyle, borderLeftColor: 'hsl(var(--pink))' }
-    case 'dice':
-      return { ...baseStyle, borderLeftColor: 'hsl(var(--amber))' }
-    case 'property':
-      return { ...baseStyle, borderLeftColor: 'hsl(var(--cyan))' }
-    case 'mixed':
-      return { ...baseStyle, borderLeftColor: 'hsl(var(--copper))' }
-    case 'none':
-    default:
-      return {}
-  }
+    borderLeftColor: color,
+    // Set CSS custom property for focus ring color
+    '--focus-color': color,
+  } as React.CSSProperties
 }
 
 export interface KeyValueEditorProps {
@@ -557,7 +566,7 @@ export function KeyValueEditor({
               placeholder={keyPlaceholder}
             />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <label className="block md:hidden text-sm font-medium text-muted-foreground mb-1.5">Value</label>
             <div className="relative">
               <HighlightedInput
@@ -597,7 +606,7 @@ export function KeyValueEditor({
               )}
             </div>
             {valueSupportsExpressions && val?.includes('{{') && (
-              <ExpressionPreview value={val} collectionId={collectionId} />
+              <ExpressionPreview value={val} collectionId={collectionId} templateIds={templateIds} />
             )}
           </div>
           <button
@@ -702,18 +711,37 @@ export function KeyValueEditor({
 }
 
 /**
- * ExpressionPreview - Shows live preview of expression evaluation
+ * Compare two Sets by content (not reference).
+ * Returns true if both Sets contain the same elements.
  */
-function ExpressionPreview({
+function areSetsEqual(a?: Set<string>, b?: Set<string>): boolean {
+  if (a === b) return true
+  if (!a || !b) return a === b
+  if (a.size !== b.size) return false
+  for (const id of a) {
+    if (!b.has(id)) return false
+  }
+  return true
+}
+
+/**
+ * ExpressionPreview - Shows live preview of expression evaluation
+ * Memoized to only re-render when its own value changes, not when sibling fields change.
+ * Uses custom comparison to compare templateIds Set by content, not reference.
+ */
+const ExpressionPreview = memo(function ExpressionPreview({
   value,
   collectionId,
+  templateIds,
 }: {
   value: string
   collectionId?: string
+  templateIds?: Set<string>
 }) {
   const { result, reroll, isEvaluating } = usePatternEvaluation(value, collectionId, {
     enableTrace: false,
     debounceMs: 300,
+    templateIds,
   })
 
   // No collection ID - can't evaluate
@@ -735,12 +763,13 @@ function ExpressionPreview({
   const hasError = result?.error != null
 
   return (
-    <div className="flex items-center gap-1.5 mt-1">
+    <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
       <span
         className={cn(
-          'text-xs',
+          'text-xs truncate',
           hasError ? 'text-destructive' : 'text-muted-foreground'
         )}
+        title={displayText}
       >
         → {displayText}
       </span>
@@ -750,7 +779,7 @@ function ExpressionPreview({
           e.preventDefault()
           reroll()
         }}
-        className="p-0.5 rounded hover:bg-accent transition-colors"
+        className="p-0.5 rounded hover:bg-accent transition-colors flex-shrink-0"
         title="Re-roll expression"
       >
         <RefreshCw
@@ -762,6 +791,14 @@ function ExpressionPreview({
       </button>
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison: compare value and collectionId directly,
+  // but compare templateIds by content (not reference)
+  return (
+    prevProps.value === nextProps.value &&
+    prevProps.collectionId === nextProps.collectionId &&
+    areSetsEqual(prevProps.templateIds, nextProps.templateIds)
+  )
+})
 
 export default KeyValueEditor

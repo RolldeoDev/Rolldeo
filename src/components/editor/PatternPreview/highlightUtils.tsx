@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import { extractExpressions } from '@/engine/core/parser'
 import { cn } from '@/lib/utils'
 import { EXPRESSION_COLORS, getExpressionType } from './expressionColors'
+import type { ExpressionTypeOptions } from '@/lib/expressionUtils'
 
 /**
  * Options for text highlighting
@@ -18,13 +19,15 @@ export interface HighlightOptions {
   whiteSpace?: 'pre' | 'pre-wrap'
   /** Additional class name to apply to expression spans */
   expressionClassName?: string
+  /** Set of template IDs to distinguish templates from tables (lavender vs mint) */
+  templateIds?: Set<string>
 }
 
 /**
  * Get the color class for an expression based on its content
  */
-export function getExpressionColorClass(content: string): string {
-  const type = getExpressionType(content)
+export function getExpressionColorClass(content: string, options?: ExpressionTypeOptions): string {
+  const type = getExpressionType(content, options)
   return EXPRESSION_COLORS[type].text
 }
 
@@ -39,13 +42,14 @@ export function renderHighlightedText(
   text: string,
   options: HighlightOptions = {}
 ): ReactNode {
-  const { whiteSpace = 'pre-wrap', expressionClassName } = options
+  const { whiteSpace = 'pre-wrap', expressionClassName, templateIds } = options
 
   const expressions = extractExpressions(text)
   const parts: ReactNode[] = []
   let lastIndex = 0
 
   const whitespaceClass = whiteSpace === 'pre' ? 'whitespace-pre' : 'whitespace-pre-wrap'
+  const typeOptions: ExpressionTypeOptions | undefined = templateIds ? { templateIds } : undefined
 
   for (const match of expressions) {
     // Add literal text before the expression
@@ -58,7 +62,7 @@ export function renderHighlightedText(
     }
 
     // Add the highlighted expression
-    const colorClass = getExpressionColorClass(match.expression)
+    const colorClass = getExpressionColorClass(match.expression, typeOptions)
     parts.push(
       <span
         key={`expr-${match.start}`}

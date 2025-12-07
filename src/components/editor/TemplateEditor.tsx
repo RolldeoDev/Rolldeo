@@ -137,6 +137,24 @@ export function TemplateEditor({
     [template.pattern, updateField]
   )
 
+  // Memoize filtered templates to avoid creating new array references on every render
+  // This is critical for preventing unnecessary re-renders of KeyValueEditor's ExpressionPreview
+  const filteredLocalTemplates = useMemo(
+    () => localTemplates.filter(t => t.id !== template.id),
+    [localTemplates, template.id]
+  )
+
+  const filteredImportedTemplates = useMemo(
+    () => importedTemplates.filter(t => t.id !== template.id),
+    [importedTemplates, template.id]
+  )
+
+  // Memoize combined shared variables for KeyValueEditor
+  const combinedSharedVariables = useMemo(
+    () => ({ ...documentShared, ...(template.shared as Record<string, string> | undefined) }),
+    [documentShared, template.shared]
+  )
+
   // Augment suggestions with template-level shared variables
   const augmentedSuggestions = useMemo(() => {
     if (!suggestions) return []
@@ -300,13 +318,13 @@ export function TemplateEditor({
                 collectionId={collectionId}
                 showInsertButton
                 localTables={localTables}
-                localTemplates={localTemplates.filter(t => t.id !== template.id)}
+                localTemplates={filteredLocalTemplates}
                 importedTables={importedTables}
-                importedTemplates={importedTemplates.filter(t => t.id !== template.id)}
+                importedTemplates={filteredImportedTemplates}
                 suggestions={suggestions}
                 tableMap={tableMap}
                 templateMap={templateMap}
-                sharedVariables={{ ...documentShared, ...(template.shared as Record<string, string> | undefined) }}
+                sharedVariables={combinedSharedVariables}
               />
             </div>
           </details>
@@ -325,9 +343,9 @@ export function TemplateEditor({
             >
               <InsertDropdown
                 localTables={localTables}
-                localTemplates={localTemplates.filter(t => t.id !== template.id)}
+                localTemplates={filteredLocalTemplates}
                 importedTables={importedTables}
-                importedTemplates={importedTemplates.filter(t => t.id !== template.id)}
+                importedTemplates={filteredImportedTemplates}
                 onInsert={insertAtCursor}
               />
               <SyntaxHelperButton
@@ -400,12 +418,12 @@ export function TemplateEditor({
               onChange={(pattern) => updateField('pattern', pattern)}
               collectionId={collectionId}
               availableTableIds={localTables.map(t => t.id)}
-              availableTemplateIds={localTemplates.filter(t => t.id !== template.id).map(t => t.id)}
+              availableTemplateIds={filteredLocalTemplates.map(t => t.id)}
               sharedVariables={template.shared as Record<string, string> | undefined}
               suggestions={augmentedSuggestions}
               tableMap={tableMap}
               templateMap={templateMap}
-              autocompleteSharedVariables={{ ...documentShared, ...(template.shared as Record<string, string> | undefined) }}
+              autocompleteSharedVariables={combinedSharedVariables}
             />
           </div>
 

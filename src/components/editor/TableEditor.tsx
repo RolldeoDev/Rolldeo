@@ -107,6 +107,12 @@ export function TableEditor({
   const sharedCount = useMemo(() => Object.keys(table.shared || {}).length, [table.shared])
   const defaultSetsCount = useMemo(() => Object.keys(table.defaultSets || {}).length, [table.defaultSets])
 
+  // Memoize combined shared variables for KeyValueEditor to prevent re-renders
+  const combinedSharedVariables = useMemo(
+    () => ({ ...sharedVariables, ...table.shared as Record<string, string> }),
+    [sharedVariables, table.shared]
+  )
+
   // Expand when defaultExpanded transitions from false to true (explicit selection)
   // Don't force open just because defaultExpanded is true - allow user to collapse
   useEffect(() => {
@@ -462,7 +468,7 @@ export function TableEditor({
                     suggestions={suggestions}
                     tableMap={tableMap}
                     templateMap={templateMap}
-                    sharedVariables={{ ...sharedVariables, ...table.shared as Record<string, string> }}
+                    sharedVariables={combinedSharedVariables}
                   />
                 </div>
               )}
@@ -490,7 +496,7 @@ export function TableEditor({
                     suggestions={suggestions}
                     tableMap={tableMap}
                     templateMap={templateMap}
-                    sharedVariables={{ ...sharedVariables, ...table.shared as Record<string, string> }}
+                    sharedVariables={combinedSharedVariables}
                   />
                 </div>
               )}
@@ -636,6 +642,12 @@ function SimpleTableEditor({
   const [expandedEntryIndex, setExpandedEntryIndex] = useState<number | null>(null)
   const [collapsedEntryIndex, setCollapsedEntryIndex] = useState<number | null>(null)
   const [clonedEntryIndex, setClonedEntryIndex] = useState<number | null>(null)
+
+  // Memoize combined shared variables to prevent re-renders of EntryEditor's ExpressionPreview
+  const combinedSharedVariables = useMemo(
+    () => ({ ...sharedVariables, ...table.shared }),
+    [sharedVariables, table.shared]
+  )
 
   // Build placeholder suggestions from this table's set keys
   // This includes defaultSets and all entry.sets keys
@@ -802,7 +814,7 @@ function SimpleTableEditor({
                 suggestions={suggestionsWithTableSets}
                 tableMap={tableMap}
                 templateMap={templateMap}
-                sharedVariables={{ ...sharedVariables, ...table.shared }}
+                sharedVariables={combinedSharedVariables}
               />
             </SortableItem>
           ))}

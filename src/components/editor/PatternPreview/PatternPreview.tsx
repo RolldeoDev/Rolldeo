@@ -13,6 +13,7 @@ import {
   memo,
   useState,
   useCallback,
+  useMemo,
   useRef,
   forwardRef,
   useImperativeHandle,
@@ -57,12 +58,19 @@ export const PatternPreview = memo(
   const [showTrace, setShowTrace] = useState(false)
   const [showCaptures, setShowCaptures] = useState(false)
 
+  // Extract template IDs for expression type detection (lavender vs mint)
+  const templateIds = useMemo(() => {
+    if (!templateMap || templateMap.size === 0) return undefined
+    return new Set(templateMap.keys())
+  }, [templateMap])
+
   // Evaluate pattern with segment mapping
   const { result, isEvaluating, reroll, traceNodeCount, captureCount } =
     usePatternEvaluation(pattern, collectionId, {
       enableTrace: true,
       debounceMs: 300,
       sharedVariables,
+      templateIds,
     })
 
   // Check what data we have

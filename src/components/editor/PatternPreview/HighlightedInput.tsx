@@ -6,7 +6,7 @@
  * Optionally supports autocomplete for table/template references.
  */
 
-import { memo, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
+import { memo, useRef, useCallback, forwardRef, useImperativeHandle, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { renderHighlightedText } from './highlightUtils'
 import { usePatternAutocomplete } from '@/hooks/usePatternAutocomplete'
@@ -159,6 +159,12 @@ export const HighlightedInput = memo(
 
     const hasExpressions = value?.includes('{{') ?? false
 
+    // Extract template IDs from templateMap for proper highlighting
+    const templateIds = useMemo(() => {
+      if (!templateMap || templateMap.size === 0) return undefined
+      return new Set(templateMap.keys())
+    }, [templateMap])
+
     return (
       <div className={cn('relative', wrapperClassName)}>
         {/* Syntax-highlighted overlay (visual only) - only render when expressions exist */}
@@ -178,7 +184,7 @@ export const HighlightedInput = memo(
             )}
             aria-hidden="true"
           >
-            {renderHighlightedText(value ?? '', { whiteSpace: 'pre', expressionClassName: 'whitespace-pre' })}
+            {renderHighlightedText(value ?? '', { whiteSpace: 'pre', expressionClassName: 'whitespace-pre', templateIds })}
           </div>
         )}
 
