@@ -75,6 +75,8 @@ export interface PatternPreviewProps {
   tableMap?: Map<string, Table>
   /** Full template data for property lookups (keyed by template ID) */
   templateMap?: Map<string, Template>
+  /** Combined shared variables for autocomplete lookups (document.shared merged with local) */
+  autocompleteSharedVariables?: Record<string, string>
 }
 
 /**
@@ -107,6 +109,8 @@ export interface EditablePatternProps {
   tableMap?: Map<string, Table>
   /** Full template data for property lookups (keyed by template ID) */
   templateMap?: Map<string, Template>
+  /** Shared variables map for variable property lookups (keyed by variable name without $) */
+  sharedVariables?: Record<string, string>
 }
 
 /**

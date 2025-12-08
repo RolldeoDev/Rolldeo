@@ -399,13 +399,32 @@ function getTemplatePropertyValue(template: Template, propName: string): string 
 /**
  * Build property suggestions for a specific table or template
  * Supports recursive property chains like tableName.@prop1.@prop2
+ * Also supports variable property access like $varName.@prop
  */
 function buildPropertySuggestions(
   tableMap: Map<string, Table> | undefined,
   templateMap: Map<string, Template> | undefined,
   targetId: string,
-  propertyChain: string[] = []
+  propertyChain: string[] = [],
+  isVariable: boolean = false,
+  sharedVariables?: Record<string, string>
 ): Suggestion[] {
+  // If this is a variable access, resolve the variable to find what table/template it references
+  if (isVariable && sharedVariables) {
+    // Look up the variable value (try with and without $ prefix)
+    const varValue = sharedVariables[targetId] || sharedVariables[`$${targetId}`]
+    if (varValue) {
+      // Extract the table/template reference from the variable value
+      const tableRef = extractTableReference(varValue)
+      if (tableRef) {
+        // Recursively get properties from the referenced table/template
+        return buildPropertySuggestions(tableMap, templateMap, tableRef, propertyChain, false, sharedVariables)
+      }
+    }
+    // Variable not found or doesn't reference a table - return empty
+    return []
+  }
+
   // If we have a property chain, we need to traverse it to find the final target
   if (propertyChain.length > 0) {
     return buildNestedPropertySuggestions(tableMap, templateMap, targetId, propertyChain)
@@ -559,6 +578,10 @@ export interface FilterSuggestionsOptions {
   targetId?: string
   /** For 'property' trigger: the property chain so far */
   propertyChain?: string[]
+  /** For 'property' trigger: whether this is a variable property access */
+  isVariable?: boolean
+  /** For 'property' trigger: shared variables map (keyed by variable name without $) */
+  sharedVariables?: Record<string, string>
 }
 
 /**
@@ -589,7 +612,9 @@ export function filterSuggestions(
           options.tableMap,
           options.templateMap,
           options.targetId,
-          options.propertyChain
+          options.propertyChain,
+          options.isVariable,
+          options.sharedVariables
         )
       } else {
         filtered = []

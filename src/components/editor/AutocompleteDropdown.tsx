@@ -26,6 +26,8 @@ export interface AutocompleteDropdownProps {
   onConfirm: (index: number) => void
   /** Called when dropdown should close */
   onClose: () => void
+  /** Whether this is a property trigger (shows different empty state) */
+  isPropertyTrigger?: boolean
 }
 
 /**
@@ -113,6 +115,7 @@ export const AutocompleteDropdown = memo(function AutocompleteDropdown({
   onSelect,
   onConfirm,
   onClose,
+  isPropertyTrigger = false,
 }: AutocompleteDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const selectedItemRef = useRef<HTMLButtonElement>(null)
@@ -164,7 +167,9 @@ export const AutocompleteDropdown = memo(function AutocompleteDropdown({
     }
   }, [onClose])
 
-  if (suggestions.length === 0) {
+  // For non-property triggers with no suggestions, don't render
+  // For property triggers, we'll show a "no matches" state
+  if (suggestions.length === 0 && !isPropertyTrigger) {
     return null
   }
 
@@ -181,46 +186,53 @@ export const AutocompleteDropdown = memo(function AutocompleteDropdown({
     >
       {/* Suggestions list */}
       <div className="overflow-y-auto" style={{ maxHeight: maxHeight - 32 }}>
-        {suggestions.map((suggestion, index) => {
-          const Icon = suggestion.icon
-          const isSelected = index === selectedIndex
+        {suggestions.length === 0 && isPropertyTrigger ? (
+          <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+            <p>No matching properties</p>
+            <p className="text-xs mt-1">Table or template not found</p>
+          </div>
+        ) : (
+          suggestions.map((suggestion, index) => {
+            const Icon = suggestion.icon
+            const isSelected = index === selectedIndex
 
-          return (
-            <button
-              key={suggestion.id}
-              ref={isSelected ? selectedItemRef : undefined}
-              type="button"
-              className={cn(
-                'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors',
-                getHighlightClasses(suggestion.colorClass, isSelected)
-              )}
-              onClick={() => onConfirm(index)}
-              onMouseEnter={() => onSelect(index)}
-            >
-              <Icon
+            return (
+              <button
+                key={suggestion.id}
+                ref={isSelected ? selectedItemRef : undefined}
+                type="button"
                 className={cn(
-                  'h-4 w-4 flex-shrink-0',
-                  getIconColorClass(suggestion.colorClass)
+                  'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors',
+                  getHighlightClasses(suggestion.colorClass, isSelected)
                 )}
-              />
-              <div className="flex-1 min-w-0">
-                <div className="font-medium font-mono text-xs truncate">
-                  {suggestion.label}
-                </div>
-                {suggestion.description && (
-                  <div className="text-[11px] text-muted-foreground truncate">
-                    {suggestion.description}
+                onClick={() => onConfirm(index)}
+                onMouseEnter={() => onSelect(index)}
+              >
+                <Icon
+                  className={cn(
+                    'h-4 w-4 flex-shrink-0',
+                    getIconColorClass(suggestion.colorClass)
+                  )}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium font-mono text-xs truncate">
+                    {suggestion.label}
                   </div>
+                  {suggestion.description && (
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {suggestion.description}
+                    </div>
+                  )}
+                </div>
+                {suggestion.source !== 'Local' && suggestion.source !== 'Syntax' && (
+                  <span className="text-[10px] text-muted-foreground/60 truncate max-w-[60px]">
+                    {suggestion.source}
+                  </span>
                 )}
-              </div>
-              {suggestion.source !== 'Local' && suggestion.source !== 'Syntax' && (
-                <span className="text-[10px] text-muted-foreground/60 truncate max-w-[60px]">
-                  {suggestion.source}
-                </span>
-              )}
-            </button>
-          )
-        })}
+              </button>
+            )
+          })
+        )}
       </div>
 
       {/* Keyboard hint */}

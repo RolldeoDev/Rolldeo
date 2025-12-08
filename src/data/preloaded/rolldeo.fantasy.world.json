@@ -1554,7 +1554,7 @@
     {
       "id": "rivalCharacters",
       "name": "Rival Characters",
-      "description": "Generates two characters with independent traits using capture-aware variables.",
+      "description": "Generates two characters with independent traits using shared variables.",
       "resultType": "npc",
       "tags": ["character", "story"],
       "pattern": "**The Rivals**\n\n**{{$protagonist.@firstName}} {{$protagonist.@lastName}}** is a {{$protagonist.@physique}} {{$protagonist}} who {{motivations}}.\n\n**{{$deuteragonist.@firstName}} {{$deuteragonist.@lastName}}** is a {{$deuteragonist.@physique}} {{$deuteragonist}} who {{motivations}}.\n\nTheir paths cross when {{plotComplications}}."

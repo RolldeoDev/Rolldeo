@@ -721,7 +721,7 @@
     "shared": {
       "type": "object",
       "title": "Shared Variables (Generation-Time)",
-      "description": "Generation-time variables evaluated once at the start of each generation and remain constant throughout that run. Referenced using {{$variableName}}. Evaluated in declaration order. Cannot forward-reference other shared variables. Keys starting with $ are capture-aware: they capture the full roll result including sets, enabling {{$varName.@property}} syntax with dynamic table resolution.",
+      "description": "Generation-time variables evaluated once at the start of each generation and remain constant throughout that run. Referenced using {{$variableName}}. Evaluated in declaration order. Cannot forward-reference other shared variables. All shared variables capture the full roll result including sets, enabling {{$varName.@property}} syntax with dynamic table resolution.",
       "additionalProperties": {
         "type": "string"
       },
@@ -736,7 +736,7 @@
     "tableShared": {
       "type": "object",
       "title": "Table/Template Shared Variables",
-      "description": "Table or template-level shared variables evaluated lazily when rolled. Cannot shadow document-level shared or static variables. Propagate to nested table references. Referenced using {{$variableName}}. Keys starting with $ are capture-aware: they capture the full roll result including sets, enabling {{$varName.@property}} syntax with dynamic table resolution.",
+      "description": "Table or template-level shared variables evaluated lazily when rolled. Cannot shadow document-level shared or static variables. Propagate to nested table references. Referenced using {{$variableName}}. All shared variables capture the full roll result including sets, enabling {{$varName.@property}} syntax with dynamic table resolution.",
       "additionalProperties": {
         "type": "string"
       },

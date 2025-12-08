@@ -50,6 +50,8 @@ export interface TemplateEditorProps {
   tableMap?: Map<string, Table>
   /** Full template data for property lookups (keyed by template ID) */
   templateMap?: Map<string, Template>
+  /** Document-level shared variables for autocomplete */
+  documentShared?: Record<string, string>
   /** Whether the template card is expanded */
   defaultExpanded?: boolean
   /** Collection ID for live preview evaluation */
@@ -73,6 +75,7 @@ export function TemplateEditor({
   suggestions,
   tableMap,
   templateMap,
+  documentShared,
   defaultExpanded = false,
   collectionId,
   onFocus,
@@ -132,6 +135,24 @@ export function TemplateEditor({
       }
     },
     [template.pattern, updateField]
+  )
+
+  // Memoize filtered templates to avoid creating new array references on every render
+  // This is critical for preventing unnecessary re-renders of KeyValueEditor's ExpressionPreview
+  const filteredLocalTemplates = useMemo(
+    () => localTemplates.filter(t => t.id !== template.id),
+    [localTemplates, template.id]
+  )
+
+  const filteredImportedTemplates = useMemo(
+    () => importedTemplates.filter(t => t.id !== template.id),
+    [importedTemplates, template.id]
+  )
+
+  // Memoize combined shared variables for KeyValueEditor
+  const combinedSharedVariables = useMemo(
+    () => ({ ...documentShared, ...(template.shared as Record<string, string> | undefined) }),
+    [documentShared, template.shared]
   )
 
   // Augment suggestions with template-level shared variables
@@ -289,18 +310,21 @@ export function TemplateEditor({
                 onChange={(shared) =>
                   updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
                 }
-                keyPlaceholder="Variable name ($ prefix to capture sets)"
+                keyPlaceholder="Variable name"
                 valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
                 keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
-                keyError="Must start with optional $, then letter/underscore, alphanumeric only"
+                keyError="Must start with letter/underscore, alphanumeric only"
                 valueSupportsExpressions
                 collectionId={collectionId}
-                highlightCaptureAware
                 showInsertButton
                 localTables={localTables}
-                localTemplates={localTemplates.filter(t => t.id !== template.id)}
+                localTemplates={filteredLocalTemplates}
                 importedTables={importedTables}
-                importedTemplates={importedTemplates.filter(t => t.id !== template.id)}
+                importedTemplates={filteredImportedTemplates}
+                suggestions={suggestions}
+                tableMap={tableMap}
+                templateMap={templateMap}
+                sharedVariables={combinedSharedVariables}
               />
             </div>
           </details>
@@ -319,9 +343,9 @@ export function TemplateEditor({
             >
               <InsertDropdown
                 localTables={localTables}
-                localTemplates={localTemplates.filter(t => t.id !== template.id)}
+                localTemplates={filteredLocalTemplates}
                 importedTables={importedTables}
-                importedTemplates={importedTemplates.filter(t => t.id !== template.id)}
+                importedTemplates={filteredImportedTemplates}
                 onInsert={insertAtCursor}
               />
               <SyntaxHelperButton
@@ -394,11 +418,12 @@ export function TemplateEditor({
               onChange={(pattern) => updateField('pattern', pattern)}
               collectionId={collectionId}
               availableTableIds={localTables.map(t => t.id)}
-              availableTemplateIds={localTemplates.filter(t => t.id !== template.id).map(t => t.id)}
+              availableTemplateIds={filteredLocalTemplates.map(t => t.id)}
               sharedVariables={template.shared as Record<string, string> | undefined}
               suggestions={augmentedSuggestions}
               tableMap={tableMap}
               templateMap={templateMap}
+              autocompleteSharedVariables={combinedSharedVariables}
             />
           </div>
 

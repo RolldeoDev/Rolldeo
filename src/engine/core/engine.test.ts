@@ -836,7 +836,7 @@ describe('Roll Capture System', () => {
   })
 })
 
-describe('Capture-Aware Shared Variables', () => {
+describe('Shared Variables with Property Access', () => {
   let engine: RandomTableEngine
 
   // Helper to create minimal test document with required metadata
@@ -858,8 +858,8 @@ describe('Capture-Aware Shared Variables', () => {
     engine = new RandomTableEngine()
   })
 
-  describe('basic capture-aware shared variables', () => {
-    it('should capture table roll with sets using $ prefix in shared key', () => {
+  describe('basic shared variable property access', () => {
+    it('should capture table roll with sets', () => {
       // With explicit {{}} syntax, patterns in sets are evaluated at merge time
       const doc = createTestDoc(
         [
@@ -907,7 +907,7 @@ describe('Capture-Aware Shared Variables', () => {
       expect(result.text).toMatch(/^(Legolas|Arwen|Thranduil|Gimli|Thorin|Balin) the (Elf|Dwarf)$/)
     })
 
-    it('should support multiple independent capture-aware shared variables', () => {
+    it('should support multiple independent shared variables', () => {
       // With explicit {{}} syntax, patterns in sets are evaluated at merge time
       const doc = createTestDoc(
         [
@@ -1304,7 +1304,7 @@ describe('Capture-Aware Shared Variables', () => {
   })
 
   describe('nested property access (chained CaptureItems)', () => {
-    it('should support chained capture-aware shared variables', () => {
+    it('should support chained shared variables', () => {
       // Test: $conflict -> @situation -> @focus chain
       // When @situation is a table reference, its result should preserve nested sets
       const doc = createTestDoc(
@@ -1907,7 +1907,7 @@ describe('Capture-Aware Shared Variables', () => {
 
     it('should support nested property access on template references: {{templateName.@a.@b}}', () => {
       // Tests the pattern {{gangProfile.@gang.@reputation}} where gangProfile is a template
-      // that has a $gang capture-aware shared variable referencing a table with sets
+      // that has a $gang shared variable referencing a table with sets
       const doc = createTestDoc(
         [
           {
@@ -2601,7 +2601,154 @@ describe('@self.description placeholder', () => {
   })
 })
 
-describe('$var.@description access via capture-aware shared variables', () => {
+describe('@self.value placeholder', () => {
+  it('should access current entry raw value', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            {
+              id: 'sword',
+              value: 'Silver Sword ({{@self.value}})',
+            },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.roll('items', 'test')
+    // @self.value returns the raw unevaluated string
+    expect(result.text).toBe('Silver Sword (Silver Sword ({{@self.value}}))')
+  })
+
+  it('should access raw value in defaultSets', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'scents',
+          name: 'Scents',
+          type: 'simple',
+          defaultSets: {
+            smell: 'smells like {{@self.value}}',
+          },
+          entries: [
+            {
+              id: 'pine',
+              value: 'pine resin',
+            },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.roll('scents', 'test')
+    expect(result.text).toBe('pine resin')
+    // Placeholders are flat - not nested by table ID
+    expect(result.placeholders?.smell).toBe('smells like pine resin')
+  })
+
+  it('should return empty string when value is not yet set', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          entries: [
+            {
+              id: 'sword',
+              value: 'Silver Sword',
+            },
+          ],
+        },
+      ],
+      templates: [
+        {
+          id: 'test',
+          name: 'Test',
+          pattern: 'Self value: {{@self.value}}',
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    // Templates don't have "entries" with values, so @self.value should be empty
+    const result = engine.rollTemplate('test', 'test')
+    expect(result.text).toBe('Self value: ')
+  })
+
+  it('should return raw value without evaluating expressions', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'items',
+          name: 'Items',
+          type: 'simple',
+          defaultSets: {
+            rawValue: '{{@self.value}}',
+          },
+          entries: [
+            {
+              id: 'sword',
+              value: 'Sword {{dice:1d6}}',
+            },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.roll('items', 'test')
+    // @self.value returns the RAW value, not the evaluated value
+    expect(result.placeholders?.rawValue).toBe('Sword {{dice:1d6}}')
+    // But the main result should be evaluated
+    expect(result.text).toMatch(/^Sword [1-6]$/)
+  })
+
+  it('should work with collection tables', () => {
+    const engine = new RandomTableEngine()
+    const doc: RandomTableDocument = {
+      metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
+      tables: [
+        {
+          id: 'weapons',
+          name: 'Weapons',
+          type: 'collection',
+          defaultSets: {
+            selfValue: '{{@self.value}}',
+          },
+          collections: ['swords'],
+        },
+        {
+          id: 'swords',
+          name: 'Swords',
+          type: 'simple',
+          entries: [
+            {
+              id: 'longsword',
+              value: 'Steel Longsword',
+            },
+          ],
+        },
+      ],
+    }
+    engine.loadCollection(doc, 'test')
+    const result = engine.roll('weapons', 'test')
+    expect(result.text).toBe('Steel Longsword')
+    expect(result.placeholders?.selfValue).toBe('Steel Longsword')
+  })
+})
+
+describe('$var.@description access via shared variables', () => {
   it('should access entry description via $var.@description in template', () => {
     const engine = new RandomTableEngine()
     const doc: RandomTableDocument = {
@@ -2710,7 +2857,7 @@ describe('$var.@description access via capture-aware shared variables', () => {
 // ============================================================================
 
 describe('Template Multi-Roll Isolation', () => {
-  it('should re-evaluate capture-aware shared variables for each template invocation', () => {
+  it('should re-evaluate shared variables for each template invocation', () => {
     const engine = new RandomTableEngine()
     const doc: RandomTableDocument = {
       metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
@@ -2775,7 +2922,7 @@ describe('Template Multi-Roll Isolation', () => {
     expect(sawVariation).toBe(true)
   })
 
-  it('should isolate capture-aware shared variables between template invocations', () => {
+  it('should isolate shared variables between template invocations', () => {
     const engine = new RandomTableEngine()
     const doc: RandomTableDocument = {
       metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
@@ -3471,7 +3618,7 @@ describe('Switch Expressions', () => {
       expect(result.text).toBe('NPC: A 45 year old Blacksmith from Riverdale, Profession: Blacksmith, Age: 45, Hometown: Riverdale')
     })
 
-    it('should capture template with capture-aware shared variables', () => {
+    it('should capture template with shared variables', () => {
       const engine = new RandomTableEngine()
       const doc: RandomTableDocument = {
         metadata: { name: 'Test', namespace: 'test', version: '1.0.0', specVersion: '1.0' },
@@ -3510,7 +3657,7 @@ describe('Switch Expressions', () => {
       }
       engine.loadCollection(doc, 'test')
       const result = engine.rollTemplate('test', 'test')
-      // Should access nested capture-aware shared variables
+      // Should access nested shared variables
       expect(result.text).toBe('Character: Legolas the Elf, Name: Legolas, Race: Elf, Bonus: Dexterity')
     })
 

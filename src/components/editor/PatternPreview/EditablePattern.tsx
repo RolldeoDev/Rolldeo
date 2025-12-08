@@ -14,6 +14,7 @@ import {
   useCallback,
   useEffect,
   useState,
+  useMemo,
   forwardRef,
   useImperativeHandle,
 } from 'react'
@@ -38,7 +39,7 @@ export interface EditablePatternRef {
  */
 export const EditablePattern = memo(
   forwardRef<EditablePatternRef, EditablePatternProps>(function EditablePattern(
-    { value, onChange, placeholder, minHeight = 250, id, suggestions = [], tableMap, templateMap },
+    { value, onChange, placeholder, minHeight = 250, id, suggestions = [], tableMap, templateMap, sharedVariables },
     ref
   ) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -53,6 +54,7 @@ export const EditablePattern = memo(
       onValueChange: onChange,
       tableMap,
       templateMap,
+      sharedVariables,
     })
 
     /**
@@ -169,6 +171,12 @@ export const EditablePattern = memo(
       syncScroll()
     }, [value, syncScroll])
 
+    // Extract template IDs from templateMap for proper highlighting
+    const templateIds = useMemo(() => {
+      if (!templateMap || templateMap.size === 0) return undefined
+      return new Set(templateMap.keys())
+    }, [templateMap])
+
     return (
       <div className="relative font-mono text-sm">
         {/* Syntax-highlighted overlay (visual only) */}
@@ -185,7 +193,7 @@ export const EditablePattern = memo(
           aria-hidden="true"
         >
           {value ? (
-            renderHighlightedText(value)
+            renderHighlightedText(value, { templateIds })
           ) : (
             <span className="text-muted-foreground/50">{placeholder}</span>
           )}
@@ -225,6 +233,7 @@ export const EditablePattern = memo(
             onSelect={autocomplete.setSelectedIndex}
             onConfirm={autocomplete.confirm}
             onClose={autocomplete.close}
+            isPropertyTrigger={autocomplete.triggerInfo.type === 'property'}
           />
         )}
       </div>

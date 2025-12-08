@@ -72,12 +72,12 @@ const SYNTAX_ITEMS: InsertItem[] = [
   },
   {
     id: 'capture-shared',
-    label: 'Capture Property',
+    label: 'Variable Property',
     insertText: '{{$varName.@property}}',
     type: 'syntax',
     source: SYNTAX_SOURCE,
     icon: CircleDot,
-    description: 'Access property from capture-aware variable',
+    description: 'Access property from a shared variable',
     colorClass: 'amber',
   },
   {

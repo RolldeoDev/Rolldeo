@@ -27,8 +27,11 @@ function countTraceNodes(trace: RollTrace | null): number {
  * Determine the expression type from a parsed token.
  * This provides more accurate type detection than string heuristics
  * when a token is available from the parser.
+ *
+ * @param token - The parsed expression token
+ * @param templateIds - Optional set of template IDs to distinguish templates from tables
  */
-function getExpressionTypeFromToken(token: ExpressionToken): ExpressionType {
+function getExpressionTypeFromToken(token: ExpressionToken, templateIds?: Set<string>): ExpressionType {
   // Check for switch modifiers on any token
   if ('switchModifiers' in token && token.switchModifiers) {
     return 'switch'
@@ -46,11 +49,15 @@ function getExpressionTypeFromToken(token: ExpressionToken): ExpressionType {
     case 'again':
       return 'again'
     case 'multiRoll':
-      return 'table'
     case 'table':
+    case 'instance': {
+      // Check if the referenced table is actually a template
+      const tableId = token.tableId
+      if (templateIds && templateIds.has(tableId)) {
+        return 'template'
+      }
       return 'table'
-    case 'instance':
-      return 'table'
+    }
     case 'captureMultiRoll':
       return 'capture'
     case 'captureAccess':
@@ -71,6 +78,8 @@ interface UsePatternEvaluationOptions {
   debounceMs?: number
   /** Template/table-level shared variables to evaluate before the pattern */
   sharedVariables?: Record<string, string>
+  /** Set of template IDs to distinguish templates from tables (lavender vs mint) */
+  templateIds?: Set<string>
 }
 
 interface UsePatternEvaluationReturn {
@@ -94,7 +103,7 @@ export function usePatternEvaluation(
   collectionId: string | undefined,
   options: UsePatternEvaluationOptions = {}
 ): UsePatternEvaluationReturn {
-  const { enableTrace = true, debounceMs = 300, sharedVariables } = options
+  const { enableTrace = true, debounceMs = 300, sharedVariables, templateIds } = options
 
   const { engine } = useCollectionStore()
   const [result, setResult] = useState<PatternEvaluationResult | null>(null)
@@ -112,7 +121,8 @@ export function usePatternEvaluation(
       patternStr: string,
       expressions: ReturnType<typeof extractExpressions>,
       expressionOutputs: string[],
-      fullText: string
+      fullText: string,
+      templateIdsForType?: Set<string>
     ): EvaluatedSegment[] => {
       const segments: EvaluatedSegment[] = []
 
@@ -156,10 +166,10 @@ export function usePatternEvaluation(
         try {
           // Try to parse the expression to get its type
           const token = parseExpression(match.expression)
-          exprType = getExpressionTypeFromToken(token)
+          exprType = getExpressionTypeFromToken(token, templateIdsForType)
         } catch {
           // Fallback to heuristic type detection
-          exprType = getExpressionType(match.expression)
+          exprType = getExpressionType(match.expression, { templateIds: templateIdsForType })
         }
 
         // Use engine-provided expression output if available
@@ -229,7 +239,7 @@ export function usePatternEvaluation(
     if (!collectionId || !engine.hasCollection(collectionId)) {
       // Can't evaluate without collection - build segments with placeholders
       const expressions = extractExpressions(pattern)
-      const segments = buildSegments(pattern, expressions, [], '')
+      const segments = buildSegments(pattern, expressions, [], '', templateIds)
 
       setResult({
         segments,
@@ -260,7 +270,8 @@ export function usePatternEvaluation(
         pattern,
         expressions,
         evalResult.expressionOutputs ?? [],
-        evalResult.text
+        evalResult.text,
+        templateIds
       )
 
       setResult({
@@ -296,7 +307,7 @@ export function usePatternEvaluation(
           type: 'expression',
           text: `[error]`,
           originalExpression: match.raw,
-          expressionType: getExpressionType(match.expression),
+          expressionType: getExpressionType(match.expression, { templateIds }),
           startInPattern: match.start,
           endInPattern: match.end,
         })
@@ -325,7 +336,7 @@ export function usePatternEvaluation(
         setIsEvaluating(false)
       }
     }
-  }, [pattern, collectionId, engine, enableTrace, sharedVariables, buildSegments])
+  }, [pattern, collectionId, engine, enableTrace, sharedVariables, templateIds, buildSegments])
 
   /**
    * Force re-evaluation (for re-roll button)
@@ -357,7 +368,7 @@ export function usePatternEvaluation(
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pattern, collectionId, evalKey, enableTrace, sharedVariables])
+  }, [pattern, collectionId, evalKey, enableTrace, sharedVariables, templateIds])
 
   /**
    * Computed trace node count
