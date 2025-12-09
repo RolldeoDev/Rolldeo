@@ -15,6 +15,7 @@ import wh40kNpc from './rolldeo.wh40k.npc.json'
 import cyberpunkCore from './rolldeo.cyberpunk.core.json'
 import cyberpunkNames from './rolldeo.cyberpunk.npc.json'
 import exampleCore from './rolldeo.example.core.json'
+import adjectives from './rolldeo.adjectives.json'
 import type { RandomTableDocument } from '../../engine/types'
 
 export interface PreloadedCollection {
@@ -70,6 +71,10 @@ export const preloadedCollections: PreloadedCollection[] = [
     id: 'rolldeo.example.core',
     document: exampleCore as unknown as RandomTableDocument,
     hiddenFromUI: true,
+  },
+  {
+    id: 'rolldeo.adjectives',
+    document: adjectives as unknown as RandomTableDocument,
   },
 ]
 
