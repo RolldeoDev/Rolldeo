@@ -10,3 +10,7 @@ export type { CollectionMeta } from './collectionStore'
 export { useRollStore, formatTimestamp } from './rollStore'
 
 export { useUIStore, applyTheme, initializeTheme } from './uiStore'
+
+export { useFavoriteStore } from './favoriteStore'
+
+export { useUsageStore, getItemUsage } from './usageStore'

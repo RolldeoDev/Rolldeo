@@ -17,6 +17,8 @@ interface VirtualizedItemListProps {
   groupedItems: GroupedItems[]
   /** Whether in grouped view mode */
   isGrouped: boolean
+  /** Collection ID for this list */
+  collectionId: string
   /** Currently selected item ID */
   selectedItemId: string | null
   /** Callback when an item is selected */
@@ -49,6 +51,7 @@ export const VirtualizedItemList = memo(function VirtualizedItemList({
   items,
   groupedItems,
   isGrouped,
+  collectionId,
   selectedItemId,
   onSelectItem,
   onRollItem,
@@ -164,6 +167,7 @@ export const VirtualizedItemList = memo(function VirtualizedItemList({
             >
               <BrowserListItem
                 item={item}
+                collectionId={collectionId}
                 isSelected={selectedItemId === item.id}
                 onSelect={() => onSelectItem(item)}
                 onRoll={() => onRollItem(item)}

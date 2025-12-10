@@ -4,7 +4,7 @@
  * Provides convenient access to collections with filtering and initialization.
  */
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useCallback } from 'react'
 import { useCollectionStore, type CollectionMeta } from '../stores/collectionStore'
 import { useUIStore, type NamespaceDepth } from '../stores/uiStore'
 import {
@@ -58,6 +58,8 @@ export function useCollections(options: UseCollectionsOptions = {}): UseCollecti
     deleteCollection,
     importFiles,
     getAllTags,
+    getTableList,
+    getTemplateList,
   } = useCollectionStore()
 
   const {
@@ -83,6 +85,29 @@ export function useCollections(options: UseCollectionsOptions = {}): UseCollecti
       initialize()
     }
   }, [isInitialized, isLoading]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Check if any item in a collection matches the search query
+  const collectionHasMatchingItems = useCallback((collectionId: string, query: string): boolean => {
+    const lowerQuery = query.toLowerCase()
+
+    // Check tables
+    const tables = getTableList(collectionId)
+    for (const table of tables) {
+      if (table.name.toLowerCase().includes(lowerQuery)) return true
+      if (table.description?.toLowerCase().includes(lowerQuery)) return true
+      if (table.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) return true
+    }
+
+    // Check templates
+    const templates = getTemplateList(collectionId)
+    for (const template of templates) {
+      if (template.name.toLowerCase().includes(lowerQuery)) return true
+      if (template.description?.toLowerCase().includes(lowerQuery)) return true
+      if (template.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) return true
+    }
+
+    return false
+  }, [getTableList, getTemplateList])
 
   // Get all collections as array
   const allCollections = useMemo(() => {
@@ -110,10 +135,20 @@ export function useCollections(options: UseCollectionsOptions = {}): UseCollecti
         }
       }
 
-      // Search filter (includes author and source in search)
+      // Search filter
       if (effectiveSearchQuery) {
-        if (!collectionMatchesSearch(c, effectiveSearchQuery)) {
-          return false
+        // For roller, also search within items (tables/templates)
+        if (useRollerFilters) {
+          const collectionMatches = collectionMatchesSearch(c, effectiveSearchQuery)
+          const itemsMatch = collectionHasMatchingItems(c.id, effectiveSearchQuery)
+          if (!collectionMatches && !itemsMatch) {
+            return false
+          }
+        } else {
+          // For library, only search collection metadata
+          if (!collectionMatchesSearch(c, effectiveSearchQuery)) {
+            return false
+          }
         }
       }
 
@@ -126,7 +161,7 @@ export function useCollections(options: UseCollectionsOptions = {}): UseCollecti
 
       return true
     })
-  }, [allCollections, effectiveSearchQuery, selectedTags, effectiveNamespaceFilter, effectiveNamespaceDepth, useRollerFilters])
+  }, [allCollections, effectiveSearchQuery, selectedTags, effectiveNamespaceFilter, effectiveNamespaceDepth, useRollerFilters, collectionHasMatchingItems])
 
   // Group filtered collections by namespace
   const groupedCollections = useMemo(() => {

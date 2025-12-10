@@ -31,15 +31,19 @@ export function QuickRoll() {
   const [error, setError] = useState<string | null>(null)
   const [isResetting, setIsResetting] = useState(false)
 
-  const { engine, isInitialized, saveCollection, getTemplateList } = useCollectionStore()
+  // Subscribe to state values only, not functions
+  const engine = useCollectionStore((state) => state.engine)
+  const isInitialized = useCollectionStore((state) => state.isInitialized)
 
   // Check if required templates exist and auto-reset if not
+  // Use getState() to access functions to avoid infinite loops from function reference changes
   useEffect(() => {
     if (!isInitialized || isResetting) return
 
     const checkAndResetTemplates = async () => {
       try {
-        const templates = getTemplateList(COLLECTION_ID)
+        // Use getState() to access store functions inside the effect
+        const templates = useCollectionStore.getState().getTemplateList(COLLECTION_ID)
         const templateIds = templates.map((t) => t.id)
         const allExist = REQUIRED_TEMPLATES.every((id) => templateIds.includes(id))
 
@@ -47,7 +51,7 @@ export function QuickRoll() {
           setIsResetting(true)
           // Import the bundled default and reset
           const defaultDoc = await import('@/data/preloaded/rolldeo.example.core.json')
-          await saveCollection(
+          await useCollectionStore.getState().saveCollection(
             COLLECTION_ID,
             defaultDoc.default as unknown as RandomTableDocument,
             'user'
@@ -63,7 +67,7 @@ export function QuickRoll() {
     }
 
     checkAndResetTemplates()
-  }, [isInitialized, isResetting, getTemplateList, saveCollection])
+  }, [isInitialized, isResetting]) // No function dependencies - use getState() inside
 
   const handleRoll = useCallback(() => {
     if (!isInitialized || isRolling) return

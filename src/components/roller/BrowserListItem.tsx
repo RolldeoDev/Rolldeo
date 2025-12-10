@@ -8,13 +8,16 @@
 
 import { memo, useState, useCallback, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Dices, EyeOff, Pencil, ClipboardCopy, Hash, Info } from 'lucide-react'
+import { Dices, EyeOff, Pencil, ClipboardCopy, Hash, Info, Star } from 'lucide-react'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
 import { getResultTypeIcon } from '@/lib/resultTypeIcons'
 import { ContextMenu, type ContextMenuEntry } from './ContextMenu'
+import { FavoriteButton } from '@/components/common/FavoriteButton'
+import { useFavoriteStore } from '@/stores/favoriteStore'
 
 interface BrowserListItemProps {
   item: BrowserItem
+  collectionId: string
   isSelected: boolean
   onSelect: () => void
   onRoll: () => void
@@ -26,6 +29,7 @@ interface BrowserListItemProps {
 
 export const BrowserListItem = memo(function BrowserListItem({
   item,
+  collectionId,
   isSelected,
   onSelect,
   onRoll,
@@ -35,6 +39,10 @@ export const BrowserListItem = memo(function BrowserListItem({
   onViewDetails,
 }: BrowserListItemProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
+  const isFavorite = useFavoriteStore((state) =>
+    state.isFavorite(collectionId, item.id, item.type)
+  )
+  const toggleFavorite = useFavoriteStore((state) => state.toggleFavorite)
   const [showTagsTooltip, setShowTagsTooltip] = useState(false)
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)
   const tagsButtonRef = useRef<HTMLButtonElement>(null)
@@ -81,6 +89,12 @@ export const BrowserListItem = memo(function BrowserListItem({
       label: 'Roll',
       icon: Dices,
       onClick: onRoll,
+    },
+    {
+      id: 'favorite',
+      label: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+      icon: Star,
+      onClick: () => toggleFavorite(collectionId, item.id, item.type),
     },
     {
       id: 'edit',
@@ -168,6 +182,14 @@ export const BrowserListItem = memo(function BrowserListItem({
       <div className={`flex items-center gap-1 flex-shrink-0 transition-opacity duration-150 ${
         isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
       }`}>
+        {/* Favorite Button */}
+        <FavoriteButton
+          collectionId={collectionId}
+          itemId={item.id}
+          type={item.type}
+          size="sm"
+        />
+
         {/* Tags Info Icon */}
         {item.tags && item.tags.length > 0 && (
           <>

@@ -1,8 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Dices, Library, PenSquare, Home, Menu, BookOpen } from 'lucide-react'
+import { Dices, Library, PenSquare, Home, Menu, BookOpen, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { ResultThemeSwitcher, ThemeSwitcher } from '@/components/common'
+import { useUIStore } from '@/stores/uiStore'
+import { formatShortcut } from '@/hooks/useKeyboardShortcuts'
 import rollifyLogo from '@/assets/rollifyLogo.png'
 
 const navItems = [
@@ -16,6 +18,7 @@ const navItems = [
 export function Layout() {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const openCommandPalette = useUIStore((state) => state.openCommandPalette)
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -68,8 +71,17 @@ export function Layout() {
             })}
           </nav>
 
-          {/* Theme Switchers & Mobile menu button */}
+          {/* Theme Switchers, Search & Mobile menu button */}
           <div className="flex items-center gap-2">
+            {/* Search button */}
+            <button
+              className="p-2 rounded-xl hover:bg-accent transition-colors group"
+              onClick={openCommandPalette}
+              aria-label="Search tables and templates"
+              title={`Search (${formatShortcut({ key: 'KeyK', ctrlOrCmd: true })})`}
+            >
+              <Search className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </button>
             {/* Result theme switcher - only on roller page */}
             {location.pathname.startsWith('/roll') && <ResultThemeSwitcher />}
             <ThemeSwitcher />

@@ -13,6 +13,12 @@ interface BrowserTabsProps {
   onTabChange: (tab: BrowserTab) => void
   tableCount: number
   templateCount: number
+  /** Filtered table count when search is active */
+  filteredTableCount?: number
+  /** Filtered template count when search is active */
+  filteredTemplateCount?: number
+  /** Whether search/filter is active */
+  isFiltering?: boolean
 }
 
 export const BrowserTabs = memo(function BrowserTabs({
@@ -20,7 +26,14 @@ export const BrowserTabs = memo(function BrowserTabs({
   onTabChange,
   tableCount,
   templateCount,
+  filteredTableCount,
+  filteredTemplateCount,
+  isFiltering = false,
 }: BrowserTabsProps) {
+  // Show filtered count if filtering, otherwise show total
+  const displayTableCount = isFiltering && filteredTableCount !== undefined ? filteredTableCount : tableCount
+  const displayTemplateCount = isFiltering && filteredTemplateCount !== undefined ? filteredTemplateCount : templateCount
+
   return (
     <div className="flex border-b border-white/5" role="tablist">
       <button
@@ -44,7 +57,7 @@ export const BrowserTabs = memo(function BrowserTabs({
         <span className={`text-xs px-1.5 py-0.5 rounded ${
           activeTab === 'tables' ? 'bg-mint/20' : 'bg-white/10'
         }`}>
-          {tableCount}
+          {displayTableCount}{isFiltering && '*'}
         </span>
       </button>
       <button
@@ -68,7 +81,7 @@ export const BrowserTabs = memo(function BrowserTabs({
         <span className={`text-xs px-1.5 py-0.5 rounded ${
           activeTab === 'templates' ? 'bg-lavender/20' : 'bg-white/10'
         }`}>
-          {templateCount}
+          {displayTemplateCount}{isFiltering && '*'}
         </span>
       </button>
     </div>

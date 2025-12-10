@@ -18,6 +18,8 @@ export { BrowserViewToggle } from './BrowserViewToggle'
 export { VirtualizedItemList } from './VirtualizedItemList'
 export { BrowserListItem } from './BrowserListItem'
 export { TableTypeIcon } from './TableTypeIcon'
+export { FavoritesSection } from './FavoritesSection'
+export { QuickAccessSection } from './QuickAccessSection'
 
 // Results Panel
 export { ResultsPanel } from './ResultsPanel'

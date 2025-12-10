@@ -9,6 +9,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { RollResult } from '../engine/types'
 import { useCollectionStore } from './collectionStore'
+import { useUsageStore } from './usageStore'
 import * as db from '../services/db'
 import type { StoredRoll } from '../services/db'
 
@@ -172,6 +173,9 @@ export const useRollStore = create<RollState>()(
             history: [storedRoll, ...state.history].slice(0, 100),
           }))
 
+          // Record usage for Recent/Popular tracking
+          useUsageStore.getState().recordUsage(collectionId, 'table', tableId)
+
           return result
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Roll failed'
@@ -216,6 +220,9 @@ export const useRollStore = create<RollState>()(
             isRolling: false,
             history: [storedRoll, ...state.history].slice(0, 100),
           }))
+
+          // Record usage for Recent/Popular tracking
+          useUsageStore.getState().recordUsage(collectionId, 'template', templateId)
 
           return result
         } catch (error) {
