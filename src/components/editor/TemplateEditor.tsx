@@ -86,6 +86,26 @@ export function TemplateEditor({
   const patternEditorRef = useRef<EditablePatternRef>(null)
   const prevDefaultExpandedRef = useRef(defaultExpanded)
 
+  // Real-time ID uniqueness validation
+  const idError = useMemo(() => {
+    const currentId = template.id.trim()
+    if (!currentId) return null
+
+    // Check for duplicate template IDs (excluding this template)
+    const duplicateTemplate = localTemplates.find(t => t.id === currentId && t.id !== template.id)
+    if (duplicateTemplate) {
+      return `Template ID "${currentId}" already exists`
+    }
+
+    // Check for collision with table IDs
+    const collidingTable = localTables.find(t => t.id === currentId)
+    if (collidingTable) {
+      return `ID "${currentId}" is already used by a table`
+    }
+
+    return null
+  }, [template.id, localTables, localTemplates])
+
   // Expand when defaultExpanded transitions from false to true (explicit selection)
   // Don't force open just because defaultExpanded is true - allow user to collapse
   useEffect(() => {
@@ -239,8 +259,14 @@ export function TemplateEditor({
                   value={template.id}
                   onChange={(e) => updateField('id', e.target.value)}
                   placeholder="uniqueTemplateId"
-                  className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
+                  className={cn(
+                    "editor-input text-base md:text-sm min-h-[48px] md:min-h-0",
+                    idError && "border-destructive focus:ring-destructive"
+                  )}
                 />
+                {idError && (
+                  <p className="text-xs text-destructive mt-1">{idError}</p>
+                )}
               </div>
 
               <div>
