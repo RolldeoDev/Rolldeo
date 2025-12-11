@@ -6,7 +6,8 @@
 
 import { useEffect, useCallback } from 'react'
 
-export interface KeyboardShortcut {
+/** Display-only shortcut properties (for formatShortcut) */
+export interface ShortcutDisplay {
   /** Key code (e.g., 'Space', 'Enter', 'Escape', 'KeyS') */
   key: string
   /** Whether Ctrl (or Cmd on Mac) is required */
@@ -15,6 +16,9 @@ export interface KeyboardShortcut {
   shift?: boolean
   /** Whether Alt is required */
   alt?: boolean
+}
+
+export interface KeyboardShortcut extends ShortcutDisplay {
   /** Handler function */
   handler: (event: KeyboardEvent) => void
   /** Description for UI hints */
@@ -132,7 +136,7 @@ export function useKeyboardShortcuts({
 /**
  * Get a display string for a shortcut (e.g., "Ctrl+S" or "⌘S")
  */
-export function formatShortcut(shortcut: KeyboardShortcut): string {
+export function formatShortcut(shortcut: ShortcutDisplay): string {
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
   const parts: string[] = []
 

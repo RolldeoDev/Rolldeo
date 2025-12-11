@@ -46,6 +46,7 @@ interface UIState {
   // Modals
   isImportDialogOpen: boolean
   isConflictDialogOpen: boolean
+  isCommandPaletteOpen: boolean
 
   // Browser panel state (roller page)
   browserPanelWidth: number
@@ -68,6 +69,10 @@ interface UIState {
 
   // Roller page publisher accordion
   expandedPublisherId: string | null  // Single expanded publisher group (accordion behavior)
+
+  // Roller page section expanded states
+  isFavoritesSectionExpanded: boolean
+  isQuickAccessSectionExpanded: boolean
 
   // Editor page state
   lastEditorCollectionId: string | null
@@ -93,6 +98,9 @@ interface UIState {
   closeImportDialog: () => void
   openConflictDialog: () => void
   closeConflictDialog: () => void
+  openCommandPalette: () => void
+  closeCommandPalette: () => void
+  toggleCommandPalette: () => void
 
   // Actions - Browser panel
   setBrowserPanelWidth: (width: number) => void
@@ -122,6 +130,11 @@ interface UIState {
   togglePublisherExpanded: (publisherId: string) => void
   setExpandedPublisherId: (publisherId: string | null) => void
 
+  // Actions - Roller page section expanded states
+  setFavoritesSectionExpanded: (expanded: boolean) => void
+  setQuickAccessSectionExpanded: (expanded: boolean) => void
+  collapseQuickSections: () => void  // Collapses both Favorites & Quick Access
+
   // Actions - Editor page
   setLastEditorCollectionId: (id: string | null) => void
   setEditorActiveTab: (tab: EditorTab) => void
@@ -147,6 +160,7 @@ export const useUIStore = create<UIState>()(
       resultTheme: 'default',
       isImportDialogOpen: false,
       isConflictDialogOpen: false,
+      isCommandPaletteOpen: false,
 
       // Browser panel initial state
       browserPanelWidth: 380,
@@ -169,6 +183,10 @@ export const useUIStore = create<UIState>()(
 
       // Roller page publisher accordion initial state
       expandedPublisherId: null,
+
+      // Roller page section expanded states initial
+      isFavoritesSectionExpanded: true,
+      isQuickAccessSectionExpanded: true,
 
       // Editor page initial state
       lastEditorCollectionId: null,
@@ -218,6 +236,9 @@ export const useUIStore = create<UIState>()(
       closeImportDialog: () => set({ isImportDialogOpen: false }),
       openConflictDialog: () => set({ isConflictDialogOpen: true }),
       closeConflictDialog: () => set({ isConflictDialogOpen: false }),
+      openCommandPalette: () => set({ isCommandPaletteOpen: true }),
+      closeCommandPalette: () => set({ isCommandPaletteOpen: false }),
+      toggleCommandPalette: () => set((state) => ({ isCommandPaletteOpen: !state.isCommandPaletteOpen })),
 
       // ========================================================================
       // Browser Panel Actions
@@ -308,6 +329,21 @@ export const useUIStore = create<UIState>()(
       setExpandedPublisherId: (publisherId) => set({ expandedPublisherId: publisherId }),
 
       // ========================================================================
+      // Roller Page Section Expanded Actions
+      // ========================================================================
+
+      setFavoritesSectionExpanded: (expanded) => set({ isFavoritesSectionExpanded: expanded }),
+
+      setQuickAccessSectionExpanded: (expanded) => set({ isQuickAccessSectionExpanded: expanded }),
+
+      // Collapse both quick sections (called when expanding publisher)
+      collapseQuickSections: () =>
+        set({
+          isFavoritesSectionExpanded: false,
+          isQuickAccessSectionExpanded: false,
+        }),
+
+      // ========================================================================
       // Editor Page Actions
       // ========================================================================
 
@@ -341,6 +377,9 @@ export const useUIStore = create<UIState>()(
         libraryExpandedNamespaces: state.libraryExpandedNamespaces,
         // Roller page publisher accordion
         expandedPublisherId: state.expandedPublisherId,
+        // Roller page section expanded states
+        isFavoritesSectionExpanded: state.isFavoritesSectionExpanded,
+        isQuickAccessSectionExpanded: state.isQuickAccessSectionExpanded,
         // Editor state persistence
         lastEditorCollectionId: state.lastEditorCollectionId,
         editorActiveTab: state.editorActiveTab,

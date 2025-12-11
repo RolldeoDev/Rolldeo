@@ -12,14 +12,31 @@ import { QuickstartPage } from './pages/QuickstartPage'
 import { SpecPage } from './pages/SpecPage'
 import { SchemaPage } from './pages/SchemaPage'
 import { UsingRolldeoPage } from './pages/UsingRolldeoPage'
-import { ErrorBoundary, ToastProvider, InstallPrompt, OfflineIndicator } from './components/common'
+import { ErrorBoundary, ToastProvider, InstallPrompt, OfflineIndicator, CommandPalette } from './components/common'
 import { AppInitializer } from './AppInitializer'
 import './index.css'
 
-const router = createBrowserRouter([
+// Wrapper component that renders inside RouterProvider for components needing router context
+function RouterAwareComponents() {
+  return (
+    <>
+      <CommandPalette />
+      <InstallPrompt />
+      <OfflineIndicator />
+    </>
+  )
+}
+
+// Add router-aware components as a child route that always renders
+const routerWithComponents = createBrowserRouter([
   {
     path: '/',
-    element: <Layout />,
+    element: (
+      <>
+        <Layout />
+        <RouterAwareComponents />
+      </>
+    ),
     children: [
       { index: true, element: <HomePage /> },
       { path: 'library', element: <LibraryPage /> },
@@ -42,9 +59,7 @@ createRoot(document.getElementById('root')!).render(
       <ErrorBoundary>
         <ToastProvider>
           <AppInitializer />
-          <RouterProvider router={router} />
-          <InstallPrompt />
-          <OfflineIndicator />
+          <RouterProvider router={routerWithComponents} />
         </ToastProvider>
       </ErrorBoundary>
     </HelmetProvider>

@@ -94,6 +94,26 @@ export function TableEditor({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const prevDefaultExpandedRef = useRef(defaultExpanded)
 
+  // Real-time ID uniqueness validation
+  const idError = useMemo(() => {
+    const currentId = table.id.trim()
+    if (!currentId) return null
+
+    // Check for duplicate table IDs (excluding this table)
+    const duplicateTable = localTables.find(t => t.id === currentId && t.id !== table.id)
+    if (duplicateTable) {
+      return `Table ID "${currentId}" already exists`
+    }
+
+    // Check for collision with template IDs
+    const collidingTemplate = localTemplates.find(t => t.id === currentId)
+    if (collidingTemplate) {
+      return `ID "${currentId}" is already used by a template`
+    }
+
+    return null
+  }, [table.id, localTables, localTemplates])
+
   // Shared Variables / Default Sets tab state
   type SharedSetsTab = 'shared' | 'defaultSets'
   const [sharedSetsTab, setSharedSetsTab] = useState<SharedSetsTab>(() => {
@@ -274,8 +294,14 @@ export function TableEditor({
                   value={table.id}
                   onChange={(e) => updateField('id', e.target.value)}
                   placeholder="uniqueTableId"
-                  className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
+                  className={cn(
+                    "editor-input text-base md:text-sm min-h-[48px] md:min-h-0",
+                    idError && "border-destructive focus:ring-destructive"
+                  )}
                 />
+                {idError && (
+                  <p className="text-xs text-destructive mt-1">{idError}</p>
+                )}
               </div>
 
               <div>

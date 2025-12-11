@@ -84,8 +84,9 @@ export function useRoller(
     clearHistory,
   } = useRollStore()
 
-  const { getVisibleCollections, getTableList, getTemplateList, isInitialized } =
-    useCollectionStore()
+  // Subscribe to collections state (not functions) to trigger re-renders when data changes
+  const storeCollections = useCollectionStore((state) => state.collections)
+  const isInitialized = useCollectionStore((state) => state.isInitialized)
 
   const { showHiddenTables } = useUIStore()
 
@@ -108,20 +109,25 @@ export function useRoller(
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get available collections (excluding hidden ones)
-  const collections = useMemo(() => getVisibleCollections(), [getVisibleCollections])
+  // Use storeCollections as dependency (stable Map reference) instead of function
+  const collections = useMemo(
+    () => Array.from(storeCollections.values()).filter((c) => !c.hiddenFromUI),
+    [storeCollections]
+  )
 
   // Get tables for selected collection
+  // Use getState() to call function inside useMemo, storeCollections triggers refresh
   const tables = useMemo(() => {
     if (!selectedCollectionId) return []
-    const allTables = getTableList(selectedCollectionId)
+    const allTables = useCollectionStore.getState().getTableList(selectedCollectionId)
     return showHiddenTables ? allTables : allTables.filter((t) => !t.hidden)
-  }, [selectedCollectionId, getTableList, showHiddenTables])
+  }, [selectedCollectionId, showHiddenTables, storeCollections])
 
   // Get templates for selected collection
   const templates = useMemo(() => {
     if (!selectedCollectionId) return []
-    return getTemplateList(selectedCollectionId)
-  }, [selectedCollectionId, getTemplateList])
+    return useCollectionStore.getState().getTemplateList(selectedCollectionId)
+  }, [selectedCollectionId, storeCollections])
 
   // Compute if we can roll
   const canRoll = useMemo(() => {

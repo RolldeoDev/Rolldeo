@@ -12,7 +12,6 @@ import { useCollectionStore } from '@/stores/collectionStore'
 import { useUIStore } from '@/stores/uiStore'
 import { useBrowserFilter, type BrowserItem } from '@/hooks/useBrowserFilter'
 import { BrowserTabs } from './BrowserTabs'
-import { BrowserSearchBar } from './BrowserSearchBar'
 import { BrowserViewToggle } from './BrowserViewToggle'
 import { VirtualizedItemList } from './VirtualizedItemList'
 
@@ -65,40 +64,62 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
     }
   }, [shouldScrollIntoView, onScrollComplete])
 
-  // Store selectors
-  const getTableList = useCollectionStore((state) => state.getTableList)
-  const getTemplateList = useCollectionStore((state) => state.getTemplateList)
+  // Subscribe to collections Map to trigger re-renders when data changes
+  const collectionsMap = useCollectionStore((state) => state.collections)
 
   const browserActiveTab = useUIStore((state) => state.browserActiveTab)
   const browserViewMode = useUIStore((state) => state.browserViewMode)
   const browserGroupBy = useUIStore((state) => state.browserGroupBy)
-  const browserSearchQuery = useUIStore((state) => state.browserSearchQuery)
   const showHiddenTables = useUIStore((state) => state.showHiddenTables)
+  // Use the global search query from the filter bar at the top
+  const globalSearchQuery = useUIStore((state) => state.rollerCollectionSearchQuery)
 
   const setBrowserActiveTab = useUIStore((state) => state.setBrowserActiveTab)
   const setBrowserViewMode = useUIStore((state) => state.setBrowserViewMode)
   const setBrowserGroupBy = useUIStore((state) => state.setBrowserGroupBy)
-  const setBrowserSearchQuery = useUIStore((state) => state.setBrowserSearchQuery)
 
-  // Get tables and templates for this collection
+  // Get tables and templates for this collection - use getState() to access functions
   const tables = useMemo(() => {
-    return getTableList(collection.id)
-  }, [collection.id, getTableList])
+    return useCollectionStore.getState().getTableList(collection.id)
+  }, [collection.id, collectionsMap])
 
   const templates = useMemo(() => {
-    return getTemplateList(collection.id)
-  }, [collection.id, getTemplateList])
+    return useCollectionStore.getState().getTemplateList(collection.id)
+  }, [collection.id, collectionsMap])
 
-  // Filter and group items
+  // Filter and group items using the global search query
   const { filteredItems, groupedItems, filteredCount, totalCount } = useBrowserFilter({
     tables,
     templates,
-    searchQuery: browserSearchQuery,
+    searchQuery: globalSearchQuery,
     viewMode: browserViewMode,
     groupBy: browserGroupBy,
     activeTab: browserActiveTab,
     showHidden: showHiddenTables,
   })
+
+  // Calculate filtered counts for both tabs when search is active
+  const isFiltering = globalSearchQuery.trim().length > 0
+  const filteredTableCount = useMemo(() => {
+    if (!isFiltering) return tables.length
+    const query = globalSearchQuery.toLowerCase()
+    return tables.filter(t => {
+      if (t.hidden && !showHiddenTables) return false
+      return t.name.toLowerCase().includes(query) ||
+        t.description?.toLowerCase().includes(query) ||
+        t.tags?.some(tag => tag.toLowerCase().includes(query))
+    }).length
+  }, [tables, globalSearchQuery, isFiltering, showHiddenTables])
+
+  const filteredTemplateCount = useMemo(() => {
+    if (!isFiltering) return templates.length
+    const query = globalSearchQuery.toLowerCase()
+    return templates.filter(t =>
+      t.name.toLowerCase().includes(query) ||
+      t.description?.toLowerCase().includes(query) ||
+      t.tags?.some(tag => tag.toLowerCase().includes(query))
+    ).length
+  }, [templates, globalSearchQuery, isFiltering])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -152,13 +173,13 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
           {collection.name}
         </span>
 
-        {/* Counts - differentiated badges */}
+        {/* Counts - differentiated badges (show filtered counts when searching) */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-mint/15 text-mint border border-mint/20">
-            {collection.tableCount}
+            {isFiltering ? filteredTableCount : collection.tableCount}{isFiltering && '*'}
           </span>
           <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-lavender/15 text-lavender border border-lavender/20">
-            {collection.templateCount}
+            {isFiltering ? filteredTemplateCount : collection.templateCount}{isFiltering && '*'}
           </span>
         </div>
       </div>
@@ -172,13 +193,9 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
             onTabChange={setBrowserActiveTab}
             tableCount={tables.length}
             templateCount={templates.length}
-          />
-
-          {/* Search Bar */}
-          <BrowserSearchBar
-            value={browserSearchQuery}
-            onChange={setBrowserSearchQuery}
-            placeholder={`Search ${browserActiveTab}...`}
+            filteredTableCount={filteredTableCount}
+            filteredTemplateCount={filteredTemplateCount}
+            isFiltering={isFiltering}
           />
 
           {/* View Toggle */}
@@ -189,8 +206,8 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
             onGroupByChange={setBrowserGroupBy}
           />
 
-          {/* Filter Status */}
-          {browserSearchQuery && (
+          {/* Filter Status - show when global search is active */}
+          {globalSearchQuery && (
             <div className="px-3 py-1.5 text-xs text-muted-foreground border-b border-white/5">
               Showing {filteredCount} of {totalCount} {browserActiveTab}
             </div>
@@ -202,6 +219,7 @@ export const CollectionAccordionItem = memo(function CollectionAccordionItem({
               items={filteredItems}
               groupedItems={groupedItems}
               isGrouped={browserViewMode === 'grouped'}
+              collectionId={collection.id}
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
               onRollItem={handleRollItem}

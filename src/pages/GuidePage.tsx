@@ -4,7 +4,7 @@
  * Landing page for the Guide section with navigation cards and download buttons.
  */
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BookOpen,
@@ -21,7 +21,10 @@ import {
   ChevronDown,
   Swords,
   RocketIcon,
+  RotateCcw,
+  EyeOff,
 } from 'lucide-react'
+import { useCollectionStore } from '@/stores/collectionStore'
 import { DownloadButton } from '@/components/guide'
 import { SEO } from '@/components/common'
 import { PAGE_SEO } from '@/lib/seo'
@@ -99,6 +102,31 @@ const colorClasses = {
 export function GuidePage() {
   const [fantasyExpanded, setFantasyExpanded] = useState(false)
   const [sciFiExpanded, setSciFiExpanded] = useState(false)
+  const [isRestoring, setIsRestoring] = useState(false)
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null)
+
+  const restoreHiddenCollections = useCollectionStore((state) => state.restoreHiddenCollections)
+  const collections = useCollectionStore((state) => state.collections)
+  const hiddenCollections = useMemo(
+    () => Array.from(collections.values()).filter((c) => c.hiddenFromUI),
+    [collections]
+  )
+
+  const handleRestore = useCallback(async () => {
+    setIsRestoring(true)
+    setRestoreMessage(null)
+    try {
+      const count = await restoreHiddenCollections()
+      setRestoreMessage(count > 0
+        ? `Restored ${count} collection${count !== 1 ? 's' : ''}`
+        : 'No hidden collections to restore'
+      )
+    } catch (error) {
+      setRestoreMessage('Failed to restore collections')
+    } finally {
+      setIsRestoring(false)
+    }
+  }, [restoreHiddenCollections])
 
   return (
     <>
@@ -402,6 +430,37 @@ export function GuidePage() {
           description="Import the JSON schema into your IDE for autocomplete and validation while editing."
         />
         </section>
+
+      {/* Restore Hidden Collections Section */}
+      {hiddenCollections.length > 0 && (
+        <section className="card-elevated border border-border/50 p-6 animate-slide-up">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+                <EyeOff className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Hidden Collections</h3>
+                <p className="text-sm text-muted-foreground">
+                  You have {hiddenCollections.length} hidden collection{hiddenCollections.length !== 1 ? 's' : ''}.
+                  Click restore to bring them back to the Library.
+                </p>
+                {restoreMessage && (
+                  <p className="text-sm text-primary mt-1">{restoreMessage}</p>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={handleRestore}
+              disabled={isRestoring}
+              className="btn-secondary flex items-center gap-2 whitespace-nowrap"
+            >
+              <RotateCcw className={`h-4 w-4 ${isRestoring ? 'animate-spin' : ''}`} />
+              {isRestoring ? 'Restoring...' : 'Restore All'}
+            </button>
+          </div>
+        </section>
+      )}
       </div>
     </>
   )

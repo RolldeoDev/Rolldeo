@@ -33,6 +33,8 @@ export interface StoredCollection {
   source: 'preloaded' | 'file' | 'zip' | 'user'
   /** Original filename if imported */
   fileName?: string
+  /** If true, hidden from Library and Browser panels */
+  hiddenFromUI?: boolean
   /** Creation timestamp */
   createdAt: number
   /** Last update timestamp */
@@ -69,6 +71,38 @@ export interface UserPreferences {
   historyLimit: number
 }
 
+export interface StoredFavorite {
+  /** Composite key: `${collectionId}:${type}:${itemId}` */
+  id: string
+  /** Collection this favorite belongs to */
+  collectionId: string
+  /** Table or template ID */
+  itemId: string
+  /** Type of item */
+  type: 'table' | 'template'
+  /** When favorited */
+  createdAt: number
+  /** Display order for manual reordering */
+  sortOrder: number
+}
+
+export interface UsageStats {
+  /** Composite key: `${collectionId}:${type}:${itemId}` */
+  id: string
+  /** Collection this item belongs to */
+  collectionId: string
+  /** Table or template ID */
+  itemId: string
+  /** Type of item */
+  type: 'table' | 'template'
+  /** Total roll count */
+  rollCount: number
+  /** Last rolled timestamp */
+  lastRolled: number
+  /** First rolled timestamp */
+  firstRolled: number
+}
+
 // ============================================================================
 // Database Schema
 // ============================================================================
@@ -96,10 +130,26 @@ interface RolldeooDB extends DBSchema {
     key: string
     value: UserPreferences
   }
+  favorites: {
+    key: string
+    value: StoredFavorite
+    indexes: {
+      'by-collection': string
+      'by-created': number
+    }
+  }
+  usageStats: {
+    key: string
+    value: UsageStats
+    indexes: {
+      'by-rollCount': number
+      'by-lastRolled': number
+    }
+  }
 }
 
 const DB_NAME = 'rolldeo-db'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 // ============================================================================
 // Database Initialization
@@ -114,7 +164,7 @@ let dbPromise: Promise<IDBPDatabase<RolldeooDB>> | null = null
 export async function init(): Promise<IDBPDatabase<RolldeooDB>> {
   if (!dbPromise) {
     dbPromise = openDB<RolldeooDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
+      upgrade(db, oldVersion) {
         // Collections store
         if (!db.objectStoreNames.contains('collections')) {
           const collectionStore = db.createObjectStore('collections', { keyPath: 'id' })
@@ -137,6 +187,23 @@ export async function init(): Promise<IDBPDatabase<RolldeooDB>> {
         // User preferences store
         if (!db.objectStoreNames.contains('userPreferences')) {
           db.createObjectStore('userPreferences', { keyPath: 'id' })
+        }
+
+        // Version 2: Add favorites and usage stats stores
+        if (oldVersion < 2) {
+          // Favorites store
+          if (!db.objectStoreNames.contains('favorites')) {
+            const favoritesStore = db.createObjectStore('favorites', { keyPath: 'id' })
+            favoritesStore.createIndex('by-collection', 'collectionId')
+            favoritesStore.createIndex('by-created', 'createdAt')
+          }
+
+          // Usage stats store
+          if (!db.objectStoreNames.contains('usageStats')) {
+            const usageStore = db.createObjectStore('usageStats', { keyPath: 'id' })
+            usageStore.createIndex('by-rollCount', 'rollCount')
+            usageStore.createIndex('by-lastRolled', 'lastRolled')
+          }
         }
       },
     })
@@ -211,6 +278,45 @@ export async function getUserCollections(): Promise<StoredCollection[]> {
 export async function getPreloadedCollections(): Promise<StoredCollection[]> {
   const all = await getAllCollections()
   return all.filter((c) => c.isPreloaded)
+}
+
+/**
+ * Update a collection's hidden state.
+ */
+export async function setCollectionHidden(id: string, hidden: boolean): Promise<void> {
+  const db = await init()
+  const collection = await db.get('collections', id)
+  if (collection) {
+    collection.hiddenFromUI = hidden
+    collection.updatedAt = Date.now()
+    await db.put('collections', collection)
+  }
+}
+
+/**
+ * Get all hidden preloaded collections.
+ */
+export async function getHiddenPreloadedCollections(): Promise<StoredCollection[]> {
+  const all = await getAllCollections()
+  return all.filter((c) => c.isPreloaded && c.hiddenFromUI)
+}
+
+/**
+ * Restore all hidden preloaded collections.
+ */
+export async function restoreHiddenPreloadedCollections(): Promise<number> {
+  const db = await init()
+  const hidden = await getHiddenPreloadedCollections()
+  const tx = db.transaction('collections', 'readwrite')
+
+  for (const collection of hidden) {
+    collection.hiddenFromUI = false
+    collection.updatedAt = Date.now()
+    await tx.store.put(collection)
+  }
+
+  await tx.done
+  return hidden.length
 }
 
 // ============================================================================
@@ -353,6 +459,265 @@ export async function savePreferences(preferences: Partial<UserPreferences>): Pr
     id: 'preferences', // Ensure ID is always correct
   }
   await db.put('userPreferences', updated)
+}
+
+// ============================================================================
+// Favorites Operations
+// ============================================================================
+
+/**
+ * Generate a favorite ID from its components.
+ */
+export function generateFavoriteId(
+  collectionId: string,
+  type: 'table' | 'template',
+  itemId: string
+): string {
+  return `${collectionId}:${type}:${itemId}`
+}
+
+/**
+ * Get all favorites.
+ */
+export async function getAllFavorites(): Promise<StoredFavorite[]> {
+  const db = await init()
+  return db.getAll('favorites')
+}
+
+/**
+ * Get favorites ordered by creation date (newest first).
+ */
+export async function getFavoritesByCreated(): Promise<StoredFavorite[]> {
+  const db = await init()
+  const tx = db.transaction('favorites', 'readonly')
+  const index = tx.store.index('by-created')
+  const results: StoredFavorite[] = []
+
+  let cursor = await index.openCursor(null, 'prev')
+  while (cursor) {
+    results.push(cursor.value)
+    cursor = await cursor.continue()
+  }
+
+  return results
+}
+
+/**
+ * Get favorites for a specific collection.
+ */
+export async function getFavoritesByCollection(collectionId: string): Promise<StoredFavorite[]> {
+  const db = await init()
+  return db.getAllFromIndex('favorites', 'by-collection', collectionId)
+}
+
+/**
+ * Check if an item is favorited.
+ */
+export async function isFavorite(
+  collectionId: string,
+  type: 'table' | 'template',
+  itemId: string
+): Promise<boolean> {
+  const db = await init()
+  const id = generateFavoriteId(collectionId, type, itemId)
+  const favorite = await db.get('favorites', id)
+  return favorite !== undefined
+}
+
+/**
+ * Add a favorite.
+ */
+export async function addFavorite(
+  collectionId: string,
+  type: 'table' | 'template',
+  itemId: string
+): Promise<void> {
+  const db = await init()
+  const id = generateFavoriteId(collectionId, type, itemId)
+  const existing = await db.get('favorites', id)
+  if (existing) return // Already favorited
+
+  // Get current max sort order
+  const all = await getAllFavorites()
+  const maxSortOrder = all.reduce((max, f) => Math.max(max, f.sortOrder), 0)
+
+  const favorite: StoredFavorite = {
+    id,
+    collectionId,
+    itemId,
+    type,
+    createdAt: Date.now(),
+    sortOrder: maxSortOrder + 1,
+  }
+  await db.put('favorites', favorite)
+}
+
+/**
+ * Remove a favorite.
+ */
+export async function removeFavorite(
+  collectionId: string,
+  type: 'table' | 'template',
+  itemId: string
+): Promise<void> {
+  const db = await init()
+  const id = generateFavoriteId(collectionId, type, itemId)
+  await db.delete('favorites', id)
+}
+
+/**
+ * Update favorite sort orders (for reordering).
+ */
+export async function updateFavoriteSortOrders(
+  orderedIds: string[]
+): Promise<void> {
+  const db = await init()
+  const tx = db.transaction('favorites', 'readwrite')
+
+  for (let i = 0; i < orderedIds.length; i++) {
+    const favorite = await tx.store.get(orderedIds[i])
+    if (favorite) {
+      favorite.sortOrder = i
+      await tx.store.put(favorite)
+    }
+  }
+
+  await tx.done
+}
+
+/**
+ * Remove all favorites for a collection (cleanup when collection is deleted).
+ */
+export async function removeFavoritesByCollection(collectionId: string): Promise<void> {
+  const db = await init()
+  const favorites = await getFavoritesByCollection(collectionId)
+  const tx = db.transaction('favorites', 'readwrite')
+  await Promise.all(favorites.map((f) => tx.store.delete(f.id)))
+  await tx.done
+}
+
+// ============================================================================
+// Usage Stats Operations
+// ============================================================================
+
+/**
+ * Generate a usage stats ID from its components.
+ */
+export function generateUsageStatsId(
+  collectionId: string,
+  type: 'table' | 'template',
+  itemId: string
+): string {
+  return `${collectionId}:${type}:${itemId}`
+}
+
+/**
+ * Get all usage stats.
+ */
+export async function getAllUsageStats(): Promise<UsageStats[]> {
+  const db = await init()
+  return db.getAll('usageStats')
+}
+
+/**
+ * Record usage of a table or template.
+ * Creates new record if doesn't exist, otherwise increments count.
+ */
+export async function recordUsage(
+  collectionId: string,
+  type: 'table' | 'template',
+  itemId: string
+): Promise<void> {
+  const db = await init()
+  const id = generateUsageStatsId(collectionId, type, itemId)
+  const existing = await db.get('usageStats', id)
+  const now = Date.now()
+
+  if (existing) {
+    existing.rollCount += 1
+    existing.lastRolled = now
+    await db.put('usageStats', existing)
+  } else {
+    const stats: UsageStats = {
+      id,
+      collectionId,
+      itemId,
+      type,
+      rollCount: 1,
+      lastRolled: now,
+      firstRolled: now,
+    }
+    await db.put('usageStats', stats)
+  }
+}
+
+/**
+ * Get most recently used items.
+ */
+export async function getRecentUsage(limit = 10): Promise<UsageStats[]> {
+  const db = await init()
+  const tx = db.transaction('usageStats', 'readonly')
+  const index = tx.store.index('by-lastRolled')
+  const results: UsageStats[] = []
+
+  let cursor = await index.openCursor(null, 'prev')
+  while (cursor && results.length < limit) {
+    results.push(cursor.value)
+    cursor = await cursor.continue()
+  }
+
+  return results
+}
+
+/**
+ * Get most popular items (by roll count).
+ */
+export async function getPopularUsage(limit = 10): Promise<UsageStats[]> {
+  const db = await init()
+  const tx = db.transaction('usageStats', 'readonly')
+  const index = tx.store.index('by-rollCount')
+  const results: UsageStats[] = []
+
+  let cursor = await index.openCursor(null, 'prev')
+  while (cursor && results.length < limit) {
+    results.push(cursor.value)
+    cursor = await cursor.continue()
+  }
+
+  return results
+}
+
+/**
+ * Get usage stats for a specific item.
+ */
+export async function getUsageStats(
+  collectionId: string,
+  type: 'table' | 'template',
+  itemId: string
+): Promise<UsageStats | undefined> {
+  const db = await init()
+  const id = generateUsageStatsId(collectionId, type, itemId)
+  return db.get('usageStats', id)
+}
+
+/**
+ * Clear all usage stats.
+ */
+export async function clearUsageStats(): Promise<void> {
+  const db = await init()
+  await db.clear('usageStats')
+}
+
+/**
+ * Remove usage stats for a collection (cleanup when collection is deleted).
+ */
+export async function removeUsageStatsByCollection(collectionId: string): Promise<void> {
+  const db = await init()
+  const all = await getAllUsageStats()
+  const toDelete = all.filter((s) => s.collectionId === collectionId)
+  const tx = db.transaction('usageStats', 'readwrite')
+  await Promise.all(toDelete.map((s) => tx.store.delete(s.id)))
+  await tx.done
 }
 
 // ============================================================================

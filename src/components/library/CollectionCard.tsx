@@ -8,7 +8,7 @@
 import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
-import { Dices, Layers, Trash2, User, BookOpen, Check } from 'lucide-react'
+import { Dices, Layers, Trash2, User, BookOpen, Check, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CollectionMeta } from '@/stores/collectionStore'
 
@@ -21,6 +21,8 @@ const tagColors = [
 interface CollectionCardProps {
   collection: CollectionMeta
   onDelete?: () => void
+  /** Callback to hide a preloaded collection */
+  onHide?: () => void
   /** Animation delay index for staggered appearance */
   index?: number
   /** Whether to show a compact version */
@@ -34,6 +36,7 @@ interface CollectionCardProps {
 export const CollectionCard = memo(function CollectionCard({
   collection,
   onDelete,
+  onHide,
   index = 0,
   compact = false,
   isSelected = false,
@@ -90,6 +93,19 @@ export const CollectionCard = memo(function CollectionCard({
             title="Delete collection"
           >
             <Trash2 className="h-4 w-4 text-destructive" />
+          </button>
+        )}
+        {onHide && (
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onHide()
+            }}
+            className="p-2 opacity-0 group-hover:opacity-100 hover:bg-muted rounded-lg transition-all -mt-1 -mr-1"
+            title="Hide collection"
+          >
+            <EyeOff className="h-4 w-4 text-muted-foreground" />
           </button>
         )}
       </div>

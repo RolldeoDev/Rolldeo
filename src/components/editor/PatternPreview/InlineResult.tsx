@@ -55,10 +55,11 @@ function getExpressionLabel(type: ExpressionType): string {
   return labels[type]
 }
 
-// Unique marker for expression boundaries - use only zero-width characters
-// No visible index numbers to avoid display issues when markdown splits text
-const EXPR_START = '\u2060\u200B\u200D' // Word joiner + zero-width space + zero-width joiner
-const EXPR_END = '\u200D\u200B\u2060' // Zero-width joiner + zero-width space + word joiner
+// Unique markers for expression boundaries
+// We encode the expression INDEX in the marker to handle markdown splitting correctly
+const EXPR_START = '\u2060\u200B' // Word joiner + zero-width space
+const EXPR_MID = '\u200D' // Zero-width joiner (separator for index)
+const EXPR_END = '\u200B\u2060' // Zero-width space + word joiner
 
 interface ExpressionInfo {
   text: string
@@ -67,7 +68,8 @@ interface ExpressionInfo {
 }
 
 /**
- * Build markdown text with expression markers
+ * Build markdown text with expression markers.
+ * Each expression is marked with its index encoded in the marker.
  */
 function buildMarkedText(segments: EvaluatedSegment[]): {
   text: string
@@ -80,13 +82,14 @@ function buildMarkedText(segments: EvaluatedSegment[]): {
     if (segment.type === 'literal') {
       text += segment.text
     } else {
-      // Mark expression with unique markers (no visible index)
+      const exprIndex = expressions.length
       expressions.push({
         text: segment.text,
         type: segment.expressionType || 'unknown',
         original: segment.originalExpression || '',
       })
-      text += `${EXPR_START}${segment.text}${EXPR_END}`
+      // Encode index in marker: START + index + MID + content + END
+      text += `${EXPR_START}${exprIndex}${EXPR_MID}${segment.text}${EXPR_END}`
     }
   }
 
@@ -95,147 +98,90 @@ function buildMarkedText(segments: EvaluatedSegment[]): {
 
 /**
  * Parse text nodes to find and highlight expression markers.
- * Uses a counter object to track expression index across multiple text nodes
- * (since markdown can split an expression across multiple elements).
+ * The expression index is encoded in each marker, so we don't need a counter.
+ * Format: EXPR_START + index + EXPR_MID + content + EXPR_END
  */
 function parseTextWithExpressions(
   text: string,
   expressions: ExpressionInfo[],
-  keyPrefix: string,
-  exprCounter: { current: number } = { current: 0 }
+  keyPrefix: string
 ): ReactNode[] {
   const parts: ReactNode[] = []
   let remaining = text
   let keyIndex = 0
 
-  while (remaining.length > 0) {
-    const startIdx = remaining.indexOf(EXPR_START)
-    const endIdx = remaining.indexOf(EXPR_END)
+  // Regex to match markers with encoded index: START + digits + MID + content + END
+  // The index is between START and MID, the content is between MID and END
+  const markerRegex = new RegExp(
+    `${EXPR_START}(\\d+)${EXPR_MID}([\\s\\S]*?)${EXPR_END}`,
+    'g'
+  )
 
-    // Case 1: No markers at all - just text
-    if (startIdx === -1 && endIdx === -1) {
-      if (remaining) {
-        parts.push(
-          <span key={`${keyPrefix}-text-${keyIndex++}`}>{remaining}</span>
-        )
-      }
-      break
-    }
+  let lastIndex = 0
+  let match
 
-    // Case 2: Only end marker (continuation from previous element due to markdown split)
-    if (startIdx === -1 || (endIdx !== -1 && endIdx < startIdx)) {
-      // Text before end marker is part of current expression
-      const exprText = remaining.slice(0, endIdx)
-      if (exprText) {
-        const exprIdx = exprCounter.current
-        if (expressions[exprIdx]) {
-          const expr = expressions[exprIdx]
-          const classes = getExpressionClasses(expr.type)
-          const label = getExpressionLabel(expr.type)
-          const tooltip = expr.original ? `${label}: ${expr.original}` : label
-
-          parts.push(
-            <span key={`${keyPrefix}-expr-${keyIndex++}`} className={classes} title={tooltip}>
-              {exprText}
-            </span>
-          )
-        } else {
-          parts.push(
-            <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
-          )
-        }
-      }
-      exprCounter.current++
-      remaining = remaining.slice(endIdx + EXPR_END.length)
-      continue
-    }
-
-    // Case 3: Start marker found - add text before it
-    if (startIdx > 0) {
+  while ((match = markerRegex.exec(remaining)) !== null) {
+    // Add text before this expression
+    if (match.index > lastIndex) {
       parts.push(
         <span key={`${keyPrefix}-text-${keyIndex++}`}>
-          {remaining.slice(0, startIdx)}
+          {remaining.slice(lastIndex, match.index)}
         </span>
       )
-      remaining = remaining.slice(startIdx)
-      continue
     }
 
-    // Case 4: Start marker at beginning
-    // Check if end marker is also in this text
-    const contentStart = EXPR_START.length
-    const localEndIdx = remaining.indexOf(EXPR_END, contentStart)
+    const exprIdx = parseInt(match[1], 10)
+    const exprText = match[2]
 
-    if (localEndIdx !== -1) {
-      // Complete expression in this text node
-      const exprText = remaining.slice(contentStart, localEndIdx)
-      const exprIdx = exprCounter.current
+    if (expressions[exprIdx]) {
+      const expr = expressions[exprIdx]
+      const classes = getExpressionClasses(expr.type)
+      const label = getExpressionLabel(expr.type)
+      const tooltip = expr.original ? `${label}: ${expr.original}` : label
 
-      if (expressions[exprIdx]) {
-        const expr = expressions[exprIdx]
-        const classes = getExpressionClasses(expr.type)
-        const label = getExpressionLabel(expr.type)
-        const tooltip = expr.original ? `${label}: ${expr.original}` : label
-
-        parts.push(
-          <span key={`${keyPrefix}-expr-${keyIndex++}`} className={classes} title={tooltip}>
-            {exprText}
-          </span>
-        )
-      } else {
-        parts.push(
-          <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
-        )
-      }
-
-      exprCounter.current++
-      remaining = remaining.slice(localEndIdx + EXPR_END.length)
+      parts.push(
+        <span key={`${keyPrefix}-expr-${keyIndex++}`} className={classes} title={tooltip}>
+          {exprText}
+        </span>
+      )
     } else {
-      // Start marker but no end marker - expression continues in next element
-      const exprText = remaining.slice(contentStart)
-      const exprIdx = exprCounter.current
-
-      if (exprText && expressions[exprIdx]) {
-        const expr = expressions[exprIdx]
-        const classes = getExpressionClasses(expr.type)
-        const label = getExpressionLabel(expr.type)
-        const tooltip = expr.original ? `${label}: ${expr.original}` : label
-
-        parts.push(
-          <span key={`${keyPrefix}-expr-${keyIndex++}`} className={classes} title={tooltip}>
-            {exprText}
-          </span>
-        )
-      } else if (exprText) {
-        parts.push(
-          <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
-        )
-      }
-      break
+      parts.push(
+        <span key={`${keyPrefix}-text-${keyIndex++}`}>{exprText}</span>
+      )
     }
+
+    lastIndex = match.index + match[0].length
   }
 
-  return parts
+  // Add remaining text after last expression
+  if (lastIndex < remaining.length) {
+    parts.push(
+      <span key={`${keyPrefix}-text-${keyIndex++}`}>
+        {remaining.slice(lastIndex)}
+      </span>
+    )
+  }
+
+  return parts.length > 0 ? parts : [<span key={`${keyPrefix}-empty`}>{text}</span>]
 }
 
 /**
  * Process children recursively to handle expression markers.
- * Shares an expression counter across all children to handle markdown splits.
+ * Each marker encodes its expression index, so no counter needed.
  */
 function processChildren(
   children: ReactNode,
   expressions: ExpressionInfo[],
-  keyPrefix: string,
-  exprCounter: { current: number } = { current: 0 }
+  keyPrefix: string
 ): ReactNode {
   if (typeof children === 'string') {
-    const parsed = parseTextWithExpressions(children, expressions, keyPrefix, exprCounter)
+    const parsed = parseTextWithExpressions(children, expressions, keyPrefix)
     return parsed.length === 1 ? parsed[0] : <>{parsed}</>
   }
 
   if (Array.isArray(children)) {
     return children.map((child, idx) =>
-      processChildren(child, expressions, `${keyPrefix}-${idx}`, exprCounter)
+      processChildren(child, expressions, `${keyPrefix}-${idx}`)
     )
   }
 
@@ -364,9 +310,9 @@ export const InlineResult = memo(function InlineResult({
             code: ({ className: codeClassName, children, ...props }) => {
               let content =
                 typeof children === 'string' ? children : String(children ?? '')
-              // Strip expression markers from code (just the zero-width characters)
+              // Strip expression markers from code (index + zero-width characters)
               const markerRegex = new RegExp(
-                `${EXPR_START}([\\s\\S]*?)${EXPR_END}`,
+                `${EXPR_START}\\d+${EXPR_MID}([\\s\\S]*?)${EXPR_END}`,
                 'g'
               )
               content = content.replace(markerRegex, '$1')

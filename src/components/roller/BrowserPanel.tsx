@@ -8,8 +8,11 @@
 import { memo, useCallback, useMemo } from 'react'
 import { PublisherAccordion } from './PublisherAccordion'
 import { CollectionFilterBar } from './CollectionFilterBar'
+import { FavoritesSection } from './FavoritesSection'
+import { QuickAccessSection } from './QuickAccessSection'
 import { useCollections } from '@/hooks/useCollections'
 import { useCollectionStore } from '@/stores/collectionStore'
+import { useUIStore } from '@/stores/uiStore'
 import type { BrowserItem } from '@/hooks/useBrowserFilter'
 
 interface BrowserPanelProps {
@@ -44,6 +47,9 @@ export const BrowserPanel = memo(function BrowserPanel({
   // Get collections with roller filters
   const { collections, allNamespaces } = useCollections({ useRollerFilters: true })
   const storeCollections = useCollectionStore((state) => state.collections)
+
+  // Get search query for unified filtering
+  const searchQuery = useUIStore((state) => state.rollerCollectionSearchQuery)
 
   // Get total count before filtering
   const totalCount = useMemo(() => {
@@ -102,11 +108,27 @@ export const BrowserPanel = memo(function BrowserPanel({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Collection filter bar */}
+      {/* Global search/filter bar - moved to top */}
       <CollectionFilterBar
         allNamespaces={allNamespaces}
         totalCount={totalCount}
         filteredCount={collections.length}
+      />
+
+      {/* Favorites section */}
+      <FavoritesSection
+        selectedItemId={selectedItemId}
+        onSelectItem={handleSelectItem}
+        onRollItem={handleRollItem}
+        searchQuery={searchQuery}
+      />
+
+      {/* Quick Access section (Recent/Popular) */}
+      <QuickAccessSection
+        selectedItemId={selectedItemId}
+        onSelectItem={handleSelectItem}
+        onRollItem={handleRollItem}
+        searchQuery={searchQuery}
       />
 
       {/* Publisher accordion */}
@@ -120,6 +142,7 @@ export const BrowserPanel = memo(function BrowserPanel({
           onCopyResult={onCopyResult ? handleCopyResult : undefined}
           onRollMultiple={onRollMultiple ? handleRollMultiple : undefined}
           onViewDetails={onViewDetails ? handleViewDetails : undefined}
+          searchQuery={searchQuery}
         />
       </div>
     </div>

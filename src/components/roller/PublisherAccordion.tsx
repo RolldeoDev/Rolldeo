@@ -35,6 +35,8 @@ interface PublisherAccordionProps {
   onRollMultiple?: (item: BrowserItem, collectionId: string) => void
   /** Callback to view item details */
   onViewDetails?: (item: BrowserItem, collectionId: string) => void
+  /** Search query for filtering display */
+  searchQuery?: string
 }
 
 interface PublisherGroup {
@@ -53,6 +55,7 @@ export const PublisherAccordion = memo(function PublisherAccordion({
   onCopyResult,
   onRollMultiple,
   onViewDetails,
+  searchQuery = '',
 }: PublisherAccordionProps) {
   const expandedPublisherId = useUIStore((state) => state.expandedPublisherId)
   const togglePublisherExpanded = useUIStore((state) => state.togglePublisherExpanded)
@@ -60,12 +63,20 @@ export const PublisherAccordion = memo(function PublisherAccordion({
   const expandedCollectionId = useUIStore((state) => state.expandedCollectionId)
   const setExpandedCollectionId = useUIStore((state) => state.setExpandedCollectionId)
   const setBrowserActiveTab = useUIStore((state) => state.setBrowserActiveTab)
+  const collapseQuickSections = useUIStore((state) => state.collapseQuickSections)
+
+  // Check if we're actively filtering
+  const isFiltering = searchQuery.trim().length > 0
 
   // Track which collection should scroll into view
   const [scrollTargetCollectionId, setScrollTargetCollectionId] = useState<string | null>(null)
 
-  // Track if we've already auto-expanded
+  // Track if we've already auto-expanded the first publisher
   const hasAutoExpanded = useRef(false)
+
+  // Track which collection we've already auto-expanded the publisher for
+  // This prevents re-expanding when user manually collapses the publisher
+  const lastAutoExpandedForCollection = useRef<string | null>(null)
 
   // Group collections by publisher
   const publisherGroups = useMemo((): PublisherGroup[] => {
@@ -133,14 +144,24 @@ export const PublisherAccordion = memo(function PublisherAccordion({
     }
   }, [publisherGroups, expandedPublisherId, setExpandedPublisherId])
 
-  // Auto-expand publisher when a collection is expanded programmatically
+  // Auto-expand publisher when a collection is expanded programmatically (e.g., URL navigation)
+  // Only runs once per collection to allow user to manually collapse the publisher
   useEffect(() => {
-    if (!expandedCollectionId) return
+    if (!expandedCollectionId) {
+      lastAutoExpandedForCollection.current = null
+      return
+    }
+
+    // Don't re-expand if we've already handled this collection
+    if (lastAutoExpandedForCollection.current === expandedCollectionId) {
+      return
+    }
 
     // Find which publisher contains this collection
     for (const group of publisherGroups) {
       const hasCollection = group.collections.some((c) => c.id === expandedCollectionId)
       if (hasCollection && expandedPublisherId !== group.id) {
+        lastAutoExpandedForCollection.current = expandedCollectionId
         setExpandedPublisherId(group.id)
         break
       }
@@ -149,9 +170,14 @@ export const PublisherAccordion = memo(function PublisherAccordion({
 
   const handleTogglePublisher = useCallback(
     (publisherId: string) => {
+      // When expanding a publisher, collapse the quick sections (Favorites/QuickAccess)
+      // to maximize space for browsing
+      if (expandedPublisherId !== publisherId) {
+        collapseQuickSections()
+      }
       togglePublisherExpanded(publisherId)
     },
-    [togglePublisherExpanded]
+    [togglePublisherExpanded, expandedPublisherId, collapseQuickSections]
   )
 
   const handleScrollComplete = useCallback(() => {
@@ -205,6 +231,7 @@ export const PublisherAccordion = memo(function PublisherAccordion({
           expandedCollectionId={expandedCollectionId}
           selectedItemId={selectedItemId}
           scrollTargetCollectionId={scrollTargetCollectionId}
+          isFiltering={isFiltering}
           onTogglePublisher={() => handleTogglePublisher(group.id)}
           onScrollComplete={handleScrollComplete}
           onSelectItem={handleSelectItem}
@@ -225,6 +252,7 @@ interface PublisherGroupProps {
   expandedCollectionId: string | null
   selectedItemId: string | null
   scrollTargetCollectionId: string | null
+  isFiltering: boolean
   onTogglePublisher: () => void
   onScrollComplete: () => void
   onSelectItem: (item: BrowserItem, collectionId: string) => void
@@ -241,6 +269,7 @@ const PublisherGroup = memo(function PublisherGroup({
   expandedCollectionId,
   selectedItemId,
   scrollTargetCollectionId,
+  isFiltering,
   onTogglePublisher,
   onScrollComplete,
   onSelectItem,
@@ -274,7 +303,7 @@ const PublisherGroup = memo(function PublisherGroup({
       <div
         className={cn(
           'flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors duration-150',
-          isExpanded ? 'bg-copper/10' : 'hover:bg-white/5'
+          isExpanded ? 'bg-copper/5' : 'hover:bg-white/5'
         )}
         onClick={onTogglePublisher}
         onKeyDown={handleKeyDown}
@@ -314,10 +343,13 @@ const PublisherGroup = memo(function PublisherGroup({
         <span
           className={cn(
             'px-2 py-0.5 rounded-full text-xs font-medium transition-colors',
+            isFiltering && 'ring-1 ring-copper/30',
             isExpanded ? 'bg-copper/20 text-copper' : 'bg-white/10 text-muted-foreground'
           )}
+          title={isFiltering ? 'Filtered results' : undefined}
         >
           {group.collections.length}
+          {isFiltering && <span className="ml-0.5 opacity-70">*</span>}
         </span>
       </div>
 

@@ -70,6 +70,8 @@ interface CollectionState {
     source: 'file' | 'zip' | 'user'
   ) => Promise<void>
   deleteCollection: (id: string) => Promise<void>
+  hideCollection: (id: string) => Promise<void>
+  restoreHiddenCollections: () => Promise<number>
   importFiles: (files: File[]) => Promise<importService.ImportResult>
   saveImportedCollections: (
     collections: importService.ImportedCollection[],
@@ -87,6 +89,7 @@ interface CollectionState {
   getUserCollections: () => CollectionMeta[]
   getAllCollections: () => CollectionMeta[]
   getVisibleCollections: () => CollectionMeta[]
+  getHiddenCollections: () => CollectionMeta[]
   getTableList: (collectionId: string) => TableInfo[]
   getTemplateList: (collectionId: string) => TemplateInfo[]
   getImportedTableList: (collectionId: string, includeHidden?: boolean) => ImportedTableInfo[]
@@ -145,9 +148,21 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
         )
       )
 
+      // Build a map of stored hidden states for preloaded collections
+      const storedHiddenMap = new Map<string, boolean>()
+      for (const stored of storedCollections) {
+        if (stored.isPreloaded && stored.hiddenFromUI !== undefined) {
+          storedHiddenMap.set(stored.id, stored.hiddenFromUI)
+        }
+      }
+
       // Load all preloaded collections into engine
+      // Use stored hidden state if available (user preference), otherwise use default
       for (const { id, document, hiddenFromUI } of preloadedCollections) {
-        get().loadCollection(id, document, true, 'preloaded', hiddenFromUI)
+        const effectiveHidden = storedHiddenMap.has(id)
+          ? storedHiddenMap.get(id)
+          : hiddenFromUI
+        get().loadCollection(id, document, true, 'preloaded', effectiveHidden)
       }
 
       // Load user collections from database (already fetched above)
@@ -239,6 +254,49 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
     const newCollections = new Map(collections)
     newCollections.delete(id)
     set({ collections: newCollections })
+  },
+
+  /**
+   * Hide a preloaded collection from the UI.
+   * The collection remains loaded in the engine for use by other collections.
+   */
+  hideCollection: async (id) => {
+    const { collections } = get()
+    const meta = collections.get(id)
+
+    if (!meta) {
+      throw new Error(`Collection not found: ${id}`)
+    }
+
+    // Update database
+    await db.setCollectionHidden(id, true)
+
+    // Update in-memory state
+    const newCollections = new Map(collections)
+    newCollections.set(id, { ...meta, hiddenFromUI: true })
+    set({ collections: newCollections })
+  },
+
+  /**
+   * Restore all hidden preloaded collections.
+   * Returns the number of collections restored.
+   */
+  restoreHiddenCollections: async () => {
+    const { collections } = get()
+
+    // Get hidden collections from database and restore them
+    const count = await db.restoreHiddenPreloadedCollections()
+
+    // Update in-memory state
+    const newCollections = new Map(collections)
+    for (const [id, meta] of newCollections) {
+      if (meta.hiddenFromUI) {
+        newCollections.set(id, { ...meta, hiddenFromUI: false })
+      }
+    }
+    set({ collections: newCollections })
+
+    return count
   },
 
   /**
@@ -347,6 +405,9 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
 
   getVisibleCollections: () =>
     Array.from(get().collections.values()).filter((c) => !c.hiddenFromUI),
+
+  getHiddenCollections: () =>
+    Array.from(get().collections.values()).filter((c) => c.hiddenFromUI),
 
   getTableList: (collectionId) => {
     try {

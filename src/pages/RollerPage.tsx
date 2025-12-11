@@ -6,8 +6,8 @@
  * Right panel: Selected item info, roll result, and history
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react'
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom'
 import { useRoller } from '@/hooks/useRoller'
 import { useCollections } from '@/hooks/useCollections'
 import { useCollectionStore } from '@/stores/collectionStore'
@@ -27,7 +27,11 @@ import { ViewDetailsModal } from '@/components/roller/ViewDetailsModal'
 export function RollerPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const initialCollectionId = searchParams.get('collection') || undefined
+  const { collectionId: urlCollectionId, tableId: urlItemId } = useParams()
+  const initialCollectionId = urlCollectionId || searchParams.get('collection') || undefined
+
+  // Track if we've already handled URL-based selection
+  const hasHandledUrlSelection = useRef(false)
 
   // Ensure collections are loaded
   useCollections()
@@ -38,17 +42,61 @@ export function RollerPage() {
   const setEditorSelectedItemId = useUIStore((state) => state.setEditorSelectedItemId)
   const setEditorLastExplicitItemId = useUIStore((state) => state.setEditorLastExplicitItemId)
 
+  // Track selected item and its collection
+  const [selectedItemState, setSelectedItemState] = useState<{
+    item: BrowserItem
+    collectionId: string
+  } | null>(null)
+
   useEffect(() => {
     if (initialCollectionId) {
       setExpandedCollectionId(initialCollectionId)
     }
   }, [initialCollectionId, setExpandedCollectionId])
 
-  // Track selected item and its collection
-  const [selectedItemState, setSelectedItemState] = useState<{
-    item: BrowserItem
-    collectionId: string
-  } | null>(null)
+  // Handle URL-based item selection (from CommandPalette or direct links)
+  useEffect(() => {
+    // Skip if no URL params or already handled
+    if (!urlCollectionId || !urlItemId || hasHandledUrlSelection.current) return
+
+    const { getTableList, getTemplateList } = useCollectionStore.getState()
+
+    // Try to find as a table first
+    const tables = getTableList(urlCollectionId)
+    const table = tables.find((t) => t.id === urlItemId)
+    if (table) {
+      const item: BrowserItem = {
+        id: table.id,
+        name: table.name,
+        type: 'table',
+        tableType: table.type,
+        description: table.description,
+        tags: table.tags,
+        hidden: table.hidden,
+        entryCount: table.entryCount,
+        resultType: table.resultType,
+      }
+      setSelectedItemState({ item, collectionId: urlCollectionId })
+      hasHandledUrlSelection.current = true
+      return
+    }
+
+    // Try as a template
+    const templates = getTemplateList(urlCollectionId)
+    const template = templates.find((t) => t.id === urlItemId)
+    if (template) {
+      const item: BrowserItem = {
+        id: template.id,
+        name: template.name,
+        type: 'template',
+        description: template.description,
+        tags: template.tags,
+        resultType: template.resultType,
+      }
+      setSelectedItemState({ item, collectionId: urlCollectionId })
+      hasHandledUrlSelection.current = true
+    }
+  }, [urlCollectionId, urlItemId])
 
   // Modal state for Roll Multiple
   const [rollMultipleModal, setRollMultipleModal] = useState<{
@@ -74,15 +122,15 @@ export function RollerPage() {
     clearHistory,
   } = useRoller(initialCollectionId)
 
-  // Get table/template info for the selected item
-  const getTableList = useCollectionStore((state) => state.getTableList)
-  const getTemplateList = useCollectionStore((state) => state.getTemplateList)
+  // Subscribe to collections Map to trigger re-renders when data changes
+  const collectionsMap = useCollectionStore((state) => state.collections)
 
-  // Build the selected item with full details
+  // Build the selected item with full details - use getState() to access functions
   const selectedItem = useMemo((): BrowserItem | null => {
     if (!selectedItemState) return null
 
     const { item, collectionId } = selectedItemState
+    const { getTableList, getTemplateList } = useCollectionStore.getState()
 
     if (item.type === 'template') {
       const templates = getTemplateList(collectionId)
@@ -114,7 +162,7 @@ export function RollerPage() {
     }
 
     return item
-  }, [selectedItemState, getTableList, getTemplateList])
+  }, [selectedItemState, collectionsMap])
 
   // Can roll if we have a selected item
   const canRoll = selectedItemState !== null
