@@ -5,7 +5,7 @@
  * Tracks variables, placeholders, recursion depth, and unique selections.
  */
 
-import type { EngineConfig, EvaluatedSets, RollResult, CaptureVariable, CaptureItem, EntryDescription } from '../types'
+import type { EngineConfig, EvaluatedSets, RollResult, CaptureVariable, CaptureItem, EntryDescription, InputValue } from '../types'
 import type { TraceContext } from './trace'
 import { createTraceContext } from './trace'
 
@@ -18,6 +18,9 @@ export interface GenerationContext {
   random?: () => number
   /** Mutable budget shared across isolated child contexts. */
   budget?: { work: number; output?: number }
+
+  /** Literal inputs, isolated by collection and fresh for each generation. */
+  inputValues?: Map<string, Record<string, InputValue>>
 
   /** Static variables (loaded from document at engine init) */
   staticVariables: Map<string, string>
@@ -53,11 +56,17 @@ export interface GenerationContext {
   /** Current table ID (for {{again}}) */
   currentTableId?: string
 
+  /** Collection owning the current reroll target (distinct from pooled entry expression ownership). */
+  currentTableCollectionId?: string
+
   /** Current entry ID (for {{again}} exclusion) */
   currentEntryId?: string
 
   /** Current entry's description (for {{@self.description}}) */
   currentEntryDescription?: string
+
+  /** Lazy description memo shared with clones of the active entry frame. */
+  currentEntryDescriptionMemo?: { value?: string; collectionId?: string }
 
   /** Current entry's raw value (for {{@self.value}}) */
   currentEntryValue?: string
@@ -98,6 +107,7 @@ export function createContext(
     random: options?.random,
     budget: { work: 0 },
     staticVariables: staticVariables ?? new Map(),
+    inputValues: new Map(),
     sharedVariables: new Map(),
     documentSharedNames: new Set(),
     placeholders: new Map(),
@@ -125,6 +135,9 @@ export function cloneContext(ctx: GenerationContext): GenerationContext {
     random: ctx.random,
     budget: ctx.budget,
     currentEntryDescription: ctx.currentEntryDescription,
+    currentEntryDescriptionMemo: ctx.currentEntryDescriptionMemo,
+    currentTableCollectionId: ctx.currentTableCollectionId,
+    inputValues: ctx.inputValues,
     staticVariables: ctx.staticVariables, // Shared reference (immutable during generation)
     sharedVariables: ctx.sharedVariables, // Shared reference - shared vars persist across nested calls
     documentSharedNames: ctx.documentSharedNames, // Shared reference (immutable after init)
@@ -180,6 +193,9 @@ export function resolveVariable(
     const captureItem = ctx.sharedVariables.get(name)
     return captureItem?.value
   }
+
+  const inputs = ctx.currentCollectionId ? ctx.inputValues?.get(ctx.currentCollectionId) : undefined
+  if (inputs && Object.prototype.hasOwnProperty.call(inputs, name)) return String(inputs[name])
 
   // Then static variables
   if (ctx.staticVariables.has(name)) {
@@ -430,7 +446,7 @@ export function hasVariableConflict(
 ): 'capture' | 'shared' | 'static' | null {
   if (ctx.captureVariables.has(name)) return 'capture'
   if (ctx.sharedVariables.has(name)) return 'shared'
-  if (ctx.staticVariables.has(name)) return 'static'
+  if (ctx.staticVariables.has(name) || (ctx.currentCollectionId && Object.prototype.hasOwnProperty.call(ctx.inputValues?.get(ctx.currentCollectionId) ?? {}, name))) return 'static'
   return null
 }
 
@@ -455,9 +471,11 @@ export function setCurrentTable(
  */
 export function setCurrentEntryDescription(
   ctx: GenerationContext,
-  description?: string
+  description?: string,
+  collectionId = ctx.currentCollectionId,
 ): void {
   ctx.currentEntryDescription = description
+  ctx.currentEntryDescriptionMemo = { collectionId }
 }
 
 /**

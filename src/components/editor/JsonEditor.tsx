@@ -21,6 +21,18 @@ interface MonacoMarker {
 
 // Import the JSON schema
 import schema from '@/../public/schemas/random-table-spec-v1.0.json'
+import schema11 from '@/../public/schemas/random-table-spec-v1.1.json'
+
+function configureSchema(version: '1.0' | '1.1'): void {
+  const activeSchema = version === '1.1' ? schema11 : schema
+  jsonDefaults.setDiagnosticsOptions({
+    validate: true,
+    schemas: [{ uri: activeSchema.$id, fileMatch: ['*'], schema: activeSchema }],
+    allowComments: false,
+    schemaValidation: 'error',
+    enableSchemaRequest: false,
+  })
+}
 
 export interface JsonEditorProps {
   /** The JSON content as a string */
@@ -57,6 +69,9 @@ export function JsonEditor({
   useEffect(() => () => markerSubscription.current?.dispose(), [])
   const monacoRef = useRef<typeof import('monaco-editor') | null>(null)
   const theme = useUIStore(state => state.theme)
+  // Keep the selected schema while a JSON edit is temporarily incomplete.
+  const schemaVersion = /"specVersion"\s*:\s*"1\.1"/.test(value) ? '1.1' : '1.0'
+  useEffect(() => configureSchema(schemaVersion), [schemaVersion])
   const [systemDark, setSystemDark] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
   )
@@ -77,19 +92,7 @@ export function JsonEditor({
 
 
     // Configure JSON language with our schema
-    jsonDefaults.setDiagnosticsOptions({
-      validate: true,
-      schemas: [
-        {
-          uri: 'https://rolldeo.com/schemas/random-table-spec-v1.0.json',
-          fileMatch: ['*'],
-          schema: schema,
-        },
-      ],
-      allowComments: false,
-      schemaValidation: 'error',
-      enableSchemaRequest: false,
-    })
+    configureSchema(schemaVersion)
 
     // Set up validation error listener
     const model = editor.getModel()
@@ -119,7 +122,7 @@ export function JsonEditor({
 
     // Focus the editor
     editor.focus()
-  }, [onValidationChange])
+  }, [onValidationChange, schemaVersion])
 
   // Handle content changes
   const handleChange: OnChange = useCallback(
@@ -141,7 +144,7 @@ export function JsonEditor({
       <div className="bg-muted px-4 py-2 text-sm font-medium border-b flex items-center justify-between">
         <span>{filename}</span>
         <span className="text-xs text-muted-foreground">
-          Random Table Spec v1.0
+          Random Table Spec v{schemaVersion}
         </span>
       </div>
       <Editor

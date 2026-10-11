@@ -18,21 +18,25 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { parseTableText, type ParsedTableResult } from '@/lib/tableParser'
+import { analyzeConversion, markConversionReviewed, getSourcePageError } from '@/lib/conversionVerification'
 import type { SimpleTable, Entry } from '@/engine/types'
 
 interface TableImportModalProps {
   isOpen: boolean
   onClose: () => void
   onImport: (table: SimpleTable) => void
+  /** IDs occupied by tables or templates in the receiving document. */
+  existingTableIds?: string[]
 }
 
 type ImportStep = 'input' | 'preview'
 
-export function TableImportModal({ isOpen, onClose, onImport }: TableImportModalProps) {
+export function TableImportModal({ isOpen, onClose, onImport, existingTableIds = [] }: TableImportModalProps) {
   const [step, setStep] = useState<ImportStep>('input')
   const [rawText, setRawText] = useState('')
   const [parseResult, setParseResult] = useState<ParsedTableResult | null>(null)
   const [editedTable, setEditedTable] = useState<SimpleTable | null>(null)
+  const [sourceReviewed, setSourceReviewed] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Reset on close
@@ -42,6 +46,7 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
       setRawText('')
       setParseResult(null)
       setEditedTable(null)
+      setSourceReviewed(false)
     }
   }, [isOpen])
 
@@ -56,23 +61,29 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
   const handleParse = useCallback(() => {
     const result = parseTableText(rawText)
     setParseResult(result)
+    setSourceReviewed(false)
     if (result.success && result.table) {
-      setEditedTable({ ...result.table })
+      let id = result.table.id
+      let suffix = 1
+      while (existingTableIds.includes(id)) id = `${result.table.id}${suffix++}`
+      setEditedTable({ ...result.table, id })
     } else {
       setEditedTable(null)
     }
     setStep('preview')
-  }, [rawText])
+  }, [rawText, existingTableIds])
 
   const handleImport = useCallback(() => {
     if (editedTable) {
-      onImport(editedTable)
+      if (analyzeConversion(editedTable).errors.length || existingTableIds.includes(editedTable.id)) return
+      onImport(sourceReviewed ? markConversionReviewed(editedTable) : editedTable)
       onClose()
     }
-  }, [editedTable, onImport, onClose])
+  }, [editedTable, sourceReviewed, existingTableIds, onImport, onClose])
 
   const handleBack = useCallback(() => {
     setStep('input')
+    setSourceReviewed(false)
     setParseResult(null)
     setEditedTable(null)
   }, [])
@@ -87,11 +98,14 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
 
       if (field === 'value') {
         entry.value = value as string
+      } else if (field === 'weight') {
+        entry.weight = value as number
       } else if (field === 'range') {
         entry.range = value as [number, number]
       }
 
       newEntries[index] = entry
+      setSourceReviewed(false)
       setEditedTable({ ...editedTable, entries: newEntries })
     },
     [editedTable]
@@ -104,6 +118,7 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
       const newEntries = [...editedTable.entries]
       const entry = { ...newEntries[index] }
       const currentRange = entry.range || [1, 1]
+      delete entry.weight
 
       if (which === 'start') {
         entry.range = [value, currentRange[1]]
@@ -112,6 +127,7 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
       }
 
       newEntries[index] = entry
+      setSourceReviewed(false)
       setEditedTable({ ...editedTable, entries: newEntries })
     },
     [editedTable]
@@ -129,6 +145,7 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
       range: [newStart, newStart],
     }
 
+    setSourceReviewed(false)
     setEditedTable({
       ...editedTable,
       entries: [...editedTable.entries, newEntry],
@@ -140,17 +157,22 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
       if (!editedTable || editedTable.entries.length <= 1) return
 
       const newEntries = editedTable.entries.filter((_, i) => i !== index)
+      setSourceReviewed(false)
       setEditedTable({ ...editedTable, entries: newEntries })
     },
     [editedTable]
   )
+
+  const collisionError = editedTable && existingTableIds.includes(editedTable.id) ? 'This ID already belongs to a table or template. Choose a unique ID before importing.' : undefined
+  const importErrors = [...(editedTable ? analyzeConversion(editedTable).errors : []), ...(collisionError ? [collisionError] : [])]
+  const updateTable = (table: SimpleTable) => { setSourceReviewed(false); setEditedTable(table) }
 
   if (!isOpen) return null
 
   return (
     <Modal onClose={onClose} aria-labelledby="table-import-title" className={cn(
       'bg-background border border-border rounded-lg shadow-xl',
-      'w-full max-w-2xl max-h-[85vh] flex flex-col animate-fade-in'
+      'w-full max-w-5xl max-h-[85vh] flex flex-col animate-fade-in'
     )}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
@@ -183,8 +205,11 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
           {step === 'preview' && (
             <PreviewStep
               result={parseResult}
+              collisionError={collisionError}
               editedTable={editedTable}
-              onUpdateTable={setEditedTable}
+              onUpdateTable={updateTable}
+              sourceReviewed={sourceReviewed}
+              onSourceReviewed={setSourceReviewed}
               onUpdateEntry={updateEntry}
               onUpdateEntryRange={updateEntryRange}
               onAddEntry={addEntry}
@@ -209,7 +234,7 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
               </button>
               <button
                 onClick={handleImport}
-                disabled={!editedTable}
+                disabled={!editedTable || importErrors.length > 0}
                 className={cn(
                   'flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium',
                   'bg-primary text-primary-foreground',
@@ -218,7 +243,7 @@ export function TableImportModal({ isOpen, onClose, onImport }: TableImportModal
                 )}
               >
                 <Check className="w-4 h-4" />
-                Import Table
+                {sourceReviewed ? 'Import Reviewed Table' : 'Import Unreviewed Table'}
               </button>
             </>
           ) : (
@@ -295,6 +320,7 @@ function InputStep({ rawText, onChange, textareaRef }: InputStepProps) {
           Supported formats
         </summary>
         <ul className="mt-2 space-y-1 text-muted-foreground pl-4 list-disc">
+          <li>NdM with optional fixed +N or -N modifier: heading, then one numbered outcome per line</li>
           <li>d6/d20 tables: heading, then one numbered outcome per line</li>
           <li>d100 with ranges: one range per line, such as "1-30 Common item"</li>
           <li>Outcomes copied out of order (will reorder by outcome number)</li>
@@ -313,6 +339,9 @@ function InputStep({ rawText, onChange, textareaRef }: InputStepProps) {
 interface PreviewStepProps {
   result: ParsedTableResult | null
   editedTable: SimpleTable | null
+  collisionError?: string
+  sourceReviewed: boolean
+  onSourceReviewed: (reviewed: boolean) => void
   onUpdateTable: (table: SimpleTable) => void
   onUpdateEntry: (
     index: number,
@@ -328,11 +357,16 @@ function PreviewStep({
   result,
   editedTable,
   onUpdateTable,
+  sourceReviewed,
+  collisionError,
+  onSourceReviewed,
   onUpdateEntry,
   onUpdateEntryRange,
   onAddEntry,
   onRemoveEntry,
 }: PreviewStepProps) {
+  const errorRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { if (result && !result.success) errorRef.current?.focus() }, [result])
   if (!result) {
     return <div className="text-sm text-muted-foreground">No results to display.</div>
   }
@@ -340,10 +374,10 @@ function PreviewStep({
   if (!result.success) {
     return (
       <div className="space-y-4">
-        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+        <div ref={errorRef} tabIndex={-1} role="alert" aria-labelledby="import-errors" className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="w-5 h-5 text-destructive" />
-            <h3 className="font-medium text-destructive">Parse Errors</h3>
+            <h3 id="import-errors" className="font-medium text-destructive">Parse Errors</h3>
           </div>
           <ul className="text-sm space-y-1 text-destructive/80">
             {result.errors.map((err, i) => (
@@ -362,23 +396,53 @@ function PreviewStep({
     return <div className="text-sm text-muted-foreground">No table to display.</div>
   }
 
+  const analysis = analyzeConversion(editedTable)
+  const sourcePageError = getSourcePageError(editedTable.source?.page)
+  const warnings = [...new Set([...result.warnings, ...analysis.issues, ...(collisionError ? [collisionError] : [])])]
+  const updateProvenance = (field: 'kind' | 'notes', value: string) => onUpdateTable({ ...editedTable, conversion: { ...editedTable.conversion!, [field]: value } })
+
   return (
     <div className="space-y-4">
       {/* Warnings */}
-      {result.warnings.length > 0 && (
-        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+      {warnings.length > 0 && (
+        <div role={analysis.errors.length || collisionError ? "alert" : "status"} className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
           <div className="flex items-center gap-2 mb-1">
             <AlertTriangle className="w-4 h-4 text-amber-500" />
             <h4 className="text-sm font-medium text-amber-500">Warnings</h4>
           </div>
           <ul className="text-xs space-y-0.5 text-amber-500/80">
-            {result.warnings.map((warning, i) => (
+            {warnings.map((warning, i) => (
               <li key={i}>{warning}</li>
             ))}
           </ul>
         </div>
       )}
 
+      <p className="text-sm text-muted-foreground">This preview checks structure and selection mechanics. Source fidelity requires your review. Imports use specification 1.1.</p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label htmlFor="import-book" className="text-sm font-medium">Source book (optional)</label>
+          <input id="import-book" value={editedTable.source?.book ?? ''} onChange={e => onUpdateTable({ ...editedTable, source: { ...editedTable.source, book: e.target.value.trim() ? e.target.value : undefined } })} className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm focus:ring-2 focus:ring-primary" />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="import-page" className="text-sm font-medium">Source page (optional)</label>
+          <input id="import-page" aria-invalid={!!sourcePageError} aria-describedby={sourcePageError ? "import-page-error" : "import-page-hint"} value={editedTable.source?.page ?? ''} onChange={e => onUpdateTable({ ...editedTable, source: { ...editedTable.source, page: e.target.value.trim() || undefined } })} className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm focus:ring-2 focus:ring-primary" />
+          <p id="import-page-hint" className="text-sm text-muted-foreground">Use a page number or range, such as 12-14.</p>
+          {sourcePageError && <p id="import-page-error" className="text-sm text-destructive">{sourcePageError}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="import-kind" className="text-sm font-medium">Interpretation</label>
+          <select id="import-kind" value={editedTable.conversion?.kind ?? 'transcription'} onChange={e => updateProvenance('kind', e.target.value)} className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm focus:ring-2 focus:ring-primary">
+            <option value="transcription">Faithful transcription</option>
+            <option value="adaptation">Mechanical adaptation</option>
+            <option value="original">Original material</option>
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="import-notes" className="text-sm font-medium">Conversion notes (optional)</label>
+          <textarea id="import-notes" value={editedTable.conversion?.notes ?? ''} onChange={e => updateProvenance('notes', e.target.value)} placeholder="Record adaptations, omitted instructions or uncertainties." className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm focus:ring-2 focus:ring-primary" />
+        </div>
+      </div>
       {/* Table Info */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
@@ -387,6 +451,8 @@ function PreviewStep({
           </label>
           <input
             id="table-id"
+            aria-invalid={!!collisionError}
+            aria-describedby={collisionError ? "import-id-error" : undefined}
             type="text"
             value={editedTable.id}
             onChange={(e) => onUpdateTable({ ...editedTable, id: e.target.value })}
@@ -396,6 +462,7 @@ function PreviewStep({
               'focus:outline-none focus:ring-2 focus:ring-primary/50'
             )}
           />
+          {collisionError && <p id="import-id-error" className="text-sm text-destructive">{collisionError}</p>}
         </div>
         <div className="space-y-1.5">
           <label htmlFor="table-name" className="text-sm font-medium">
@@ -415,6 +482,16 @@ function PreviewStep({
         </div>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <section aria-labelledby="import-original" className="min-w-0 space-y-2">
+          <h3 id="import-original" className="text-sm font-medium">Original source text</h3>
+          <pre className="whitespace-pre-wrap break-words max-h-[50vh] overflow-auto p-3 rounded-md border border-border text-sm font-mono">{editedTable.conversion?.sourceText ?? result.sourceText}</pre>
+        </section>
+        <section aria-labelledby="import-parsed" className="min-w-0 space-y-2">
+          <h3 id="import-parsed" className="text-sm font-medium">Parsed entries</h3>
+          {editedTable.selection && <div className="space-y-1"><label htmlFor="import-dice" className="text-sm font-medium">Source selection dice</label><input id="import-dice" value={editedTable.selection.dice} onChange={e => onUpdateTable({ ...editedTable, selection: { mode: 'dice', dice: e.target.value } })} className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm focus:ring-2 focus:ring-primary" /></div>}
+          <p className="text-sm">{analysis.mechanic}{analysis.domain ? `; possible totals ${analysis.domain[0]}–${analysis.domain[1]}` : ''}.</p>
+          <p className="text-sm text-muted-foreground">{analysis.errors.length ? 'Coverage or entry errors need correction before import.' : 'Structure checked. Compare every outcome and source instruction before marking reviewed.'}</p>
       {/* Entries */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -442,12 +519,13 @@ function PreviewStep({
               )}
             >
               {/* Range inputs */}
-              <div className="flex items-center gap-1 flex-shrink-0">
+              {entry.range || editedTable.selection ? <div className="flex items-center gap-1 flex-shrink-0">
                 <input
                   type="number"
+                  aria-label={`Entry ${index + 1} range start`}
                   value={entry.range?.[0] ?? index + 1}
                   onChange={(e) =>
-                    onUpdateEntryRange(index, 'start', parseInt(e.target.value) || 1)
+                    onUpdateEntryRange(index, 'start', Number(e.target.value))
                   }
                   className={cn(
                     'w-12 px-1.5 py-1 rounded border border-border bg-background',
@@ -458,9 +536,10 @@ function PreviewStep({
                 <span className="text-xs text-muted-foreground">-</span>
                 <input
                   type="number"
+                  aria-label={`Entry ${index + 1} range end`}
                   value={entry.range?.[1] ?? index + 1}
                   onChange={(e) =>
-                    onUpdateEntryRange(index, 'end', parseInt(e.target.value) || 1)
+                    onUpdateEntryRange(index, 'end', Number(e.target.value))
                   }
                   className={cn(
                     'w-12 px-1.5 py-1 rounded border border-border bg-background',
@@ -468,11 +547,12 @@ function PreviewStep({
                     'focus:outline-none focus:ring-1 focus:ring-primary/50'
                   )}
                 />
-              </div>
+              </div> : <div className="space-y-1"><label htmlFor={`import-weight-${index}`} className="text-xs">Weight</label><input id={`import-weight-${index}`} type="number" min="0" value={entry.weight ?? 1} onChange={e => onUpdateEntry(index, 'weight', Number(e.target.value))} className="w-16 px-1.5 py-1 rounded border border-border bg-background text-xs focus:ring-1 focus:ring-primary" /></div>}
 
               {/* Value input */}
               <input
                 type="text"
+                aria-label={`Entry ${index + 1} output text`}
                 value={entry.value}
                 onChange={(e) => onUpdateEntry(index, 'value', e.target.value)}
                 className={cn(
@@ -482,6 +562,7 @@ function PreviewStep({
                 )}
               />
 
+              <span className="text-xs text-muted-foreground pt-1" aria-label={`Entry ${index + 1} probability`}>{analysis.probabilities ? (analysis.probabilities[index] > 0 && analysis.probabilities[index] < 0.0001 ? '<0.01%' : `${(analysis.probabilities[index] * 100).toFixed(2)}%`) : 'Unknown'}</span>
               {/* Delete button */}
               <button
                 onClick={() => onRemoveEntry(index)}
@@ -491,7 +572,7 @@ function PreviewStep({
                   'text-muted-foreground hover:text-destructive',
                   'disabled:opacity-30 disabled:cursor-not-allowed'
                 )}
-                aria-label="Remove entry"
+                aria-label={`Remove entry ${index + 1}`}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -499,6 +580,13 @@ function PreviewStep({
           ))}
         </div>
       </div>
+        </section>
+      </div>
+      <label className="flex items-start gap-2 text-sm py-2">
+        <input type="checkbox" checked={sourceReviewed} disabled={analysis.errors.length > 0 || !!collisionError} onChange={e => onSourceReviewed(e.target.checked)} className="mt-1 focus:ring-2 focus:ring-primary" />
+        <span>I compared every entry, probability and instruction with the source and accept this interpretation. Mark this content as reviewed by me.</span>
+      </label>
+      <p className="text-sm text-muted-foreground">{sourceReviewed ? 'Reviewed applies to this exact content. Later changes require a new review.' : 'Import will retain the original text and be labeled Unreviewed. You can review it later.'}</p>
     </div>
   )
 }

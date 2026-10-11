@@ -435,6 +435,8 @@ export const useCollectionStore = create<CollectionState>()((set, get) => ({
   updateCollectionDocument: (id, document) => {
     assertValidDocument(document)
     get().engine.updateDocument(id, document)
+    // Publish successful live edits even when collection identity is unchanged.
+    set(state => ({ collections: new Map(state.collections) }))
   },
 
   // ============================================================================

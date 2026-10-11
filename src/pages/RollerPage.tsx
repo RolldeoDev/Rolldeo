@@ -23,6 +23,8 @@ import {
   ResultsPanel,
 } from '@/components/roller'
 import { RollMultipleModal } from '@/components/roller/RollMultipleModal'
+import { GeneratorInputs } from '@/components/roller/GeneratorInputs'
+import { useRollStore } from '@/stores/rollStore'
 import { ViewDetailsModal } from '@/components/roller/ViewDetailsModal'
 
 export function RollerPage() {
@@ -97,6 +99,11 @@ export function RollerPage() {
   } | null>(null)
 
   const {
+    selectedCollectionId,
+    inputValues,
+    setInputValue,
+    getInputErrors,
+    selectCollection,
     currentResult,
     currentRoll,
     currentItemName,
@@ -121,20 +128,43 @@ export function RollerPage() {
     return browserItemFromRoute(getTableList(collectionId), getTemplateList(collectionId), item.id, item.type)
   }, [selectedItemState, collectionsMap])
 
+  // Collection switches reset context values; selection stays visible while inputs are completed.
+  useEffect(() => {
+    if (selectedItemState && selectedItemState.collectionId !== selectedCollectionId) {
+      selectCollection(selectedItemState.collectionId)
+    }
+  }, [selectedItemState, selectedCollectionId, selectCollection])
+
+  const inputDefinitions = selectedItemState
+    ? useCollectionStore.getState().engine.getCollection(selectedItemState.collectionId)?.document.inputs ?? {}
+    : {}
+  const inputErrors = selectedItemState ? getInputErrors(selectedItemState.collectionId) : {}
+  const prepareInputs = useCallback((collectionId: string) => {
+    const store = useRollStore.getState()
+    if (store.selectedCollectionId !== collectionId) store.selectCollection(collectionId)
+    const errors = store.getInputErrors(collectionId)
+    if (Object.keys(errors).length) {
+      useRollStore.setState({ rollError: 'Complete the generator inputs before rolling.' })
+      return false
+    }
+    return true
+  }, [])
+
   // Can roll if we have a selected item
-  const canRoll = isInitialized && selectedItem !== null
+  const canRoll = isInitialized && selectedItem !== null && Object.keys(inputErrors).length === 0
 
   // Handle rolling
   const handleRoll = useCallback(async () => {
     if (!canRoll || isRolling || !selectedItemState) return
 
     const { item, collectionId } = selectedItemState
+    if (!prepareInputs(collectionId)) return
 
     try {
       if (item.type === 'template') await rollOnTemplate(collectionId, item.id)
       else await rollOnTable(collectionId, item.id)
     } catch { /* Store exposes the roll error. */ }
-  }, [canRoll, isRolling, selectedItemState, rollOnTable, rollOnTemplate])
+  }, [canRoll, isRolling, selectedItemState, rollOnTable, rollOnTemplate, prepareInputs])
 
   // Handle selecting an item from the browser
   const handleSelectItem = useCallback(
@@ -149,13 +179,14 @@ export function RollerPage() {
     async (item: BrowserItem, collectionId: string) => {
       // First select the item
       setSelectedItemState({ item, collectionId })
+      if (!prepareInputs(collectionId)) return
 
       try {
         if (item.type === 'template') await rollOnTemplate(collectionId, item.id)
         else await rollOnTable(collectionId, item.id)
       } catch { /* Store exposes the roll error. */ }
     },
-    [rollOnTable, rollOnTemplate]
+    [rollOnTable, rollOnTemplate, prepareInputs]
   )
 
   // Handle Edit - navigate to editor with item selected
@@ -178,6 +209,8 @@ export function RollerPage() {
       // First select the item
       setSelectedItemState({ item, collectionId })
 
+      if (!prepareInputs(collectionId)) return
+
       // Roll and get result
       let rollResult
       try {
@@ -194,15 +227,17 @@ export function RollerPage() {
         }
       }
     },
-    [rollOnTable, rollOnTemplate]
+    [rollOnTable, rollOnTemplate, prepareInputs]
   )
 
   // Handle Roll Multiple - open modal
   const handleRollMultiple = useCallback(
     (item: BrowserItem, collectionId: string) => {
+      setSelectedItemState({ item, collectionId })
+      if (!prepareInputs(collectionId)) return
       setRollMultipleModal({ item, collectionId })
     },
-    []
+    [prepareInputs]
   )
 
   // Handle View Details - open modal
@@ -253,6 +288,11 @@ export function RollerPage() {
           />
         )}
         rightPanel={
+          <div className="flex h-full min-h-0 flex-col">
+          <div className="max-h-[45vh] shrink-0 overflow-y-auto">
+            <GeneratorInputs inputs={inputDefinitions} values={selectedCollectionId === selectedItemState?.collectionId ? inputValues : {}} errors={inputErrors} onChange={setInputValue} />
+          </div>
+          <div className="min-h-0 flex-1">
           <ResultsPanel
             selectedItem={selectedItem}
             collectionId={selectedItemState?.collectionId ?? null}
@@ -260,6 +300,10 @@ export function RollerPage() {
             currentRoll={currentRoll}
             currentItemName={currentItemName}
             onReroll={async (source) => {
+              const store = useCollectionStore.getState()
+              const item = browserItemFromRoute(store.getTableList(source.collectionId), store.getTemplateList(source.collectionId), source.templateId ?? source.tableId ?? '', source.templateId ? 'template' : 'table')
+              if (item) setSelectedItemState({ item, collectionId: source.collectionId })
+              if (!prepareInputs(source.collectionId)) return
               try {
                 if (source.templateId) await rollOnTemplate(source.collectionId, source.templateId)
                 else if (source.tableId) await rollOnTable(source.collectionId, source.tableId)
@@ -274,6 +318,8 @@ export function RollerPage() {
             onDelete={deleteHistoryItem}
             onClearHistory={clearHistory}
           />
+          </div>
+          </div>
         }
       />
 
@@ -285,6 +331,7 @@ export function RollerPage() {
           onClose={() => setRollMultipleModal(null)}
           onRoll={async (count) => {
             const { item, collectionId } = rollMultipleModal
+            if (!prepareInputs(collectionId)) throw new Error('Complete the generator inputs before rolling.')
             const results: string[] = []
             for (let i = 0; i < count; i++) {
               let rollResult

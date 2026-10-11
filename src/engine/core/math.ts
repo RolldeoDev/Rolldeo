@@ -7,11 +7,14 @@
 
 import type { GenerationContext } from './context'
 import { resolveVariable, getPlaceholder, getSharedVariable } from './context'
-import { rollDice } from '../dice'
+import { DiceSyntaxError } from '../dice'
+import { rollExpressionDice } from './expressionDice'
 
 // ============================================================================
 // Types
 // ============================================================================
+
+class MathSyntaxError extends Error {}
 
 export type MathReferenceResolver = (ref: string) => string | number | undefined
 
@@ -184,7 +187,7 @@ class MathParser {
   private expect(type: TokenType): Token {
     const token = this.current()
     if (token.type !== type) {
-      throw new Error(`Expected ${type}, got ${token.type}`)
+      throw new MathSyntaxError(`Expected ${type}, got ${token.type}`)
     }
     return this.advance()
   }
@@ -200,7 +203,7 @@ class MathParser {
   parse(): number {
     const result = this.parseExpression()
     if (this.current().type !== 'EOF') {
-      throw new Error(`Unexpected token: ${this.current().value}`)
+      throw new MathSyntaxError(`Unexpected token: ${this.current().value}`)
     }
     return result
   }
@@ -286,9 +289,7 @@ class MathParser {
       }
 
       case 'DICE': {
-        const result = rollDice(token.value as string, {
-          maxExplodingDice: this.context.config.maxExplodingDice,
-        }, this.context.random)
+        const result = rollExpressionDice(token.value as string, this.context)
         return result.total
       }
 
@@ -343,7 +344,7 @@ class MathParser {
       }
 
       default:
-        throw new Error(`Unexpected token type: ${token.type}`)
+        throw new MathSyntaxError(`Unexpected token type: ${token.type}`)
     }
   }
 
@@ -374,7 +375,8 @@ class MathParser {
 /**
  * Evaluate a math expression
  *
- * @returns The evaluated number, or null if evaluation failed
+ * @returns The evaluated integer, or null for malformed expression syntax.
+ * Runtime failures (references, random sources, resource limits) propagate.
  *
  * @example
  * evaluateMath('2 + 3 * 4', context)  // 14
@@ -385,10 +387,15 @@ export function evaluateMath(expr: string, context: GenerationContext, resolveRe
   try {
     const tokens = tokenize(expr)
     const parser = new MathParser(tokens, context, resolveReference)
-    return parser.parse()
+    const result = parser.parse()
+    if (!Number.isSafeInteger(result)) throw new Error('Math result exceeds safe integer limits')
+    return result
   } catch (error) {
-    console.error(`Math evaluation error: ${expr}`, error)
-    return null
+    if (error instanceof MathSyntaxError || error instanceof DiceSyntaxError) {
+      console.error(`Math evaluation error: ${expr}`, error)
+      return null
+    }
+    throw error
   }
 }
 

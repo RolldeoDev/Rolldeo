@@ -283,7 +283,7 @@ function DistributionTabContent({ visualization }: DistributionTabContentProps) 
       {/* Distribution chart */}
       <div>
         <h3 className="text-sm font-medium mb-3">
-          {visualization.type === 'simple' && 'Entry Weight Distribution'}
+          {visualization.type === 'simple' && (visualization.selectionDice ? 'Dice Outcome Probabilities' : 'Entry Weight Distribution')}
           {visualization.type === 'composite' && 'Source Table Selection'}
           {visualization.type === 'collection' && 'Merged Table Contributions'}
         </h3>
@@ -293,6 +293,8 @@ function DistributionTabContent({ visualization }: DistributionTabContentProps) 
             entries={visualization.entries}
             truncated={visualization.truncated}
             totalEntries={visualization.totalEntries}
+            selectionDice={visualization.selectionDice}
+            probabilityUnavailable={visualization.probabilityUnavailable}
           />
         )}
 

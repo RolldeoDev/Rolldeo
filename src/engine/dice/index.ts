@@ -11,6 +11,9 @@
 
 import { randomUnit } from '../tables/weights'
 
+/** Malformed or unsupported notation, distinct from runtime/budget failures. */
+export class DiceSyntaxError extends Error {}
+
 export const MAX_DICE_COUNT = 1000
 export const MAX_EXPLODING_DICE = 1000
 
@@ -88,7 +91,7 @@ function parseDiceExpression(expression: string): ParsedDice {
   const match = cleaned.match(DICE_REGEX)
 
   if (!match) {
-    throw new Error(`Invalid dice expression: ${expression}`)
+    throw new DiceSyntaxError(`Invalid dice expression: ${expression}`)
   }
 
   const [, countStr, sidesStr, keepStr, explodingStr, modifierStr] = match
@@ -96,9 +99,11 @@ function parseDiceExpression(expression: string): ParsedDice {
   const count = parseInt(countStr, 10)
   const sides = parseInt(sidesStr, 10)
 
-  if (!Number.isSafeInteger(count) || count < 1 || count > MAX_DICE_COUNT ||
-      !Number.isSafeInteger(sides) || sides < 1) {
-    throw new Error(`Invalid dice: count must be 1-${MAX_DICE_COUNT}, and sides a positive safe integer`)
+  if (!Number.isSafeInteger(count) || count > MAX_DICE_COUNT || !Number.isSafeInteger(sides)) {
+    throw new Error(`Dice limits exceeded: count must be at most ${MAX_DICE_COUNT}, and count/sides safe integers`)
+  }
+  if (count < 1 || sides < 1) {
+    throw new DiceSyntaxError(`Invalid dice: count must be 1-${MAX_DICE_COUNT}, and sides a positive safe integer`)
   }
 
   // Parse keep modifier
@@ -112,7 +117,7 @@ function parseDiceExpression(expression: string): ParsedDice {
       const value = parseInt(valueStr, 10)
 
       if (!Number.isSafeInteger(value) || value < 1 || value > count) {
-        throw new Error(`Cannot keep ${value} dice from ${count}d${sides}`)
+        throw new DiceSyntaxError(`Cannot keep ${value} dice from ${count}d${sides}`)
       }
 
       if (type === 'l') {

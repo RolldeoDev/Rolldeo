@@ -22,8 +22,10 @@ import type {
   Assets,
   Sets,
   EvaluatedSets,
+  InputValue,
 } from '../types'
 
+import { resolveInputs, ensureCollectionInputs } from './inputs'
 import { validateDocument, type ValidationResult } from './validator'
 import {
   createContext,
@@ -111,6 +113,9 @@ export interface EngineOptions {
 }
 
 export interface RollOptions {
+  /** Literal values for declarations in the root collection. */
+  inputs?: Record<string, InputValue>
+
   /** Injectable random source; defaults to Math.random. */
   random?: () => number
 
@@ -670,6 +675,7 @@ export class RandomTableEngine {
         sourceId: tableId,
         collectionId,
         timestamp: Date.now(),
+        inputs: { ...context.inputValues?.get(collectionId) },
         entryId: result.entryId,
       },
       trace: trace ?? undefined,
@@ -737,6 +743,7 @@ export class RandomTableEngine {
         sourceId: templateId,
         collectionId,
         timestamp: Date.now(),
+        inputs: { ...context.inputValues?.get(collectionId) },
       },
       trace: trace ?? undefined,
       captures,
@@ -804,6 +811,7 @@ export class RandomTableEngine {
         sourceId: '__preview__',
         collectionId,
         timestamp: Date.now(),
+        inputs: { ...context.inputValues?.get(collectionId) },
       },
       trace: trace ?? undefined,
       captures,
@@ -838,6 +846,9 @@ export class RandomTableEngine {
       enableTrace: options?.enableTrace,
       random: options?.random,
     })
+
+    context.currentCollectionId = collection.id
+    context.inputValues!.set(collection.id, resolveInputs(collection.document.inputs, options?.inputs))
 
     // Evaluate shared variables (once per generation)
     if (collection.document.shared) {
@@ -953,6 +964,7 @@ export class RandomTableEngine {
       const entry = table.entries[i]
       const id = entry.id ?? `${table.id}${String(i).padStart(3, '0')}`
       const parentEntry = entryById.get(id)
+      if (parentEntry && !entry.id) throw new Error(`INHERITANCE_ERROR: Entry '${id}' must specify an explicit ID to override an inherited entry`)
       if (parentEntry) {
         // Merge child entry with parent entry (child properties override parent)
         entryById.set(id, this.mergeInheritedEntry(parentEntry, entry, id))
@@ -978,6 +990,7 @@ export class RandomTableEngine {
     // Create resolved table
     const resolved: SimpleTable = {
       ...table,
+      selection: table.selection ?? resolvedParent.selection,
       entries: mergedEntries,
       defaultSets: Object.keys(mergedDefaultSets).length > 0 ? mergedDefaultSets : undefined,
       extends: undefined, // Clear extends since we've resolved it
@@ -1026,6 +1039,8 @@ export class RandomTableEngine {
     const frame = {
       staticVariables: context.staticVariables,
       currentTableId: context.currentTableId,
+      currentTableCollectionId: context.currentTableCollectionId,
+      currentEntryDescriptionMemo: context.currentEntryDescriptionMemo,
       currentEntryId: context.currentEntryId,
       currentEntryDescription: context.currentEntryDescription,
       currentEntryValue: context.currentEntryValue,
@@ -1046,7 +1061,10 @@ export class RandomTableEngine {
 
     try {
       setCurrentTable(context, table.id)
+      context.currentTableCollectionId = collectionId
       setCurrentCollection(context, collectionId)
+      const owner = this.collections.get(collectionId)
+      if (owner) ensureCollectionInputs(context, owner)
       context.staticVariables = new Map(Object.entries(this.collections.get(collectionId)?.document.variables ?? {}))
 
       // Evaluate table-level shared variables (lazy evaluation)
@@ -1090,7 +1108,7 @@ export class RandomTableEngine {
     options: { unique?: boolean; excludeIds?: Set<string> }
   ): { text: string; resultType?: string; assets?: Assets; placeholders?: EvaluatedSets; entryId?: string; description?: string } {
     // Resolve inheritance before rolling
-    const resolvedTable = this.resolveTableInheritance(table, collectionId)
+    const resolvedTable = this.resolveTableInheritance(table, collectionId, 0, context.config.maxInheritanceDepth)
 
     // Selection returns its actual eligible pool, so trace includes exclusions and refills.
     const selected = rollSimpleTable(resolvedTable, context, { ...options, trackingKey: getTableIdentity(collectionId, table.id) })
@@ -1117,28 +1135,44 @@ export class RandomTableEngine {
       return { text: '' }
     }
 
-    // Get the weight of the selected entry from the pool
-    const selectedPoolEntry = pool.find(p => p.id === selected.id)
-    const selectedWeight = selectedPoolEntry?.weight ?? 1
-    const selectedProbability = getNormalizedProbabilities(pool)[pool.findIndex(p => p.id === selected.id)] ?? 0
+    if (selected.dice) {
+      const modifierMatch = selected.dice.expression.match(/([+-])(\d+)$/)
+      addTraceLeaf(context, 'dice_roll', `Dice selection: ${selected.id}`, {
+        raw: selected.dice.expression,
+        parsed: { tableId: table.id, entryId: selected.id, range: selected.entry.range },
+      }, { value: selected.dice.total }, {
+        type: 'dice',
+        expression: selected.dice.expression,
+        rolls: selected.dice.rolls,
+        kept: selected.dice.kept,
+        modifier: modifierMatch ? { operator: modifierMatch[1] as '+' | '-', value: Number(modifierMatch[2]) } : undefined,
+        exploded: false,
+        breakdown: selected.dice.breakdown,
+      })
+    } else {
+      // Get the weight of the selected entry from the pool
+      const selectedPoolEntry = pool.find(p => p.id === selected.id)
+      const selectedWeight = selectedPoolEntry?.weight ?? 1
+      const selectedProbability = getNormalizedProbabilities(pool)[pool.findIndex(p => p.id === selected.id)] ?? 0
 
-    // Add entry selection trace
-    addTraceLeaf(context, 'entry_select', `Selected: ${selected.id}`, {
-      raw: table.id,
-      parsed: { entryValue: selected.entry.value }
-    }, {
-      value: selected.entry.value,
-    }, {
-      type: 'entry_select',
-      tableId: table.id,
-      entryId: selected.id,
-      selectedWeight,
-      totalWeight,
-      probability: selectedProbability,
-      poolSize: pool.length,
-      unique: options.unique ?? false,
-      excludedIds: Array.from(selected.excludedIds),
-    } as EntrySelectMetadata)
+      // Add entry selection trace
+      addTraceLeaf(context, 'entry_select', `Selected: ${selected.id}`, {
+        raw: table.id,
+        parsed: { entryValue: selected.entry.value }
+      }, {
+        value: selected.entry.value,
+      }, {
+        type: 'entry_select',
+        tableId: table.id,
+        entryId: selected.id,
+        selectedWeight,
+        totalWeight,
+        probability: selectedProbability,
+        poolSize: pool.length,
+        unique: options.unique ?? false,
+        excludedIds: Array.from(selected.excludedIds),
+      } as EntrySelectMetadata)
+    }
 
     // Update context with entry info
     setCurrentTable(context, table.id, selected.id)
@@ -1152,22 +1186,21 @@ export class RandomTableEngine {
     // Set values containing {{patterns}} are evaluated at merge time for consistency
     let evaluatedSets: EvaluatedSets = selected.mergedSets
     if (Object.keys(selected.mergedSets).length > 0) {
-      evaluatedSets = this.evaluator.evaluateSetValues(selected.mergedSets, context, collectionId, table.id)
+      // The automatic value is evaluated once, after authored sets it may reference.
+      const { value, ...sets } = selected.mergedSets
+      evaluatedSets = this.evaluator.evaluateSetValues({ ...sets, value }, context, collectionId, table.id)
       mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
     // Evaluate the entry value (may contain expressions)
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
-    const text = this.evaluator.evaluatePattern(selected.entry.value ?? '', context, collectionId)
+    const value = evaluatedSets.value
+    const text = typeof value === 'string' ? value : value?.value ?? ''
 
     // Capture description if present
     let description: string | undefined
     if (selected.entry.description) {
-      description = this.evaluator.evaluatePattern(
-        selected.entry.description,
-        context,
-        collectionId
-      )
+      description = this.evaluator.evaluateEntryDescription(context, collectionId)
       addDescription(
         context,
         resolvedTable.name,
@@ -1205,7 +1238,7 @@ export class RandomTableEngine {
     }
     const eligibleSources = (exclusions: Set<string>) => allSources.filter(({ source }) => {
       const resolved = resolveSource(source.tableId)
-      return this.getSelectableEntryIds(resolved.table, resolved.collectionId, new Set(), context.config.maxRecursionDepth - context.recursionDepth).some(id =>
+      return this.getSelectableEntryIds(resolved.table, resolved.collectionId, new Set(), context.config.maxRecursionDepth - context.recursionDepth, context.config.maxInheritanceDepth).some(id =>
         !exclusions.has(this.compositeEntryIdentity(resolved.collectionId, resolved.table.id, id)))
     })
     let sourcePool = excluded.size || options.unique ? eligibleSources(excluded) : allSources
@@ -1232,7 +1265,7 @@ export class RandomTableEngine {
     } as CompositeSelectMetadata)
 
     const { table: sourceTable, collectionId: sourceOwner } = resolveSource(selection.source.tableId)
-    const childExclusions = excluded.size ? new Set(this.getSelectableEntryIds(sourceTable, sourceOwner, new Set(), context.config.maxRecursionDepth - context.recursionDepth).filter(id =>
+    const childExclusions = excluded.size ? new Set(this.getSelectableEntryIds(sourceTable, sourceOwner, new Set(), context.config.maxRecursionDepth - context.recursionDepth, context.config.maxInheritanceDepth).filter(id =>
       excluded.has(this.compositeEntryIdentity(sourceOwner, sourceTable.id, id)))) : undefined
     const result = this.rollTable(sourceTable, context, sourceOwner, { excludeIds: childExclusions })
     const entryId = result.entryId === undefined ? undefined : this.compositeEntryIdentity(sourceOwner, sourceTable.id, result.entryId)
@@ -1246,16 +1279,20 @@ export class RandomTableEngine {
   }
 
   /** Determine eligible source outcomes without drawing or altering generation state. */
-  private getSelectableEntryIds(table: AuthoredTable, collectionId: string, ancestors = new Set<string>(), depthBudget = this.config.maxRecursionDepth): string[] {
+  private getSelectableEntryIds(table: AuthoredTable, collectionId: string, ancestors = new Set<string>(), depthBudget = this.config.maxRecursionDepth, maxInheritanceDepth = this.config.maxInheritanceDepth): string[] {
     const key = getTableIdentity(collectionId, table.id)
     if (ancestors.size >= depthBudget) throw new Error(`Recursion limit exceeded (${this.config.maxRecursionDepth})`)
     if (ancestors.has(key)) throw new Error(`REFERENCE_ERROR: Composite source cycle involving '${table.id}'`)
-    if (table.type === 'simple') return buildWeightedPool(this.resolveTableInheritance(table, collectionId).entries, table.id).map(entry => entry.id)
+    if (table.type === 'simple') {
+      const resolved = this.resolveTableInheritance(table, collectionId, 0, maxInheritanceDepth)
+      if (resolved.selection) throw new Error(`DICE_SELECTION_ERROR: Native dice table '${table.id}' does not support unique selection or excluded entries`)
+      return buildWeightedPool(resolved.entries, table.id).map(entry => entry.id)
+    }
     if (table.type === 'collection') {
       const sources = table.collections.map(id => {
         const source = this.resolveTableRef(id, collectionId)
         if (!source || source.table.type !== 'simple') throw new Error(`REFERENCE_ERROR: Source simple table not found: ${id}`)
-        return { id, table: this.resolveTableInheritance(source.table, source.collectionId), identity: getTableIdentity(source.collectionId, source.table.id) }
+        return { id, table: this.resolveTableInheritance(source.table, source.collectionId, 0, maxInheritanceDepth), identity: getTableIdentity(source.collectionId, source.table.id) }
       })
       return mergeTableEntries(sources).entries.map(entry => entry.id)
     }
@@ -1263,7 +1300,7 @@ export class RandomTableEngine {
     return buildSourcePool(table.sources).flatMap(({ source }) => {
       const resolved = this.resolveTableRef(source.tableId, collectionId)
       if (!resolved) throw new Error(`REFERENCE_ERROR: Source table not found: ${source.tableId}`)
-      return this.getSelectableEntryIds(resolved.table, resolved.collectionId, visited, depthBudget).map(id =>
+      return this.getSelectableEntryIds(resolved.table, resolved.collectionId, visited, depthBudget, maxInheritanceDepth).map(id =>
         this.compositeEntryIdentity(resolved.collectionId, resolved.table.id, id))
     })
   }
@@ -1280,7 +1317,7 @@ export class RandomTableEngine {
       for (const id of ids) {
         const resolved = this.resolveTableRef(id, collectionId)
         if (!resolved || resolved.table.type !== 'simple') throw new Error(`REFERENCE_ERROR: Source simple table not found: ${id}`)
-        result.push({ id, table: this.resolveTableInheritance(resolved.table, resolved.collectionId), identity: getTableIdentity(resolved.collectionId, resolved.table.id) })
+        result.push({ id, table: this.resolveTableInheritance(resolved.table, resolved.collectionId, 0, context.config.maxInheritanceDepth), identity: getTableIdentity(resolved.collectionId, resolved.table.id) })
       }
       return result
     }
@@ -1334,13 +1371,14 @@ export class RandomTableEngine {
 
     // Store description and raw value in context for {{@self.description}} and {{@self.value}} access
     // Must be set BEFORE evaluating sets so they can reference these values
-    setCurrentEntryDescription(context, selected.entry.description)
-    setCurrentEntryValue(context, selected.entry.value)
-
     const sourceResolved = this.resolveTableRef(selected.sourceTableId, collectionId)!
     const sourceOwnerId = sourceResolved.collectionId
+    setCurrentEntryDescription(context, selected.entry.description, sourceOwnerId)
+    setCurrentEntryValue(context, selected.entry.value)
     const sourceTable = sourceTables.find(source => source.id === selected.sourceTableId)!.table
     setCurrentCollection(context, sourceOwnerId)
+    const sourceOwner = this.collections.get(sourceOwnerId)
+    if (sourceOwner) ensureCollectionInputs(context, sourceOwner)
     context.staticVariables = new Map(Object.entries(this.collections.get(sourceOwnerId)?.document.variables ?? {}))
 
     // Source-local shared definitions inherit active parent bindings and expire with this invocation.
@@ -1350,13 +1388,15 @@ export class RandomTableEngine {
     // Set values containing {{patterns}} are evaluated at merge time for consistency
     let evaluatedSets: EvaluatedSets = selected.mergedSets
     if (Object.keys(selected.mergedSets).length > 0) {
-      evaluatedSets = this.evaluator.evaluateSetValues(selected.mergedSets, context, sourceOwnerId, table.id)
+      const { value, ...sets } = selected.mergedSets
+      evaluatedSets = this.evaluator.evaluateSetValues({ ...sets, value }, context, sourceOwnerId, table.id)
       mergePlaceholderSets(context, table.id, evaluatedSets)
     }
 
     // Evaluate the entry value
     // Fallback to empty string if value is undefined (shouldn't happen with proper inheritance)
-    const text = this.evaluator.evaluatePattern(selected.entry.value ?? '', context, sourceOwnerId)
+    const value = evaluatedSets.value
+    const text = typeof value === 'string' ? value : value?.value ?? ''
 
     // Capture description if present
     let description: string | undefined
@@ -1364,11 +1404,7 @@ export class RandomTableEngine {
       // Get source table name for attribution
       const tableName = sourceTable.name
 
-      description = this.evaluator.evaluatePattern(
-        selected.entry.description,
-        context,
-        sourceOwnerId
-      )
+      description = this.evaluator.evaluateEntryDescription(context, sourceOwnerId)
       addDescription(
         context,
         tableName,

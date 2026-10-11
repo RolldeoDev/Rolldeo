@@ -178,6 +178,23 @@ export function MetadataEditor({
         </FormField>
 
         <FormField
+          label="Specification version"
+          required
+          description="1.1 adds source dice, conversion review, and generator inputs. Existing 1.0 files keep their behavior."
+          error={errors.specVersion}
+        >
+          <select
+            aria-label="Specification version"
+            value={value.specVersion}
+            onChange={(e) => updateField('specVersion', e.target.value as Metadata['specVersion'])}
+            className="w-full p-3 md:p-2 border rounded-xl md:rounded-md bg-background text-base md:text-sm min-h-[48px] md:min-h-0"
+          >
+            <option value="1.1">1.1 — source conversion and inputs</option>
+            <option value="1.0">1.0 — existing text generators</option>
+          </select>
+        </FormField>
+
+        <FormField
           label="Author"
           description="Your name or organization"
         >

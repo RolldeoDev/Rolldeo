@@ -7,7 +7,8 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { RollResult } from '../engine/types'
+import { InputError, resolveInputs } from '../engine/core/inputs'
+import type { InputValue, RollResult } from '../engine/types'
 import { useCollectionStore } from './collectionStore'
 import { useUsageStore } from './usageStore'
 import * as db from '../services/db'
@@ -22,6 +23,11 @@ interface RollState {
   selectedCollectionId: string | null
   selectedTableId: string | null
   selectedTemplateId: string | null
+
+  inputValues: Record<string, InputValue>
+  setInputValue: (name: string, value: InputValue | undefined) => void
+  getInputErrors: (collectionId: string) => Record<string, string>
+  reconcileInputs: () => void
 
   // Roll state
   currentResult: RollResult | null
@@ -89,9 +95,10 @@ export const useRollStore = create<RollState>()(
           const name = type === 'table'
             ? engine.listTables(collectionId, true).find(item => item.id === itemId)?.name
             : engine.listTemplates(collectionId).find(item => item.id === itemId)?.name
+          const inputs = collectionId === get().selectedCollectionId ? get().inputValues : {}
           const result = type === 'table'
-            ? engine.roll(itemId, collectionId, { enableTrace: get().traceEnabled })
-            : engine.rollTemplate(itemId, collectionId, { enableTrace: get().traceEnabled })
+            ? engine.roll(itemId, collectionId, { enableTrace: get().traceEnabled, inputs })
+            : engine.rollTemplate(itemId, collectionId, { enableTrace: get().traceEnabled, inputs })
           const record: StoredRoll = { result, collectionId, pinned: false, timestamp: Date.now(),
             ...(type === 'table' ? { tableId: itemId } : { templateId: itemId }) }
           set({ currentResult: result, currentRoll: record, currentItemName: name || itemId })
@@ -116,6 +123,29 @@ export const useRollStore = create<RollState>()(
       selectedCollectionId: null,
       selectedTableId: null,
       selectedTemplateId: null,
+      inputValues: {},
+      setInputValue: (name, value) => {
+        const next = { ...get().inputValues }
+        if (value === undefined) delete next[name]
+        else next[name] = value
+        set({ inputValues: next, rollError: null })
+      },
+      reconcileInputs: () => {
+        const { selectedCollectionId, inputValues } = get()
+        const definitions = selectedCollectionId
+          ? useCollectionStore.getState().engine.getCollection(selectedCollectionId)?.document.inputs ?? {}
+          : {}
+        const retained = Object.fromEntries(Object.entries(inputValues).filter(([name]) => Object.prototype.hasOwnProperty.call(definitions, name)))
+        if (Object.keys(retained).length !== Object.keys(inputValues).length) set({ inputValues: retained, rollError: null })
+      },
+      getInputErrors: (collectionId) => {
+        try {
+          resolveInputs(useCollectionStore.getState().engine.getCollection(collectionId)?.document.inputs, collectionId === get().selectedCollectionId ? get().inputValues : {})
+          return {}
+        } catch (error) {
+          return error instanceof InputError ? error.errors : { inputs: String(error) }
+        }
+      },
       currentResult: null,
       currentRoll: null,
       currentItemName: null,
@@ -131,8 +161,10 @@ export const useRollStore = create<RollState>()(
       // ========================================================================
 
       selectCollection: (id) => {
+        if (id === get().selectedCollectionId) get().reconcileInputs()
         set({
           selectedCollectionId: id,
+          inputValues: id === get().selectedCollectionId ? get().inputValues : {},
           selectedTableId: null,
           selectedTemplateId: null,
           rollError: null,
@@ -273,6 +305,16 @@ export const useRollStore = create<RollState>()(
     }
   )
 )
+
+// Editing or re-importing the selected collection can remove or rename declarations.
+// Reconcile UI-owned values when the collection store publishes its new document;
+// the engine API continues to reject unknown explicitly supplied keys.
+const stopInputReconciliation = useCollectionStore.subscribe((state, previous) => {
+  if (state.collections !== previous.collections || state.engine !== previous.engine) {
+    useRollStore.getState().reconcileInputs()
+  }
+})
+if (import.meta.hot) import.meta.hot.dispose(stopInputReconciliation)
 
 // ============================================================================
 // Utility Functions

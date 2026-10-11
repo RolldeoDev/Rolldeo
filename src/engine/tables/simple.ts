@@ -7,8 +7,10 @@
 
 import type { SimpleTable, Entry, Sets, Assets } from '../types'
 import type { GenerationContext } from '../core/context'
-import { getUsedEntries, markEntryUsed } from '../core/context'
-import { getWeight, getFiniteWeightTotal, getNormalizedProbabilities, selectWeighted } from './weights'
+import { consumeWork, getUsedEntries, markEntryUsed } from '../core/context'
+import { assertWeightedRanges, getWeight, getFiniteWeightTotal, getNormalizedProbabilities, selectWeighted } from './weights'
+import { getDiceEntryProbabilities, parseSelectionDice, rollDiceSelection, validateDiceSelection } from './diceSelection'
+import type { DiceResult } from '../dice'
 
 // ============================================================================
 // Types
@@ -32,6 +34,8 @@ export interface SelectedEntry {
   /** Actual eligible pool used for this draw, including cycle refills. */
   selectionPool: WeightedEntry[]
   excludedIds: Set<string>
+  /** Actual dice used for literal dice selection; absent for weighted selection. */
+  dice?: DiceResult
 }
 
 // ============================================================================
@@ -119,6 +123,25 @@ export function rollSimpleTable(
   context: GenerationContext,
   options: RollOptions = {}
 ): SelectedEntry | null {
+  if (table.selection) {
+    if (options.unique || options.excludeIds?.size) {
+      throw new Error(`DICE_SELECTION_ERROR: Native dice table '${table.id}' does not support unique selection or excluded entries`)
+    }
+    consumeWork(context, parseSelectionDice(table.selection.dice).count)
+    const { entryIndex, dice } = rollDiceSelection(table, context.random)
+    const entry = table.entries[entryIndex]
+    return {
+      entry,
+      id: entry.id ?? `${table.id}${String(entryIndex).padStart(3, '0')}`,
+      mergedSets: { ...(table.defaultSets ?? {}), ...(entry.sets ?? {}), value: entry.value },
+      assets: entry.assets,
+      resultType: entry.resultType ?? table.resultType,
+      selectionPool: [], // No weighted draw occurred. Native trace records the dice instead.
+      excludedIds: new Set(),
+      dice,
+    }
+  }
+  assertWeightedRanges(table.entries, table.id)
   const trackingKey = options.trackingKey ?? table.id
   // Get excluded IDs
   const excludeIds = new Set<string>()
@@ -210,6 +233,18 @@ export interface EntryProbability {
 }
 
 export function getTableProbabilities(table: SimpleTable): EntryProbability[] {
+  if (table.selection) {
+    const probabilities = getDiceEntryProbabilities(table)
+    if (!probabilities) return [] // Exact calculation unavailable; never show range-width odds.
+    return table.entries.map((entry, index) => ({
+      id: entry.id ?? `${table.id}${String(index).padStart(3, '0')}`,
+      value: entry.value,
+      weight: probabilities[index],
+      probability: probabilities[index],
+      percentage: `${(probabilities[index] * 100).toFixed(2)}%`,
+    }))
+  }
+  assertWeightedRanges(table.entries, table.id)
   const pool = buildWeightedPool(table.entries, table.id)
   const probabilities = getNormalizedProbabilities(pool)
 
@@ -236,6 +271,7 @@ export interface ValidationIssue {
 
 export function validateSimpleTable(table: SimpleTable): ValidationIssue[] {
   const issues: ValidationIssue[] = []
+  issues.push(...validateDiceSelection(table))
   const seenIds = new Set<string>()
 
   for (let i = 0; i < table.entries.length; i++) {
@@ -262,11 +298,11 @@ export function validateSimpleTable(table: SimpleTable): ValidationIssue[] {
     }
 
     // Check for invalid range
-    if (entry.range) {
+    if (entry.range && !table.selection) {
       if (getWeight({ range: entry.range }) === 0) {
         issues.push({
           type: 'error',
-          message: 'Invalid range: endpoints and inclusive width must be safe integers in ascending order',
+          message: 'Invalid range: endpoints must be nonnegative safe integers in ascending order with a safe integer inclusive width',
           entryId: id,
         })
       }
@@ -292,7 +328,7 @@ export function validateSimpleTable(table: SimpleTable): ValidationIssue[] {
   }
 
   // Check if all entries have zero weight
-  const pool = buildWeightedPool(table.entries, table.id)
+  const pool = table.selection ? table.entries : buildWeightedPool(table.entries, table.id)
   if (pool.length === 0 && table.entries.length > 0) {
     issues.push({
       type: 'error',

@@ -8,7 +8,10 @@ import { GuideLayout, DownloadButton } from '@/components/guide'
 import { SEO } from '@/components/common'
 import { PAGE_SEO } from '@/lib/seo'
 import { Github, Scale } from 'lucide-react'
-import specMd from '@/../docs/randomTableSpecV1.md?raw'
+import baseSpecMd from '@/../docs/randomTableSpecV1.md?raw'
+import spec11Md from '@/../docs/randomTableSpecV1_1.md?raw'
+
+const specMd = `${spec11Md}\n\n${baseSpecMd}`
 
 export function SpecPage() {
   return (
@@ -25,7 +28,7 @@ export function SpecPage() {
             </p>
           </div>
           <DownloadButton
-            filename="randomTableSpecV1.md"
+            filename="randomTableSpecV1_1.md"
             content={specMd}
             mimeType="text/markdown"
             label="Download Markdown"

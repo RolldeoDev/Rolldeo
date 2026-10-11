@@ -26,7 +26,7 @@ type ComparisonOperator = '==' | '!=' | '>' | '<' | '>=' | '<=' | 'contains' | '
 
 type ConditionOperator = ComparisonOperator | '&&' | '||' | '!' | '(' | ')'
 type ConditionToken =
-  | { kind: 'value'; value: string; quoted: boolean }
+  | { kind: 'value'; value: string; quoted: boolean; interpolated?: boolean }
   | { kind: 'operator'; value: ConditionOperator }
 
 class ConditionSyntaxError extends Error {}
@@ -215,10 +215,22 @@ function compare(
 export function evaluateWhenClause(
   when: string,
   context: GenerationContext,
-  resolveReference?: ConditionReferenceResolver
+  resolveReference?: ConditionReferenceResolver,
+  interpolations?: ReadonlyMap<string, string>,
 ): boolean {
   try {
     const tokens = tokenize(when)
+    // Tokenize authored syntax first. Insert evaluated operands as data so their
+    // quotes, operators, and reference-like text cannot change the expression.
+    for (const token of tokens) {
+      if (token.kind !== 'value') continue
+      for (const [marker, value] of interpolations ?? []) {
+        if (token.value.includes(marker)) {
+          token.value = token.value.split(marker).join(value)
+          token.interpolated = true
+        }
+      }
+    }
     if (tokens.length === 0) return false
     return new ConditionParser(tokens, context, resolveReference).parse()
   } catch (error) {
@@ -313,6 +325,11 @@ class ConditionParser {
 
   private resolve(token: Extract<ConditionToken, { kind: 'value' }>): string | number | undefined {
     if (token.quoted) return token.value
+    if (token.interpolated) {
+      const number = Number(token.value)
+      return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(token.value) && Number.isFinite(number)
+        ? number : token.value
+    }
     if (this.resolveReference && (token.value.startsWith('$') || token.value.startsWith('@'))) {
       return this.resolveReference(token.value)
     }

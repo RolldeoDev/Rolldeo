@@ -13,6 +13,8 @@ import type { WeightedEntry, SourceDistribution, CollectionSource } from '@/hook
 // ============================================================================
 
 interface WeightedEntryChartProps {
+  selectionDice?: string
+  probabilityUnavailable?: string
   entries: WeightedEntry[]
   truncated: boolean
   totalEntries: number
@@ -23,11 +25,13 @@ export const WeightedEntryChart = memo(function WeightedEntryChart({
   entries,
   truncated,
   totalEntries,
+  selectionDice,
+  probabilityUnavailable,
 }: WeightedEntryChartProps) {
   if (entries.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground text-sm">
-        No entries to display
+        {probabilityUnavailable ?? 'No entries to display'}
       </div>
     )
   }
@@ -59,9 +63,9 @@ export const WeightedEntryChart = memo(function WeightedEntryChart({
             </span>
 
             {/* Weight badge */}
-            <span className="w-10 text-xs text-right text-muted-foreground/60 tabular-nums">
+            {!selectionDice && <span className="w-10 text-xs text-right text-muted-foreground/60 tabular-nums">
               w:{entry.weight}
-            </span>
+            </span>}
           </div>
         </div>
       ))}

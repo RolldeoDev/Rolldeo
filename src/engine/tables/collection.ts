@@ -9,7 +9,7 @@ import type { CollectionTable, SimpleTable } from '../types'
 import type { GenerationContext } from '../core/context'
 import { buildWeightedPool, type WeightedEntry, type SelectedEntry } from './simple'
 import { getUsedEntries, markEntryUsed } from '../core/context'
-import { getFiniteWeightTotal, getNormalizedProbabilities, selectWeighted } from './weights'
+import { assertWeightedRanges, getFiniteWeightTotal, getNormalizedProbabilities, selectWeighted } from './weights'
 
 // ============================================================================
 // Types
@@ -49,6 +49,10 @@ export function mergeTableEntries(
 
   const seenSources = new Set<string>()
   for (const { id: sourceTableId, table, identity } of tables) {
+    if (table.selection) {
+      throw new Error(`DICE_SELECTION_ERROR: Native dice table '${sourceTableId}' cannot be pooled into a collection; use a composite source instead`)
+    }
+    assertWeightedRanges(table.entries, sourceTableId)
     if (identity && seenSources.has(identity)) continue
     if (identity) seenSources.add(identity)
     // Build weighted pool for this table

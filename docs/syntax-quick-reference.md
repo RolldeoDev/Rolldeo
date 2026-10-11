@@ -272,3 +272,15 @@ Invocation shared scopes inherit caller values, close on return, and evaluate in
 Dice modifiers run in this order: append exploding faces, keep high/low from all individual faces, sum, apply numeric modifier. With faces `[6, 4]`, `1d6kh1!` returns `6`. `maxExplodingDice` accepts `0`–`1000`.
 
 Conditions support the same reference paths as interpolation, including `$items.count`, `$items[0].@hp`, deep captured properties and qualified static variables. Separators decode `\"` as a quote and `\\` as one backslash; other backslash sequences remain literal. Apply JSON escaping separately.
+
+
+## Specification 1.1 Additions
+
+Set `metadata.specVersion` to `"1.1"` for these fields. Existing 1.0 files remain valid with their original behavior.
+
+- Source dice: `"selection": { "mode": "dice", "dice": "2d6" }` on a simple table; complete non-overlapping ranges are total lookups, not width weights. Fixed integer modifiers supported; unique/exclusions and collection pooling are unsupported.
+- Inputs: root `inputs` declarations use `text`, `integer`, `choice` or `boolean`, optional defaults and `required`; integer bounds and choice options validated. Access with `{{$name}}`; supplied strings are literal.
+- Conversion: table `conversion.kind` is `transcription`, `adaptation`, or `original`; optional `sourceText`/`notes` retain evidence. `reviewedContent`/`reviewedAt` record an explicit human check; edits invalidate the snapshot.
+- Positive D&D ability modifier: `{{math:$abilityScore / 2 - 5}}`. Division continues to truncate toward zero.
+
+See [the v1.1 contract](./randomTableSpecV1_1.md) and use the matching `random-table-spec-v1.1.json` schema.

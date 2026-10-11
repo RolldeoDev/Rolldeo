@@ -17,6 +17,12 @@ export const TableStatsCard = memo(function TableStatsCard({
   stats,
   tableType,
 }: TableStatsCardProps) {
+  if (stats.selectionDice) {
+    return <div className="flex gap-6 p-3 bg-muted/30 rounded-lg border border-border/30 text-sm">
+      <span>{stats.entryCount} entries</span>
+      <span>Roll {stats.selectionDice} and look up the total</span>
+    </div>
+  }
   const statItems = [
     {
       icon: Hash,

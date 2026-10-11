@@ -4,7 +4,7 @@
  * Visual editor for tables (simple, composite, collection).
  */
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo, useId } from 'react'
 import {
   Plus,
   Trash2,
@@ -16,7 +16,11 @@ import {
 } from 'lucide-react'
 import { createSessionItemKeys } from './draftState'
 import { cn } from '@/lib/utils'
+import { getConversionReviewStatus } from '@/lib/conversionVerification'
+import { validateDiceSelection } from '@/engine/tables/diceSelection'
 import { EntryEditor } from './EntryEditor'
+import { AdvancedSettings, TagsField } from './AdvancedSettings'
+import { ConversionReviewPanel } from './ConversionReviewPanel'
 import { KeyValueEditor } from './KeyValueEditor'
 import { ResultTypeSelector } from './ResultTypeSelector'
 import { SortableList } from './SortableList'
@@ -69,6 +73,8 @@ export interface TableEditorProps {
   tableMap?: Map<string, import('@/engine/types').Table>
   /** Full template data for property lookups (keyed by template ID) */
   templateMap?: Map<string, Template>
+  /** Used to explain automatic promotion when source dice are selected. */
+  specVersion?: '1.0' | '1.1'
   /** Document-level shared variables for autocomplete */
   sharedVariables?: Record<string, string>
 }
@@ -91,9 +97,21 @@ export function TableEditor({
   tableMap,
   templateMap,
   sharedVariables,
+  specVersion = '1.0',
 }: TableEditorProps) {
+  const fieldId = useId()
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const prevDefaultExpandedRef = useRef(defaultExpanded)
+  const reviewSectionRef = useRef<HTMLDivElement>(null)
+
+  // The workspace map includes resolved qualified parents from the current
+  // draft. Resolve the selected parent directly; a resolved child may describe
+  // an earlier inheritance or explicit-selection revision during editing.
+  const parentTable = table.extends ? tableMap?.get(table.extends) : undefined
+  const inheritedSelection = parentTable?.type === 'simple' ? parentTable.selection : undefined
+  const selection = table.type === 'simple' ? table.selection ?? inheritedSelection : undefined
+  const conversionStatus = getConversionReviewStatus(table)
+  const diceIssues = table.type === 'simple' && !table.extends ? validateDiceSelection(table) : []
 
   // Real-time ID uniqueness validation
   const idError = useMemo(() => {
@@ -211,6 +229,7 @@ export function TableEditor({
         shared: table.shared,
         source: table.source,
         resultType: table.resultType,
+        conversion: table.conversion,
       }
 
       let newTable: Table
@@ -263,6 +282,22 @@ export function TableEditor({
             <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               {table.type}
             </span>
+            {conversionStatus !== 'none' && <button type="button" className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-accent"
+              onClick={event => {
+                event.stopPropagation()
+                setIsExpanded(true)
+                onExpandChange?.(true)
+                setTimeout(() => {
+                  const section = reviewSectionRef.current
+                  const disclosure = section?.querySelector('details')
+                  if (disclosure) disclosure.open = true
+                  section?.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+                  disclosure?.querySelector('summary')?.focus()
+                }, 0)
+              }}
+              title={conversionStatus === 'reviewed' ? 'A human reviewed this exact table against its source. Open source review.' : conversionStatus === 'stale' ? 'The table changed after its source review. Open source review.' : 'This conversion has not been reviewed against its source. Open source review.'}>
+              {conversionStatus === 'reviewed' ? 'Source reviewed' : 'Needs source review'}
+            </button>}
             {table.hidden && (
               <span title="Hidden">
                 <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -290,27 +325,10 @@ export function TableEditor({
         <div className="p-4 space-y-5 mobile-form-container">
           {/* Basic Info */}
           <div className="editor-field-group">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
               <div>
-                <label className="editor-label editor-label-required">Table ID</label>
-                <input
-                  type="text"
-                  value={table.id}
-                  onChange={(e) => updateField('id', e.target.value)}
-                  placeholder="uniqueTableId"
-                  className={cn(
-                    "editor-input text-base md:text-sm min-h-[48px] md:min-h-0",
-                    idError && "border-destructive focus:ring-destructive"
-                  )}
-                />
-                {idError && (
-                  <p className="text-xs text-destructive mt-1">{idError}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="editor-label editor-label-required">Name</label>
-                <input
+                <label htmlFor={`${fieldId}-name`} className="editor-label editor-label-required">Name</label>
+                <input id={`${fieldId}-name`}
                   type="text"
                   value={table.name}
                   onChange={(e) => updateField('name', e.target.value)}
@@ -320,8 +338,8 @@ export function TableEditor({
               </div>
 
               <div>
-                <label className="editor-label">Type</label>
-                <select
+                <label htmlFor={`${fieldId}-type`} className="editor-label">Type</label>
+                <select id={`${fieldId}-type`}
                   value={table.type}
                   onChange={(e) =>
                     changeTableType(
@@ -330,26 +348,17 @@ export function TableEditor({
                   }
                   className="editor-select text-base md:text-sm min-h-[48px] md:min-h-0"
                 >
-                  <option value="simple">Simple (Weighted Entries)</option>
+                  <option value="simple">Simple (Choose an Entry)</option>
                   <option value="composite">Composite (Select Table)</option>
                   <option value="collection">Collection (Merge Tables)</option>
                 </select>
-              </div>
-
-              <div>
-                <label className="editor-label">Result Type</label>
-                <ResultTypeSelector
-                  value={table.resultType}
-                  onChange={(value) => updateField('resultType', value)}
-                  placeholder="Select or enter type..."
-                />
               </div>
             </div>
 
             {/* Description */}
             <div className="mt-4">
-              <label className="editor-label">Description</label>
-              <textarea
+              <label htmlFor={`${fieldId}-description`} className="editor-label">Description</label>
+              <textarea id={`${fieldId}-description`}
                 value={table.description || ''}
                 onChange={(e) => updateField('description', e.target.value || undefined)}
                 placeholder="Table description (Markdown supported)"
@@ -359,186 +368,47 @@ export function TableEditor({
             </div>
           </div>
 
-          {/* Options Row */}
-          <div className="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center">
-            <label className="flex items-center gap-3 md:gap-2 text-base md:text-sm p-3 md:p-2 editor-entry-row md:border-0 md:bg-transparent w-full md:w-auto cursor-pointer">
-              <input
-                type="checkbox"
-                checked={table.hidden || false}
-                onChange={(e) => updateField('hidden', e.target.checked || undefined)}
-                className="rounded border-border w-5 h-5 md:w-4 md:h-4 accent-primary"
-              />
-              <span className="flex items-center gap-2 md:gap-1">
-                {table.hidden ? <EyeOff className="h-5 w-5 md:h-4 md:w-4" /> : <Eye className="h-5 w-5 md:h-4 md:w-4" />}
-                Hidden from UI
-              </span>
-            </label>
-
-            {table.type === 'simple' && (
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-2 w-full md:w-auto">
-                <label className="editor-label md:mb-0">Extends:</label>
-                <select
-                  value={table.extends || ''}
-                  onChange={(e) => updateField('extends', e.target.value || undefined)}
-                  className="editor-select w-full md:w-auto text-base md:text-sm min-h-[48px] md:min-h-0"
-                >
-                  <option value="">None</option>
-                  {availableTableIds
-                    .filter((id) => id !== table.id)
-                    .map((id) => (
-                      <option key={id} value={id}>
-                        {id}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            )}
-          </div>
-
-          {/* Shared Variables / Default Sets (collapsible with tabs) */}
-          <details className="editor-collapsible">
-            <summary>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">Shared Variables / Default Sets</span>
-                {sharedCount > 0 && (
-                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-rose/15 text-rose">
-                    {sharedCount}
-                  </span>
-                )}
-                {defaultSetsCount > 0 && (
-                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-mint/15 text-mint">
-                    {defaultSetsCount}
-                  </span>
-                )}
-                {sharedCount === 0 && defaultSetsCount === 0 && (
-                  <span className="text-xs text-muted-foreground">(optional)</span>
-                )}
-                <div className="group relative">
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                  <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 text-xs bg-popover border rounded-md shadow-lg">
-                    Shared Variables are evaluated lazily when rolled and propagate to nested tables.
-                    Default Sets provide default placeholder values for all entries in this table.
-                  </div>
-                </div>
-              </div>
-            </summary>
-            <div className="editor-collapsible-content space-y-3">
-              {/* Mini Tab Bar */}
-              <div className="flex border-b border-border/50" role="tablist">
-                <button
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors',
-                    'border-b-2 -mb-px',
-                    sharedSetsTab === 'shared'
-                      ? 'text-rose border-rose'
-                      : 'text-muted-foreground border-transparent hover:text-foreground/80'
-                  )}
-                  onClick={() => setSharedSetsTab('shared')}
-                  role="tab"
-                  aria-selected={sharedSetsTab === 'shared'}
-                >
-                  <span>Shared Variables</span>
-                  {sharedCount > 0 && (
-                    <span className={cn(
-                      'px-1.5 py-0.5 text-xs rounded-full',
-                      sharedSetsTab === 'shared' ? 'bg-rose/15 text-rose' : 'bg-muted text-muted-foreground'
-                    )}>
-                      {sharedCount}
-                    </span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors',
-                    'border-b-2 -mb-px',
-                    sharedSetsTab === 'defaultSets'
-                      ? 'text-mint border-mint'
-                      : 'text-muted-foreground border-transparent hover:text-foreground/80'
-                  )}
-                  onClick={() => setSharedSetsTab('defaultSets')}
-                  role="tab"
-                  aria-selected={sharedSetsTab === 'defaultSets'}
-                >
-                  <span>Default Sets</span>
-                  {defaultSetsCount > 0 && (
-                    <span className={cn(
-                      'px-1.5 py-0.5 text-xs rounded-full',
-                      sharedSetsTab === 'defaultSets' ? 'bg-mint/15 text-mint' : 'bg-muted text-muted-foreground'
-                    )}>
-                      {defaultSetsCount}
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              {/* Tab Content: Shared Variables */}
-              {sharedSetsTab === 'shared' && (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Variables evaluated when this table is rolled. Available to nested table references.
+          {table.type === 'simple' && (
+            <div className="editor-field-group space-y-3">
+              <label htmlFor={`${fieldId}-selection`} className="editor-label">How to choose a result</label>
+              <select id={`${fieldId}-selection`} className="editor-select" value={table.selection ? 'dice' : inheritedSelection ? 'inherited' : 'weighted'}
+                onChange={event => {
+                  if (event.target.value === 'dice') onChange({ ...table, selection: { mode: 'dice', dice: selection?.dice || '1d6' } })
+                  else {
+                    const updated = { ...table }
+                    delete updated.selection
+                    onChange(updated)
+                  }
+                }}>
+                <option value="weighted" disabled={!!inheritedSelection}>Weighted entries (default)</option>
+                <option value="dice">Source dice (roll and look up the total)</option>
+                {table.extends && parentTable?.type === 'simple' && <option value="inherited">Inherit parent selection{inheritedSelection ? ` (${inheritedSelection.dice})` : ' (weighted)'}</option>}
+              </select>
+              {specVersion === '1.0' && <p className="text-sm text-muted-foreground">Source dice uses spec 1.1. Selecting it upgrades this collection to 1.1.</p>}
+              {selection && (
+                <>
+                  <label htmlFor={`${fieldId}-dice`} className="editor-label">Source dice formula</label>
+                  <input id={`${fieldId}-dice`} className="editor-input" value={selection.dice}
+                    aria-describedby={`${fieldId}-dice-help`} aria-invalid={diceIssues.some(issue => issue.code === 'INVALID_DICE_SELECTION')}
+                    onChange={event => onChange({ ...table, selection: { mode: 'dice', dice: event.target.value } })} />
+                  <p id={`${fieldId}-dice-help`} className="text-sm text-muted-foreground">
+                    Use 2d6, d100 or 2d6-3. Give every entry a literal range covering all possible totals without overlaps.
+                    Existing entries are preserved; set their ranges and remove weights before rolling. Open an entry’s advanced settings and choose Range to replace its weight.
                   </p>
-                  <KeyValueEditor
-                    value={(table.shared as SharedVariables) || {}}
-                    onChange={(shared) =>
-                      updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
-                    }
-                    keyPlaceholder="Variable name"
-                    valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
-                    keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
-                    keyError="Must start with letter/underscore, alphanumeric only"
-                    valueSupportsExpressions
-                    collectionId={collectionId}
-                    showInsertButton
-                    localTables={localTables}
-                    localTemplates={localTemplates}
-                    importedTables={importedTables}
-                    importedTemplates={importedTemplates}
-                    suggestions={suggestions}
-                    tableMap={tableMap}
-                    templateMap={templateMap}
-                    sharedVariables={combinedSharedVariables}
-                    previewSharedVariables={table.shared as Record<string, string> | undefined}
-                  />
-                </div>
-              )}
-
-              {/* Tab Content: Default Sets */}
-              {sharedSetsTab === 'defaultSets' && (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Default placeholder values applied to all entries. Can be overridden by entry-specific sets.
-                  </p>
-                  <KeyValueEditor
-                    value={table.defaultSets || {}}
-                    onChange={(defaultSets) =>
-                      updateField('defaultSets', Object.keys(defaultSets).length > 0 ? defaultSets : undefined)
-                    }
-                    keyPlaceholder="Key (@key)"
-                    valuePlaceholder="Value or {{pattern}}"
-                    valueSupportsExpressions={true}
-                    collectionId={collectionId}
-                    showInsertButton
-                    localTables={localTables}
-                    localTemplates={localTemplates}
-                    importedTables={importedTables}
-                    importedTemplates={importedTemplates}
-                    suggestions={suggestions}
-                    tableMap={tableMap}
-                    templateMap={templateMap}
-                    sharedVariables={combinedSharedVariables}
-                    previewSharedVariables={table.shared as Record<string, string> | undefined}
-                  />
-                </div>
+                  {diceIssues.length > 0 && <div role="alert" className="text-sm text-destructive space-y-1">
+                    {diceIssues.map((issue, index) => <p key={`${issue.code}-${index}`}>{issue.entryIndex !== undefined ? `Entry ${issue.entryIndex + 1}: ` : ''}{issue.message}</p>)}
+                  </div>}
+                  {table.extends && <p className="text-sm text-muted-foreground">Inherited entries are checked against the resolved table before rolling and source review.{inheritedSelection ? ' The parent uses source dice; change the parent to switch inherited selection to weights.' : ''}</p>}
+                </>
               )}
             </div>
-          </details>
+          )}
 
           {/* Type-specific content */}
           {table.type === 'simple' && (
             <SimpleTableEditor
               table={table}
+              nativeDice={!!selection}
               onChange={onChange}
               collectionId={collectionId}
               localTables={localTables}
@@ -568,12 +438,230 @@ export function TableEditor({
             />
           )}
 
+          <AdvancedSettings configured={[
+            ...(table.hidden ? ['hidden'] : []),
+            ...(table.extends ? ['inheritance'] : []),
+            ...(table.resultType ? ['result classification'] : []),
+            ...(sharedCount ? [`${sharedCount} shared values`] : []),
+            ...(defaultSetsCount ? [`${defaultSetsCount} default properties`] : []),
+            ...(table.tags?.length ? [`${table.tags.length} tags`] : []),
+          ]} hasError={!!idError || !table.id.trim()}>
+            <p className="text-sm text-muted-foreground">Use the table ID to reference this table from another result or template. Keep IDs stable once referenced.</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor={`${fieldId}-id`} className="editor-label editor-label-required">Table ID</label>
+                <input id={`${fieldId}-id`}
+                  type="text"
+                  value={table.id}
+                  onChange={(e) => updateField('id', e.target.value)}
+                  placeholder="uniqueTableId"
+                  className={cn(
+                    "editor-input text-base md:text-sm min-h-[48px] md:min-h-0",
+                    idError && "border-destructive focus:ring-destructive"
+                  )}
+                />
+                {idError && (
+                  <p className="text-xs text-destructive mt-1">{idError}</p>
+                )}
+              </div>
+              <div>
+                <label className="editor-label">Result Type</label>
+                <ResultTypeSelector
+                  value={table.resultType}
+                  onChange={(value) => updateField('resultType', value)}
+                  placeholder="Select or enter type..."
+                />
+              </div>
+            </div>
+            {/* Options Row */}
+            <div className="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center">
+              <label className="flex items-center gap-3 md:gap-2 text-base md:text-sm p-3 md:p-2 editor-entry-row md:border-0 md:bg-transparent w-full md:w-auto cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={table.hidden || false}
+                  onChange={(e) => updateField('hidden', e.target.checked || undefined)}
+                  className="rounded border-border w-5 h-5 md:w-4 md:h-4 accent-primary"
+                />
+                <span className="flex items-center gap-2 md:gap-1">
+                  {table.hidden ? <EyeOff className="h-5 w-5 md:h-4 md:w-4" /> : <Eye className="h-5 w-5 md:h-4 md:w-4" />}
+                  Hidden from UI
+                </span>
+              </label>
+
+              {table.type === 'simple' && (
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-2 w-full md:w-auto">
+                  <label htmlFor={`${fieldId}-extends`} className="editor-label md:mb-0">Extends:</label>
+                  <select id={`${fieldId}-extends`}
+                    value={table.extends || ''}
+                    onChange={(e) => updateField('extends', e.target.value || undefined)}
+                    className="editor-select w-full md:w-auto text-base md:text-sm min-h-[48px] md:min-h-0"
+                  >
+                    <option value="">None</option>
+                    {availableTableIds
+                      .filter((id) => id !== table.id)
+                      .map((id) => (
+                        <option key={id} value={id}>
+                          {id}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Shared Variables / Default Sets (collapsible with tabs) */}
+            <details className="editor-collapsible">
+              <summary>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm">Shared Variables / Default Sets</span>
+                  {sharedCount > 0 && (
+                    <span className="px-1.5 py-0.5 text-xs rounded-full bg-rose/15 text-rose">
+                      {sharedCount}
+                    </span>
+                  )}
+                  {defaultSetsCount > 0 && (
+                    <span className="px-1.5 py-0.5 text-xs rounded-full bg-mint/15 text-mint">
+                      {defaultSetsCount}
+                    </span>
+                  )}
+                  {sharedCount === 0 && defaultSetsCount === 0 && (
+                    <span className="text-xs text-muted-foreground">(optional)</span>
+                  )}
+                  <div className="group relative">
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 text-xs bg-popover border rounded-md shadow-lg">
+                      Shared Variables are evaluated lazily when rolled and propagate to nested tables.
+                      Default Sets provide default placeholder values for all entries in this table.
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <div className="editor-collapsible-content space-y-3">
+                {/* Mini Tab Bar */}
+                <div className="flex border-b border-border/50" role="tablist">
+                  <button
+                    type="button"
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors',
+                      'border-b-2 -mb-px',
+                      sharedSetsTab === 'shared'
+                        ? 'text-rose border-rose'
+                        : 'text-muted-foreground border-transparent hover:text-foreground/80'
+                    )}
+                    onClick={() => setSharedSetsTab('shared')}
+                    role="tab"
+                    aria-selected={sharedSetsTab === 'shared'}
+                  >
+                    <span>Shared Variables</span>
+                    {sharedCount > 0 && (
+                      <span className={cn(
+                        'px-1.5 py-0.5 text-xs rounded-full',
+                        sharedSetsTab === 'shared' ? 'bg-rose/15 text-rose' : 'bg-muted text-muted-foreground'
+                      )}>
+                        {sharedCount}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors',
+                      'border-b-2 -mb-px',
+                      sharedSetsTab === 'defaultSets'
+                        ? 'text-mint border-mint'
+                        : 'text-muted-foreground border-transparent hover:text-foreground/80'
+                    )}
+                    onClick={() => setSharedSetsTab('defaultSets')}
+                    role="tab"
+                    aria-selected={sharedSetsTab === 'defaultSets'}
+                  >
+                    <span>Default Sets</span>
+                    {defaultSetsCount > 0 && (
+                      <span className={cn(
+                        'px-1.5 py-0.5 text-xs rounded-full',
+                        sharedSetsTab === 'defaultSets' ? 'bg-mint/15 text-mint' : 'bg-muted text-muted-foreground'
+                      )}>
+                        {defaultSetsCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
+
+                {/* Tab Content: Shared Variables */}
+                {sharedSetsTab === 'shared' && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Values are reused for this table roll and nested table references. Keep dependencies earlier in the list; key order matters. Do not alphabetize shared keys.
+                    </p>
+                    <KeyValueEditor
+                      value={(table.shared as SharedVariables) || {}}
+                      onChange={(shared) =>
+                        updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
+                      }
+                      keyPlaceholder="Variable name"
+                      valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
+                      keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
+                      keyError="Must start with letter/underscore, alphanumeric only"
+                      valueSupportsExpressions
+                      collectionId={collectionId}
+                      showInsertButton
+                      localTables={localTables}
+                      localTemplates={localTemplates}
+                      importedTables={importedTables}
+                      importedTemplates={importedTemplates}
+                      suggestions={suggestions}
+                      tableMap={tableMap}
+                      templateMap={templateMap}
+                      sharedVariables={combinedSharedVariables}
+                      previewSharedVariables={table.shared as Record<string, string> | undefined}
+                    />
+                  </div>
+                )}
+
+                {/* Tab Content: Default Sets */}
+                {sharedSetsTab === 'defaultSets' && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Default placeholder values applied to all entries. Can be overridden by entry-specific sets.
+                    </p>
+                    <KeyValueEditor
+                      value={table.defaultSets || {}}
+                      onChange={(defaultSets) =>
+                        updateField('defaultSets', Object.keys(defaultSets).length > 0 ? defaultSets : undefined)
+                      }
+                      keyPlaceholder="Key (@key)"
+                      valuePlaceholder="Value or {{pattern}}"
+                      valueSupportsExpressions={true}
+                      collectionId={collectionId}
+                      showInsertButton
+                      localTables={localTables}
+                      localTemplates={localTemplates}
+                      importedTables={importedTables}
+                      importedTemplates={importedTemplates}
+                      suggestions={suggestions}
+                      tableMap={tableMap}
+                      templateMap={templateMap}
+                      sharedVariables={combinedSharedVariables}
+                      previewSharedVariables={table.shared as Record<string, string> | undefined}
+                    />
+                  </div>
+                )}
+              </div>
+            </details>
+
+            <TagsField value={table.tags} onChange={tags => updateField('tags', tags)} />
+          </AdvancedSettings>
+
+          <div ref={reviewSectionRef}>
+            <ConversionReviewPanel table={table} resolvedTable={tableMap?.get(table.id)} onChange={onChange} />
+          </div>
+
           {/* Source Attribution (collapsible) */}
           <details className="editor-collapsible">
             <summary>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">Source Attribution</span>
-                <span className="text-xs text-muted-foreground">(optional)</span>
+                <span className="text-xs text-muted-foreground">{table.source && Object.keys(table.source).length > 0 ? 'Configured' : '(optional)'}</span>
                 <div className="group relative">
                   <Info className="h-4 w-4 text-muted-foreground cursor-help" />
                   <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 text-xs bg-popover border rounded-md shadow-lg">
@@ -585,8 +673,8 @@ export function TableEditor({
             <div className="editor-collapsible-content space-y-4">
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 <div>
-                  <label className="editor-label">Book</label>
-                  <input
+                  <label htmlFor={`${fieldId}-source-book`} className="editor-label">Book</label>
+                  <input id={`${fieldId}-source-book`}
                     type="text"
                     value={table.source?.book || ''}
                     onChange={(e) => updateSource('book', e.target.value || undefined)}
@@ -595,8 +683,8 @@ export function TableEditor({
                   />
                 </div>
                 <div>
-                  <label className="editor-label">Page</label>
-                  <input
+                  <label htmlFor={`${fieldId}-source-page`} className="editor-label">Page</label>
+                  <input id={`${fieldId}-source-page`}
                     type="text"
                     value={table.source?.page?.toString() || ''}
                     onChange={(e) => updateSource('page', e.target.value || undefined)}
@@ -605,8 +693,8 @@ export function TableEditor({
                   />
                 </div>
                 <div>
-                  <label className="editor-label">Section</label>
-                  <input
+                  <label htmlFor={`${fieldId}-source-section`} className="editor-label">Section</label>
+                  <input id={`${fieldId}-source-section`}
                     type="text"
                     value={table.source?.section || ''}
                     onChange={(e) => updateSource('section', e.target.value || undefined)}
@@ -615,8 +703,8 @@ export function TableEditor({
                   />
                 </div>
                 <div>
-                  <label className="editor-label">License</label>
-                  <input
+                  <label htmlFor={`${fieldId}-source-license`} className="editor-label">License</label>
+                  <input id={`${fieldId}-source-license`}
                     type="text"
                     value={table.source?.license || ''}
                     onChange={(e) => updateSource('license', e.target.value || undefined)}
@@ -626,8 +714,8 @@ export function TableEditor({
                 </div>
               </div>
               <div>
-                <label className="editor-label">URL</label>
-                <input
+                <label htmlFor={`${fieldId}-source-url`} className="editor-label">URL</label>
+                <input id={`${fieldId}-source-url`}
                   type="url"
                   value={table.source?.url || ''}
                   onChange={(e) => updateSource('url', e.target.value || undefined)}
@@ -645,6 +733,7 @@ export function TableEditor({
 
 interface SimpleTableEditorProps {
   table: SimpleTable
+  nativeDice?: boolean
   onChange: (table: SimpleTable) => void
   collectionId?: string
   localTables?: TableInfo[]
@@ -670,6 +759,7 @@ function withAuthoredEntries(table: SimpleTable, entries: Entry[]): SimpleTable 
 
 function SimpleTableEditor({
   table,
+  nativeDice = false,
   onChange,
   collectionId,
   localTables = [],
@@ -832,6 +922,10 @@ function SimpleTableEditor({
         </button>
       </div>
 
+      <p className="text-sm text-muted-foreground">
+        {nativeDice ? 'Write one result per entry and map it to the totals on the source dice.' : 'Write one result per entry. Equal weights give equal chances; weight 2 is twice as likely as weight 1.'}
+        {' '}Press Enter in a value to add the next entry. Open an entry’s advanced settings for descriptions and properties.
+      </p>
       <SortableList
         items={table.entries}
         getItemId={getEntryId}
@@ -845,6 +939,7 @@ function SimpleTableEditor({
             >
               <EntryEditor
                 entry={entry}
+                nativeDice={nativeDice}
                 onChange={(updated) => updateEntry(index, updated)}
                 onDelete={() => deleteEntry(index)}
                 onAddEntry={addEntry}

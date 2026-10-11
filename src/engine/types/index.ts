@@ -15,6 +15,8 @@ export interface RandomTableDocument {
   templates?: Template[]
   variables?: Variables
   shared?: SharedVariables
+  /** Literal, validated generation inputs (requires specVersion 1.1). */
+  inputs?: Inputs
 }
 
 // ============================================================================
@@ -28,8 +30,8 @@ export interface Metadata {
   namespace: string
   /** Semantic version (e.g., '1.0.0') */
   version: string
-  /** Spec version - must be '1.0' */
-  specVersion: '1.0'
+  /** Additive 1.1 features require opting into the 1.1 schema. */
+  specVersion: '1.0' | '1.1'
   /** Author name or organization */
   author?: string
   /** Markdown-formatted description */
@@ -171,10 +173,20 @@ export interface BaseTable {
   source?: TableSource
   /** Table-level shared variables (evaluated lazily when rolled) */
   shared?: SharedVariables
+  /** Source conversion review record; review is derived from a matching snapshot. */
+  conversion?: ConversionProvenance
+}
+
+export interface DiceSelection {
+  mode: 'dice'
+  /** Bounded NdM (or dM) with one optional fixed +N/-N modifier. */
+  dice: string
 }
 
 export interface SimpleTable extends BaseTable {
   type: 'simple'
+  /** Absent means legacy weighted selection; present means roll and range lookup. */
+  selection?: DiceSelection
   /** Array of entries */
   entries: Entry[]
 }
@@ -227,6 +239,15 @@ export interface TableSource {
   url?: string
   /** License override */
   license?: string
+}
+
+export interface ConversionProvenance {
+  kind: 'transcription' | 'adaptation' | 'original'
+  sourceText?: string
+  notes?: string
+  /** Canonical authored-content snapshot recorded by an explicit human review. */
+  reviewedContent?: string
+  reviewedAt?: string
 }
 
 export interface CompositeSource {
@@ -305,6 +326,22 @@ export type Variables = Record<string, string>
 
 /** Generation-time variables evaluated per-roll */
 export type SharedVariables = Record<string, string>
+
+export type InputValue = string | number | boolean
+
+export type InputDefinition = {
+  label?: string
+  description?: string
+  /** Defaults to false; a valid default also satisfies a required input. */
+  required?: boolean
+} & (
+  | { type: 'text'; default?: string }
+  | { type: 'integer'; default?: number; min?: number; max?: number }
+  | { type: 'choice'; options: string[]; default?: string }
+  | { type: 'boolean'; default?: boolean }
+)
+
+export type Inputs = Record<string, InputDefinition>
 
 // ============================================================================
 // Capture Variables (Roll Capture System)
@@ -404,6 +441,8 @@ export interface RollResult {
     timestamp: number
     /** Entry ID if from a simple table */
     entryId?: string
+    /** Resolved root generation inputs, retained with the result. */
+    inputs?: Record<string, InputValue>
   }
   /** Execution trace - only present when trace mode was enabled */
   trace?: RollTrace

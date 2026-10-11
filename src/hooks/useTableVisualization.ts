@@ -7,7 +7,8 @@ import { getTableIdentity } from '@/engine/core/context'
 import { buildWeightedPool } from '@/engine/tables/simple'
 import { buildSourcePool } from '@/engine/tables/composite'
 import { mergeTableEntries, type CollectionSourceTable } from '@/engine/tables/collection'
-import { getFiniteWeightTotal, getNormalizedProbabilities } from '@/engine/tables/weights'
+import { assertWeightedRanges, getFiniteWeightTotal, getNormalizedProbabilities } from '@/engine/tables/weights'
+import { getDiceEntryProbabilities, parseSelectionDice } from '@/engine/tables/diceSelection'
 
 export interface WeightedEntry {
   id: string
@@ -36,6 +37,7 @@ export interface InheritanceNode {
   level: number
 }
 export interface TableStats {
+  selectionDice?: string
   entryCount: number
   totalWeight: number
   avgWeight: number
@@ -45,6 +47,8 @@ export interface TableStats {
 }
 export interface SimpleTableVisualization {
   type: 'simple'
+  selectionDice?: string
+  probabilityUnavailable?: string
   entries: WeightedEntry[]
   truncated: boolean
   totalEntries: number
@@ -67,7 +71,7 @@ export interface CollectionTableVisualization {
 export type TableVisualization = SimpleTableVisualization | CompositeTableVisualization | CollectionTableVisualization | null
 
 function entryCount(table: Table): number {
-  if (table.type === 'simple') return buildWeightedPool(table.entries, table.id).length
+  if (table.type === 'simple') return table.selection ? table.entries.length : buildWeightedPool(table.entries, table.id).length
   if (table.type === 'composite') return buildSourcePool(table.sources).length
   return table.collections.length
 }
@@ -102,6 +106,21 @@ export function computeTableVisualization(engine: RandomTableEngine, collectionI
   const inheritance = inheritanceChain(engine, tableId, collectionId)
   const owner = engine.getResolvedCollectionId(tableId, collectionId) ?? collectionId
   if (table.type === 'simple') {
+    if (table.selection) {
+      const selectionDice = parseSelectionDice(table.selection.dice).expression
+      const probabilities = getDiceEntryProbabilities(table)
+      const entries = probabilities ? table.entries.map((entry, index) => ({
+        id: entry.id ?? `${table.id}${String(index).padStart(3, '0')}`,
+        label: entry.value.replace(/\{\{[^}]+\}\}/g, '[...]').trim().slice(0, 50),
+        weight: probabilities[index], probability: probabilities[index] * 100, description: entry.description,
+      })).sort((a, b) => b.probability - a.probability) : []
+      const limit = Math.max(0, Math.floor(maxEntries))
+      return { type: 'simple', selectionDice,
+        probabilityUnavailable: probabilities ? undefined : 'Exact probabilities are unavailable for this dice expression within the calculation limits. Rolls still use the declared dice.',
+        entries: entries.slice(0, limit), truncated: entries.length > limit, totalEntries: table.entries.length,
+        stats: { ...stats(probabilities ?? [], table.entries.map(entry => entry.resultType ?? table.resultType).filter((type): type is string => !!type)), entryCount: table.entries.length, selectionDice }, inheritance }
+    }
+    assertWeightedRanges(table.entries, table.id)
     const pool = buildWeightedPool(table.entries, table.id)
     const probabilities = getNormalizedProbabilities(pool)
     const entries = pool.map((weighted, index) => ({ id: weighted.id,

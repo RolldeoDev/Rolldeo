@@ -1,13 +1,28 @@
+/** Weighted ranges need a representable positive inclusive width. */
+export function isValidWeightedRange(range: unknown): range is [number, number] {
+  return Array.isArray(range) && range.length === 2 && range.every(Number.isSafeInteger)
+    && range[0] >= 0 && range[1] >= range[0]
+    && Number.isSafeInteger(range[1] - range[0] + 1)
+}
+
 /** Range endpoints describe an inclusive width, rather than literal dice outcomes. */
 export function getWeight(entry: { weight?: number; range?: [number, number] }): number {
   if (entry.range) {
+    if (!isValidWeightedRange(entry.range)) return 0
     const [min, max] = entry.range
-    if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || min > max) return 0
+    if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || min < 0 || max < 0 || min > max) return 0
     const width = max - min + 1
     return Number.isSafeInteger(width) && width > 0 ? width : 0
   }
   const weight = entry.weight ?? 1
   return Number.isFinite(weight) && weight > 0 ? weight : 0
+}
+
+/** Imported inheritance may resolve after local validation; never silently reweight signed outcomes. */
+export function assertWeightedRanges(entries: { range?: [number, number] }[], tableId: string): void {
+  if (entries.some(entry => entry.range && (entry.range[0] < 0 || entry.range[1] < 0))) {
+    throw new Error(`DICE_SELECTION_ERROR: Signed ranges in table '${tableId}' require native dice selection`)
+  }
 }
 
 /**

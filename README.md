@@ -50,7 +50,7 @@ Install Rolldeo as a standalone app on desktop or mobile. Everything runs locall
 
 ## The Specification
 
-The Random Table JSON Specification v1.0 supports:
+The Random Table JSON Specification supports compatible v1.0 files and opt-in v1.1 additions:
 
 - **Dice expressions**: `{{dice:3d6}}`, `{{dice:4d6k3}}` (keep highest), `{{dice:1d6!}}` (exploding)
 - **Table references**: `{{treasureTable}}`, `{{3*unique*items}}`
@@ -58,6 +58,8 @@ The Random Table JSON Specification v1.0 supports:
 - **Variables**: Define shared values that stay consistent across a generation
 - **Inline switches**: Choose text or tables based on generated values (obsolete root `conditionals` rules are unsupported)
 - **Imports**: Link supplied JSON/ZIP collections using local paths and aliases; no automatic remote downloads
+
+Specification **1.1** adds actual source dice-to-range lookup (including 2d6), typed generator inputs, and source conversion review records that become stale after edits. The importer preserves pasted text and shows mechanics/coverage/probabilities before acceptance. Existing 1.0 range-width and arithmetic meanings remain unchanged. See [v1.1 additions](docs/randomTableSpecV1_1.md); the full guide includes the compatible v1.0 base contract.
 
 The Specification and Schema are licensed under **CC0** (public domain) to encourage maximum adoption and sharing.
 
@@ -156,9 +158,10 @@ Here's a simple random table collection:
 ## Documentation
 
 - [Quickstart Guide](docs/Quickstart.md) — Create your first table in 10 minutes
-- [Full Specification](docs/randomTableSpecV1.md) — Complete reference for all features
+- [Specification v1.1](docs/randomTableSpecV1_1.md) — Source dice, inputs, conversion review, and compatibility
+- [Base Specification v1.0](docs/randomTableSpecV1.md) — Complete text-generation language
 - [Using Rolldeo](docs/UsingRolldeo.md) — Guide to all application features
-- [JSON Schema](public/schemas/random-table-spec-v1.0.json) — For editor validation and tooling
+- [JSON Schema v1.1](public/schemas/random-table-spec-v1.1.json) — For new files; the [v1.0 schema](public/schemas/random-table-spec-v1.0.json) remains available
 
 ---
 
@@ -192,7 +195,7 @@ Please keep PRs focused on a single change and include a clear description of wh
 
 **Application Code**: [Apache License 2.0](LICENSE)
 
-**Specification & Schema** (`docs/randomTableSpecV1.md`, `public/schemas/random-table-spec-v1.0.json`): [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) — Public Domain
+**Specifications & Schemas** (`docs/randomTableSpecV1*.md`, `public/schemas/random-table-spec-v1.*.json`): [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) — Public Domain
 
 ---
 

@@ -289,3 +289,18 @@ Rolldeo is open source software:
 The Random Table Specification and JSON Schema are released under CC0 (Public Domain) — use them freely to build your own tools, engines, or table collections.
 
 Happy rolling! 🎲
+
+
+## Source Tables and Inputs (Specification 1.1)
+
+New collections use specification 1.1; existing 1.0 collections retain their behavior. In Metadata, choose the specification version. Adding source dice selection, conversion records, or inputs upgrades a collection atomically to 1.1. A file with 1.1 fields cannot be downgraded just by changing its version label.
+
+For simple tables, choose **Source dice** and enter a supported formula such as `2d6` or `1d20+2`. Every reachable total needs exactly one entry range. The editor identifies gaps, overlaps, and incompatible weights. Weighted selection keeps the older range-width interpretation. Probability displays use the source dice distribution or explicitly say when calculation is unavailable.
+
+**Import Table** preserves pasted source text alongside the parsed draft. Review the rows, source instructions, selection mechanic, and probabilities; record the book/page and explain any adaptation. Explicit human acknowledgement records a review of the current table. Unreviewed imports stay labeled as such, and later edits show **Needs review**. A review is a recorded human check, not automatic proof of source fidelity or of imported dependencies.
+
+The editor shows names, content, and selection first. **Advanced settings** contains identifiers, shared variables, sets, assets, tags, and inheritance; existing configured settings remain discoverable. Preserve declaration order in shared blocks and dependent sets.
+
+In **Variables**, use **Generator inputs** to add text, integer, choice, or boolean declarations. Defaults and integer bounds are validated. Use the normal `$name` syntax in templates. The roller shows these fields and nearby errors; supplied values are per generation and recorded with the result. Required inputs without defaults must be supplied. Inputs passed to the entry-point collection are not automatically forwarded to imports.
+
+Source selection currently supports NdM with fixed integer modifiers. Native dice tables cannot be pooled into collection tables or used with unique draws/reroll exclusions; use a composite table to delegate an ordinary roll. Variable modifiers, exploding/keep dice selection, d66 and arbitrary source layouts require manual adaptation. See the [v1.1 specification](./randomTableSpecV1_1.md).

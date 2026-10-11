@@ -501,3 +501,28 @@ runtime:
   random: "RollOptions.random optional callback, finite samples in [0,1); context carries into all draws; no portable seed guarantee"
   dice_limits: "Notation <=256 chars; count1..1000; explosion allowance0..1000; sides/modifiers/totals safe integers; keep1..count"
   multi_count: "Numeric coercion; positive finite fractions truncate; negative/noncoercible become0; positive infinite/oversized counts resource-limit error; zero performs no rolls"
+
+# Additive opt-in contract: use metadata.specVersion "1.1" and the separate 1.1 schema.
+# All base language semantics above stay unchanged; 1.0 rejects these new fields.
+spec_1_1:
+  authority: "randomTableSpecV1_1.md plus base randomTableSpecV1.md"
+  schema: "https://rolldeo.com/schemas/random-table-spec-v1.1.json"
+  native_selection:
+    field: '{"selection":{"mode":"dice","dice":"2d6"}}'
+    tables: "Simple only, inherited selection preserved; actual dice total lookup"
+    notation: "NdM or dM, optional fixed integer +/-N; no variable/exploding/keep/d66 selection"
+    entries: "Every entry needs range, no weight; every reachable total covered exactly once; signed safe endpoints only for native dice"
+    unsupported: "Unique draws/again exclusions/collection pooling reject; composites may delegate"
+  inputs:
+    shape: "Root map name -> declaration; name letter+alnum_, no $ prefix/reserved/static/shared collisions"
+    types: "text(default string), integer(default safe integer,min?,max?), choice(nonempty unique string options,default option), boolean(default boolean)"
+    common: "label?,description?,required? default false"
+    runtime: "RollOptions.inputs exact types; unknown keys rejected; valid default satisfies required; optional absent resolves empty string"
+    reference: "Normal $name; supplied text literal, never executes macros; imports use own defaults; no auto-forwarding"
+    metadata: "Resolved root values retained in result.metadata.inputs, no seeded replay guarantee"
+  conversion:
+    shape: "Table conversion: required kind transcription|adaptation|original; sourceText?,notes?,reviewedContent?,reviewedAt?"
+    review: "Human acknowledgement records canonical authored table snapshot; match means reviewed, mismatch needs review; no independent verified flag"
+    ordering: "Preserve shared/sets/defaultSets declaration order in snapshots; external dependencies not certified"
+  authoring: "New collections1.1; adding new fields promotes1.1 atomically; names/content before advanced settings"
+  ability_modifier: "Positive D&D scores: {{math:$abilityScore / 2 - 5}}; division unchanged"

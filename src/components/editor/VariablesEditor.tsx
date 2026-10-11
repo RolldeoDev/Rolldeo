@@ -68,7 +68,7 @@ export function VariablesEditor({
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Constants loaded at initialization. Reference with {'{{$name}}'}.
+            Use constants for campaign names, separators and fixed settings. Reference with {'{{$name}}'}.
           </p>
         </div>
         <div className="p-4">
@@ -104,10 +104,11 @@ export function VariablesEditor({
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Evaluated once per generation. Access properties with <code className="px-1 bg-muted rounded text-xs">{'{{$name.@prop}}'}</code>.
+            Roll a shared value once per generation to reuse it throughout the result. Access properties with <code className="px-1 bg-muted rounded text-xs">{'{{$name.@prop}}'}</code>.
           </p>
         </div>
-        <div className="p-4">
+        <div className="p-4 space-y-3">
+          <p className="text-sm text-muted-foreground">Shared values evaluate from top to bottom. Put dependencies before the values that reference them. Keep this order when editing JSON; alphabetizing keys can change the result.</p>
           <KeyValueEditor
             value={shared}
             onChange={onSharedChange}

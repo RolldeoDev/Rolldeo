@@ -10,7 +10,7 @@ import { Copy, Check, ExternalLink, FileJson, Github, Scale } from 'lucide-react
 import { GuideLayout, DownloadButton } from '@/components/guide'
 import { SEO } from '@/components/common'
 import { PAGE_SEO } from '@/lib/seo'
-import schemaJson from '@/../public/schemas/random-table-spec-v1.0.json?raw'
+import schemaJson from '@/../public/schemas/random-table-spec-v1.1.json?raw'
 
 // Parse schema for display
 const schema = JSON.parse(schemaJson)
@@ -38,7 +38,7 @@ Add this to your \`.vscode/settings.json\`:
   "json.schemas": [
     {
       "fileMatch": ["*.table.json", "*-tables.json"],
-      "url": "https://rolldeo.com/schemas/random-table-spec-v1.0.json"
+      "url": "https://rolldeo.com/schemas/random-table-spec-v1.1.json"
     }
   ]
 }
@@ -50,7 +50,7 @@ Add a \`$schema\` property to your JSON files:
 
 \`\`\`json
 {
-  "$schema": "https://rolldeo.com/schemas/random-table-spec-v1.0.json",
+  "$schema": "https://rolldeo.com/schemas/random-table-spec-v1.1.json",
   "metadata": { ... },
   "tables": [ ... ]
 }
@@ -66,9 +66,11 @@ The schema defines the following top-level properties:
 | \`imports\` | No | External file imports |
 | \`tables\` | Yes | Array of table definitions |
 | \`templates\` | No | Template patterns for complex outputs |
-| \`conditionals\` | No | Post-processing conditionals |
+| \`inputs\` | No | Literal typed generation inputs (1.1) |
 | \`variables\` | No | Static variables |
-| \`shared\` | No | Lazy-evaluated shared variables |
+| \`shared\` | No | Ordered generation-time shared variables |
+
+Specification 1.1 adds source dice selection and conversion review records. Existing 1.0 files use the unchanged [v1.0 schema](/schemas/random-table-spec-v1.0.json). Choose the schema matching \`metadata.specVersion\`; changing the schema URL does not migrate a document. Root \`conditionals\` is unsupported; use inline switches.
 
 ---
 
@@ -100,7 +102,7 @@ export function SchemaPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FileJson className="h-4 w-4" />
-            <span>random-table-spec-v1.0.json</span>
+            <span>random-table-spec-v1.1.json</span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -120,7 +122,7 @@ export function SchemaPage() {
               )}
             </button>
             <DownloadButton
-              filename="random-table-spec-v1.0.json"
+              filename="random-table-spec-v1.1.json"
               content={schemaJson}
               mimeType="application/json"
               label="Download"

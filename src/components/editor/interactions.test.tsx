@@ -3,6 +3,9 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import { Table2 } from 'lucide-react'
 import { KeyValueEditor } from './KeyValueEditor'
 import { TableEditor } from './TableEditor'
+import { AdvancedSettings, TagsField } from './AdvancedSettings'
+import { ConversionReviewPanel } from './ConversionReviewPanel'
+import { getConversionReviewStatus, markConversionReviewed } from '@/lib/conversionVerification'
 import { EntryEditor } from './EntryEditor'
 import { parseDraftSnapshot } from './draftState'
 import { RandomTableEngine } from '@/engine/core'
@@ -21,6 +24,7 @@ vi.mock('react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react')>()
   return {
     ...actual,
+    useId: () => 'editor-test-field',
     useState: (initial: unknown) => {
       const index = hooks.cursor++
       if (!(index in hooks.slots)) hooks.slots[index] = typeof initial === 'function' ? initial() : initial
@@ -236,5 +240,203 @@ describe('authored inherited overrides in editor callbacks', () => {
     expect(updated.entries[1]).toMatchObject({ id: 'a_copy', value: 'A', sets: { kept: 'Kept' } })
     expect(updated.entries[1]).not.toHaveProperty('description')
     expect(() => parseDraftSnapshot(JSON.stringify({ ...document, tables: [document.tables[0], updated] }))).not.toThrow()
+  })
+})
+
+
+describe('basic authoring and explicit advanced controls', () => {
+  const table: AuthoredSimpleTable = { id: 'reactions', name: 'Reactions', type: 'simple', entries: [
+    { value: 'Friendly', weight: 2 }, { value: 'Hostile', weight: 1 },
+  ] }
+
+  it('keeps optional settings closed but exposes configured values and lets authors collapse them', () => {
+    expect(render(() => AdvancedSettings({ children: 'Optional' })).props.open).toBe(false)
+    hooks.slots = []
+    const component = () => AdvancedSettings({ children: 'Shared values', configured: ['2 shared values'] })
+    let disclosure = render(component)
+    expect(disclosure.props.open).toBe(true)
+    expect(JSON.stringify(disclosure.props.children)).toContain('2 shared values')
+    handler(disclosure, 'onToggle')({ currentTarget: { open: false } })
+    disclosure = render(component)
+    expect(disclosure.props.open).toBe(false)
+    expect(JSON.stringify(disclosure.props.children)).toContain('2 shared values')
+  })
+
+  it('keeps required ID errors visible inside advanced settings', () => {
+    expect(render(() => AdvancedSettings({ children: 'Invalid ID', hasError: true })).props.open).toBe(true)
+  })
+
+  it('presents entry authoring before technical table settings', () => {
+    const tree = elements(render(() => TableEditor({ table, defaultExpanded: true, availableTableIds: [], onChange: vi.fn(), onDelete: vi.fn() })))
+    const entriesIndex = tree.findIndex(element => typeof element.type === 'function' && element.type.name === 'SimpleTableEditor')
+    expect(entriesIndex).toBeGreaterThan(0)
+    expect(entriesIndex).toBeLessThan(tree.findIndex(element => element.type === AdvancedSettings))
+  })
+
+  it('selects source dice without silently rewriting weights, ranges or source text', () => {
+    const onChange = vi.fn()
+    const tree = elements(render(() => TableEditor({ table, specVersion: '1.0', defaultExpanded: true, availableTableIds: [], onChange, onDelete: vi.fn() })))
+    const selector = tree.find(element => element.type === 'select' && element.props.value === 'weighted')!
+    handler(selector, 'onChange')({ target: { value: 'dice' } })
+    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange.mock.calls[0][0]).toEqual({ ...table, selection: { mode: 'dice', dice: '1d6' } })
+    expect(table.entries[0]).toEqual({ value: 'Friendly', weight: 2 })
+  })
+
+  it('retains conversion provenance when changing table type', () => {
+    const converted = { ...table, conversion: { kind: 'adaptation' as const, sourceText: 'Original table', notes: 'Adapted' } }
+    const onChange = vi.fn()
+    const tree = elements(render(() => TableEditor({ table: converted, defaultExpanded: true, availableTableIds: [], onChange, onDelete: vi.fn() })))
+    handler(tree.find(element => element.type === 'select' && element.props.value === 'simple')!, 'onChange')({ target: { value: 'composite' } })
+    expect(onChange.mock.calls[0][0].conversion).toEqual(converted.conversion)
+  })
+
+  it('honors inherited source dice and disables a misleading weighted override', () => {
+    const parent = { ...table, selection: { mode: 'dice' as const, dice: '1d6' } }
+    const child = { ...table, id: 'child', extends: 'reactions' }
+    const tree = elements(render(() => TableEditor({ table: child, defaultExpanded: true, availableTableIds: ['reactions'],
+      tableMap: new Map([['reactions', parent]]), onChange: vi.fn(), onDelete: vi.fn() })))
+    expect(tree.find(element => element.type === 'option' && element.props.value === 'weighted')?.props.disabled).toBe(true)
+    expect(tree.find(element => typeof element.type === 'function' && element.type.name === 'SimpleTableEditor')?.props.nativeDice).toBe(true)
+  })
+
+  it('uses the qualified imported parent’s native dice instead of the child’s stale resolved selection', () => {
+    const child: AuthoredSimpleTable = { id: 'child', name: 'Child', type: 'simple', extends: 'alias.nativeParent', entries: [] }
+    const parent = { id: 'nativeParent', name: 'Parent', type: 'simple' as const, selection: { mode: 'dice' as const, dice: '2d6' }, entries: [{ value: 'Result', range: [2, 12] as [number, number] }] }
+    const staleChild = { ...parent, id: 'child', selection: { mode: 'dice' as const, dice: '1d8' } }
+    const tree = elements(render(() => TableEditor({ table: child, defaultExpanded: true, availableTableIds: [],
+      tableMap: new Map([['child', staleChild], ['alias.nativeParent', parent]]), onChange: vi.fn(), onDelete: vi.fn() })))
+    expect(tree.find(element => element.type === 'option' && element.props.value === 'weighted')?.props.disabled).toBe(true)
+    expect(tree.find(element => typeof element.type === 'function' && element.type.name === 'SimpleTableEditor')?.props.nativeDice).toBe(true)
+    expect(tree.find(element => element.type === 'input' && String(element.props.id).endsWith('-dice'))?.props.value).toBe('2d6')
+  })
+
+  it('uses the current draft parent when extends changes while the resolved child is stale', () => {
+    let child: AuthoredSimpleTable = { id: 'child', name: 'Child', type: 'simple', extends: 'alias.nativeParent', entries: [] }
+    const native = { id: 'nativeParent', name: 'Parent', type: 'simple' as const, selection: { mode: 'dice' as const, dice: '2d6' }, entries: [] }
+    const weighted = { id: 'weightedParent', name: 'Weighted', type: 'simple' as const, entries: [{ value: 'Result' }] }
+    const tableMap = new Map<string, import('@/engine/types').Table>([['child', { ...native, id: 'child' }], ['alias.nativeParent', native], ['alias.weightedParent', weighted]])
+    const component = () => TableEditor({ table: child, defaultExpanded: true, availableTableIds: [], tableMap, onChange: vi.fn(), onDelete: vi.fn() })
+    expect(elements(render(component)).find(element => element.type === 'option' && element.props.value === 'weighted')?.props.disabled).toBe(true)
+    child = { ...child, extends: 'alias.weightedParent' }
+    const tree = elements(render(component))
+    expect(tree.find(element => element.type === 'option' && element.props.value === 'weighted')?.props.disabled).toBe(false)
+    expect(tree.find(element => typeof element.type === 'function' && element.type.name === 'SimpleTableEditor')?.props.nativeDice).toBe(false)
+  })
+
+  it('allows clearing an explicit local dice override for a weighted imported parent', () => {
+    let child: AuthoredSimpleTable = { id: 'child', name: 'Child', type: 'simple', extends: 'alias.weightedParent', entries: [], selection: { mode: 'dice', dice: '1d6' } }
+    const resolved = { id: 'child', name: 'Child', type: 'simple' as const, selection: { mode: 'dice' as const, dice: '1d6' }, entries: [] }
+    const parent = { id: 'weightedParent', name: 'Weighted', type: 'simple' as const, entries: [{ value: 'Result' }] }
+    const tableMap = new Map<string, import('@/engine/types').Table>([['child', resolved], ['alias.weightedParent', parent]])
+    const onChange = vi.fn(updated => { child = updated })
+    const component = () => TableEditor({ table: child, defaultExpanded: true, availableTableIds: [], tableMap, onChange, onDelete: vi.fn() })
+    let tree = elements(render(component))
+    expect(tree.find(element => element.type === 'option' && element.props.value === 'weighted')?.props.disabled).toBe(false)
+    handler(tree.find(element => element.type === 'select' && String(element.props.id).endsWith('-selection'))!, 'onChange')({ target: { value: 'weighted' } })
+    expect(child).not.toHaveProperty('selection')
+    tree = elements(render(component))
+    expect(tree.find(element => typeof element.type === 'function' && element.type.name === 'SimpleTableEditor')?.props.nativeDice).toBe(false)
+  })
+
+  it('can clear a local native override explicitly to restore an imported parent’s native selection', () => {
+    let child: AuthoredSimpleTable = { id: 'child', name: 'Child', type: 'simple', extends: 'alias.nativeParent', entries: [], selection: { mode: 'dice', dice: '1d8' } }
+    const parent = { id: 'nativeParent', name: 'Native', type: 'simple' as const, selection: { mode: 'dice' as const, dice: '2d6' }, entries: [] }
+    const onChange = vi.fn(updated => { child = updated })
+    const component = () => TableEditor({ table: child, defaultExpanded: true, availableTableIds: [], tableMap: new Map([['alias.nativeParent', parent]]), onChange, onDelete: vi.fn() })
+    let tree = elements(render(component))
+    expect(tree.find(element => element.type === 'input' && String(element.props.id).endsWith('-dice'))?.props.value).toBe('1d8')
+    handler(tree.find(element => element.type === 'select' && String(element.props.id).endsWith('-selection'))!, 'onChange')({ target: { value: 'inherited' } })
+    expect(child).not.toHaveProperty('selection')
+    tree = elements(render(component))
+    expect(tree.find(element => element.type === 'select' && String(element.props.id).endsWith('-selection'))?.props.value).toBe('inherited')
+    expect(tree.find(element => element.type === 'input' && String(element.props.id).endsWith('-dice'))?.props.value).toBe('2d6')
+    expect(tree.find(element => element.type === 'option' && element.props.value === 'weighted')?.props.disabled).toBe(true)
+  })
+
+  it.each(['0', '-3'])('retains the signed source-dice range endpoint %s', endpoint => {
+    const onChange = vi.fn()
+    const tree = elements(render(() => EntryEditor({ entry: { value: 'Result', range: [-4, 3] }, index: 0, nativeDice: true, onChange, onDelete: vi.fn() })))
+    const input = tree.find(element => element.type === 'input' && element.props.title === 'Range start')!
+    handler(input, 'onChange')({ target: { value: endpoint } })
+    expect(onChange.mock.calls[0][0]).toEqual({ value: 'Result', range: [Number(endpoint), 3] })
+    expect(input.props.min).toBeUndefined()
+  })
+
+  it('removes a conflicting native weight only after the explicit Range action, retaining its authored range', () => {
+    const onChange = vi.fn()
+    const entry = { value: 'Result', weight: 2, range: [2, 7] as [number, number] }
+    const tree = elements(render(() => EntryEditor({ entry, index: 0, nativeDice: true, defaultExpanded: true, onChange, onDelete: vi.fn() })))
+    expect(onChange).not.toHaveBeenCalled()
+    handler(tree.find(element => element.type === 'button' && element.props.children === 'Range')!, 'onClick')()
+    expect(onChange.mock.calls[0][0]).toEqual({ value: 'Result', range: [2, 7] })
+  })
+
+  it('keeps comma separators while typing tags and commits the complete list on blur', () => {
+    const onChange = vi.fn()
+    const component = () => TagsField({ value: ['town'], onChange })
+    let input = elements(render(component)).find(element => element.type === 'input')!
+    handler(input, 'onChange')({ target: { value: 'town, ' } })
+    input = elements(render(component)).find(element => element.type === 'input')!
+    expect(input.props.value).toBe('town, ')
+    expect(onChange).not.toHaveBeenCalled()
+    handler(input, 'onChange')({ target: { value: 'town, urban' } })
+    input = elements(render(component)).find(element => element.type === 'input')!
+    handler(input, 'onBlur')()
+    expect(onChange).toHaveBeenCalledWith(['town', 'urban'])
+  })
+
+  it('keeps shared declaration order when renaming an earlier dependency', () => {
+    const onChange = vi.fn()
+    const component = () => KeyValueEditor({ value: { zDependency: '2', aDependent: '{{math:$zDependency + 1}}' }, onChange })
+    let input = elements(render(component)).filter(element => element.type === 'input')[0]
+    handler(input, 'onFocus')()
+    input = elements(render(component)).filter(element => element.type === 'input')[0]
+    handler(input, 'onChange')({ target: { value: 'zRenamed' } })
+    input = elements(render(component)).filter(element => element.type === 'input')[0]
+    handler(input, 'onBlur')()
+    expect(Object.keys(onChange.mock.calls[0][0])).toEqual(['zRenamed', 'aDependent'])
+  })
+})
+
+describe('explicit source review renewal', () => {
+  const table: AuthoredSimpleTable = { id: 'review', name: 'Review', type: 'simple', entries: [{ value: 'Result', range: [1, 6] }],
+    selection: { mode: 'dice', dice: '1d6' }, conversion: { kind: 'transcription', sourceText: '1d6\n1-6 Result' } }
+
+  it('records an authored review only after a person acknowledges checking the source', () => {
+    const onChange = vi.fn()
+    const component = () => ConversionReviewPanel({ table, onChange })
+    let tree = elements(render(component))
+    let record = tree.find(element => element.type === 'button' && element.props.children === 'Record source review')!
+    expect(record.props.disabled).toBe(true)
+    expect(onChange).not.toHaveBeenCalled()
+    handler(tree.find(element => element.type === 'input' && element.props.type === 'checkbox')!, 'onChange')({ target: { checked: true } })
+    tree = elements(render(component))
+    record = tree.find(element => element.type === 'button' && element.props.children === 'Record source review')!
+    expect(record.props.disabled).toBe(false)
+    handler(record, 'onClick')()
+    expect(getConversionReviewStatus(onChange.mock.calls[0][0])).toBe('reviewed')
+    expect(onChange.mock.calls[0][0].conversion.sourceText).toBe(table.conversion?.sourceText)
+  })
+
+  it('blocks review for incomplete source mechanics even after acknowledgement', () => {
+    const onChange = vi.fn()
+    const component = () => ConversionReviewPanel({ table: { ...table, entries: [{ value: 'Result' }] }, onChange })
+    let tree = elements(render(component))
+    handler(tree.find(element => element.type === 'input' && element.props.type === 'checkbox')!, 'onChange')({ target: { checked: true } })
+    tree = elements(render(component))
+    expect(tree.find(element => element.type === 'button' && element.props.children === 'Record source review')?.props.disabled).toBe(true)
+    expect(JSON.stringify(tree.find(element => element.props.role === 'alert')?.props.children)).toContain('literal outcome range')
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it('changes a reviewed conversion to stale when notes are edited, retaining the excerpt', () => {
+    const reviewed = markConversionReviewed(table)
+    const onChange = vi.fn()
+    const tree = elements(render(() => ConversionReviewPanel({ table: reviewed, onChange })))
+    const notes = tree.find(element => element.type === 'textarea' && String(element.props.id).endsWith('-notes'))!
+    handler(notes, 'onChange')({ target: { value: 'Adapted from the book.' } })
+    expect(getConversionReviewStatus(onChange.mock.calls[0][0])).toBe('stale')
+    expect(onChange.mock.calls[0][0].conversion.sourceText).toBe(table.conversion?.sourceText)
   })
 })

@@ -233,10 +233,9 @@ describe('evaluateMath - dice', () => {
     try {
       const random = vi.fn(() => draw)
       const context = createContext(defaultConfig, undefined, { random })
-      // evaluateMath retains its established null-on-error API while dice validates the source.
-      expect(evaluateMath('dice:1d6', context)).toBeNull()
+      expect(() => evaluateMath('dice:1d6', context)).toThrow('Random source must return a finite value in [0, 1)')
       expect(random).toHaveBeenCalledOnce()
-      expect(error.mock.calls[0]?.[1]).toMatchObject({ message: 'Random source must return a finite value in [0, 1)' })
+      expect(error).not.toHaveBeenCalled()
     } finally { error.mockRestore() }
   })
 

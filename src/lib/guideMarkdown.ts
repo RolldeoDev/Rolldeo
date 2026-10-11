@@ -39,13 +39,15 @@ export function extractHeadings(markdown: string): Heading[] {
 
 const documentRoutes: Record<string, string> = {
   'randomtablespecv1.md': '/guide/spec',
+  'randomtablespecv1_1.md': '/guide/spec',
   'quickstart.md': '/guide/quickstart',
   'usingrolldeo.md': '/guide/using-rolldeo',
-  'random-table-spec-v1.0.json': '/guide/schema',
+  'random-table-spec-v1.0.json': '/schemas/random-table-spec-v1.0.json',
+  'random-table-spec-v1.1.json': '/guide/schema',
 }
 
 export function guideLink(href?: string): string | undefined {
-  if (!href || /^(?:[a-z]+:|\/\/|#)/i.test(href)) return href
+  if (!href || /^(?:[a-z]+:|\/\/|#|\/schemas\/)/i.test(href)) return href
   const [path, hash] = href.split('#', 2)
   const route = documentRoutes[path.split('/').pop()!.toLowerCase()]
   return route ? `${route}${hash ? `#${hash}` : ''}` : href

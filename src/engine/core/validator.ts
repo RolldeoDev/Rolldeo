@@ -7,6 +7,9 @@
 
 import Ajv, { type ErrorObject } from 'ajv'
 import documentSchema from '../../../public/schemas/random-table-spec-v1.0.json'
+import documentSchema11 from '../../../public/schemas/random-table-spec-v1.1.json'
+import { parseSelectionDice, validateDiceSelection } from '../tables/diceSelection'
+import { getConversionReviewStatus } from '../../lib/conversionVerification'
 
 import type {
   AuthoredRandomTableDocument as RandomTableDocument,
@@ -81,11 +84,15 @@ const VARIABLE_NAME_PATTERN = /^\$?[a-zA-Z_][a-zA-Z0-9_]*$/
  * Validate a RandomTableDocument
  */
 const checkStructure = new Ajv({ allErrors: true, strict: false, strictNumbers: true, validateFormats: false }).compile(documentSchema)
+const checkStructure11 = new Ajv({ allErrors: true, strict: false, strictNumbers: true, validateFormats: false }).compile(documentSchema11)
 
 /** Structural phase only: safe for loading before dependencies are available. */
 export function validateDocumentStructure(input: unknown): ValidationResult {
   const issues: ValidationIssue[] = []
-  if (!checkStructure(input)) for (const error of checkStructure.errors ?? []) issues.push(structuralIssue(error, input))
+  const version = input && typeof input === 'object' && 'metadata' in input
+    ? (input.metadata as { specVersion?: unknown } | undefined)?.specVersion : undefined
+  const check = version === '1.1' ? checkStructure11 : checkStructure
+  if (!check(input)) for (const error of check.errors ?? []) issues.push(structuralIssue(error, input))
   return resultFromIssues(issues)
 }
 
@@ -117,6 +124,7 @@ export function validateDocument(input: unknown, options: ValidationOptions = {}
   // Validate tables
   for (let i = 0; i < doc.tables.length; i++) {
     validateTable(doc.tables[i], `tables[${i}]`, tableIds, issues)
+    if (getConversionReviewStatus(doc.tables[i]) === 'stale') issues.push({ severity: 'warning', code: 'STALE_CONVERSION_REVIEW', message: 'Table content has changed since its source conversion was reviewed. Review it again against the source.', path: `tables[${i}].conversion` })
   }
 
   // Validate templates
@@ -135,15 +143,22 @@ export function validateDocument(input: unknown, options: ValidationOptions = {}
   }
 
   validateSharedNames(doc, issues)
+  validateInputs(doc, issues)
   validateOverrides(doc.tables, options, issues)
   {
     const tableMap = new Map(doc.tables.map((table) => [table.id, table]))
     doc.tables.forEach((table, tableIndex) => {
+      if (table.type === 'simple' && effectiveSelectionMode(table, tableMap, options) === 'weighted') {
+        table.entries.forEach((entry, entryIndex) => {
+          if (entry.range && (entry.range[0] < 0 || entry.range[1] < 0)) issues.push({ severity: 'error', code: 'INVALID_RANGE', message: 'Weighted table ranges must have nonnegative endpoints. Signed endpoints require native dice selection.', path: `tables[${tableIndex}].entries[${entryIndex}].range` })
+        })
+      }
       const references = table.type === 'composite' ? table.sources.map((source) => source.tableId) : table.type === 'collection' ? table.collections : []
       references.forEach((reference) => {
         const source = reference.includes('.') ? options.resolveTable?.(reference, table) : tableMap.get(reference)
         if (reference.includes('.') && options.resolveTable && !source) issues.push({ severity: 'error', code: table.type === 'composite' ? 'INVALID_SOURCE' : 'INVALID_COLLECTION', message: `Unresolved linked table: ${reference}`, path: `tables[${tableIndex}]` })
         if (table.type === 'collection' && source && source.type !== 'simple') issues.push({ severity: 'error', code: 'INVALID_COLLECTION_SOURCE_TYPE', message: `Collection source must be a simple table: ${reference} is ${source.type}`, path: `tables[${tableIndex}].collections` })
+        if (table.type === 'collection' && source?.type === 'simple' && hasDiceSelection(source, tableMap, options)) issues.push({ severity: 'error', code: 'DICE_COLLECTION_UNSUPPORTED', message: `Collection pooling cannot preserve native dice selection: ${reference}. Use a composite table to delegate the roll.`, path: `tables[${tableIndex}].collections` })
       })
     })
   }
@@ -210,12 +225,50 @@ function structuralIssue(error: ErrorObject, input: unknown): ValidationIssue {
     return { severity: 'error', code: 'UNSUPPORTED_INHERITANCE', message: 'Only simple tables support extends', path: `${segments.join('.')}.extends` }
   }
   if (segments.includes('sets') || segments.includes('defaultSets')) code = 'INVALID_SET_NAME'
+  if (segments[0] === 'inputs') code = 'INVALID_INPUT_DEFINITION'
   const path = [...segments, ...(missing ? [missing] : [])].map((segment) => /^\d+$/.test(segment) ? `[${segment}]` : `.${segment}`).join('').replace(/^\./, '')
   return { severity: 'error', code, message: `${path || 'Document'} ${error.message ?? 'is invalid'}`, path }
 }
 
 function normalizedNames(values: Record<string, string> | undefined): string[] {
   return Object.keys(values ?? {}).map((name) => name.replace(/^\$/, ''))
+}
+
+function hasDiceSelection(table: Table, local: Map<string, Table>, options: ValidationOptions): boolean {
+  return effectiveSelectionMode(table, local, options) === 'dice'
+}
+
+/** Unknown imported ancestry is settled during linked validation, not guessed weighted. */
+function effectiveSelectionMode(table: Table, local: Map<string, Table>, options: ValidationOptions): 'dice' | 'weighted' | undefined {
+  const seen = new Set<Table>()
+  const localTables = new Set(local.values())
+  let current: Table | undefined = table
+  while (current?.type === 'simple' && !seen.has(current)) {
+    if (current.selection) return 'dice'
+    seen.add(current)
+    if (!current.extends) return 'weighted'
+    current = localTables.has(current) && !current.extends.includes('.')
+      ? local.get(current.extends) : options.resolveTable?.(current.extends, current)
+  }
+  return undefined
+}
+
+function validateInputs(doc: RandomTableDocument, issues: ValidationIssue[]): void {
+  const otherNames = new Set([
+    ...normalizedNames(doc.variables), ...normalizedNames(doc.shared),
+    ...doc.tables.flatMap((table) => normalizedNames(table.shared)),
+    ...(doc.templates ?? []).flatMap((template) => normalizedNames(template.shared)),
+  ])
+  for (const [name, input] of Object.entries(doc.inputs ?? {})) {
+    const path = `inputs.${name}`
+    if (RESERVED_WORDS.has(name.toLowerCase())) issues.push({ severity: 'error', code: 'RESERVED_WORD', message: `Input name is a reserved word: ${name}`, path })
+    if (otherNames.has(name)) issues.push({ severity: 'error', code: 'INPUT_NAME_CONFLICT', message: `Input ${name} conflicts with a static or shared variable declaration`, path })
+    if (input.type === 'integer') {
+      if (input.min !== undefined && input.max !== undefined && input.min > input.max) issues.push({ severity: 'error', code: 'INVALID_INPUT_BOUNDS', message: 'Input minimum cannot exceed maximum', path })
+      if (input.default !== undefined && (input.min !== undefined && input.default < input.min || input.max !== undefined && input.default > input.max)) issues.push({ severity: 'error', code: 'INVALID_INPUT_DEFAULT', message: 'Input default must be within its bounds', path: `${path}.default` })
+    }
+    if (input.type === 'choice' && input.default !== undefined && !input.options.includes(input.default)) issues.push({ severity: 'error', code: 'INVALID_INPUT_DEFAULT', message: 'Choice default must be one of its options', path: `${path}.default` })
+  }
 }
 
 function validateSharedNames(doc: RandomTableDocument, issues: ValidationIssue[]): void {
@@ -248,6 +301,7 @@ function validateOverrides(tables: Table[], options: ValidationOptions, issues: 
     while (current) {
       if (seen.has(current)) return undefined
       seen.add(current)
+      if (current.type !== 'simple') return undefined
       if (current.type === 'simple') {
         const ownerId = current.id
         current.entries.forEach((entry, index) => ids.add(entry.id ?? `${ownerId}${String(index).padStart(3, '0')}`))
@@ -264,10 +318,11 @@ function validateOverrides(tables: Table[], options: ValidationOptions, issues: 
       if (options.resolveTable && table.extends.includes('.')) issues.push({ severity: 'error', code: 'INVALID_EXTENDS', message: `Extends references unknown table: ${table.extends}`, path: `tables[${index}].extends` })
       return
     }
-    if (parent.type !== table.type) issues.push({ severity: 'error', code: 'INHERITANCE_TYPE_MISMATCH', message: 'Inherited table must have the same type', path: `tables[${index}].extends` })
     if (table.type !== 'simple') return
     const ids = inheritedIds(parent)
     table.entries.forEach((entry, entryIndex) => {
+      const generatedId = `${table.id}${entryIndex.toString().padStart(3, '0')}`
+      if (!entry.id && ids?.has(generatedId)) issues.push({ severity: 'error', code: 'INVALID_OVERRIDE_TARGET', message: `Entry must specify an explicit ID to override inherited entry: ${generatedId}`, path: `tables[${index}].entries[${entryIndex}]` })
       const deletesProperty = Object.values(entry).some((value) => value === null || typeof value === 'object' && value !== null && !Array.isArray(value) && Object.values(value).some((item) => item === null))
       if ((entry.value === undefined || deletesProperty) && ids && (!entry.id || !ids.has(entry.id))) issues.push({ severity: 'error', code: 'INVALID_OVERRIDE_TARGET', message: `Value-less entries and null deletions must override an inherited ID: ${entry.id ?? '(missing)'}`, path: `tables[${index}].entries[${entryIndex}]` })
     })
@@ -329,13 +384,13 @@ function validateMetadata(doc: RandomTableDocument, issues: ValidationIssue[]): 
     })
   }
 
-  if (meta.specVersion !== '1.0') {
+  if (meta.specVersion !== '1.0' && meta.specVersion !== '1.1') {
     issues.push({
       severity: 'error',
       code: 'INVALID_SPEC_VERSION',
       message: `Unsupported spec version: ${meta.specVersion}`,
       path: 'metadata.specVersion',
-      suggestion: 'Use specVersion "1.0"',
+      suggestion: 'Use specVersion "1.0" or "1.1"',
     })
   }
 
@@ -435,6 +490,17 @@ function validateSimpleTable(
   }
 
   const entryIds = new Set<string>()
+
+  // Inherited tables are checked on their fully resolved entries at runtime.
+  if (table.selection && table.extends) {
+    try { parseSelectionDice(table.selection.dice) }
+    catch (error) { issues.push({ severity: 'error', code: 'INVALID_DICE_SELECTION', message: String(error instanceof Error ? error.message : error), path: `${path}.selection` }) }
+  }
+  if (table.selection && !table.extends) {
+    for (const diagnostic of validateDiceSelection(table)) {
+      issues.push({ severity: diagnostic.type, code: diagnostic.code, message: diagnostic.message, path: diagnostic.entryIndex === undefined ? `${path}.selection` : `${path}.entries[${diagnostic.entryIndex}]` })
+    }
+  }
 
   for (let i = 0; i < table.entries.length; i++) {
     const entry = table.entries[i]
@@ -684,7 +750,7 @@ function validateInheritance(
 ): void {
   const tableMap = new Map(tables.map((table) => [table.id, table]))
   const localTables = new Set(tables)
-  for (const table of tables) {
+  for (const [index, table] of tables.entries()) {
     const chain = new Set<Table>()
     let current: Table | undefined = table
     let depth = 0
@@ -704,6 +770,10 @@ function validateInheritance(
         ? tableMap.get(reference) : options.resolveTable?.(reference, current)
       if (!parent && options.resolveTable) {
         issues.push({ severity: 'error', code: 'INVALID_EXTENDS', message: `Missing inheritance ancestor: ${reference}`, path: 'tables' })
+      }
+      if (parent && parent.type !== current.type) {
+        issues.push({ severity: 'error', code: 'INHERITANCE_TYPE_MISMATCH', message: `Inherited table must have the same type: ${current.id} extends ${reference}`, path: `tables[${index}].extends` })
+        break
       }
       current = parent
     }

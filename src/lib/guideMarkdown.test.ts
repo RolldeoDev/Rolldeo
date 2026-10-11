@@ -23,4 +23,12 @@ describe('guide navigation', () => {
     expect(guideLink('https://example.com/randomTableSpecV1.md')).toBe('https://example.com/randomTableSpecV1.md')
     expect(guideLink('/guide/examples/Starter.zip')).toBe('/guide/examples/Starter.zip')
   })
+
+  it('keeps versioned schema downloads separate from the latest schema guide', () => {
+    expect(guideLink('./randomTableSpecV1_1.md')).toBe('/guide/spec')
+    expect(guideLink('./random-table-spec-v1.0.json')).toBe('/schemas/random-table-spec-v1.0.json')
+    expect(guideLink('/schemas/random-table-spec-v1.0.json')).toBe('/schemas/random-table-spec-v1.0.json')
+    expect(guideLink('/schemas/random-table-spec-v1.1.json')).toBe('/schemas/random-table-spec-v1.1.json')
+    expect(guideLink('./random-table-spec-v1.1.json')).toBe('/guide/schema')
+  })
 })

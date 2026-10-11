@@ -9,7 +9,7 @@ import { useRollStore } from '../stores/rollStore'
 import { useCollectionStore, type CollectionMeta } from '../stores/collectionStore'
 import { useUIStore } from '../stores/uiStore'
 import type { TableInfo, TemplateInfo } from '../engine/core'
-import type { RollResult } from '../engine/types'
+import type { InputValue, RollResult } from '../engine/types'
 import type { StoredRoll } from '../services/db'
 
 export interface UseRollerReturn {
@@ -22,6 +22,10 @@ export interface UseRollerReturn {
   collections: CollectionMeta[]
   tables: TableInfo[]
   templates: TemplateInfo[]
+
+  inputValues: Record<string, InputValue>
+  setInputValue: (name: string, value: InputValue | undefined) => void
+  getInputErrors: (collectionId: string) => Record<string, string>
 
   // Roll state
   currentResult: RollResult | null
@@ -69,6 +73,9 @@ export function useRoller(
     selectedCollectionId,
     selectedTableId,
     selectedTemplateId,
+    inputValues,
+    setInputValue,
+    getInputErrors,
     currentResult,
     currentRoll,
     currentItemName,
@@ -174,6 +181,10 @@ export function useRoller(
     collections,
     tables,
     templates,
+
+    inputValues,
+    setInputValue,
+    getInputErrors,
 
     // Roll state
     currentResult,

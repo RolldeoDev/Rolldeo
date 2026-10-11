@@ -56,9 +56,9 @@ export const PAGE_SEO: Record<string, PageSEO> = {
     path: '/guide/quickstart',
   },
   spec: {
-    title: 'Random Table JSON Specification v1.0 | Rolldeo',
+    title: 'Random Table JSON Specification v1.1 | Rolldeo',
     description:
-      'Complete reference for the Random Table JSON Spec v1.0. Covers dice expressions, table references, templates, conditionals, and more.',
+      'Random Table JSON Spec v1.1: source dice selection, conversion review, generator inputs, and the compatible text-generation language.',
     path: '/guide/spec',
   },
   schema: {

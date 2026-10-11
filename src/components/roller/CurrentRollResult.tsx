@@ -72,21 +72,20 @@ export const CurrentRollResult = memo(function CurrentRollResult({
     }
   }, [result?.text])
 
-  if (error) {
-    return (
-      <div className="mx-4 mt-4 p-4 rounded-xl border border-destructive/20 bg-destructive/5">
-        <p className="text-destructive text-center">{error}</p>
-      </div>
-    )
-  }
+  const errorNotice = error ? (
+    <div role="alert" className="mx-4 mt-4 p-4 rounded-xl border border-destructive/20 bg-destructive/5">
+      <p className="text-destructive text-center">{error}</p>
+      {result && <p className="mt-1 text-sm text-muted-foreground text-center">Your previous result is shown below.</p>}
+    </div>
+  ) : null
 
-  if (!result) {
-    return null
-  }
+  if (!result) return errorNotice
 
   const ResultIcon = getResultTypeIcon(result.resultType)
 
   return (
+    <>
+    {errorNotice}
     <div className={cn(
       "mx-4 mt-4 mb-6 p-5 border animate-slide-up",
       isThemedResult
@@ -241,6 +240,7 @@ export const CurrentRollResult = memo(function CurrentRollResult({
         </div>
       )}
     </div>
+    </>
   )
 })
 

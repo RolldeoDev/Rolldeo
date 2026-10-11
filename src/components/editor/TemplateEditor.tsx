@@ -4,7 +4,7 @@
  * Visual editor for template patterns with syntax helper buttons.
  */
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo, useId } from 'react'
 import {
   Trash2,
   ChevronDown,
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { KeyValueEditor } from './KeyValueEditor'
+import { AdvancedSettings } from './AdvancedSettings'
 import { InsertDropdown } from './InsertDropdown'
 import { PatternPreview, type EditablePatternRef } from './PatternPreview'
 import { ResultTypeSelector } from './ResultTypeSelector'
@@ -82,6 +83,7 @@ export function TemplateEditor({
   onBlur,
   onExpandChange,
 }: TemplateEditorProps) {
+  const fieldId = useId()
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const patternEditorRef = useRef<EditablePatternRef>(null)
   const prevDefaultExpandedRef = useRef(defaultExpanded)
@@ -251,27 +253,10 @@ export function TemplateEditor({
         <div className="p-4 space-y-5 mobile-form-container">
           {/* Basic Info */}
           <div className="editor-field-group">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1">
               <div>
-                <label className="editor-label editor-label-required">Template ID</label>
-                <input
-                  type="text"
-                  value={template.id}
-                  onChange={(e) => updateField('id', e.target.value)}
-                  placeholder="uniqueTemplateId"
-                  className={cn(
-                    "editor-input text-base md:text-sm min-h-[48px] md:min-h-0",
-                    idError && "border-destructive focus:ring-destructive"
-                  )}
-                />
-                {idError && (
-                  <p className="text-xs text-destructive mt-1">{idError}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="editor-label editor-label-required">Name</label>
-                <input
+                <label htmlFor={`${fieldId}-name`} className="editor-label editor-label-required">Name</label>
+                <input id={`${fieldId}-name`}
                   type="text"
                   value={template.name}
                   onChange={(e) => updateField('name', e.target.value)}
@@ -279,21 +264,12 @@ export function TemplateEditor({
                   className="editor-input text-base md:text-sm min-h-[48px] md:min-h-0"
                 />
               </div>
-
-              <div>
-                <label className="editor-label">Result Type</label>
-                <ResultTypeSelector
-                  value={template.resultType}
-                  onChange={(value) => updateField('resultType', value)}
-                  placeholder="Select or enter type..."
-                />
-              </div>
             </div>
 
             {/* Description */}
             <div className="mt-4">
-              <label className="editor-label">Description</label>
-              <input
+              <label htmlFor={`${fieldId}-description`} className="editor-label">Description</label>
+              <input id={`${fieldId}-description`}
                 type="text"
                 value={template.description || ''}
                 onChange={(e) =>
@@ -305,57 +281,6 @@ export function TemplateEditor({
             </div>
           </div>
 
-          {/* Shared Variables (collapsible) */}
-          <details className="editor-collapsible">
-            <summary>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">Shared Variables</span>
-                <span className="text-xs text-muted-foreground">(optional)</span>
-                {template.shared && Object.keys(template.shared).length > 0 && (
-                  <span className="px-1.5 py-0.5 text-xs rounded-full bg-rose/15 text-rose">
-                    {Object.keys(template.shared).length}
-                  </span>
-                )}
-                <div className="group relative">
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                  <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 text-xs bg-popover border rounded-md shadow-lg">
-                    Template-level shared variables are evaluated lazily when this
-                    template is rolled, not when the document loads. They propagate
-                    to any nested table references. Cannot shadow document-level
-                    variables.
-                  </div>
-                </div>
-              </div>
-            </summary>
-            <div className="editor-collapsible-content space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Variables evaluated when this template is rolled. Available to nested table references.
-              </p>
-              <KeyValueEditor
-                value={(template.shared as SharedVariables) || {}}
-                onChange={(shared) =>
-                  updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
-                }
-                keyPlaceholder="Variable name"
-                valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
-                keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
-                keyError="Must start with letter/underscore, alphanumeric only"
-                valueSupportsExpressions
-                collectionId={collectionId}
-                showInsertButton
-                localTables={localTables}
-                localTemplates={filteredLocalTemplates}
-                importedTables={importedTables}
-                importedTemplates={filteredImportedTemplates}
-                suggestions={suggestions}
-                tableMap={tableMap}
-                templateMap={templateMap}
-                sharedVariables={combinedSharedVariables}
-                previewSharedVariables={template.shared as Record<string, string> | undefined}
-              />
-            </div>
-          </details>
-
           {/* Pattern Editor with Syntax Helpers */}
           <div>
             <div className="flex items-center mb-2 md:mb-2 mb-3">
@@ -364,6 +289,9 @@ export function TemplateEditor({
               </span>
             </div>
 
+            <p className="text-sm text-muted-foreground mb-3">
+              Write the result you want to read, then use Insert to add table rolls. The preview shows an example generation.
+            </p>
             {/* Quick Syntax Buttons - scrollable on mobile */}
             <div className="flex flex-wrap md:flex-wrap flex-nowrap gap-2 md:gap-1.5 mb-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-none"
               style={{ WebkitOverflowScrolling: 'touch' }}
@@ -393,50 +321,59 @@ export function TemplateEditor({
                 title="Insert variable reference"
                 onClick={() => insertAtCursor('{{$variableName}}')}
               />
-              <SyntaxHelperButton
-                icon={<RefreshCw className="h-3.5 w-3.5" />}
-                label="Again"
-                title="Insert re-roll reference"
-                onClick={() => insertAtCursor('{{again}}')}
-              />
-              <SyntaxHelperButton
-                label="@placeholder"
-                title="Insert placeholder reference"
-                onClick={() => insertAtCursor('{{@placeholderName}}')}
-              />
-              <SyntaxHelperButton
-                label="unique:N"
-                title="Insert unique selection"
-                onClick={() => {
-                  const tableId =
-                    localTables.length > 0 ? localTables[0].id : 'tableId'
-                  insertAtCursor(`{{unique:3:${tableId}}}`)
-                }}
-              />
-              <span className="w-px h-4 bg-border mx-1" />
-              <SyntaxHelperButton
-                icon={<Grab className="h-3.5 w-3.5" />}
-                label="Capture"
-                title="Insert capture multi-roll (stores results in variable)"
-                onClick={() => {
-                  const tableId =
-                    localTables.length > 0 ? localTables[0].id : 'tableId'
-                  insertAtCursor(`{{3*${tableId} >> $items}}`)
-                }}
-              />
-              <SyntaxHelperButton
-                icon={<ListOrdered className="h-3.5 w-3.5" />}
-                label="$var[n]"
-                title="Insert capture access (get item by index)"
-                onClick={() => insertAtCursor('{{$items[0]}}')}
-              />
-              <SyntaxHelperButton
-                icon={<FolderOpen className="h-3.5 w-3.5" />}
-                label="collect:"
-                title="Insert collect expression (aggregate property from captures)"
-                onClick={() => insertAtCursor('{{collect:$items.@value|unique}}')}
-              />
             </div>
+            <details className="editor-collapsible mb-3">
+              <summary>
+                <span className="font-medium text-sm">Advanced syntax</span>
+                <span className="text-xs text-muted-foreground ml-2">Re-rolls, properties, unique results and captures</span>
+                {/\{\{\s*(?:again|@|unique:|collect:)|>>|\$\w+\[/.test(template.pattern || '') && <span className="text-xs text-muted-foreground ml-2">Used in pattern</span>}
+              </summary>
+              <div className="editor-collapsible-content flex flex-wrap gap-2">
+                <SyntaxHelperButton
+                  icon={<RefreshCw className="h-3.5 w-3.5" />}
+                  label="Again"
+                  title="Insert re-roll reference"
+                  onClick={() => insertAtCursor('{{again}}')}
+                />
+                <SyntaxHelperButton
+                  label="@placeholder"
+                  title="Insert placeholder reference"
+                  onClick={() => insertAtCursor('{{@placeholderName}}')}
+                />
+                <SyntaxHelperButton
+                  label="unique:N"
+                  title="Insert unique selection"
+                  onClick={() => {
+                    const tableId =
+                      localTables.length > 0 ? localTables[0].id : 'tableId'
+                    insertAtCursor(`{{unique:3:${tableId}}}`)
+                  }}
+                />
+                <span className="w-px h-4 bg-border mx-1" />
+                <SyntaxHelperButton
+                  icon={<Grab className="h-3.5 w-3.5" />}
+                  label="Capture"
+                  title="Insert capture multi-roll (stores results in variable)"
+                  onClick={() => {
+                    const tableId =
+                      localTables.length > 0 ? localTables[0].id : 'tableId'
+                    insertAtCursor(`{{3*${tableId} >> $items}}`)
+                  }}
+                />
+                <SyntaxHelperButton
+                  icon={<ListOrdered className="h-3.5 w-3.5" />}
+                  label="$var[n]"
+                  title="Insert capture access (get item by index)"
+                  onClick={() => insertAtCursor('{{$items[0]}}')}
+                />
+                <SyntaxHelperButton
+                  icon={<FolderOpen className="h-3.5 w-3.5" />}
+                  label="collect:"
+                  title="Insert collect expression (aggregate property from captures)"
+                  onClick={() => insertAtCursor('{{collect:$items.@value|unique}}')}
+                />
+              </div>
+            </details>
 
             {/* New Unified Pattern Preview with editable pattern */}
             <PatternPreview
@@ -454,16 +391,100 @@ export function TemplateEditor({
             />
           </div>
 
-          {/* Tags */}
-          <div>
-            <label className="editor-label">Tags</label>
-            <TagInput
-              value={template.tags || []}
-              onChange={(tags) =>
-                updateField('tags', tags.length > 0 ? tags : undefined)
-              }
-            />
-          </div>
+          <AdvancedSettings configured={[
+            ...(template.resultType ? ['result classification'] : []),
+            ...(template.shared && Object.keys(template.shared).length ? [`${Object.keys(template.shared).length} shared values`] : []),
+            ...(template.tags?.length ? [`${template.tags.length} tags`] : []),
+          ]} hasError={!!idError || !template.id.trim()}>
+            <p className="text-sm text-muted-foreground">Use the template ID to reference this generator. Keep it stable once referenced.</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor={`${fieldId}-id`} className="editor-label editor-label-required">Template ID</label>
+                <input id={`${fieldId}-id`}
+                  type="text"
+                  value={template.id}
+                  onChange={(e) => updateField('id', e.target.value)}
+                  placeholder="uniqueTemplateId"
+                  className={cn(
+                    "editor-input text-base md:text-sm min-h-[48px] md:min-h-0",
+                    idError && "border-destructive focus:ring-destructive"
+                  )}
+                />
+                {idError && (
+                  <p className="text-xs text-destructive mt-1">{idError}</p>
+                )}
+              </div>
+              <div>
+                <label className="editor-label">Result Type</label>
+                <ResultTypeSelector
+                  value={template.resultType}
+                  onChange={(value) => updateField('resultType', value)}
+                  placeholder="Select or enter type..."
+                />
+              </div>
+            </div>
+            {/* Shared Variables (collapsible) */}
+            <details className="editor-collapsible">
+              <summary>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm">Shared Variables</span>
+                  <span className="text-xs text-muted-foreground">(optional)</span>
+                  {template.shared && Object.keys(template.shared).length > 0 && (
+                    <span className="px-1.5 py-0.5 text-xs rounded-full bg-rose/15 text-rose">
+                      {Object.keys(template.shared).length}
+                    </span>
+                  )}
+                  <div className="group relative">
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    <div className="absolute left-0 top-6 z-10 hidden group-hover:block w-64 p-2 text-xs bg-popover border rounded-md shadow-lg">
+                      Template-level shared variables are evaluated lazily when this
+                      template is rolled, not when the document loads. They propagate
+                      to any nested table references. Cannot shadow document-level
+                      variables.
+                    </div>
+                  </div>
+                </div>
+              </summary>
+              <div className="editor-collapsible-content space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Values are reused for this template roll and nested table references. Keep dependencies earlier in the list; key order matters. Do not alphabetize shared keys.
+                </p>
+                <KeyValueEditor
+                  value={(template.shared as SharedVariables) || {}}
+                  onChange={(shared) =>
+                    updateField('shared', Object.keys(shared).length > 0 ? shared : undefined)
+                  }
+                  keyPlaceholder="Variable name"
+                  valuePlaceholder="Value (supports {{dice:}}, {{math:}}, etc.)"
+                  keyPattern="^\$?[a-zA-Z_][a-zA-Z0-9_]*$"
+                  keyError="Must start with letter/underscore, alphanumeric only"
+                  valueSupportsExpressions
+                  collectionId={collectionId}
+                  showInsertButton
+                  localTables={localTables}
+                  localTemplates={filteredLocalTemplates}
+                  importedTables={importedTables}
+                  importedTemplates={filteredImportedTemplates}
+                  suggestions={suggestions}
+                  tableMap={tableMap}
+                  templateMap={templateMap}
+                  sharedVariables={combinedSharedVariables}
+                  previewSharedVariables={template.shared as Record<string, string> | undefined}
+                />
+              </div>
+            </details>
+
+            {/* Tags */}
+            <div>
+              <label className="editor-label">Tags</label>
+              <TagInput
+                value={template.tags || []}
+                onChange={(tags) =>
+                  updateField('tags', tags.length > 0 ? tags : undefined)
+                }
+              />
+            </div>
+          </AdvancedSettings>
         </div>
       )}
     </div>
@@ -538,6 +559,7 @@ function TagInput({ value, onChange }: TagInputProps) {
             <button
               type="button"
               onClick={() => removeTag(index)}
+              aria-label={`Remove tag ${tag}`}
               className="hover:bg-primary/20 rounded-full p-1 md:p-0.5 min-w-[24px] min-h-[24px] md:min-w-0 md:min-h-0 flex items-center justify-center"
             >
               <X className="h-3.5 w-3.5 md:h-3 md:w-3" />
@@ -545,6 +567,7 @@ function TagInput({ value, onChange }: TagInputProps) {
           </span>
         ))}
         <input
+          aria-label="Template tags"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}

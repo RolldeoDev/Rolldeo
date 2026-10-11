@@ -18,7 +18,8 @@ import type {
   Assets,
 } from '../types'
 
-import { rollDice } from '../dice'
+import { ensureCollectionInputs } from './inputs'
+import { rollExpressionDice } from './expressionDice'
 import {
   consumeWork,
   normalizeRollCount,
@@ -58,7 +59,6 @@ import {
   beginTraceNode,
   endTraceNode,
   addTraceLeaf,
-  type DiceRollMetadata,
   type VariableAccessMetadata,
   type PlaceholderAccessMetadata,
   type MultiRollMetadata,
@@ -134,6 +134,7 @@ export class ExpressionEvaluator {
     const dot = ref.lastIndexOf('.')
     if (dot < 0) return resolveVariable(context, ref)
     const owner = this.deps.resolveCollection?.(ref.slice(0, dot), collectionId)
+    if (owner && Object.prototype.hasOwnProperty.call(owner.document.inputs ?? {}, ref.slice(dot + 1))) return String(ensureCollectionInputs(context, owner)[ref.slice(dot + 1)])
     return owner?.document.variables?.[ref.slice(dot + 1)]
   }
 
@@ -216,9 +217,11 @@ export class ExpressionEvaluator {
     const evaluated: EvaluatedSets = {}
 
     for (const [key, value] of Object.entries(sets)) {
-      if (value.includes('{{')) {
+      if (value.includes('{{') || key === 'value') {
         // This value contains a pattern - evaluate it
-        const setKey = `${tableId}.${key}`
+        // The automatic entry output may recursively invoke this table; guard it
+        // per invocation. Authored properties retain cycle detection across nesting.
+        const setKey = `${collectionId}:${tableId}.${key}${key === 'value' ? `:${context.recursionDepth}` : ''}`
 
         if (!beginSetEvaluation(context, setKey)) {
           // Cycle detected - return raw value to prevent infinite loop
@@ -240,7 +243,7 @@ export class ExpressionEvaluator {
               if (tableResult) {
                 const result = this.deps.rollTable(tableResult.table, context, tableResult.collectionId)
                 evaluated[key] = {
-                  value: result.text,
+                  value: checkOutput(context, value.slice(0, expressions[0].start) + result.text + value.slice(expressions[0].end)),
                   sets: result.placeholders ?? {},
                   description: result.description,
                 }
@@ -314,18 +317,22 @@ export class ExpressionEvaluator {
   ): CaptureItem {
     const expressions = extractExpressions(expression)
     if (expressions.length === 1 && expression.trim() === expressions[0].raw) {
-      const token = parseExpression(expressions[0].expression)
+      const match = expressions[0]
+      const surround = (item: CaptureItem): CaptureItem => ({
+        ...item, value: checkOutput(context, expression.slice(0, match.start) + item.value + expression.slice(match.end)),
+      })
+      const token = parseExpression(match.expression)
       if (!token.switchModifiers) {
         if (token.type === 'table' && !token.properties?.length) {
           const ref = this.reference(token)
           const tableResult = this.deps.resolveTableRef(ref, collectionId)
           if (tableResult) {
             const result = this.deps.rollTable(tableResult.table, context, tableResult.collectionId)
-            return { value: result.text, sets: result.placeholders ?? {}, description: result.description }
+            return surround({ value: result.text, sets: result.placeholders ?? {}, description: result.description })
           }
           const templateResult = this.deps.resolveTemplateRef(ref, collectionId)
           if (templateResult) {
-            return this.evaluateTemplateWithCapture(templateResult.template, templateResult.collectionId, context)
+            return surround(this.evaluateTemplateWithCapture(templateResult.template, templateResult.collectionId, context))
           }
         }
         if (token.type === 'captureAccess' && token.index === undefined && token.properties?.length) {
@@ -333,7 +340,7 @@ export class ExpressionEvaluator {
           const lastProp = token.properties[token.properties.length - 1]
           if (source && !['value', 'count', 'description'].includes(lastProp)) {
             const nested = this.getNestedCaptureItem(source, token.properties)
-            if (nested) return nested
+            if (nested) return surround(nested)
           }
         }
         if (token.type === 'switch') {
@@ -341,11 +348,11 @@ export class ExpressionEvaluator {
           if (winner !== undefined) {
             const trimmed = winner.trim()
             if (!trimmed.startsWith('"') && !trimmed.startsWith("'")) {
-              return this.evaluateCapturedPattern(trimmed.includes('{{') ? trimmed : `{{${trimmed}}}`, context, collectionId)
+              return surround(this.evaluateCapturedPattern(trimmed.includes('{{') ? trimmed : `{{${trimmed}}}`, context, collectionId))
             }
-            return { value: this.evaluateSwitchResult(winner, context, collectionId), sets: {} }
+            return surround({ value: this.evaluateSwitchResult(winner, context, collectionId), sets: {} })
           }
-          return { value: '', sets: {} }
+          return surround({ value: '', sets: {} })
         }
       }
     }
@@ -380,7 +387,7 @@ export class ExpressionEvaluator {
       }
 
       // Check for shadowing static variables
-      if (context.staticVariables.has(varName)) {
+      if (context.staticVariables.has(varName) || Object.prototype.hasOwnProperty.call(context.inputValues?.get(collectionId) ?? {}, varName)) {
         throw new Error(
           `SHARED_SHADOW in ${sourceId}: Shared variable '${name}' ` +
             `would shadow static variable.`
@@ -488,42 +495,17 @@ export class ExpressionEvaluator {
   // ==========================================================================
 
   private evaluateDice(expression: string, context: GenerationContext): string {
-    const result = rollDice(expression, {
-      maxExplodingDice: context.config.maxExplodingDice,
-    }, context.random)
-
-    // Parse expression to extract modifier info for trace
-    const modifierMatch = expression.match(/([+\-*])(\d+)$/)
-    const modifier = modifierMatch
-      ? {
-          operator: modifierMatch[1] as '+' | '-' | '*',
-          value: parseInt(modifierMatch[2], 10),
-        }
-      : undefined
-
-    // Add dice roll trace with full breakdown
-    addTraceLeaf(
-      context,
-      'dice_roll',
-      `Dice: ${expression}`,
-      {
-        raw: expression,
-      },
-      {
-        value: result.total,
-      },
-      {
-        type: 'dice',
-        expression: result.expression,
-        rolls: result.rolls,
-        kept: result.kept,
-        modifier,
-        exploded: result.rolls.length > (parseInt(expression.match(/^(\d+)d/)?.[1] || '1', 10)),
-        breakdown: result.breakdown,
-      } as DiceRollMetadata
-    )
+    const result = rollExpressionDice(expression, context)
 
     return String(result.total)
+  }
+
+  private evaluateInput(owner: LoadedCollection, name: string, context: GenerationContext, label = name): string {
+    const result = String(ensureCollectionInputs(context, owner)[name])
+    addTraceLeaf(context, 'variable_access', `$${label}`, { raw: label, parsed: { collectionId: owner.id } }, { value: result }, {
+      type: 'variable', name, source: 'input',
+    } as VariableAccessMetadata)
+    return result
   }
 
   private evaluateVariable(
@@ -535,6 +517,7 @@ export class ExpressionEvaluator {
       const ref = `${token.alias}.${token.name}`
       const dot = ref.lastIndexOf('.')
       const owner = this.deps.resolveCollection?.(ref.slice(0, dot), collectionId)
+      if (owner && Object.prototype.hasOwnProperty.call(owner.document.inputs ?? {}, ref.slice(dot + 1))) return this.evaluateInput(owner, ref.slice(dot + 1), context, ref)
       const value = owner?.document.variables?.[ref.slice(dot + 1)]
       if (value === undefined) throw new Error(`REFERENCE_ERROR: Static variable not found: $${ref}`)
       return value
@@ -593,6 +576,11 @@ export class ExpressionEvaluator {
       return captureShared.value
     }
 
+    const owner = this.deps.getCollection(collectionId)
+    if (owner && Object.prototype.hasOwnProperty.call(owner.document.inputs ?? {}, token.name)) {
+      return this.evaluateInput(owner, token.name, context)
+    }
+
     const value = this.deps.getCollection(collectionId)?.document.variables?.[token.name]
       ?? (context.currentCollectionId === collectionId ? resolveVariable(context, token.name) : undefined)
     const result = value !== undefined ? String(value) : ''
@@ -627,6 +615,33 @@ export class ExpressionEvaluator {
     return result
   }
 
+  /** Evaluate the selected entry's description once, at its first authored use. */
+  evaluateEntryDescription(context: GenerationContext, collectionId: string): string {
+    const memo = context.currentEntryDescriptionMemo ?? (context.currentEntryDescriptionMemo = {})
+    if (memo.value !== undefined) return memo.value
+    const ownerId = memo.collectionId ?? collectionId
+    const key = `self.description:${ownerId}:${context.currentTableId}:${context.currentEntryId}`
+    if (!beginSetEvaluation(context, key)) throw new Error('REFERENCE_ERROR: Recursive @self.description')
+    const frame = { currentCollectionId: context.currentCollectionId, staticVariables: context.staticVariables }
+    try {
+      // An imported template can be the first reader. The selected entry still
+      // owns its description's references, defaults, counts and static values.
+      context.currentCollectionId = ownerId
+      const owner = this.deps.getCollection(ownerId)
+      if (owner) {
+        ensureCollectionInputs(context, owner)
+        context.staticVariables = new Map(Object.entries(owner.document.variables ?? {}))
+      }
+      const raw = context.currentEntryDescription ?? ''
+      const value = raw ? this.evaluatePattern(raw, context, ownerId) : ''
+      memo.value = value
+      return value
+    } finally {
+      Object.assign(context, frame)
+      endSetEvaluation(context, key)
+    }
+  }
+
   private evaluatePlaceholder(
     token: { name: string; properties?: string[] },
     context: GenerationContext,
@@ -642,12 +657,7 @@ export class ExpressionEvaluator {
       const firstProp = token.properties?.[0]
       if (firstProp === 'description') {
         const rawDescription = context.currentEntryDescription ?? ''
-        // Evaluate any expressions in the description
-        const key = `self.description:${context.currentCollectionId}:${context.currentTableId}:${context.currentEntryId}`
-        if (!beginSetEvaluation(context, key)) throw new Error('REFERENCE_ERROR: Recursive @self.description')
-        let result: string
-        try { result = rawDescription ? this.evaluatePattern(rawDescription, context, collectionId) : '' }
-        finally { endSetEvaluation(context, key) }
+        const result = this.evaluateEntryDescription(context, collectionId)
 
         // Add placeholder access trace
         addTraceLeaf(
@@ -921,6 +931,8 @@ export class ExpressionEvaluator {
         return { value: '', sets: {} }
       }
 
+      ensureCollectionInputs(context, collection)
+
       // Start trace node for template reference evaluation
       beginTraceNode(context, 'template_ref', `Template: ${template.name || template.id}`, {
         raw: template.id,
@@ -991,9 +1003,7 @@ export class ExpressionEvaluator {
 
     if (token.diceCount) {
       // Roll dice to determine count
-      const diceResult = rollDice(token.diceCount, {
-        maxExplodingDice: context.config.maxExplodingDice,
-      }, context.random)
+      const diceResult = rollExpressionDice(token.diceCount, context)
       count = diceResult.total
       countSource = 'dice'
     } else if (typeof token.count === 'number') {
@@ -1067,7 +1077,7 @@ export class ExpressionEvaluator {
 
     // Start multi_roll trace node
     beginTraceNode(context, 'multi_roll', `${count}x ${token.tableId}`, {
-      raw: `${token.count}*${token.tableId}`,
+      raw: `${token.diceCount ? `dice:${token.diceCount}` : token.count}*${token.tableId}`,
       parsed: { count, tableId: token.tableId, unique: token.unique },
     })
 
@@ -1112,12 +1122,12 @@ export class ExpressionEvaluator {
     templateCollectionId: string,
     count: number,
     countSource: 'literal' | 'variable' | 'dice',
-    token: { tableId: string; unique?: boolean; separator?: string; count: number | string },
+    token: { tableId: string; unique?: boolean; separator?: string; count: number | string; diceCount?: string },
     context: GenerationContext
   ): string {
     // Start multi_roll trace node for template
     beginTraceNode(context, 'multi_roll', `${count}x ${token.tableId} (template)`, {
-      raw: `${token.count}*${token.tableId}`,
+      raw: `${token.diceCount ? `dice:${token.diceCount}` : token.count}*${token.tableId}`,
       parsed: { count, tableId: token.tableId, unique: token.unique, isTemplate: true },
     })
 
@@ -1160,7 +1170,7 @@ export class ExpressionEvaluator {
       return ''
     }
 
-    const ownerId = context.currentCollectionId ?? collectionId
+    const ownerId = context.currentTableCollectionId ?? context.currentCollectionId ?? collectionId
     const table = this.deps.getTable(context.currentTableId, ownerId)
     if (!table) {
       return ''
@@ -1302,9 +1312,7 @@ export class ExpressionEvaluator {
 
     if (token.diceCount) {
       // Roll dice to determine count
-      const diceResult = rollDice(token.diceCount, {
-        maxExplodingDice: context.config.maxExplodingDice,
-      }, context.random)
+      const diceResult = rollExpressionDice(token.diceCount, context)
       count = diceResult.total
     } else if (typeof token.count === 'number') {
       count = token.count
@@ -1375,7 +1383,7 @@ export class ExpressionEvaluator {
       'capture_multi_roll',
       `${count}x ${token.tableId} >> $${token.captureVar}`,
       {
-        raw: `${token.count}*${token.tableId} >> $${token.captureVar}`,
+        raw: `${token.diceCount ? `dice:${token.diceCount}` : token.count}*${token.tableId} >> $${token.captureVar}`,
         parsed: {
           count,
           tableId: token.tableId,
@@ -2004,19 +2012,44 @@ export class ExpressionEvaluator {
       preparedCondition = this.prepareConditionWithBaseValue(condition)
     }
 
-    // Evaluate any {{expressions}} in the condition
-    const evaluatedCondition = this.evaluatePattern(preparedCondition, context, collectionId)
+    // Evaluate each authored interpolation once, then shield its position before
+    // parsing the condition. Choose markers absent from both source and results.
+    const matches = extractExpressions(preparedCondition)
+    const values = matches.map(match => this.evaluatePattern(match.raw, context, collectionId))
+    const markerBase = '__rolldeo_operand_'
+    let underscores = 0
+    for (const value of [preparedCondition, ...values]) {
+      let start = value.indexOf(markerBase)
+      while (start !== -1) {
+        const suffix = start + markerBase.length
+        let end = suffix
+        while (value[end] === '_') end++
+        underscores = Math.max(underscores, end - suffix + 1)
+        start = value.indexOf(markerBase, end)
+      }
+    }
+    const markerPrefix = markerBase + '_'.repeat(underscores)
+    const interpolations = new Map<string, string>()
+    let shieldedCondition = ''
+    let cursor = 0
+    matches.forEach((match, index) => {
+      const marker = `${markerPrefix}${index}__`
+      interpolations.set(marker, values[index])
+      shieldedCondition += preparedCondition.slice(cursor, match.start) + marker
+      cursor = match.end
+    })
+    shieldedCondition += preparedCondition.slice(cursor)
 
     // Use existing conditional evaluation logic from conditionals.ts
     const conditionalContext = baseResult === undefined ? context : {
       ...context,
       sharedVariables: new Map([...context.sharedVariables, ['__switch_base_value__', { value: baseResult, sets: {} }]]),
     }
-    return evaluateWhenClause(evaluatedCondition, conditionalContext, (ref) => {
+    return evaluateWhenClause(unescapeBraces(shieldedCondition), conditionalContext, (ref) => {
       const token = parseExpression(ref)
       if (token.type !== 'variable' && token.type !== 'captureAccess' && token.type !== 'placeholder') return undefined
       return this.evaluateToken(token, conditionalContext, collectionId)
-    })
+    }, interpolations)
   }
 
   /**

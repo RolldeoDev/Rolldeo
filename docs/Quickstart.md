@@ -161,6 +161,20 @@ The engine uses each range's inclusive width as a weight. Gaps add no missing ou
 
 ---
 
+## Preserving Source Dice (v1.1)
+
+For a book table that says “roll 2d6”, use specification 1.1 and add `"selection": { "mode": "dice", "dice": "2d6" }` to the simple table. Supply a range for every entry covering totals 2–12 exactly once. The engine rolls 2d6 and looks up that total; using range widths alone changes the odds. Source selection supports NdM and fixed integer modifiers; unsupported mechanics are diagnosed.
+
+The editor’s **Import Table** preview keeps the source text and lets you inspect the extracted rows, mechanics, coverage, and probabilities. Record the book/page and deliberate adaptations. Import as unreviewed until you have checked the source; edits make a recorded review stale. Adding these features upgrades the collection to 1.1.
+
+## Generator Inputs (v1.1)
+
+In the Variables tab, declare inputs such as an integer party level or a terrain choice. Set bounds, allowed options, and defaults in the editor, then reference values with `{{$partyLevel}}` or `{{$terrain}}`. The roller shows the input controls before generation. Input values are literal, validated, and separate from static/shared variables; they do not execute template expressions. Imported generators use their own defaults.
+
+See the [v1.1 additions](./randomTableSpecV1_1.md) for the full contract and a complete example. Ordinary v1.0 tables and templates remain supported.
+
+---
+
 ## Templates: Combining Multiple Tables
 
 Templates let you create complex outputs that pull from multiple tables:

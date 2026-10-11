@@ -13,6 +13,7 @@ import { MetadataEditor } from './MetadataEditor'
 import { TableEditor } from './TableEditor'
 import { TemplateEditor } from './TemplateEditor'
 import { VariablesEditor } from './VariablesEditor'
+import { InputsEditor } from './InputsEditor'
 import { IncludesEditor } from './IncludesEditor'
 import { JsonEditor } from './JsonEditor'
 import { Plus, FileUp } from 'lucide-react'
@@ -25,6 +26,7 @@ import type {
   Template,
   Import,
   SimpleTable,
+  Inputs,
 } from '@/engine/types'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { usePatternSuggestions } from '@/hooks/usePatternSuggestions'
@@ -274,6 +276,15 @@ export function EditorWorkspace({
         // An incomplete inheritance reference is already shown in validation.
       }
     }
+    for (const reference of new Set(document.tables.flatMap(table => table.extends ? [table.extends] : []))) {
+      if (map.has(reference)) continue
+      try {
+        const parent = previewEngine.getResolvedTable(reference, previewId)
+        if (parent) map.set(reference, parent)
+      } catch {
+        // Unresolved parents remain visible through the editor's validation.
+      }
+    }
     return map
   }, [document.tables, previewEngine, previewId])
 
@@ -292,7 +303,7 @@ export function EditorWorkspace({
     localTemplates,
     importedTables,
     importedTemplates,
-    variables: document.variables || {},
+    variables: { ...Object.fromEntries(Object.entries(document.inputs || {}).map(([name, input]) => [name, String(input.default ?? '')])), ...document.variables },
     sharedVariables: document.shared || {},
     tableMap,
   })
@@ -318,7 +329,9 @@ export function EditorWorkspace({
 
   const updateTables = useCallback(
     (tables: Table[]) => {
-      const updated = { ...document, tables }
+      const requiresV11 = tables.some(table => table.conversion || (table.type === 'simple' && table.selection))
+      const updated = { ...document, tables,
+        metadata: requiresV11 ? { ...document.metadata, specVersion: '1.1' as const } : document.metadata }
       onDocumentChange(updated)
       syncToJson(updated)
     },
@@ -352,6 +365,17 @@ export function EditorWorkspace({
         ...document,
         shared: Object.keys(shared).length > 0 ? shared : undefined,
       }
+      onDocumentChange(updated)
+      syncToJson(updated)
+    },
+    [document, onDocumentChange, syncToJson]
+  )
+
+  const updateInputs = useCallback(
+    (inputs: Inputs) => {
+      const hasInputs = Object.keys(inputs).length > 0
+      const updated = { ...document, inputs: hasInputs ? inputs : undefined,
+        metadata: hasInputs ? { ...document.metadata, specVersion: '1.1' as const } : document.metadata }
       onDocumentChange(updated)
       syncToJson(updated)
     },
@@ -576,6 +600,7 @@ export function EditorWorkspace({
                   <div key={itemKeys.current.get(table)} data-item-id={table.id}>
                     <TableEditor
                       table={table}
+                      specVersion={document.metadata.specVersion}
                       onChange={(updated) => updateTable(index, updated)}
                       onDelete={() => deleteTable(index)}
                       availableTableIds={availableTableIds}
@@ -656,6 +681,7 @@ export function EditorWorkspace({
           {displayedTab === 'variables' && (
             <div className="animate-fade-in">
               <h2 className="text-lg font-semibold mb-4">Variables</h2>
+              <InputsEditor inputs={document.inputs || {}} onChange={updateInputs} />
               <VariablesEditor
                 variables={document.variables || {}}
                 shared={document.shared || {}}
@@ -692,6 +718,7 @@ export function EditorWorkspace({
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         onImport={handleImportTable}
+        existingTableIds={[...document.tables, ...(document.templates ?? [])].map(item => item.id)}
       />
     </div>
     </PreviewContext.Provider>

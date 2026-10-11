@@ -9,6 +9,8 @@
  */
 
 import type { SimpleTable, Entry } from '../engine/types'
+import { analyzeConversion } from './conversionVerification'
+import { parseSelectionDice } from '../engine/tables/diceSelection'
 
 // ============================================================================
 // Types
@@ -19,6 +21,8 @@ export interface ParsedTableResult {
   table?: SimpleTable
   warnings: string[]
   errors: string[]
+  /** Original input, including whitespace and PDF artifacts, even when parsing fails. */
+  sourceText?: string
 }
 
 export interface ParserOptions {
@@ -27,9 +31,12 @@ export interface ParserOptions {
 
 interface HeaderInfo {
   dieType: number | null
+  dice: string | null
+  domainStart: number | null
   tableName: string
   remainingText: string
   errors: string[]
+  warnings: string[]
 }
 
 interface RawEntry {
@@ -113,11 +120,25 @@ export function toCamelCase(name: string): string {
 function parseHeader(text: string): HeaderInfo {
   const lines = text.split('\n').filter(line => line.trim())
   const firstLine = lines[0]
-  const dieMatch = firstLine.match(/^(?:1)?d(%|\d+)(?:\s+|$)/i)
-  const dieType = dieMatch ? (dieMatch[1] === '%' ? 100 : Number(dieMatch[1])) : null
+  const dieMatch = firstLine.match(/^(\d*)d(%|\d+)(?:\s*([+-])\s*(\d+))?(?=\s|$)/i)
+  const count = dieMatch ? Number(dieMatch[1] || 1) : 0
+  const sides = dieMatch ? (dieMatch[2] === '%' ? 100 : Number(dieMatch[2])) : 0
+  const modifier = dieMatch?.[3] ? Number(`${dieMatch[3]}${dieMatch[4]}`) : 0
+  const dieType = dieMatch ? count * sides + modifier : null
+  const domainStart = dieMatch ? count + modifier : null
+  const dice = dieMatch ? `${count}d${sides}${modifier ? (modifier > 0 ? '+' : '') + modifier : ''}` : null
   const afterDie = dieMatch ? firstLine.slice(dieMatch[0].length).trim() : firstLine
   const rowPattern = /^-?\d+(?:\.\d+)?(?:--?\d+(?:\.\d+)?)?(?:\s+|$)/
   const errors: string[] = []
+  const warnings: string[] = []
+  if (dieMatch && /\b(?:roll again|reroll|re-roll|roll twice|roll two|advantage|disadvantage|take (?:the )?(?:highest|lowest)|keep (?:the )?(?:highest|lowest)|add \d+|subtract \d+)\b/i.test(afterDie)) {
+    warnings.push('Source procedure detected in the heading; the declared dice do not execute these instructions. Review and adapt explicitly.')
+  }
+  if (/^\d*d(?:%|\d+|F\b)/i.test(firstLine) && !dieMatch) errors.push('Unsupported dice heading. Only NdM with a fixed integer modifier is supported; review and adapt the source explicitly.')
+  if (dice) {
+    try { parseSelectionDice(dice) } catch (error) { errors.push(String(error instanceof Error ? error.message : error)) }
+  }
+  if (dieMatch && /^(?:!|k[hl]\d|d[hl]\d|r[<>=]|advantage\b|disadvantage\b|x\s*\d|\*|[+-])/i.test(afterDie)) errors.push('Unsupported dice construct in heading. Review and adapt the source explicitly.')
   let tableName = ''
   let remainingText = text
 
@@ -129,7 +150,7 @@ function parseHeader(text: string): HeaderInfo {
       remainingText = lines.slice(1).join('\n')
       // An inline first row in a multiline copy cannot safely be separated
       // from a numeric heading. Ask for explicit boundaries instead.
-      if (/(?:^|\s)\d+(?:-\d+)?\s+\S/.test(afterDie)) {
+      if (/(?:^|\s)\d+(?:-\d+)?\s+\S/.test(afterDie) && !/^\d*d(?:%|\d+)\s+/i.test(afterDie)) {
         errors.push('Ambiguous table heading. Add a newline before each actual row and try again; the original input must be preserved.')
       }
     }
@@ -157,7 +178,7 @@ function parseHeader(text: string): HeaderInfo {
     }
   }
 
-  return { dieType, tableName: tableName || 'Untitled Table', remainingText, errors }
+  return { dieType, dice, domainStart, tableName: tableName || 'Untitled Table', remainingText, errors, warnings }
 }
 
 // ============================================================================
@@ -166,13 +187,14 @@ function parseHeader(text: string): HeaderInfo {
 
 function extractEntries(
   text: string,
-  isFlattened: boolean
+  isFlattened: boolean,
+  domain: [number, number] | null
 ): { entries: RawEntry[]; warnings: string[]; errors: string[]; numbered: boolean } {
   const warnings: string[] = []
   const errors: string[] = []
   const entries: RawEntry[] = []
   const lines = text.split('\n').map(line => line.trim()).filter(Boolean)
-  const numberedPattern = /^(-?\d+(?:\.\d+)?)(?:-(-?\d+(?:\.\d+)?))?(?:\s+|$)/
+  const numberedPattern = /^(-?\d+(?:\.\d+)?)(?:-(-?\d+(?:\.\d+)?))?(?:\s+(or less|or more))?(?:\s+|$)/i
   const numbered = lines.some(line => numberedPattern.test(line))
 
   if (numbered) {
@@ -181,23 +203,37 @@ function extractEntries(
       if (!match) {
         // PDF line wrapping may continue the previous entry, but can never
         // introduce a new numbered entry in the middle of prose.
-        if (entries.length) entries[entries.length - 1].value += ` ${line}`
+        if (entries.length) {
+          entries[entries.length - 1].value += ` ${line}`
+          warnings.push('Wrapped or unnumbered text was joined to the preceding row. Check that it is continuation prose, not instructions or another column.')
+          if (/\b(?:roll again|reroll|re-roll|roll twice|add \d+|subtract \d+)\b/i.test(line)) warnings.push('Source procedure detected in wrapped text; plain text does not execute it. Review and adapt explicitly.')
+        }
         else errors.push('Text before the first numbered row could not be parsed. Add a newline before each actual row.')
         continue
       }
       const startToken = match[1]
       const endToken = match[2] ?? startToken
-      const rangeStart = startToken === '00' ? 100 : Number(startToken)
-      const rangeEnd = endToken === '00' ? 100 : Number(endToken)
+      let rangeStart = startToken === '00' ? 100 : Number(startToken)
+      let rangeEnd = endToken === '00' ? 100 : Number(endToken)
+      if (match[3]) {
+        if (!domain || match[2] || rangeStart < domain[0] || rangeEnd > domain[1]) errors.push('Open-ended results require a known finite dice domain. Review the source instructions.')
+        else if (match[3].toLowerCase() === 'or less') rangeStart = domain[0]
+        else rangeEnd = domain[1]
+        warnings.push('Translated an open-ended range using the fixed dice domain; check source modifiers and instructions.')
+      }
       const value = line.slice(match[0].length).trim()
-      if (!Number.isSafeInteger(rangeStart) || !Number.isSafeInteger(rangeEnd) || rangeStart < 1 || rangeEnd < rangeStart) {
-        errors.push(`Invalid range ${startToken}${match[2] ? `-${endToken}` : ''}: use positive safe integers in ascending order.`)
+      if (!Number.isSafeInteger(rangeStart) || !Number.isSafeInteger(rangeEnd) || (!domain && rangeStart < 1) || rangeEnd < rangeStart) {
+        errors.push(`Invalid range ${startToken}${match[2] ? `-${endToken}` : ''}: use safe integer endpoints in ascending order (positive without a dice heading).`)
       }
       // Flat copies cannot distinguish prose quantities from row markers.
       // A numeric value at the very beginning ("1 100 gold") is retained.
       if (isFlattened && /\s\d+(?:-\d+)?\s+\S/.test(value)) {
         errors.push('Ambiguous flattened table text. Add a newline before each actual row and try again; the original input must be preserved.')
       }
+      if (!isFlattened && /(?:\t|\s{2,})/.test(line)) warnings.push('Possible merged columns; compare the parsed text with the source.')
+      if (!isFlattened && /\s\d+(?:-\d+)?\s+\S/.test(value)) warnings.push('Numbers inside a row may be prose quantities or merged column markers; compare this row with the source.')
+      if (!isFlattened && /^\d+(?:-\d+)?\s+/.test(value)) warnings.push('A numbered row begins with another number; verify that this is prose, not a merged column or wrapped continuation.')
+      if (/\b(?:roll again|reroll|re-roll|roll twice|roll two|add \d+|subtract \d+)\b/i.test(value)) warnings.push('Source procedure detected in an outcome; plain text does not execute these instructions. Review and adapt explicitly.')
       if (value) entries.push({ rangeStart, rangeEnd, value })
       else errors.push(`Entry ${startToken} has no text`)
     }
@@ -208,14 +244,8 @@ function extractEntries(
     warnings.push('No numbers detected - using one equal-weight entry per line')
     lines.forEach((value, i) => entries.push({ rangeStart: i + 1, rangeEnd: i + 1, value }))
   } else if (lines.length) {
-    const sentences = lines[0].split(/\.\s+/).map(value => value.trim()).filter(Boolean)
-    if (sentences.length > 1) {
-      warnings.push('No numbers detected - splitting by sentences and using equal weights')
-      sentences.forEach((value, i) => entries.push({ rangeStart: i + 1, rangeEnd: i + 1, value: value.replace(/\.$/, '') }))
-    } else {
-      warnings.push('Could not parse entries - returning text as single entry')
-      entries.push({ rangeStart: 1, rangeEnd: 1, value: lines[0] })
-    }
+    warnings.push('No numbers detected - returning the entire text as one entry. Separate actual outcomes with newlines; prose sentences are not trusted row boundaries.')
+    entries.push({ rangeStart: 1, rangeEnd: 1, value: lines[0] })
   }
   return { entries, warnings, errors, numbered }
 }
@@ -255,7 +285,7 @@ function normalizeEntries(
     lastEnd = raw.rangeEnd
   }
 
-  const usesRanges = Boolean(dieType) || sorted.some(raw => raw.rangeStart !== raw.rangeEnd)
+  const usesRanges = dieType !== null || sorted.some(raw => raw.rangeStart !== raw.rangeEnd)
 
   // Convert to Entry format
   for (const raw of sorted) {
@@ -297,6 +327,7 @@ export function parseTableText(
       success: false,
       errors: ['No text provided'],
       warnings: [],
+      sourceText: typeof rawText === 'string' ? rawText : undefined,
     }
   }
 
@@ -308,6 +339,7 @@ export function parseTableText(
       success: false,
       errors: ['Text is empty after normalization'],
       warnings: [],
+      sourceText: typeof rawText === 'string' ? rawText : undefined,
     }
   }
 
@@ -321,20 +353,22 @@ export function parseTableText(
       : header.tableName
 
   // Extract entries
-  const extractResult = extractEntries(header.remainingText, !normalized.includes('\n'))
-  warnings.push(...extractResult.warnings)
+  const domain: [number, number] | null = header.domainStart !== null && header.dieType !== null ? [header.domainStart, header.dieType] : null
+  const extractResult = extractEntries(header.remainingText, !normalized.includes('\n'), domain)
+  warnings.push(...header.warnings, ...extractResult.warnings)
   errors.push(...header.errors, ...extractResult.errors)
-  if (header.dieType !== null && (!Number.isSafeInteger(header.dieType) || header.dieType < 1)) {
+  if (header.dieType !== null && (!Number.isSafeInteger(header.dieType) || !Number.isSafeInteger(header.domainStart))) {
     errors.push('Invalid die size: use a positive safe integer.')
   }
-  if (extractResult.numbered && header.dieType !== null && extractResult.entries.some(entry => entry.rangeEnd > (header.dieType ?? Infinity))) {
-    errors.push(`Entry ranges exceed the d${header.dieType} heading.`)
+  if (extractResult.numbered && header.dieType !== null && extractResult.entries.some(entry => entry.rangeEnd > (header.dieType ?? Infinity) || entry.rangeStart < (header.domainStart ?? 1))) {
+    errors.push(`Entry ranges exceed the ${header.dice} heading domain ${header.domainStart}–${header.dieType}.`)
   }
-  if (errors.length) return { success: false, warnings, errors }
+  if (errors.length) return { success: false, warnings, errors, sourceText: rawText }
 
   if (extractResult.entries.length === 0) {
     return {
       success: false,
+      sourceText: rawText,
       errors: ['No entries could be extracted from text'],
       warnings,
     }
@@ -350,10 +384,18 @@ export function parseTableText(
     name: tableName,
     type: 'simple',
     entries: normalizeResult.entries,
+    ...(header.dice && extractResult.numbered ? { selection: { mode: 'dice' as const, dice: header.dice } } : {}),
+    conversion: { kind: 'transcription', sourceText: rawText },
   }
+
+  if (header.dice && !extractResult.numbered) warnings.push('Dice heading found without numbered results: equal weights are an unverified adaptation, not preserved dice mechanics.')
+  warnings.push(...analyzeConversion(table).issues)
+  if (!header.dice && extractResult.numbered) warnings.push('No dice heading detected. Range widths or equal weights are provisional; verify the source roll mechanic.')
+  if (/\t| {3,}\S/.test(rawText)) warnings.push('Column spacing detected in the original copy. Check for merged columns against the source.')
 
   return {
     success: true,
+    sourceText: rawText,
     table,
     warnings,
     errors,

@@ -202,12 +202,12 @@ describe('parseTableText', () => {
   })
 
   describe('tables without numbers', () => {
-    it('should split by periods', () => {
+    it('preserves single-line prose rather than guessing sentence rows', () => {
       const input = 'Random Events. A merchant arrives. Storm approaches. Nothing happens.'
       const result = parseTableText(input)
 
       expect(result.success).toBe(true)
-      expect(result.table?.entries.length).toBeGreaterThanOrEqual(3)
+      expect(result.table?.entries).toEqual([{ value: input, weight: 1 }])
       // These should have weight instead of range since no numbers
       expect(result.warnings.some((w) => w.includes('No numbers'))).toBe(true)
     })
@@ -390,5 +390,39 @@ describe('physical row preservation and safe recovery', () => {
     const result = parseTableText('d2 Empty\n1\n2 Second')
     expect(result.success).toBe(false)
     expect(result.table).toBeUndefined()
+  })
+})
+
+describe('source dice and uncertain conversions', () => {
+  it.each(['2d6', '3d6', '1d100', '2d6+2', '2d6 - 2'])('preserves supported dice headings: %s', dice => {
+    const result = parseTableText(`${dice} Fixture\n2-4 Example`)
+    if (dice === '2d6+2' || dice === '3d6') expect(result.success).toBe(false) // impossible totals require correction
+    else {
+      expect(result.success).toBe(true)
+      expect(result.table?.selection?.mode).toBe('dice')
+      expect(result.warnings.length).toBeGreaterThan(0) // deliberately incomplete fixture
+    }
+  })
+  it.each(['2d6kh1 Reaction', '2d6! Reaction', 'd6*2 Reaction', '2d6+level Reaction', '2d6 + level Reaction', 'dF Reaction'])('rejects unsupported dice rather than silently using equal weights: %s', heading => {
+    const result = parseTableText(`${heading}\n1 Low\n2 High`)
+    expect(result.success).toBe(false)
+  })
+  it('flags missing leading and trailing outcomes', () => {
+    const result = parseTableText('2d6 Partial\n3-11 Middle')
+    expect(result.warnings).toContain('Dice outcomes 2-2 have no entry')
+    expect(result.warnings).toContain('Dice outcomes 12-12 have no entry')
+  })
+  it('preserves the raw copy even when unsupported headings fail', () => {
+    const raw = '2d6! Reaction\r\n1 Low\r\n2 High'
+    expect(parseTableText(raw).sourceText).toBe(raw)
+  })
+  it('requires review for numeric prose, wrapped rows and source procedures', () => {
+    const result = parseTableText('d2 Encounters\n1 3 goblins\ncarrying swords\n2 Roll again')
+    expect(result.warnings.some(warning => warning.includes('another number'))).toBe(true)
+    expect(result.warnings.some(warning => warning.includes('procedure'))).toBe(true)
+    expect(result.table?.entries[0].value).toBe('3 goblins carrying swords')
+  })
+  it('does not translate open-ended ranges without a dice domain', () => {
+    expect(parseTableText('Reaction\n2 or less Low\n3 or more High').success).toBe(false)
   })
 })

@@ -1,5 +1,7 @@
 # Random Table JSON Template Specification v1.0
 
+This is the compatible base contract. The [v1.1 additions](./randomTableSpecV1_1.md) define opt-in source dice selection, inputs, and conversion review. Existing v1.0 files retain the behavior described here.
+
 ---
 
 ## Overview
@@ -462,8 +464,8 @@ The `source.page` property supports multiple formats:
 | Single page (integer) | `47` | A single page number |
 | Single page (string) | `"47"` | A single page as string |
 | Page range | `"47-89"` | Continuous page range |
-| Multiple pages | `"12, 45-67"` | Non-contiguous pages and ranges |
-| Named sections | `"Appendix A"` | Non-numeric page references |
+
+Use `source.section` for named locations such as `"Appendix A"`. A table's `source.page` accepts one numeric page or one continuous range; non-contiguous page lists are unsupported. Collection-level `metadata.source.pages` remains a free-form string.
 
 **Example:**
 
@@ -960,7 +962,7 @@ Operators of equal precedence are evaluated left to right.
 
 **With grouping:**
 ```
-{{math:($strength - 10) / 2}}           → D&D-style ability modifier
+{{math:$strength / 2 - 5}}           → D&D-style ability modifier
 {{math:($base + $bonus) * $multiplier}}
 ```
 
@@ -979,11 +981,13 @@ Operators of equal precedence are evaluated left to right.
 
 **Complex TTRPG calculations:**
 ```
-{{math:(dice:4d6k3 - 10) / 2}}          → Roll stats, calculate modifier
+{{math:dice:4d6k3 / 2 - 5}}          → Roll stats, calculate modifier
 {{math:$proficiencyBonus + @weapon.attackMod + $strMod}}
 ```
 
 #### 5.4.4 Type Coercion and Errors
+
+For positive D&D ability scores, use `{{math:$abilityScore / 2 - 5}}`. Dividing the score before subtracting 5 gives the correct negative modifier for odd scores below 10 while preserving this language's truncation-toward-zero division.
 
 - **Non-numeric values** coerce to `0` with a logged warning
 - **Division by zero** evaluates to `0` with a logged warning
@@ -1633,7 +1637,7 @@ If `baseMonsters` resolves to `7` and `eliteMonsters` resolves to `3`:
 ```json
 "shared": {
   "strength": "{{dice:4d6k3}}",
-  "strMod": "{{math:($strength - 10) / 2}}",
+  "strMod": "{{math:$strength / 2 - 5}}",
   "meleeDamage": "{{math:dice:1d8 + $strMod}}"
 }
 ```
@@ -1642,7 +1646,7 @@ If `baseMonsters` resolves to `7` and `eliteMonsters` resolves to `3`:
 
 | Use Case | Expression |
 |----------|------------|
-| Ability modifier | `"{{math:($abilityScore - 10) / 2}}"` |
+| Ability modifier | `"{{math:$abilityScore / 2 - 5}}"` |
 | Attack bonus | `"{{math:$proficiency + $strMod}}"` |
 | Damage with modifier | `"{{math:dice:2d6 + $strMod}}"` |
 | Scaled encounter | `"{{math:$partyLevel * 2 + dice:1d4}}"` |
@@ -3184,7 +3188,7 @@ Common math expression patterns for tabletop RPG generators:
 ```json
 "shared": {
   "strength": "{{dice:4d6k3}}",
-  "strMod": "{{math:($strength - 10) / 2}}",
+  "strMod": "{{math:$strength / 2 - 5}}",
   "proficiencyBonus": "{{math:($level - 1) / 4 + 2}}",
   "attackBonus": "{{math:$proficiencyBonus + $strMod}}"
 }
