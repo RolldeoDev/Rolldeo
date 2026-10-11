@@ -1,0 +1,12 @@
+{
+  "selectedConcept": "04-living-fieldbook.png",
+  "name": "The living fieldbook",
+  "selectedOn": "2026-10-11",
+  "status": "approved visual direction; production implementation paused",
+  "mood": "strange and inviting",
+  "palette": ["midnight cobalt", "antique gold", "cool ivory"],
+  "scope": "expressive throughout Home, Roller, Library, Editor, and Guide",
+  "composition": "light illustrated pages within a cobalt world, expressive flowing display lettering, engraved circular roll seals and paper tabs",
+  "theming": "independent palette, typography, mode, and surface tokens",
+  "referenceStatus": "concept image is visual authority; it is not a production screenshot or a live interface"
+}

@@ -1,0 +1,237 @@
+/* Rolldeo Living Fieldbook theme RECIPE, not an implemented selected UI.
+   Lettering/controls/motion require actual visual proof against concept 4.
+   Palette slots are primitives; semantic aliases are re-bound on EVERY scope.
+   Place data-theme-scope on any subtree that overrides a preset. */
+:root {
+  --p-art-hero-height: 42rem; --p-art-object-width: 5rem; --p-art-object-height: 7rem;
+  --p-art-divider-width: 38rem; --p-art-vignette-size: 8rem;
+  --p-space-1: .25rem; --p-space-2: .5rem; --p-space-3: .75rem; --p-space-4: 1rem;
+  --p-space-6: 1.5rem; --p-space-8: 2rem; --p-space-12: 3rem; --p-space-16: 4rem;
+  --p-space-24: 6rem; --p-space-32: 8rem;
+  --p-size-caption: .8125rem; --p-size-label: .9375rem; --p-size-body: 1rem;
+  --p-size-reading: 1.125rem; --p-size-section: 1.5rem; --p-size-title: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  --p-size-display: clamp(4rem, 2rem + 6vw, 9rem);
+  --p-weight-body: 400; --p-weight-label: 600; --p-weight-display: 600;
+  --p-leading-ui: 1.4; --p-leading-reading: 1.65; --p-leading-display: .9;
+  --p-radius-tight: .1875rem; --p-radius-sheet: .125rem; --p-radius-pill: 999rem;
+  --p-seal-radius: 50%; --p-seal-size: clamp(6.5rem, 9vw, 11.5rem); --p-seal-ring-gap: .375rem;
+  --p-page-pad: clamp(1.25rem, 3vw, 3rem); --p-page-depth: .5rem; --p-seal-turn: 2deg;
+  --p-stroke-hairline: 1px; --p-stroke-strong: 2px;
+  --p-duration-feedback: 120ms; --p-duration-panel: 220ms; --p-duration-reveal: 380ms;
+  --p-ease-settle: cubic-bezier(.22, 1, .36, 1); --p-ease-exit: cubic-bezier(.4, 0, 1, 1);
+  --p-motion-lift: -2px; --p-motion-reveal: 8px; --p-shadow-depth: 0 8px 24px;
+  --p-shadow-opacity: .22; --p-shadow-ink: 0 0% 0%; --p-outline-offset: 3px; --p-texture-opacity: .035;
+  --p-control-height: 2.75rem; --p-control-pad: .75rem;
+  --p-mask-radius: 0; /* paper/collage cutouts live on separate decorative layers */ --p-art-opacity: .9; --p-art-stroke: 1.6;
+  --p-font-display: 'Rolldeo Display', 'Bodoni Moda', serif; /* unresolved licensed/original display-font slot */
+  --p-font-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+  --p-font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+}
+:root[data-type="editorial"], [data-theme-scope][data-type="editorial"] {
+  --p-font-display: 'Bodoni Moda', serif; /* provisional; actual glyph proof required */
+  --p-font-body: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --p-font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  --p-weight-display: 500; --p-leading-display: 1.04;
+}
+:root[data-type="fieldbook"], [data-theme-scope][data-type="fieldbook"],
+:root[data-type="cabinet"], [data-theme-scope][data-type="cabinet"] { /* legacy planning alias */
+  --p-font-display: 'Rolldeo Display', 'Bodoni Moda', serif; /* unresolved licensed/original display-font slot */
+  --p-font-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+  --p-font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  --p-weight-display: 600; --p-leading-display: .9;
+}
+:root[data-surface="clean-paper"], [data-theme-scope][data-surface="clean-paper"],
+:root[data-surface="crisp"], [data-theme-scope][data-surface="crisp"] {
+  --p-radius-tight: 0; --p-radius-sheet: 0; --p-texture-opacity: 0;
+  --p-shadow-depth: 0 2px 0; --p-shadow-opacity: .2;
+}
+:root[data-surface="layered"], [data-theme-scope][data-surface="layered"],
+:root[data-surface="etched"], [data-theme-scope][data-surface="etched"] {
+  --p-radius-tight: .1875rem; --p-radius-sheet: .125rem;
+  --p-texture-opacity: .035; --p-shadow-depth: 0 8px 24px; --p-shadow-opacity: .16;
+}
+
+:root[data-palette="cobalt"][data-mode="dark"], [data-theme-scope][data-palette="cobalt"][data-mode="dark"] {
+  color-scheme: dark;
+  --p-tone-0: 223.4043 77.0492% 11.9608%; /* canvas: #071436 */
+  --p-tone-1: 220.3448 64.4444% 17.6471%; /* surface: #10234A */
+  --p-tone-2: 219.3750 56.1404% 22.3529%; /* raised: #192F59 */
+  --p-tone-3: 60.0000 24.3243% 92.7451%; /* text: #F1F1E8 */
+  --p-tone-4: 217.2973 29.1339% 75.0980%; /* muted: #ADBBD2 */
+  --p-tone-5: 43.7500 57.8313% 67.4510%; /* accent: #DCC27C */
+  --p-tone-6: 44.8101 67.5214% 77.0588%; /* accent-hover: #ECD89D */
+  --p-tone-7: 221.1429 52.2388% 13.1373%; /* on-accent: #101B33 */
+  --p-tone-8: 217.0213 19.5021% 52.7451%; /* line: #6F819E */
+  --p-tone-9: 149.4737 39.8601% 71.9608%; /* success: #9BD4B7 */
+  --p-tone-10: 41.9469 69.3252% 68.0392%; /* warning: #E6C475 */
+  --p-tone-11: 5.9259 77.1429% 79.4118%; /* danger: #F3AAA2 */
+}
+
+:root[data-palette="cobalt"][data-mode="light"], [data-theme-scope][data-palette="cobalt"][data-mode="light"] {
+  color-scheme: light;
+  --p-tone-0: 67.5000 25.0000% 93.7255%; /* canvas: #F2F3EB */
+  --p-tone-1: 60.0000 53.8462% 97.4510%; /* surface: #FCFCF5 */
+  --p-tone-2: 213.3333 20.9302% 91.5686%; /* raised: #E5E9EE */
+  --p-tone-3: 219.5745 54.0230% 17.0588%; /* text: #142443 */
+  --p-tone-4: 217.5000 19.6078% 40.0000%; /* muted: #52617A */
+  --p-tone-5: 40.8000 64.1026% 30.5882%; /* accent: #80601C */
+  --p-tone-6: 40.2439 68.3333% 23.5294%; /* accent-hover: #654A13 */
+  --p-tone-7: 0.0000 0.0000% 100.0000%; /* on-accent: #FFFFFF */
+  --p-tone-8: 220.0000 15.0000% 52.9412%; /* line: #758199 */
+  --p-tone-9: 149.0909 47.8261% 27.0588%; /* success: #246644 */
+  --p-tone-10: 43.5000 100.0000% 23.5294%; /* warning: #785700 */
+  --p-tone-11: 2.1818 50.9259% 42.3529%; /* danger: #A33935 */
+}
+
+:root[data-palette="verdigris"][data-mode="dark"], [data-theme-scope][data-palette="verdigris"][data-mode="dark"] {
+  color-scheme: dark;
+  --p-tone-0: 167.5000 50.0000% 9.4118%; /* canvas: #0C241F */
+  --p-tone-1: 165.4545 42.8571% 15.0980%; /* surface: #16372F */
+  --p-tone-2: 165.0000 38.4615% 20.3922%; /* raised: #20483E */
+  --p-tone-3: 48.0000 36.5854% 91.9608%; /* text: #F2EFE3 */
+  --p-tone-4: 144.7059 13.3858% 75.0980%; /* muted: #B7C8BE */
+  --p-tone-5: 40.6897 54.7170% 68.8235%; /* accent: #DBBF84 */
+  --p-tone-6: 40.9091 63.4615% 79.6078%; /* accent-hover: #ECD7AA */
+  --p-tone-7: 161.7391 36.5079% 12.3529%; /* on-accent: #142B24 */
+  --p-tone-8: 152.4324 15.7447% 53.9216%; /* line: #779C8B */
+  --p-tone-9: 134.4000 36.7647% 73.3333%; /* success: #A2D4AE */
+  --p-tone-10: 40.7767 74.1007% 72.7451%; /* warning: #EDCC86 */
+  --p-tone-11: 6.0759 73.8318% 79.0196%; /* danger: #F1AAA2 */
+}
+
+:root[data-palette="verdigris"][data-mode="light"], [data-theme-scope][data-palette="verdigris"][data-mode="light"] {
+  color-scheme: light;
+  --p-tone-0: 49.0909 31.4286% 93.1373%; /* canvas: #F3F1E8 */
+  --p-tone-1: 43.6364 100.0000% 97.8431%; /* surface: #FFFCF4 */
+  --p-tone-2: 84.0000 18.5185% 89.4118%; /* raised: #E5E9DF */
+  --p-tone-3: 161.2500 40.0000% 15.6863%; /* text: #18382E */
+  --p-tone-4: 152.3077 14.4444% 35.2941%; /* muted: #4D675B */
+  --p-tone-5: 37.3171 55.4054% 29.0196%; /* accent: #735421 */
+  --p-tone-6: 36.3636 58.9286% 21.9608%; /* accent-hover: #593F17 */
+  --p-tone-7: 0.0000 0.0000% 100.0000%; /* on-accent: #FFFFFF */
+  --p-tone-8: 141.0000 7.9365% 49.4118%; /* line: #74887B */
+  --p-tone-9: 143.2258 43.6620% 27.8431%; /* success: #286640 */
+  --p-tone-10: 42.8571 100.0000% 23.3333%; /* warning: #775500 */
+  --p-tone-11: 3.8182 52.3810% 41.1765%; /* danger: #A03932 */
+}
+
+
+/* Light paper inside either surrounding mode; exact existing light-palette pairs. */
+:root, :root[data-palette="cobalt"], [data-theme-scope][data-palette="cobalt"] {
+  --p-paper-0: 67.5000 25.0000% 93.7255%; /* bg */
+  --p-paper-1: 60.0000 53.8462% 97.4510%; /* field */
+  --p-paper-2: 213.3333 20.9302% 91.5686%; /* inset */
+  --p-paper-3: 219.5745 54.0230% 17.0588%; /* ink */
+  --p-paper-4: 217.5000 19.6078% 40.0000%; /* muted */
+  --p-paper-5: 40.8000 64.1026% 30.5882%; /* accent */
+  --p-paper-6: 40.2439 68.3333% 23.5294%; /* accent-hover */
+  --p-paper-7: 220.0000 15.0000% 52.9412%; /* rule */
+  --p-paper-8: 2.1818 50.9259% 42.3529%; /* danger */
+  --p-paper-9: 149.0909 47.8261% 27.0588%; /* success */
+  --p-paper-10: 43.5000 100.0000% 23.5294%; /* warning */
+}
+:root[data-palette="verdigris"], [data-theme-scope][data-palette="verdigris"] {
+  --p-paper-0: 49.0909 31.4286% 93.1373%; /* bg */
+  --p-paper-1: 43.6364 100.0000% 97.8431%; /* field */
+  --p-paper-2: 84.0000 18.5185% 89.4118%; /* inset */
+  --p-paper-3: 161.2500 40.0000% 15.6863%; /* ink */
+  --p-paper-4: 152.3077 14.4444% 35.2941%; /* muted */
+  --p-paper-5: 37.3171 55.4054% 29.0196%; /* accent */
+  --p-paper-6: 36.3636 58.9286% 21.9608%; /* accent-hover */
+  --p-paper-7: 141.0000 7.9365% 49.4118%; /* rule */
+  --p-paper-8: 3.8182 52.3810% 41.1765%; /* danger */
+  --p-paper-9: 143.2258 43.6620% 27.8431%; /* success */
+  --p-paper-10: 42.8571 100.0000% 23.3333%; /* warning */
+}
+
+/* All aliases resolve here, after the scope's primitives have cascaded.
+   Do not place aliases only on an ancestor and expect nested primitive changes
+   to re-resolve already inherited computed custom-property values. */
+:root, [data-theme-scope] {
+  --color-canvas: hsl(var(--p-tone-0));
+  --color-surface: hsl(var(--p-tone-1));
+  --color-raised: hsl(var(--p-tone-2));
+  --color-text: hsl(var(--p-tone-3));
+  --color-muted: hsl(var(--p-tone-4));
+  --color-accent: hsl(var(--p-tone-5));
+  --color-accent-hover: hsl(var(--p-tone-6));
+  --color-on-accent: hsl(var(--p-tone-7));
+  --color-line: hsl(var(--p-tone-8));
+  --color-success: hsl(var(--p-tone-9));
+  --color-warning: hsl(var(--p-tone-10));
+  --color-danger: hsl(var(--p-tone-11));
+  --background: var(--p-tone-0);
+  --foreground: var(--p-tone-3);
+  --card: var(--p-tone-1);
+  --card-foreground: var(--p-tone-3);
+  --popover: var(--p-tone-2);
+  --popover-foreground: var(--p-tone-3);
+  --primary: var(--p-tone-5);
+  --primary-foreground: var(--p-tone-7);
+  --secondary: var(--p-tone-2);
+  --secondary-foreground: var(--p-tone-3);
+  --muted: var(--p-tone-2);
+  --muted-foreground: var(--p-tone-4);
+  --accent: var(--p-tone-2);
+  --accent-foreground: var(--p-tone-3);
+  --destructive: var(--p-tone-11);
+  --destructive-foreground: var(--p-tone-0);
+  --border: var(--p-tone-8);
+  --input: var(--p-tone-8);
+  --ring: var(--p-tone-5);
+  --font-display: var(--p-font-display); --font-body: var(--p-font-body); --font-mono: var(--p-font-mono);
+  --size-display: var(--p-size-display); --size-title: var(--p-size-title); --size-body: var(--p-size-body);
+  --size-section: var(--p-size-section); --size-reading: var(--p-size-reading); --size-label: var(--p-size-label); --size-caption: var(--p-size-caption);
+  --weight-body: var(--p-weight-body); --weight-label: var(--p-weight-label); --weight-display: var(--p-weight-display);
+  --leading-ui: var(--p-leading-ui); --leading-reading: var(--p-leading-reading); --leading-display: var(--p-leading-display);
+  --space-inline: var(--p-space-3); --space-control: var(--p-control-pad); --space-panel: var(--p-space-6);
+  --radius-control: var(--p-radius-tight); --radius-sheet: var(--p-radius-sheet); --radius: var(--p-radius-sheet);
+  --stroke: var(--p-stroke-hairline); --stroke-focus: var(--p-stroke-strong);
+  --shadow-sheet: var(--p-shadow-depth) hsl(var(--p-shadow-ink) / var(--p-shadow-opacity));
+  --texture-opacity: var(--p-texture-opacity); --art-ink: var(--color-accent); --art-opacity: var(--p-art-opacity);
+  --art-mask: var(--p-mask-radius); --art-stroke: var(--p-art-stroke);
+  --duration-feedback: var(--p-duration-feedback); --duration-panel: var(--p-duration-panel); --duration-reveal: var(--p-duration-reveal);
+  --ease-settle: var(--p-ease-settle); --ease-exit: var(--p-ease-exit);
+  --motion-lift: var(--p-motion-lift); --motion-reveal: var(--p-motion-reveal);
+  --focus-offset: var(--p-outline-offset); --control-height: var(--p-control-height);
+  --paper-bg: hsl(var(--p-paper-0));
+  --paper-field: hsl(var(--p-paper-1));
+  --paper-inset: hsl(var(--p-paper-2));
+  --paper-ink: hsl(var(--p-paper-3));
+  --paper-muted: hsl(var(--p-paper-4));
+  --paper-accent: hsl(var(--p-paper-5));
+  --paper-accent-hover: hsl(var(--p-paper-6));
+  --paper-rule: hsl(var(--p-paper-7));
+  --paper-danger: hsl(var(--p-paper-8));
+  --paper-success: hsl(var(--p-paper-9));
+  --paper-warning: hsl(var(--p-paper-10));
+  --page-bg: var(--paper-bg); --page-ink: var(--paper-ink); --page-pad: var(--p-page-pad);
+  --page-depth: var(--p-page-depth); --page-rule: var(--paper-rule);
+  --seal-bg: var(--paper-bg); --seal-ink: var(--paper-ink); --seal-rule: var(--paper-ink);
+  --seal-focus: var(--color-accent); /* surrounding chrome context by default */ --seal-radius: var(--p-seal-radius); --seal-size: var(--p-seal-size);
+  --seal-stroke: var(--p-stroke-hairline); --seal-ring-gap: var(--p-seal-ring-gap); --seal-turn: var(--p-seal-turn);
+  --tab-bg: var(--paper-bg); --tab-ink: var(--paper-ink); --tab-rule: var(--paper-rule);
+  --bookmark-bg: var(--paper-inset); --bookmark-ink: var(--paper-ink);
+  /* Component layer */
+  --button-bg: var(--color-accent); --button-fg: var(--color-on-accent); --button-bg-hover: var(--color-accent-hover);
+  --button-radius: var(--radius-control); --button-pad: var(--space-control) var(--p-space-6);
+  --sheet-bg: var(--paper-bg); --sheet-fg: var(--paper-ink); --sheet-radius: var(--radius-sheet); --sheet-pad: var(--space-panel);
+  --field-bg: var(--paper-field); --field-fg: var(--paper-ink); --field-border: var(--paper-rule); --field-focus: var(--paper-accent);
+  --collection-bg: var(--paper-inset); --collection-border: var(--paper-rule); --collection-pad: var(--space-panel);
+  --result-bg: var(--paper-bg); --result-ink: var(--paper-ink); --result-font: var(--font-body); --result-accent: var(--paper-accent);
+  --focus-ring: var(--color-accent);
+}
+/* A seal on ivory needs dark brass focus; a seal on cobalt needs light brass.
+   This overrides component aliases only, without changing inherited primitives. */
+[data-paper-context], [data-theme-scope][data-context="paper"] {
+  color-scheme: light;
+  --seal-focus: var(--paper-accent);
+  --focus-ring: var(--paper-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root, [data-theme-scope] {
+    --duration-feedback: 0ms; --duration-panel: 0ms; --duration-reveal: 0ms;
+    --motion-lift: 0px; --motion-reveal: 0px; --seal-turn: 0deg;
+  }
+}
