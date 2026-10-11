@@ -1,0 +1,47 @@
+docs/temp/awnBook.pdf
+docs/examples/sineNomine/sineNomine.swn.beasts.json
+docs/examples/sineNomine/sineNomine.swn.worldGeneration.json
+docs/temp/sineNomine.awn.crises.json
+docs/temp/sineNomine.awn.enclaveTags.json
+docs/temp/sineNomine.awn.encounterSites.json
+docs/temp/sineNomine.awn.encounterSiteTags.json
+docs/temp/sineNomine.awn.hazards.json
+docs/temp/sineNomine.awn.highTechLoot.json
+docs/temp/sineNomine.awn.mutations.json
+docs/temp/sineNomine.awn.startingEquipment.json
+docs/temp/swnBook.pdf
+docs/temp/awnBook_extracted.txt
+CODE_REVIEW.md
+docs/temp/uncovered_secrets_volume_1.pdf
+docs/temp/uncovered_secrets_volume_2.pdf
+docs/temp/working/wwn.zip
+docs/temp/WorldsWithoutNumberTablesOnly-extracted.txt
+docs/temp/uncovered_secrets_volume_2-extracted.txt
+docs/temp/sineNomine.worldsWithoutNumber.communityTags.json
+docs/temp/sineNomine.worldsWithoutNumber.core.json
+docs/temp/sineNomine.worldsWithoutNumber.courtTags.json
+docs/temp/sineNomine.worldsWithoutNumber.ruinTags.json
+docs/temp/sineNomine.worldsWithoutNumber.wildernessTags.json
+docs/temp/sineNomine.WorldsWithoutNumber.zip
+docs/temp/slyFlourish.uncoveredSecretsV1.json
+docs/temp/slyFlourish.uncoveredSecretsV2.json
+OBSIDIAN_PLAN.md
+FUTURE_PLAN.md
+
+# Dependencies are installed from package-lock.json, not versioned.
+node_modules/
+
+# Build/cache/OS artifacts. CI and Netlify build dist from the locked source;
+# npm run build also produces the directory for manual uploads.
+dist/
+*.tsbuildinfo
+.DS_Store
+.netlify/
+coverage/
+playwright-report/
+test-results/
+.vitest/
+
+# Local agent settings and scratch review output stay on this machine.
+.codex/
+.deep-review/

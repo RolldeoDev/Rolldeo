@@ -1,0 +1,5196 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /*
+     * LIGHT MODE - Warm Cream/Sand Palette
+     * Inspired by elegant paper, warm natural tones, and exceptional legibility
+     * Think: refined stationery, warm afternoon light, natural textures
+     */
+
+    /* Warm cream background - not stark white, inviting and easy on eyes */
+    --background: 40 33% 96%;
+    --foreground: 25 25% 15%;
+
+    /* Cards: slightly warmer than background for subtle depth */
+    --card: 40 40% 98%;
+    --card-foreground: 25 25% 15%;
+
+    /* Popovers with slight warmth */
+    --popover: 40 40% 99%;
+    --popover-foreground: 25 25% 15%;
+
+    /* Primary - Deeper forest green for better contrast on light */
+    --primary: 145 45% 38%;
+    --primary-foreground: 40 40% 98%;
+
+    /* Secondary - Warm stone gray */
+    --secondary: 35 15% 90%;
+    --secondary-foreground: 25 20% 25%;
+
+    /* Muted - Soft warm gray for subtle text */
+    --muted: 35 15% 92%;
+    --muted-foreground: 25 10% 45%;
+
+    /* Accent - Sand/amber tint */
+    --accent: 38 25% 88%;
+    --accent-foreground: 25 20% 20%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 40 40% 98%;
+
+    /* Borders - subtle warm gray */
+    --border: 35 20% 85%;
+    --input: 35 20% 88%;
+    --ring: 145 45% 38%;
+    --radius: 1rem;
+
+    /* Accent colors - optimized for light backgrounds */
+    --mint: 145 50% 35%;
+    --mint-dark: 145 50% 28%;
+    --lavender: 262 40% 55%;
+    --amber: 40 90% 45%;
+    --orange: 25 85% 40%;
+    --rose: 340 70% 50%;
+    --pink: 340 70% 65%;
+    --cyan: 190 75% 40%;
+    --copper: 25 75% 45%;
+    --copper-glow: 35 80% 55%;
+  }
+
+  .dark {
+    /*
+     * DARK MODE - Deep black with mint accents
+     * Sophisticated, high contrast, easy on eyes in low light
+     */
+
+    /* Deep black background */
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
+
+    /* Card with subtle elevation */
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 95%;
+
+    /* Popover */
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Primary - Mint green accent */
+    --primary: 142 52% 54%;
+    --primary-foreground: 0 0% 7%;
+
+    /* Secondary - Subtle dark */
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    /* Muted text and backgrounds */
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
+
+    /* Accent */
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 95%;
+
+    /* Destructive */
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 95%;
+
+    /* Borders and inputs */
+    --border: 0 0% 18%;
+    --input: 0 0% 15%;
+    --ring: 142 52% 54%;
+
+    /* Accent colors for cards */
+    --mint: 142 52% 54%;
+    --mint-dark: 142 52% 45%;
+    --lavender: 262 47% 72%;
+    --amber: 45 93% 58%;
+    --orange: 30 90% 55%;
+    --rose: 340 75% 72%;
+    --pink: 340 75% 78%;
+    --cyan: 187 85% 53%;
+    --copper: 30 80% 58%;
+    --copper-glow: 38 85% 65%;
+  }
+
+  /* Light mode class for explicit light mode */
+  .light {
+    /* Same as :root light mode values */
+    --background: 40 33% 96%;
+    --foreground: 25 25% 15%;
+    --card: 40 40% 98%;
+    --card-foreground: 25 25% 15%;
+    --popover: 40 40% 99%;
+    --popover-foreground: 25 25% 15%;
+    --primary: 145 45% 38%;
+    --primary-foreground: 40 40% 98%;
+    --secondary: 35 15% 90%;
+    --secondary-foreground: 25 20% 25%;
+    --muted: 35 15% 92%;
+    --muted-foreground: 25 10% 45%;
+    --accent: 38 25% 88%;
+    --accent-foreground: 25 20% 20%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 40 40% 98%;
+    --border: 35 20% 85%;
+    --input: 35 20% 88%;
+    --ring: 145 45% 38%;
+    --mint: 145 50% 35%;
+    --mint-dark: 145 50% 28%;
+    --lavender: 262 40% 55%;
+    --amber: 40 90% 45%;
+    --orange: 25 85% 40%;
+    --rose: 340 70% 50%;
+    --pink: 340 70% 65%;
+    --cyan: 190 75% 40%;
+    --copper: 25 75% 45%;
+    --copper-glow: 35 80% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer components {
+  /* Glass card effect - theme-aware */
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+  }
+
+  /* Elevated card with glow - theme-aware shadows */
+  .card-elevated {
+    @apply bg-card rounded-2xl border border-border/50;
+  }
+
+  .dark .card-elevated {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03),
+      0 2px 4px rgba(0, 0, 0, 0.2),
+      0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .light .card-elevated {
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.03),
+      0 2px 4px rgba(0, 0, 0, 0.05),
+      0 8px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Accent cards */
+  .card-mint {
+    background: linear-gradient(135deg, hsl(var(--mint) / 0.15) 0%, hsl(var(--mint) / 0.05) 100%);
+    border-color: hsl(var(--mint) / 0.2);
+  }
+
+  .card-lavender {
+    background: linear-gradient(135deg, hsl(var(--lavender) / 0.15) 0%, hsl(var(--lavender) / 0.05) 100%);
+    border-color: hsl(var(--lavender) / 0.2);
+  }
+
+  .card-amber {
+    background: linear-gradient(135deg, hsl(var(--amber) / 0.15) 0%, hsl(var(--amber) / 0.05) 100%);
+    border-color: hsl(var(--amber) / 0.2);
+  }
+
+  .card-rose {
+    background: linear-gradient(135deg, hsl(var(--rose) / 0.15) 0%, hsl(var(--rose) / 0.05) 100%);
+    border-color: hsl(var(--rose) / 0.2);
+  }
+
+  /* Result card - warm copper/bronze theme for roll results
+     Uses grain texture via SVG noise filter layered with gradient */
+  .card-result,
+  .card-elevated.card-result {
+    background:
+      url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"),
+      linear-gradient(135deg,
+        hsl(var(--copper) / 0.12) 0%,
+        hsl(var(--copper) / 0.04) 100%),
+      hsl(var(--card)) !important;
+    border-color: hsl(var(--copper) / 0.25);
+    box-shadow:
+      0 0 20px hsl(var(--copper-glow) / 0.08),
+      inset 0 1px 0 hsl(var(--copper-glow) / 0.1);
+  }
+
+  .dark .card-result,
+  .dark .card-elevated.card-result {
+    background:
+      url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"),
+      linear-gradient(135deg,
+        hsl(var(--copper) / 0.15) 0%,
+        hsl(var(--copper) / 0.05) 100%),
+      hsl(var(--card)) !important;
+    border-color: hsl(var(--copper) / 0.3);
+    box-shadow:
+      0 0 30px hsl(var(--copper-glow) / 0.15),
+      0 0 60px hsl(var(--copper-glow) / 0.05);
+  }
+
+  /* Solid accent backgrounds */
+  .bg-mint {
+    background-color: hsl(var(--mint));
+  }
+
+  .bg-lavender {
+    background-color: hsl(var(--lavender));
+  }
+
+  .bg-amber {
+    background-color: hsl(var(--amber));
+  }
+
+  .bg-orange {
+    background-color: hsl(var(--orange));
+  }
+
+  .bg-rose {
+    background-color: hsl(var(--rose));
+  }
+
+  .bg-pink {
+    background-color: hsl(var(--pink));
+  }
+
+  .bg-cyan {
+    background-color: hsl(var(--cyan));
+  }
+
+  /* Text colors */
+  .text-mint {
+    color: hsl(var(--mint));
+  }
+
+  .text-lavender {
+    color: hsl(var(--lavender));
+  }
+
+  .text-amber {
+    color: hsl(var(--amber));
+  }
+
+  .text-orange {
+    color: hsl(var(--orange));
+  }
+
+  .text-rose {
+    color: hsl(var(--rose));
+  }
+
+  .text-pink {
+    color: hsl(var(--pink));
+  }
+
+  .text-copper {
+    color: hsl(var(--copper));
+  }
+
+  /* Pill/tag styles */
+  .pill {
+    @apply px-3 py-1 text-xs font-medium rounded-full border;
+  }
+
+  .pill-outline {
+    @apply bg-transparent border-border text-foreground/80;
+  }
+
+  .pill-mint {
+    @apply bg-[hsl(var(--mint)/0.15)] border-[hsl(var(--mint)/0.3)] text-[hsl(var(--mint))];
+  }
+
+  .pill-lavender {
+    @apply bg-[hsl(var(--lavender)/0.15)] border-[hsl(var(--lavender)/0.3)] text-[hsl(var(--lavender))];
+  }
+
+  .pill-amber {
+    @apply bg-[hsl(var(--amber)/0.15)] border-[hsl(var(--amber)/0.3)] text-[hsl(var(--amber))];
+  }
+
+  /* Icon containers */
+  .icon-container {
+    @apply flex items-center justify-center rounded-xl p-3;
+  }
+
+  .icon-mint {
+    @apply bg-[hsl(var(--mint)/0.15)] text-[hsl(var(--mint))];
+  }
+
+  .icon-lavender {
+    @apply bg-[hsl(var(--lavender)/0.15)] text-[hsl(var(--lavender))];
+  }
+
+  .icon-amber {
+    @apply bg-[hsl(var(--amber)/0.15)] text-[hsl(var(--amber))];
+  }
+
+  .icon-rose {
+    @apply bg-[hsl(var(--rose)/0.15)] text-[hsl(var(--rose))];
+  }
+
+  .icon-copper {
+    @apply bg-[hsl(var(--copper)/0.15)] text-[hsl(var(--copper))];
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply px-6 py-3 font-semibold rounded-xl transition-all duration-200;
+    @apply bg-primary text-primary-foreground;
+    @apply hover:brightness-110 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 font-semibold rounded-xl transition-all duration-200;
+    @apply bg-secondary text-secondary-foreground border border-border/50;
+    @apply hover:bg-secondary/80 hover:border-border;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 font-medium rounded-xl transition-all duration-200;
+    @apply text-muted-foreground hover:text-foreground hover:bg-accent;
+  }
+
+  .btn-copper {
+    @apply px-6 py-3 font-semibold rounded-xl transition-all duration-200;
+    background-color: hsl(var(--copper));
+    color: white;
+    @apply hover:brightness-110 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-copper:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .btn-copper:disabled:hover {
+    @apply brightness-100 scale-100;
+  }
+
+  /* Input styles - theme-aware */
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl transition-all duration-200;
+    @apply bg-secondary border border-border/50;
+    @apply placeholder:text-muted-foreground;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50;
+  }
+
+  /* Legacy alias */
+  .input-dark {
+    @apply input-field;
+  }
+
+  /* Select styles - theme-aware */
+  .select-field {
+    @apply w-full px-4 py-3 rounded-xl transition-all duration-200;
+    @apply bg-secondary border border-border/50;
+    @apply text-foreground;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50;
+    @apply cursor-pointer appearance-none;
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  .dark .select-field {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  }
+
+  .light .select-field {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234b5563' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  }
+
+  /* Legacy alias */
+  .select-dark {
+    @apply select-field;
+  }
+}
+
+@layer utilities {
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--mint)) 0%, hsl(var(--cyan)) 100%);
+  }
+
+  /* Subtle glow effects */
+  .glow-mint {
+    box-shadow: 0 0 20px hsl(var(--mint) / 0.3);
+  }
+
+  .glow-lavender {
+    box-shadow: 0 0 20px hsl(var(--lavender) / 0.3);
+  }
+
+  .glow-amber {
+    box-shadow: 0 0 20px hsl(var(--amber) / 0.3);
+  }
+
+  /* Animated gradient border */
+  .border-gradient {
+    position: relative;
+    background: hsl(var(--card));
+    border-radius: 1rem;
+  }
+
+  .border-gradient::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--mint) / 0.5), hsl(var(--lavender) / 0.5), hsl(var(--amber) / 0.5));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Staggered animation delays */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+}
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(var(--mint) / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(var(--mint) / 0.5); }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  /* 'both' applies starting state immediately (prevents flash) and keeps end state */
+  animation: slide-up 0.5s ease-out both;
+}
+
+.animate-fade-in {
+  /* 'both' applies starting state immediately (prevents flash) and keeps end state */
+  animation: fade-in 0.3s ease-out both;
+}
+
+/* Mobile FAB animations */
+@keyframes fab-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes fab-pulse {
+  0%, 100% { box-shadow: 0 10px 25px -5px hsl(var(--primary) / 0.25), 0 0 0 0 hsl(var(--primary) / 0.4); }
+  50% { box-shadow: 0 10px 25px -5px hsl(var(--primary) / 0.25), 0 0 0 12px hsl(var(--primary) / 0); }
+}
+
+.animate-fab-float {
+  animation: fab-float 3s ease-in-out infinite;
+}
+
+.animate-fab-pulse {
+  animation: fab-pulse 2s ease-out 3;
+}
+
+/* Clone entry highlight animation */
+@keyframes clone-highlight {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.6);
+    background-color: hsl(var(--primary) / 0.15);
+  }
+  30% {
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.3);
+    background-color: hsl(var(--primary) / 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+    background-color: transparent;
+  }
+}
+
+.animate-clone-highlight {
+  animation: clone-highlight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Selection styling */
+::selection {
+  background: hsl(var(--mint) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+/* ============================================================================
+   ROLLER RESULT PROSE STYLING - "Enchanted Scroll" Theme
+
+   A refined, readable markdown style that uses the app's full color palette.
+   Headers use warm foreground tones, accents are used sparingly for emphasis,
+   and the overall feel is elegant and easy to read.
+   ============================================================================ */
+
+.prose-roll {
+  @apply leading-relaxed;
+  font-size: 0.9375rem; /* 15px - slightly larger for readability */
+  line-height: 1.7;
+  color: hsl(25, 25%, 25%); /* Warm charcoal - matches app foreground */
+}
+
+/* === HEADERS - Warm tones with accent flourishes === */
+
+.prose-roll h1 {
+  @apply text-2xl font-bold mt-5 mb-3 pb-1 first:mt-0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(25, 30%, 22%); /* Deep warm brown */
+  position: relative;
+}
+
+/* Gradient underline using copper-to-gold accent */
+.prose-roll h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    hsl(25, 75%, 45%) 0%,
+    hsl(35, 80%, 55%) 50%,
+    hsl(25, 75%, 45%) 100%
+  );
+  border-radius: 1px;
+}
+
+.prose-roll h2 {
+  @apply text-xl font-bold mt-5 mb-2 first:mt-0;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(25, 28%, 28%); /* Warm brown */
+  position: relative;
+  padding-left: 0.75em;
+}
+
+/* Vertical accent bar - copper accent */
+.prose-roll h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 3px;
+  background: linear-gradient(180deg,
+    hsl(25, 75%, 45%) 0%,
+    hsl(30, 80%, 58%) 100%
+  );
+  border-radius: 2px;
+}
+
+.prose-roll h3 {
+  @apply text-lg font-semibold mt-4 mb-2 first:mt-0;
+  color: hsl(25, 22%, 32%);
+  font-weight: 600;
+}
+
+.prose-roll h4 {
+  @apply text-base font-semibold mt-3 mb-1 first:mt-0;
+  color: hsl(25, 18%, 38%);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.8125rem;
+}
+
+.prose-roll h5,
+.prose-roll h6 {
+  @apply text-sm font-semibold mt-3 mb-1 first:mt-0;
+  color: hsl(25, 15%, 45%);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll p {
+  @apply my-3 first:mt-0 last:mb-0;
+}
+
+.prose-roll strong {
+  font-weight: 700;
+  color: hsl(25, 35%, 20%); /* Darker warm for emphasis */
+}
+
+.prose-roll em {
+  font-style: italic;
+  color: hsl(25, 35%, 35%); /* Warm copper for italics */
+}
+
+/* === LISTS - Elegant markers with custom bullets === */
+
+.prose-roll ul,
+.prose-roll ol {
+  @apply my-3;
+  padding-left: 1.5em;
+  list-style: none;
+}
+
+.prose-roll li {
+  @apply my-2;
+  position: relative;
+  padding-left: 0.5em;
+}
+
+/* Unordered list - custom diamond bullet */
+.prose-roll ul > li::before {
+  content: '◆';
+  position: absolute;
+  left: -1.25em;
+  color: hsl(25, 70%, 45%); /* Copper */
+  font-size: 0.6em;
+  top: 0.45em;
+}
+
+/* Nested unordered - smaller hollow diamond */
+.prose-roll ul ul > li::before {
+  content: '◇';
+  color: hsl(30, 60%, 55%);
+  font-size: 0.65em;
+}
+
+/* Double nested - simple dash */
+.prose-roll ul ul ul > li::before {
+  content: '–';
+  color: hsl(35, 50%, 60%);
+  font-size: 0.85em;
+  top: 0.25em;
+}
+
+/* Ordered list - custom styled numbers */
+.prose-roll ol {
+  counter-reset: list-counter;
+}
+
+.prose-roll ol > li {
+  counter-increment: list-counter;
+}
+
+.prose-roll ol > li::before {
+  content: counter(list-counter) '.';
+  position: absolute;
+  left: -1.75em;
+  color: hsl(30, 75%, 42%); /* Bronze */
+  font-weight: 600;
+  font-size: 0.9em;
+  min-width: 1.25em;
+  text-align: right;
+}
+
+/* Nested ordered lists - letters */
+.prose-roll ol ol {
+  counter-reset: nested-counter;
+}
+
+.prose-roll ol ol > li {
+  counter-increment: nested-counter;
+}
+
+.prose-roll ol ol > li::before {
+  content: counter(nested-counter, lower-alpha) ')';
+  color: hsl(28, 65%, 50%);
+  font-weight: 500;
+}
+
+/* Nested lists spacing */
+.prose-roll li > ul,
+.prose-roll li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items (checkboxes) */
+.prose-roll li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(25, 70%, 45%);
+}
+
+/* === CODE - Warm bronze tint === */
+
+.prose-roll code {
+  @apply px-1.5 py-0.5 rounded text-sm font-mono;
+  background: linear-gradient(135deg, hsl(30, 30%, 94%) 0%, hsl(25, 25%, 90%) 100%);
+  color: hsl(25, 50%, 35%);
+  border: 1px solid hsl(30, 25%, 82%);
+  font-size: 0.85em;
+}
+
+.prose-roll pre {
+  @apply my-4 p-4 rounded-lg overflow-x-auto;
+  background: linear-gradient(180deg, hsl(28, 20%, 96%) 0%, hsl(25, 18%, 93%) 100%);
+  border: 1px solid hsl(30, 22%, 85%);
+  box-shadow: inset 0 1px 3px hsl(28, 18%, 88%);
+}
+
+.prose-roll pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+}
+
+/* === BLOCKQUOTES - Warm copper accent === */
+
+.prose-roll blockquote {
+  @apply my-4 py-3 px-4 rounded-r-lg;
+  border-left: 3px solid hsl(25, 75%, 50%); /* Copper */
+  background: linear-gradient(90deg,
+    hsl(28, 45%, 95%) 0%,
+    hsl(30, 30%, 97%) 50%,
+    transparent 100%
+  );
+  color: hsl(25, 25%, 30%);
+  font-style: italic;
+  position: relative;
+}
+
+/* Opening quote mark */
+.prose-roll blockquote::before {
+  content: '"';
+  position: absolute;
+  top: -0.1em;
+  left: 0.3em;
+  font-size: 2.5em;
+  font-family: Georgia, serif;
+  color: hsl(28, 55%, 70%);
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.prose-roll blockquote p {
+  position: relative;
+  z-index: 1;
+  margin-left: 1em;
+}
+
+/* === HORIZONTAL RULES - Gradient divider === */
+
+.prose-roll hr {
+  @apply my-6;
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(35, 25%, 75%) 20%,
+    hsl(35, 30%, 65%) 50%,
+    hsl(35, 25%, 75%) 80%,
+    transparent 100%
+  );
+  position: relative;
+}
+
+.prose-roll hr::after {
+  content: '◇';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: hsl(40, 40%, 98%);
+  padding: 0 0.5em;
+  color: hsl(35, 25%, 60%);
+  font-size: 0.65rem;
+}
+
+/* === LINKS - Warm copper color === */
+
+.prose-roll a {
+  color: hsl(25, 70%, 42%); /* Copper */
+  text-decoration: none;
+  border-bottom: 1px dotted hsl(30, 60%, 55%);
+  transition: all 0.2s ease;
+}
+
+.prose-roll a:hover {
+  color: hsl(25, 75%, 35%);
+  border-bottom-style: solid;
+  border-bottom-color: hsl(28, 70%, 45%);
+}
+
+/* === TABLES - Clean with warm accents === */
+
+.prose-roll table {
+  @apply w-full text-sm my-4;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid hsl(35, 25%, 82%);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.prose-roll thead {
+  background: linear-gradient(180deg, hsl(35, 30%, 93%) 0%, hsl(35, 25%, 89%) 100%);
+}
+
+.prose-roll th {
+  @apply px-4 py-2.5 text-left font-semibold;
+  color: hsl(25, 30%, 25%);
+  border-bottom: 2px solid hsl(35, 30%, 75%);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.prose-roll td {
+  @apply px-4 py-2.5;
+  border-bottom: 1px solid hsl(35, 20%, 90%);
+  color: hsl(25, 20%, 30%);
+}
+
+.prose-roll tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll tbody tr:hover {
+  background: hsl(40, 30%, 96%);
+}
+
+/* Alternating row colors for large tables */
+.prose-roll tbody tr:nth-child(even) {
+  background: hsl(40, 20%, 98%);
+}
+
+.prose-roll tbody tr:nth-child(even):hover {
+  background: hsl(40, 30%, 95%);
+}
+
+/* === IMAGES === */
+
+.prose-roll img {
+  @apply my-4 rounded-lg;
+  box-shadow: 0 2px 8px hsl(25, 15%, 75%);
+  border: 1px solid hsl(35, 20%, 85%);
+}
+
+/* ============================================================================
+   DARK MODE - Refined with accent glows
+   ============================================================================ */
+
+:is(.dark .prose-roll) {
+  color: hsl(0, 0%, 88%);
+}
+
+/* Dark mode headers */
+:is(.dark .prose-roll) h1 {
+  color: hsl(0, 0%, 95%);
+}
+
+:is(.dark .prose-roll) h1::after {
+  background: linear-gradient(90deg,
+    hsl(30, 80%, 58%) 0%,
+    hsl(38, 85%, 65%) 50%,
+    hsl(30, 80%, 58%) 100%
+  );
+  box-shadow: 0 0 10px hsl(30, 70%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll) h2 {
+  color: hsl(0, 0%, 92%);
+}
+
+:is(.dark .prose-roll) h2::before {
+  background: linear-gradient(180deg,
+    hsl(30, 80%, 58%) 0%,
+    hsl(25, 75%, 48%) 100%
+  );
+  box-shadow: 0 0 8px hsl(30, 70%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll) h3 {
+  color: hsl(0, 0%, 88%);
+}
+
+:is(.dark .prose-roll) h4 {
+  color: hsl(0, 0%, 75%);
+}
+
+:is(.dark .prose-roll) h5,
+:is(.dark .prose-roll) h6 {
+  color: hsl(0, 0%, 65%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll) strong {
+  color: hsl(45, 90%, 70%); /* Amber highlight */
+}
+
+:is(.dark .prose-roll) em {
+  color: hsl(30, 50%, 72%); /* Warm copper */
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll) ul > li::before {
+  color: hsl(30, 80%, 58%); /* Copper */
+}
+
+:is(.dark .prose-roll) ul ul > li::before {
+  color: hsl(32, 70%, 65%);
+}
+
+:is(.dark .prose-roll) ul ul ul > li::before {
+  color: hsl(35, 60%, 55%);
+}
+
+:is(.dark .prose-roll) ol > li::before {
+  color: hsl(35, 85%, 60%); /* Bronze-gold */
+}
+
+:is(.dark .prose-roll) ol ol > li::before {
+  color: hsl(32, 75%, 65%);
+}
+
+:is(.dark .prose-roll) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(30, 80%, 58%);
+}
+
+/* Dark mode code - warm bronze tint */
+:is(.dark .prose-roll) code {
+  background: linear-gradient(135deg, hsl(28, 30%, 18%) 0%, hsl(25, 25%, 14%) 100%);
+  color: hsl(32, 65%, 72%);
+  border-color: hsl(28, 35%, 28%);
+  box-shadow: 0 0 8px hsl(30, 45%, 30% / 0.3);
+}
+
+:is(.dark .prose-roll) pre {
+  background: linear-gradient(180deg, hsl(26, 15%, 13%) 0%, hsl(24, 12%, 10%) 100%);
+  border-color: hsl(28, 25%, 25%);
+  box-shadow: inset 0 1px 3px hsl(0, 0%, 5%);
+}
+
+/* Dark mode blockquote - copper accent */
+:is(.dark .prose-roll) blockquote {
+  border-left-color: hsl(30, 80%, 58%);
+  background: linear-gradient(90deg,
+    hsl(28, 35%, 12%) 0%,
+    hsl(26, 25%, 10%) 50%,
+    transparent 100%
+  );
+  color: hsl(0, 0%, 82%);
+  box-shadow: 0 0 15px hsl(30, 60%, 40% / 0.1);
+}
+
+:is(.dark .prose-roll) blockquote::before {
+  color: hsl(30, 50%, 35%);
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll) hr {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(0, 0%, 30%) 20%,
+    hsl(0, 0%, 40%) 50%,
+    hsl(0, 0%, 30%) 80%,
+    transparent 100%
+  );
+}
+
+:is(.dark .prose-roll) hr::after {
+  background: hsl(0, 0%, 11%);
+  color: hsl(0, 0%, 50%);
+}
+
+/* Dark mode links - copper */
+:is(.dark .prose-roll) a {
+  color: hsl(30, 80%, 58%);
+  border-bottom-color: hsl(28, 60%, 40%);
+}
+
+:is(.dark .prose-roll) a:hover {
+  color: hsl(35, 85%, 68%);
+  border-bottom-color: hsl(32, 75%, 55%);
+  text-shadow: 0 0 8px hsl(30, 60%, 45% / 0.4);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll) table {
+  border-color: hsl(0, 0%, 22%);
+}
+
+:is(.dark .prose-roll) thead {
+  background: linear-gradient(180deg, hsl(0, 0%, 16%) 0%, hsl(0, 0%, 13%) 100%);
+}
+
+:is(.dark .prose-roll) th {
+  color: hsl(0, 0%, 90%);
+  border-bottom-color: hsl(0, 0%, 28%);
+}
+
+:is(.dark .prose-roll) td {
+  border-bottom-color: hsl(0, 0%, 18%);
+  color: hsl(0, 0%, 82%);
+}
+
+:is(.dark .prose-roll) tbody tr:hover {
+  background: hsl(0, 0%, 14%);
+}
+
+:is(.dark .prose-roll) tbody tr:nth-child(even) {
+  background: hsl(0, 0%, 9%);
+}
+
+:is(.dark .prose-roll) tbody tr:nth-child(even):hover {
+  background: hsl(0, 0%, 13%);
+}
+
+/* Dark mode images */
+:is(.dark .prose-roll) img {
+  box-shadow: 0 2px 12px hsl(0, 0%, 0% / 0.5);
+  border-color: hsl(0, 0%, 25%);
+}
+
+/* Description Drawer Prose Styling - Grimoire/Parchment Theme */
+.prose-description {
+  @apply leading-relaxed;
+  /* Light mode: warm copper/bronze colors */
+  color: hsl(20, 75%, 25%); /* copper-900 */
+}
+
+.prose-description h1 {
+  @apply text-xl font-bold mt-4 mb-2 pb-1 border-b first:mt-0;
+  border-color: hsl(28, 55%, 78%); /* copper-200 */
+  color: hsl(20, 75%, 25%); /* copper-900 */
+}
+
+.prose-description h2 {
+  @apply text-lg font-bold mt-3 mb-2 first:mt-0;
+  color: hsl(20, 75%, 25%); /* copper-900 */
+}
+
+.prose-description h3 {
+  @apply text-base font-semibold mt-3 mb-1 first:mt-0;
+  color: hsl(22, 78%, 32%); /* copper-800 */
+}
+
+.prose-description h4 {
+  @apply text-sm font-semibold mt-2 mb-1 uppercase tracking-wide first:mt-0;
+  color: hsl(22, 78%, 32%); /* copper-800 */
+}
+
+.prose-description h5,
+.prose-description h6 {
+  @apply text-xs font-semibold mt-2 mb-1 uppercase tracking-wider first:mt-0;
+  color: hsl(24, 80%, 38%); /* copper-700 */
+}
+
+.prose-description p {
+  @apply my-2 first:mt-0 last:mb-0;
+}
+
+.prose-description ul,
+.prose-description ol {
+  @apply my-2 pl-5;
+}
+
+.prose-description li {
+  @apply my-1;
+}
+
+.prose-description ul li::marker {
+  color: hsl(var(--copper) / 0.6); /* copper/60 */
+}
+
+.prose-description strong {
+  @apply font-semibold;
+  color: hsl(22, 78%, 32%); /* copper-800 */
+}
+
+.prose-description em {
+  @apply italic;
+  color: hsl(22, 78%, 32%); /* copper-800 */
+}
+
+.prose-description code {
+  @apply px-1 py-0.5 rounded text-sm font-mono;
+  background-color: hsl(30, 45%, 92%); /* copper-100 */
+  color: hsl(24, 80%, 38%); /* copper-700 */
+}
+
+.prose-description blockquote {
+  @apply border-l-2 pl-4 my-2 py-1 not-italic;
+  border-color: hsl(var(--copper) / 0.5); /* copper/50 */
+  background-color: hsl(30, 40%, 94% / 0.6); /* copper-100/60 */
+  color: hsl(24, 80%, 38%); /* copper-700 */
+}
+
+.prose-description hr {
+  @apply my-4;
+  border-color: hsl(28, 55%, 78%); /* copper-200 */
+}
+
+.prose-description a {
+  @apply no-underline hover:underline;
+  color: hsl(25, 75%, 45%); /* copper-600 - matches --copper */
+}
+
+.prose-description table {
+  @apply w-full border-collapse text-sm my-3;
+}
+
+.prose-description thead {
+  @apply border-b;
+  border-color: hsl(28, 55%, 78%); /* copper-200 */
+  background-color: hsl(30, 40%, 94% / 0.6); /* copper-100/60 */
+}
+
+.prose-description th {
+  @apply px-3 py-2 text-left font-semibold;
+  color: hsl(20, 75%, 25%); /* copper-900 */
+}
+
+.prose-description td {
+  @apply px-3 py-2 border-b;
+  border-color: hsl(28, 55%, 78% / 0.5); /* copper-200/50 */
+}
+
+.prose-description tbody tr:hover {
+  background-color: hsl(30, 35%, 96%); /* copper-50 */
+}
+
+/* Dark mode overrides for description prose */
+:is(.dark .prose-description) {
+  color: hsl(0, 0%, 82%); /* warm light gray */
+}
+
+:is(.dark .prose-description) h1 {
+  color: hsl(32, 70%, 85%); /* light copper */
+  border-color: hsl(28, 50%, 30%); /* copper-800 dark */
+}
+
+:is(.dark .prose-description) h2 {
+  color: hsl(32, 70%, 85%); /* light copper */
+}
+
+:is(.dark .prose-description) h3 {
+  color: hsl(30, 65%, 75%); /* copper-200 */
+}
+
+:is(.dark .prose-description) h4,
+:is(.dark .prose-description) h5,
+:is(.dark .prose-description) h6 {
+  color: hsl(32, 75%, 68%); /* copper-300 */
+}
+
+:is(.dark .prose-description) strong {
+  color: hsl(30, 65%, 75%); /* copper-200 */
+}
+
+:is(.dark .prose-description) em {
+  color: hsl(0, 0%, 88%); /* light gray */
+}
+
+:is(.dark .prose-description) code {
+  background-color: hsl(28, 20%, 15%); /* dark bronze */
+  color: hsl(32, 75%, 68%); /* copper-300 */
+}
+
+:is(.dark .prose-description) blockquote {
+  background-color: hsl(26, 18%, 12%); /* dark bronze */
+  border-color: hsl(var(--copper) / 0.4);
+  color: hsl(0, 0%, 70%); /* muted text */
+}
+
+:is(.dark .prose-description) a {
+  color: hsl(30, 80%, 58%); /* copper bright - matches --copper dark */
+}
+
+:is(.dark .prose-description) thead {
+  border-color: hsl(28, 25%, 25%); /* copper border */
+  background-color: hsl(26, 18%, 14%); /* dark bronze */
+}
+
+:is(.dark .prose-description) th {
+  color: hsl(0, 0%, 90%); /* near white */
+}
+
+:is(.dark .prose-description) td {
+  border-color: hsl(28, 20%, 22% / 0.5); /* subtle copper border */
+}
+
+:is(.dark .prose-description) tbody tr:hover {
+  background-color: hsl(26, 15%, 13%); /* subtle hover */
+}
+
+:is(.dark .prose-description) hr {
+  border-color: hsl(28, 25%, 25%); /* copper border */
+}
+
+/* Guide/Documentation Prose Styling */
+.prose-guide {
+  @apply text-foreground leading-relaxed;
+}
+
+.prose-guide h1 {
+  @apply text-3xl font-bold mt-8 mb-4 pb-2 border-b border-border;
+}
+
+.prose-guide h2 {
+  @apply text-2xl font-bold mt-8 mb-4;
+}
+
+.prose-guide h3 {
+  @apply text-xl font-semibold mt-6 mb-3;
+}
+
+.prose-guide h4 {
+  @apply text-lg font-semibold mt-4 mb-2;
+}
+
+.prose-guide p {
+  @apply my-4;
+}
+
+.prose-guide > *:first-child {
+  @apply mt-0;
+}
+
+/* Code syntax highlighting theme */
+.prose-guide pre code.hljs {
+  @apply bg-transparent p-0;
+}
+
+.prose-guide .hljs {
+  color: #d4d4d4;
+}
+
+.prose-guide .hljs-keyword,
+.prose-guide .hljs-selector-tag {
+  color: #569cd6;
+}
+
+.prose-guide .hljs-string,
+.prose-guide .hljs-attr {
+  color: #ce9178;
+}
+
+.prose-guide .hljs-number {
+  color: #b5cea8;
+}
+
+.prose-guide .hljs-built_in {
+  color: #4ec9b0;
+}
+
+.prose-guide .hljs-comment {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.prose-guide .hljs-property {
+  color: #9cdcfe;
+}
+
+.prose-guide .hljs-punctuation {
+  color: #808080;
+}
+
+/* Print styles for guide pages */
+@media print {
+  .prose-guide {
+    @apply text-black;
+  }
+
+  .prose-guide pre {
+    @apply border border-gray-300 bg-gray-50;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .prose-guide a {
+    @apply text-black underline;
+  }
+
+  .prose-guide a::after {
+    content: " (" attr(href) ")";
+    @apply text-gray-500 text-sm;
+  }
+}
+
+/* ============================================================================
+   EDITOR FORM STYLING
+   Refined form inputs with depth and visual separation
+   Inspired by modern form design with inset/elevated input fields
+   ============================================================================ */
+
+/* Form field container - subtle inset background for grouping */
+.editor-field-group {
+  @apply p-4 rounded-xl;
+  background: linear-gradient(180deg,
+    hsl(var(--muted) / 0.4) 0%,
+    hsl(var(--muted) / 0.2) 100%
+  );
+}
+
+.dark .editor-field-group {
+  background: linear-gradient(180deg,
+    hsl(0, 0%, 8%) 0%,
+    hsl(0, 0%, 6%) 100%
+  );
+  box-shadow: inset 0 1px 2px hsl(0, 0%, 0% / 0.3);
+}
+
+/* Editor input - elevated look with subtle shadow */
+.editor-input {
+  @apply w-full px-3 py-2 rounded-lg transition-all duration-200;
+  @apply border border-border/60;
+  @apply placeholder:text-muted-foreground/60;
+  @apply focus:outline-none;
+  /* Use --focus-color if set, otherwise fall back to primary */
+  --_focus-color: var(--focus-color, hsl(var(--primary)));
+  background: hsl(var(--card));
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04);
+}
+
+.editor-input:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--_focus-color) 40%, transparent);
+  border-color: color-mix(in srgb, var(--_focus-color) 50%, transparent);
+}
+
+.dark .editor-input {
+  background: hsl(0, 0%, 14%);
+  border-color: hsl(0, 0%, 22%);
+  box-shadow:
+    0 1px 2px hsl(0, 0%, 0% / 0.2),
+    inset 0 1px 0 hsl(0, 0%, 20% / 0.5);
+}
+
+.dark .editor-input:focus {
+  background: hsl(0, 0%, 16%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--_focus-color) 40%, transparent);
+  border-color: color-mix(in srgb, var(--_focus-color) 50%, transparent);
+}
+
+/* Editor input - compact variant for inline/row items */
+.editor-input-compact {
+  @apply editor-input;
+  @apply px-2.5 py-1.5 text-sm;
+}
+
+/* Editor select styling */
+.editor-select {
+  @apply editor-input cursor-pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.25em 1.25em;
+  padding-right: 2rem;
+}
+
+/* Collapsible section - refined details/summary styling */
+.editor-collapsible {
+  @apply rounded-xl overflow-hidden transition-all duration-200;
+  border: 1px solid hsl(var(--border) / 0.6);
+  background: linear-gradient(180deg,
+    hsl(var(--card)) 0%,
+    hsl(var(--muted) / 0.3) 100%
+  );
+}
+
+.dark .editor-collapsible {
+  border-color: hsl(0, 0%, 18%);
+  background: linear-gradient(180deg,
+    hsl(0, 0%, 10%) 0%,
+    hsl(0, 0%, 8%) 100%
+  );
+}
+
+.editor-collapsible summary {
+  @apply px-4 py-3 cursor-pointer select-none;
+  @apply transition-colors duration-150;
+  @apply list-none;
+}
+
+.editor-collapsible summary:hover {
+  background: hsl(var(--accent) / 0.5);
+}
+
+.dark .editor-collapsible summary:hover {
+  background: hsl(0, 0%, 14%);
+}
+
+.editor-collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-collapsible[open] summary {
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+.dark .editor-collapsible[open] summary {
+  border-bottom-color: hsl(0, 0%, 18%);
+}
+
+.editor-collapsible-content {
+  @apply p-4;
+  background: hsl(var(--background) / 0.5);
+}
+
+.dark .editor-collapsible-content {
+  background: hsl(0, 0%, 6%);
+}
+
+/* Entry row styling - for table entries, key-value pairs */
+.editor-entry-row {
+  @apply flex items-start gap-2 p-3 rounded-lg;
+  @apply transition-all duration-150;
+  background: hsl(var(--card) / 0.8);
+  border: 1px solid hsl(var(--border) / 0.4);
+}
+
+.dark .editor-entry-row {
+  background: hsl(0, 0%, 11%);
+  border-color: hsl(0, 0%, 16%);
+}
+
+.editor-entry-row:hover {
+  border-color: hsl(var(--border) / 0.8);
+}
+
+.dark .editor-entry-row:hover {
+  border-color: hsl(0, 0%, 22%);
+  background: hsl(0, 0%, 12%);
+}
+
+/* Section divider with label */
+.editor-section-divider {
+  @apply flex items-center gap-3 my-4;
+}
+
+.editor-section-divider::before,
+.editor-section-divider::after {
+  content: '';
+  @apply flex-1 h-px;
+  background: linear-gradient(90deg,
+    transparent,
+    hsl(var(--border) / 0.6) 20%,
+    hsl(var(--border) / 0.6) 80%,
+    transparent
+  );
+}
+
+.editor-section-divider span {
+  @apply text-xs font-medium uppercase tracking-wider text-muted-foreground/70;
+}
+
+/* Form label styling */
+.editor-label {
+  @apply block text-sm font-medium mb-1.5;
+  color: hsl(var(--muted-foreground));
+}
+
+.editor-label-required::after {
+  content: ' *';
+  @apply text-destructive;
+}
+
+/* Inline button inside input field */
+.editor-input-btn {
+  @apply px-3 py-1.5 text-xs font-medium rounded-md;
+  @apply border border-border/60;
+  @apply bg-muted/50 hover:bg-muted;
+  @apply transition-colors duration-150;
+}
+
+.dark .editor-input-btn {
+  @apply bg-white/5 hover:bg-white/10;
+  border-color: hsl(0, 0%, 25%);
+}
+
+/* Accordion header card styling */
+.editor-accordion-header {
+  @apply flex items-center gap-3 p-4 cursor-pointer;
+  @apply transition-colors duration-150;
+  @apply rounded-t-xl;
+}
+
+.editor-accordion-header:hover {
+  background: hsl(var(--accent) / 0.4);
+}
+
+.dark .editor-accordion-header:hover {
+  background: hsl(0, 0%, 14%);
+}
+
+/* Card with subtle gradient border glow on expansion */
+.editor-card {
+  @apply rounded-xl overflow-hidden;
+  @apply transition-all duration-200;
+  border: 1px solid hsl(var(--border) / 0.6);
+  background: hsl(var(--card));
+}
+
+.dark .editor-card {
+  border-color: hsl(0, 0%, 18%);
+  background: hsl(0, 0%, 10%);
+}
+
+.editor-card-expanded {
+  box-shadow:
+    0 4px 12px -2px hsl(var(--primary) / 0.08),
+    0 0 0 1px hsl(var(--primary) / 0.1);
+}
+
+.dark .editor-card-expanded {
+  box-shadow:
+    0 4px 16px -2px hsl(0, 0%, 0% / 0.4),
+    0 0 0 1px hsl(var(--primary) / 0.2);
+  border-color: hsl(var(--primary) / 0.3);
+}
+
+/* Lavender/purple variant for templates */
+.editor-card-expanded-lavender {
+  box-shadow:
+    0 4px 12px -2px hsl(var(--lavender) / 0.12),
+    0 0 0 1px hsl(var(--lavender) / 0.15);
+}
+
+.dark .editor-card-expanded-lavender {
+  box-shadow:
+    0 4px 16px -2px hsl(0, 0%, 0% / 0.4),
+    0 0 0 1px hsl(var(--lavender) / 0.3);
+  border-color: hsl(var(--lavender) / 0.4);
+}
+
+/* Form section header */
+.editor-section-header {
+  @apply flex items-center justify-between mb-3;
+}
+
+.editor-section-title {
+  @apply text-sm font-semibold uppercase tracking-wide;
+  color: hsl(var(--muted-foreground) / 0.8);
+}
+
+/* ============================================================================
+   Pattern Preview - Inline Result Highlighting
+   ============================================================================ */
+
+/* Base style for inline expression highlights */
+.inline-result-expression {
+  @apply px-1 py-0.5 rounded cursor-help transition-colors;
+}
+
+.inline-result-expression:hover {
+  @apply ring-1 ring-offset-1;
+  ring-color: currentColor;
+}
+
+/* Editable pattern - textarea overlay technique */
+.editable-pattern-textarea {
+  caret-color: hsl(var(--foreground));
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.editable-pattern-textarea::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Firefox-specific selection fix */
+.editable-pattern-textarea::-moz-selection {
+  background: hsl(var(--primary) / 0.3);
+  color: transparent;
+}
+
+/* Highlighted input - transparent text for overlay technique */
+.highlighted-input-transparent {
+  color: transparent !important;
+  caret-color: hsl(var(--foreground));
+  -webkit-text-fill-color: transparent;
+}
+
+.highlighted-input-transparent::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.highlighted-input-transparent::-moz-selection {
+  background: hsl(var(--primary) / 0.3);
+  color: transparent;
+}
+
+.editable-pattern-highlight {
+  pointer-events: none;
+}
+
+/* ============================================================================
+   MOBILE EDITOR INTERFACE
+   A refined, touch-first editing experience for screens ≤768px
+   ============================================================================ */
+
+/* Mobile navigation overlay */
+@keyframes mobile-nav-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes mobile-nav-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes mobile-backdrop-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mobile-backdrop-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.mobile-nav-enter {
+  animation: mobile-nav-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mobile-nav-exit {
+  animation: mobile-nav-slide-out 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.mobile-backdrop-enter {
+  animation: mobile-backdrop-fade-in 0.2s ease-out forwards;
+}
+
+.mobile-backdrop-exit {
+  animation: mobile-backdrop-fade-out 0.2s ease-in forwards;
+}
+
+/* Focus mode field animation */
+@keyframes focus-expand {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.mobile-focus-expand {
+  animation: focus-expand 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Mobile-specific styles - only active on small screens */
+@media (max-width: 767px) {
+  /* Scroll padding for keyboard awareness */
+  html {
+    scroll-padding-top: 5rem;
+    scroll-padding-bottom: 50vh;
+  }
+
+  /* Ensure inputs scroll into view when focused */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    scroll-margin-top: 5rem;
+    scroll-margin-bottom: 50vh;
+  }
+
+  /* Touch-friendly minimum heights */
+  .mobile-touch-target {
+    min-height: 44px;
+  }
+
+  /* Mobile form field styling */
+  .mobile-field-group {
+    @apply space-y-4;
+  }
+
+  .mobile-field-label {
+    @apply text-base font-medium mb-2 block;
+  }
+
+  .mobile-field-input {
+    @apply p-3 text-base rounded-xl;
+    min-height: 48px;
+  }
+
+  /* Mobile card styling */
+  .mobile-card {
+    @apply p-4 rounded-xl border bg-card;
+  }
+
+  .mobile-card-header {
+    @apply p-4 flex items-center gap-3;
+    min-height: 56px;
+  }
+
+  /* Mobile section headers */
+  .mobile-section-header {
+    @apply sticky top-0 z-10 py-3 px-4 bg-background/95 backdrop-blur-sm border-b;
+    @apply text-sm font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  /* Mobile list items */
+  .mobile-list-item {
+    @apply flex items-center gap-3 p-4 rounded-xl transition-colors;
+    min-height: 56px;
+  }
+
+  .mobile-list-item:active {
+    @apply bg-accent/70;
+  }
+
+  /* Mobile action buttons */
+  .mobile-action-btn {
+    @apply flex items-center justify-center rounded-xl transition-all;
+    @apply text-muted-foreground hover:text-foreground;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .mobile-action-btn:active {
+    @apply scale-95 bg-accent;
+  }
+
+  /* Mobile FAB (Floating Action Button) */
+  .mobile-fab {
+    @apply fixed z-50 flex items-center justify-center;
+    @apply bg-primary text-primary-foreground;
+    @apply rounded-2xl shadow-lg;
+    width: 56px;
+    height: 56px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+    right: 1.5rem;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.2s ease,
+                background-color 0.15s ease;
+  }
+
+  .mobile-fab:active {
+    transform: scale(0.92);
+    box-shadow: 0 4px 12px -2px hsl(var(--primary) / 0.3);
+  }
+
+  .mobile-fab-extended {
+    width: auto;
+    padding: 0 1.25rem;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+
+  /* Mobile full-screen overlay */
+  .mobile-overlay {
+    @apply fixed inset-0 z-50;
+  }
+
+  .mobile-overlay-backdrop {
+    @apply absolute inset-0 bg-black/60 backdrop-blur-sm;
+  }
+
+  .mobile-overlay-content {
+    @apply absolute top-0 right-0 bottom-0 w-full max-w-sm;
+    @apply bg-background border-l border-border/50;
+    @apply flex flex-col overflow-hidden;
+    box-shadow: -8px 0 32px -8px rgba(0, 0, 0, 0.15);
+  }
+
+  .mobile-overlay-header {
+    @apply flex items-center justify-between p-4 border-b;
+    min-height: 60px;
+  }
+
+  .mobile-overlay-body {
+    @apply flex-1 overflow-y-auto overscroll-contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Mobile focus mode overlay */
+  .mobile-focus-overlay {
+    @apply fixed inset-0 z-40 flex flex-col;
+    @apply bg-background;
+  }
+
+  .mobile-focus-header {
+    @apply flex items-center justify-between p-4 border-b;
+    @apply bg-card/80 backdrop-blur-sm;
+    min-height: 60px;
+  }
+
+  .mobile-focus-content {
+    @apply flex-1 p-4 overflow-y-auto;
+  }
+
+  .mobile-focus-footer {
+    @apply p-4 border-t bg-card/80 backdrop-blur-sm;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  }
+
+  /* Mobile tabs - horizontal scroll */
+  .mobile-tabs {
+    @apply flex overflow-x-auto gap-1 p-2;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .mobile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-tab {
+    @apply flex-shrink-0 px-4 py-2.5 rounded-xl font-medium text-sm;
+    @apply text-muted-foreground transition-colors;
+    scroll-snap-align: center;
+    min-height: 44px;
+  }
+
+  .mobile-tab-active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  /* Dim siblings when a field is focused */
+  .mobile-form-container:has(input:focus, textarea:focus, select:focus) > *:not(:focus-within) {
+    opacity: 0.4;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobile-form-container > *:focus-within {
+    opacity: 1;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Mobile entry card */
+  .mobile-entry-card {
+    @apply border rounded-xl overflow-hidden bg-card;
+    @apply transition-shadow;
+  }
+
+  .mobile-entry-card:has(input:focus, textarea:focus) {
+    @apply ring-2 ring-primary/30;
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1);
+  }
+
+  .mobile-entry-header {
+    @apply p-3 flex items-start gap-3 bg-muted/30;
+  }
+
+  .mobile-entry-content {
+    @apply p-3 space-y-3;
+  }
+
+  .mobile-entry-actions {
+    @apply flex items-center justify-end gap-2 p-3 pt-0;
+  }
+
+  /* Mobile drag handle */
+  .mobile-drag-handle {
+    @apply flex items-center justify-center w-10 h-10 -ml-1;
+    @apply text-muted-foreground/50 touch-none;
+  }
+
+  /* Hide desktop-only elements */
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Show mobile-only elements only on mobile */
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   DRAWER THEME CLASSES
+
+   Used by DescriptionsDrawer and SetsDrawer for consistent theming.
+   Each theme needs: drawer-{id}, drawer-header-{id}, drawer-entry-{id}
+   ============================================================================ */
+
+/* === DEFAULT DRAWER (copper accent) === */
+.drawer-default {
+  @apply dark:border-copper/30 border-copper/40;
+  @apply dark:bg-gradient-to-b dark:from-stone-900 dark:via-stone-900 dark:to-stone-950;
+  @apply bg-[#fdf6f0];
+  @apply dark:shadow-[-8px_0_32px_rgba(0,0,0,0.5)] shadow-[-8px_0_32px_rgba(0,0,0,0.15)];
+}
+
+.drawer-header-default {
+  @apply dark:border-copper/20 border-copper/25;
+  @apply dark:bg-gradient-to-r dark:from-copper/15 dark:via-transparent dark:to-copper/15;
+  @apply bg-copper/10;
+}
+
+.drawer-entry-default {
+  @apply dark:border-stone-700/40 dark:bg-stone-800/50;
+  @apply dark:hover:bg-stone-800/70 dark:hover:border-copper/30;
+  @apply border-copper/20 bg-white hover:bg-copper/5 hover:border-copper/30;
+}
+
+.drawer-entry-default.drawer-entry-expanded {
+  @apply dark:border-copper/30 dark:bg-gradient-to-br dark:from-copper/20 dark:to-stone-900/80;
+  @apply border-copper/40 bg-copper/10;
+}
+
+/* === TTRPG DRAWER (illuminated manuscript style) === */
+.drawer-ttrpg {
+  @apply border-[hsl(25,50%,45%)];
+  @apply shadow-[-8px_0_32px_rgba(59,36,18,0.2)];
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: linear-gradient(180deg,
+    hsl(38, 50%, 94%) 0%,
+    hsl(36, 48%, 90%) 50%,
+    hsl(34, 45%, 86%) 100%);
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, hsl(38, 50%, 94%) 0%, hsl(36, 48%, 90%) 50%, hsl(34, 45%, 86%) 100%);
+}
+
+.dark .drawer-ttrpg {
+  @apply border-[hsl(32,55%,35%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.6)];
+  background: linear-gradient(180deg,
+    hsl(25, 30%, 14%) 0%,
+    hsl(23, 28%, 11%) 50%,
+    hsl(20, 25%, 8%) 100%);
+  box-shadow:
+    -8px 0 32px rgba(0, 0, 0, 0.6),
+    inset 0 0 80px hsl(25, 30%, 6%),
+    0 0 25px hsl(35, 60%, 30%, 0.15);
+}
+
+.drawer-header-ttrpg {
+  @apply border-[hsl(25,45%,50%)];
+  background: linear-gradient(90deg,
+    hsl(35, 45%, 78%) 0%,
+    hsl(38, 50%, 82%) 50%,
+    hsl(35, 45%, 78%) 100%);
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+.dark .drawer-header-ttrpg {
+  @apply border-[hsl(32,50%,28%)];
+  background: linear-gradient(90deg,
+    hsl(25, 35%, 16%) 0%,
+    hsl(30, 40%, 20%) 50%,
+    hsl(25, 35%, 16%) 100%);
+}
+
+.drawer-entry-ttrpg {
+  @apply rounded-sm;
+  @apply border-[hsl(30,40%,70%)] bg-[hsl(40,45%,95%)];
+  @apply hover:bg-[hsl(38,50%,92%)] hover:border-[hsl(25,50%,50%)];
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.dark .drawer-entry-ttrpg {
+  @apply border-[hsl(25,35%,22%)] bg-[hsl(23,28%,13%)];
+}
+
+.dark .drawer-entry-ttrpg:hover {
+  @apply border-[hsl(32,50%,35%)] bg-[hsl(25,30%,16%)];
+}
+
+.drawer-entry-ttrpg.drawer-entry-expanded {
+  @apply border-[hsl(25,50%,45%)];
+  background: linear-gradient(135deg,
+    hsl(38, 50%, 92%) 0%,
+    hsl(36, 48%, 88%) 100%);
+}
+
+.dark .drawer-entry-ttrpg.drawer-entry-expanded {
+  @apply border-[hsl(32,55%,35%)];
+  background: linear-gradient(135deg,
+    hsl(25, 35%, 18%) 0%,
+    hsl(23, 28%, 12%) 100%);
+  box-shadow: 0 0 20px hsl(35, 60%, 30%, 0.1);
+}
+
+/* === CYBERPUNK DRAWER (neon tech style) === */
+.drawer-cyberpunk {
+  @apply border-[hsl(186,100%,40%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.15)];
+  background: linear-gradient(180deg,
+    hsl(220, 20%, 97%) 0%,
+    hsl(220, 15%, 94%) 100%);
+}
+
+.dark .drawer-cyberpunk {
+  @apply border-[hsl(186,100%,50%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.5)];
+  background: linear-gradient(180deg,
+    hsl(260, 30%, 8%) 0%,
+    hsl(280, 25%, 6%) 50%,
+    hsl(260, 30%, 8%) 100%);
+  box-shadow:
+    -8px 0 32px rgba(0, 0, 0, 0.5),
+    inset 0 0 60px hsl(260, 50%, 5%),
+    0 0 20px hsl(186, 100%, 50%, 0.2);
+}
+
+.drawer-header-cyberpunk {
+  @apply border-[hsl(186,100%,50%,0.5)];
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50%, 0.1) 0%,
+    transparent 50%,
+    hsl(300, 100%, 50%, 0.08) 100%);
+}
+
+.dark .drawer-header-cyberpunk {
+  @apply border-[hsl(186,100%,50%,0.4)];
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50%, 0.15) 0%,
+    transparent 50%,
+    hsl(300, 100%, 50%, 0.1) 100%);
+}
+
+.drawer-entry-cyberpunk {
+  @apply border-[hsl(186,80%,45%,0.3)];
+  @apply bg-[hsl(220,15%,96%)];
+  @apply hover:bg-[hsl(186,100%,50%,0.08)] hover:border-[hsl(186,100%,50%,0.5)];
+}
+
+.dark .drawer-entry-cyberpunk {
+  @apply border-[hsl(186,100%,50%,0.2)];
+  background: hsl(260, 30%, 10%);
+}
+
+.dark .drawer-entry-cyberpunk:hover {
+  @apply border-[hsl(186,100%,50%,0.4)];
+  background: hsl(260, 30%, 12%);
+}
+
+.drawer-entry-cyberpunk.drawer-entry-expanded {
+  @apply border-[hsl(186,100%,50%,0.5)];
+  background: linear-gradient(135deg,
+    hsl(186, 100%, 50%, 0.08) 0%,
+    hsl(220, 15%, 96%) 100%);
+}
+
+.dark .drawer-entry-cyberpunk.drawer-entry-expanded {
+  @apply border-[hsl(186,100%,50%,0.5)];
+  background: linear-gradient(135deg,
+    hsl(260, 35%, 12%) 0%,
+    hsl(280, 30%, 8%) 100%);
+  box-shadow: 0 0 15px hsl(186, 100%, 50%, 0.1);
+}
+
+/* === SLEEK DRAWER (refined editorial style) === */
+.drawer-sleek {
+  @apply border-[hsl(230,20%,85%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.08)];
+  font-family: 'Outfit', system-ui, sans-serif;
+  background: linear-gradient(180deg,
+    hsl(220, 25%, 99%) 0%,
+    hsl(220, 20%, 97%) 100%);
+}
+
+.dark .drawer-sleek {
+  @apply border-[hsl(230,25%,20%)];
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.4)];
+  background: linear-gradient(180deg,
+    hsl(230, 20%, 12%) 0%,
+    hsl(230, 22%, 10%) 100%);
+}
+
+.drawer-header-sleek {
+  @apply border-[hsl(230,18%,88%)];
+  background: hsl(220, 22%, 98%);
+  font-family: 'Sora', system-ui, sans-serif;
+}
+
+.dark .drawer-header-sleek {
+  @apply border-[hsl(230,20%,18%)];
+  background: hsl(230, 20%, 13%);
+}
+
+.drawer-entry-sleek {
+  @apply border-[hsl(220,18%,90%)] bg-[hsl(220,20%,98%)];
+  @apply hover:bg-[hsl(250,30%,97%)] hover:border-[hsl(250,40%,80%)];
+  font-family: 'Outfit', system-ui, sans-serif;
+  border-radius: 0.75rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .drawer-entry-sleek {
+  @apply border-[hsl(230,20%,18%)] bg-[hsl(230,18%,11%)];
+}
+
+.dark .drawer-entry-sleek:hover {
+  @apply border-[hsl(250,45%,45%)] bg-[hsl(230,20%,13%)];
+}
+
+.drawer-entry-sleek.drawer-entry-expanded {
+  @apply border-[hsl(250,40%,75%)];
+  background: hsl(250, 30%, 98%);
+}
+
+.dark .drawer-entry-sleek.drawer-entry-expanded {
+  @apply border-[hsl(250,50%,50%)];
+  background: hsl(250, 25%, 13%);
+}
+
+/* === WHIMSICAL DRAWER (playful colorful style) === */
+.drawer-whimsical {
+  @apply border-[hsl(175,65%,55%)] border-2;
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.1)];
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: linear-gradient(180deg,
+    hsl(45, 100%, 97%) 0%,
+    hsl(180, 50%, 97%) 50%,
+    hsl(330, 60%, 97%) 100%);
+}
+
+.dark .drawer-whimsical {
+  @apply border-[hsl(175,70%,50%)] border-2;
+  @apply shadow-[-8px_0_32px_rgba(0,0,0,0.5)];
+  background: linear-gradient(180deg,
+    hsl(260, 30%, 14%) 0%,
+    hsl(200, 35%, 12%) 50%,
+    hsl(340, 30%, 14%) 100%);
+}
+
+.drawer-header-whimsical {
+  @apply border-[hsl(175,50%,70%)];
+  background: linear-gradient(90deg,
+    hsl(10, 85%, 95%) 0%,
+    hsl(45, 95%, 95%) 50%,
+    hsl(175, 70%, 95%) 100%);
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.dark .drawer-header-whimsical {
+  @apply border-[hsl(175,50%,35%)];
+  background: linear-gradient(90deg,
+    hsl(10, 50%, 18%) 0%,
+    hsl(45, 50%, 16%) 50%,
+    hsl(175, 40%, 16%) 100%);
+}
+
+.drawer-entry-whimsical {
+  @apply border-[hsl(10,70%,75%)] border-2 bg-[hsl(45,100%,98%)];
+  @apply hover:border-[hsl(280,60%,70%)] hover:bg-[hsl(280,50%,97%)];
+  font-family: 'Nunito', system-ui, sans-serif;
+  border-radius: 1rem;
+  box-shadow: 0 2px 0 hsl(10, 60%, 65%);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.drawer-entry-whimsical:hover {
+  box-shadow: 0 2px 0 hsl(280, 50%, 60%);
+  transform: translateY(-1px);
+}
+
+.dark .drawer-entry-whimsical {
+  @apply border-[hsl(10,65%,55%)] bg-[hsl(260,25%,13%)];
+  box-shadow: 0 2px 0 hsl(10, 55%, 40%);
+}
+
+.dark .drawer-entry-whimsical:hover {
+  @apply border-[hsl(280,55%,60%)] bg-[hsl(280,30%,15%)];
+  box-shadow: 0 2px 0 hsl(280, 45%, 45%);
+}
+
+.drawer-entry-whimsical.drawer-entry-expanded {
+  @apply border-[hsl(175,65%,55%)];
+  background: linear-gradient(135deg,
+    hsl(45, 100%, 97%) 0%,
+    hsl(175, 60%, 96%) 100%);
+  box-shadow: 0 3px 0 hsl(175, 55%, 45%);
+}
+
+.dark .drawer-entry-whimsical.drawer-entry-expanded {
+  @apply border-[hsl(175,60%,50%)];
+  background: linear-gradient(135deg,
+    hsl(260, 28%, 15%) 0%,
+    hsl(200, 32%, 13%) 100%);
+  box-shadow: 0 3px 0 hsl(175, 50%, 32%);
+}
+
+/* ============================================================================
+   TTRPG RESULT THEME - "The Chronicler's Codex"
+
+   An illuminated manuscript aesthetic with scholarly elegance.
+   Fonts: Cinzel Decorative (titles), Cinzel (headers), Cormorant Garamond (body)
+   Colors: Burgundy ink, aged gold accents, warm vellum parchment
+   ============================================================================ */
+
+/* Card styling for TTRPG theme - LIGHT MODE */
+.card-result-ttrpg {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: linear-gradient(180deg,
+    hsl(38, 55%, 95%) 0%,
+    hsl(36, 52%, 91%) 50%,
+    hsl(34, 48%, 87%) 100%);
+  border: 2px solid hsl(25, 55%, 42%);
+  border-radius: 0.25rem;
+  position: relative;
+  box-shadow:
+    inset 0 0 40px hsl(35, 40%, 85%),
+    0 4px 16px hsl(25, 40%, 30% / 0.15),
+    0 1px 3px hsl(25, 50%, 40% / 0.1);
+  /* Subtle paper texture via SVG noise */
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, hsl(38, 55%, 95%) 0%, hsl(36, 52%, 91%) 50%, hsl(34, 48%, 87%) 100%);
+}
+
+/* Corner flourishes - illuminated manuscript style */
+.card-result-ttrpg::before,
+.card-result-ttrpg::after {
+  content: '❦';
+  position: absolute;
+  font-size: 1.5rem;
+  color: hsl(25, 65%, 38%);
+  opacity: 0.5;
+  font-family: Georgia, serif;
+}
+
+.card-result-ttrpg::before {
+  top: 0.375rem;
+  left: 0.625rem;
+}
+
+.card-result-ttrpg::after {
+  bottom: 0.375rem;
+  right: 0.625rem;
+  transform: rotate(180deg);
+}
+
+/* Card styling for TTRPG theme - DARK MODE */
+.dark .card-result-ttrpg {
+  background: linear-gradient(180deg,
+    hsl(25, 32%, 14%) 0%,
+    hsl(23, 30%, 11%) 50%,
+    hsl(20, 28%, 8%) 100%);
+  border-color: hsl(32, 60%, 35%);
+  box-shadow:
+    inset 0 0 60px hsl(20, 30%, 5%),
+    0 0 25px hsl(35, 65%, 30% / 0.2),
+    0 4px 16px hsl(0, 0%, 0% / 0.4);
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, hsl(25, 32%, 14%) 0%, hsl(23, 30%, 11%) 50%, hsl(20, 28%, 8%) 100%);
+}
+
+.dark .card-result-ttrpg::before,
+.dark .card-result-ttrpg::after {
+  color: hsl(35, 70%, 50%);
+  opacity: 0.45;
+}
+
+/* History item styling for TTRPG theme - LIGHT MODE */
+.history-item-ttrpg {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: linear-gradient(180deg,
+    hsl(40, 50%, 94%) 0%,
+    hsl(38, 48%, 90%) 100%);
+  border: 1px solid hsl(28, 45%, 65%);
+  border-radius: 0.25rem;
+  box-shadow:
+    inset 0 0 20px hsl(36, 35%, 88%),
+    0 2px 6px hsl(25, 35%, 45% / 0.1);
+}
+
+/* History item styling for TTRPG theme - DARK MODE */
+.dark .history-item-ttrpg {
+  background: linear-gradient(180deg,
+    hsl(25, 28%, 13%) 0%,
+    hsl(23, 26%, 10%) 100%);
+  border-color: hsl(32, 45%, 28%);
+  box-shadow:
+    inset 0 0 25px hsl(20, 25%, 6%),
+    0 2px 8px hsl(0, 0%, 0% / 0.3);
+}
+
+/* Main TTRPG prose styling - LIGHT MODE */
+.prose-roll-ttrpg {
+  @apply leading-relaxed;
+  font-size: 1rem;
+  line-height: 1.8;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  color: hsl(20, 50%, 15%);
+}
+
+/* === HEADERS - Illuminated manuscript hierarchy === */
+
+.prose-roll-ttrpg h1 {
+  @apply text-2xl mt-6 mb-4 pb-3 first:mt-0;
+  font-family: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: hsl(355, 55%, 30%);
+  text-align: center;
+  position: relative;
+  border-bottom: none;
+}
+
+/* Ornate underline flourish for h1 */
+.prose-roll-ttrpg h1::after {
+  content: '◆ ─────────── ◆';
+  display: block;
+  text-align: center;
+  font-size: 0.65rem;
+  font-family: Georgia, serif;
+  letter-spacing: 0.2em;
+  color: hsl(35, 60%, 45%);
+  margin-top: 0.75rem;
+}
+
+.prose-roll-ttrpg h2 {
+  @apply text-xl mt-6 mb-3 first:mt-0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: hsl(355, 50%, 32%);
+  padding-left: 1.5em;
+  position: relative;
+}
+
+/* Decorative pilcrow for h2 */
+.prose-roll-ttrpg h2::before {
+  content: '¶';
+  position: absolute;
+  left: 0;
+  color: hsl(35, 65%, 45%);
+  font-size: 1em;
+  font-weight: 400;
+  font-family: Georgia, serif;
+}
+
+.prose-roll-ttrpg h3 {
+  @apply text-lg mt-5 mb-2 first:mt-0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 500;
+  font-style: normal;
+  color: hsl(355, 45%, 35%);
+}
+
+.prose-roll-ttrpg h4 {
+  @apply text-base mt-4 mb-2 first:mt-0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.8rem;
+  color: hsl(25, 45%, 35%);
+}
+
+.prose-roll-ttrpg h5,
+.prose-roll-ttrpg h6 {
+  @apply text-sm mt-3 mb-1 first:mt-0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: hsl(25, 40%, 38%);
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll-ttrpg p {
+  @apply my-3 first:mt-0 last:mb-0;
+  text-indent: 1.75em;
+}
+
+.prose-roll-ttrpg p:first-of-type {
+  text-indent: 0;
+}
+
+/* Illuminated drop cap after headers */
+.prose-roll-ttrpg h1 + p::first-letter,
+.prose-roll-ttrpg h2 + p::first-letter {
+  font-size: 3.2em;
+  float: left;
+  line-height: 0.75;
+  margin-right: 0.08em;
+  margin-top: 0.08em;
+  font-weight: 700;
+  color: hsl(355, 55%, 35%);
+  font-family: 'Cinzel Decorative', Georgia, serif;
+  text-shadow: 1px 1px 0 hsl(35, 60%, 50% / 0.3);
+}
+
+.prose-roll-ttrpg strong {
+  font-weight: 700;
+  color: hsl(20, 55%, 12%);
+}
+
+.prose-roll-ttrpg em {
+  font-style: italic;
+  color: hsl(20, 45%, 22%);
+}
+
+/* === LISTS - Scholarly annotations === */
+
+.prose-roll-ttrpg ul,
+.prose-roll-ttrpg ol {
+  @apply my-4;
+  padding-left: 2em;
+  list-style: none;
+}
+
+.prose-roll-ttrpg li {
+  @apply my-2;
+  position: relative;
+  padding-left: 0.5em;
+}
+
+/* Unordered list - fleuron bullet */
+.prose-roll-ttrpg ul > li::before {
+  content: '❧';
+  position: absolute;
+  left: -1.6em;
+  color: hsl(355, 50%, 38%);
+  font-size: 0.85em;
+  top: 0.1em;
+}
+
+/* Nested unordered - smaller fleuron */
+.prose-roll-ttrpg ul ul > li::before {
+  content: '◇';
+  color: hsl(35, 60%, 45%);
+  font-size: 0.75em;
+  top: 0.2em;
+}
+
+/* Double nested */
+.prose-roll-ttrpg ul ul ul > li::before {
+  content: '·';
+  color: hsl(25, 45%, 40%);
+  font-size: 1.2em;
+  top: -0.05em;
+}
+
+/* Ordered list - elegant numbering */
+.prose-roll-ttrpg ol {
+  counter-reset: codex-counter;
+}
+
+.prose-roll-ttrpg ol > li {
+  counter-increment: codex-counter;
+}
+
+.prose-roll-ttrpg ol > li::before {
+  content: counter(codex-counter) '.';
+  position: absolute;
+  left: -2.2em;
+  color: hsl(355, 50%, 35%);
+  font-weight: 600;
+  font-size: 0.95em;
+  min-width: 1.6em;
+  text-align: right;
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+/* Nested ordered lists - roman numerals */
+.prose-roll-ttrpg ol ol {
+  counter-reset: codex-nested;
+}
+
+.prose-roll-ttrpg ol ol > li {
+  counter-increment: codex-nested;
+}
+
+.prose-roll-ttrpg ol ol > li::before {
+  content: counter(codex-nested, lower-roman) '.';
+  color: hsl(35, 55%, 42%);
+  font-weight: 500;
+}
+
+/* Nested lists spacing */
+.prose-roll-ttrpg li > ul,
+.prose-roll-ttrpg li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items */
+.prose-roll-ttrpg li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll-ttrpg li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll-ttrpg li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(355, 50%, 40%);
+}
+
+/* === CODE - Scribe's notation === */
+
+.prose-roll-ttrpg code {
+  @apply px-1.5 py-0.5 rounded-sm text-sm;
+  font-family: 'Courier New', Courier, monospace;
+  background: hsl(38, 45%, 90%);
+  color: hsl(355, 50%, 28%);
+  border: 1px solid hsl(32, 40%, 72%);
+  font-size: 0.85em;
+}
+
+.prose-roll-ttrpg pre {
+  @apply my-5 p-4 rounded overflow-x-auto;
+  background: linear-gradient(135deg,
+    hsl(40, 48%, 92%) 0%,
+    hsl(38, 45%, 89%) 100%);
+  border: 1px solid hsl(30, 45%, 65%);
+  box-shadow:
+    inset 0 2px 6px hsl(35, 30%, 82%),
+    2px 2px 6px hsl(25, 30%, 50% / 0.1);
+}
+
+.prose-roll-ttrpg pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: hsl(20, 45%, 20%);
+}
+
+/* === BLOCKQUOTES - Royal proclamation === */
+
+.prose-roll-ttrpg blockquote {
+  @apply my-5 py-4 px-6;
+  border: 2px solid hsl(32, 55%, 55%);
+  border-radius: 0.125rem;
+  background: linear-gradient(180deg,
+    hsl(40, 52%, 93%) 0%,
+    hsl(38, 50%, 89%) 100%);
+  color: hsl(20, 45%, 18%);
+  font-style: italic;
+  position: relative;
+  box-shadow:
+    inset 0 0 25px hsl(36, 40%, 88%),
+    3px 3px 10px hsl(25, 35%, 45% / 0.12);
+}
+
+/* Quotation ornaments */
+.prose-roll-ttrpg blockquote::before {
+  content: '"';
+  position: absolute;
+  top: -0.3em;
+  left: 0.4em;
+  font-size: 2.5em;
+  font-family: 'Cinzel Decorative', Georgia, serif;
+  color: hsl(355, 50%, 40%);
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.prose-roll-ttrpg blockquote::after {
+  content: '"';
+  position: absolute;
+  bottom: -0.6em;
+  right: 0.4em;
+  font-size: 2.5em;
+  font-family: 'Cinzel Decorative', Georgia, serif;
+  color: hsl(355, 50%, 40%);
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.prose-roll-ttrpg blockquote p {
+  position: relative;
+  z-index: 1;
+  text-indent: 0;
+  margin: 0;
+}
+
+/* === HORIZONTAL RULES - Chapter divider === */
+
+.prose-roll-ttrpg hr {
+  @apply my-8;
+  border: none;
+  height: auto;
+  text-align: center;
+  background: none;
+  overflow: visible;
+}
+
+.prose-roll-ttrpg hr::before {
+  content: '✦ ═══════ ❖ ═══════ ✦';
+  display: block;
+  color: hsl(35, 60%, 45%);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+}
+
+.prose-roll-ttrpg hr::after {
+  display: none;
+}
+
+/* === LINKS - Illuminated references === */
+
+.prose-roll-ttrpg a {
+  color: hsl(220, 55%, 35%);
+  text-decoration: none;
+  border-bottom: 1px solid hsl(220, 35%, 60%);
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.prose-roll-ttrpg a:hover {
+  color: hsl(355, 55%, 35%);
+  border-bottom-color: hsl(355, 45%, 50%);
+}
+
+/* === TABLES - Chronicle ledger === */
+
+.prose-roll-ttrpg table {
+  @apply w-full text-sm my-5;
+  border-collapse: collapse;
+  border: 2px solid hsl(25, 50%, 45%);
+  background: hsl(40, 48%, 94%);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.prose-roll-ttrpg thead {
+  background: linear-gradient(180deg,
+    hsl(32, 50%, 70%) 0%,
+    hsl(30, 48%, 65%) 100%);
+}
+
+.prose-roll-ttrpg th {
+  @apply px-4 py-3 text-left;
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: hsl(20, 50%, 15%);
+  border-bottom: 2px solid hsl(25, 55%, 42%);
+  font-size: 0.9rem;
+}
+
+.prose-roll-ttrpg td {
+  @apply px-4 py-3;
+  border-bottom: 1px solid hsl(32, 35%, 75%);
+  color: hsl(20, 45%, 18%);
+}
+
+.prose-roll-ttrpg tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll-ttrpg tbody tr:hover {
+  background: hsl(38, 50%, 90%);
+}
+
+/* Alternating row colors */
+.prose-roll-ttrpg tbody tr:nth-child(even) {
+  background: hsl(38, 42%, 91%);
+}
+
+.prose-roll-ttrpg tbody tr:nth-child(even):hover {
+  background: hsl(38, 50%, 88%);
+}
+
+/* === IMAGES - Framed illustration === */
+
+.prose-roll-ttrpg img {
+  @apply my-5 rounded-sm;
+  border: 3px solid hsl(25, 50%, 50%);
+  box-shadow:
+    3px 3px 0 hsl(35, 55%, 45%),
+    4px 4px 10px hsl(25, 35%, 40% / 0.2);
+}
+
+/* ============================================================================
+   TTRPG DARK MODE - Ancient Grimoire
+   Warm candlelit tones on deep leather backgrounds
+   ============================================================================ */
+
+:is(.dark .prose-roll-ttrpg) {
+  color: hsl(35, 30%, 82%);
+}
+
+/* Dark mode headers - golden candlelight */
+:is(.dark .prose-roll-ttrpg) h1 {
+  color: hsl(35, 70%, 65%);
+  text-shadow: 0 0 20px hsl(35, 60%, 40% / 0.3);
+}
+
+:is(.dark .prose-roll-ttrpg) h1::after {
+  color: hsl(35, 65%, 50%);
+}
+
+:is(.dark .prose-roll-ttrpg) h2 {
+  color: hsl(35, 65%, 62%);
+}
+
+:is(.dark .prose-roll-ttrpg) h2::before {
+  color: hsl(35, 70%, 55%);
+}
+
+:is(.dark .prose-roll-ttrpg) h3 {
+  color: hsl(35, 55%, 60%);
+}
+
+:is(.dark .prose-roll-ttrpg) h4 {
+  color: hsl(32, 50%, 58%);
+}
+
+:is(.dark .prose-roll-ttrpg) h5,
+:is(.dark .prose-roll-ttrpg) h6 {
+  color: hsl(30, 45%, 55%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll-ttrpg) strong {
+  color: hsl(38, 70%, 75%);
+}
+
+:is(.dark .prose-roll-ttrpg) em {
+  color: hsl(35, 45%, 75%);
+}
+
+/* Dark mode illuminated drop cap */
+:is(.dark .prose-roll-ttrpg) h1 + p::first-letter,
+:is(.dark .prose-roll-ttrpg) h2 + p::first-letter {
+  color: hsl(35, 75%, 55%);
+  text-shadow:
+    0 0 15px hsl(35, 70%, 45% / 0.4),
+    1px 1px 0 hsl(35, 60%, 35% / 0.5);
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll-ttrpg) ul > li::before {
+  color: hsl(35, 65%, 55%);
+}
+
+:is(.dark .prose-roll-ttrpg) ul ul > li::before {
+  color: hsl(35, 60%, 52%);
+}
+
+:is(.dark .prose-roll-ttrpg) ul ul ul > li::before {
+  color: hsl(35, 50%, 50%);
+}
+
+:is(.dark .prose-roll-ttrpg) ol > li::before {
+  color: hsl(35, 70%, 55%);
+}
+
+:is(.dark .prose-roll-ttrpg) ol ol > li::before {
+  color: hsl(35, 60%, 52%);
+}
+
+:is(.dark .prose-roll-ttrpg) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(35, 65%, 50%);
+}
+
+/* Dark mode code - scribe's ink on vellum */
+:is(.dark .prose-roll-ttrpg) code {
+  background: hsl(25, 30%, 18%);
+  color: hsl(35, 60%, 72%);
+  border-color: hsl(28, 40%, 30%);
+}
+
+:is(.dark .prose-roll-ttrpg) pre {
+  background: linear-gradient(135deg,
+    hsl(22, 28%, 12%) 0%,
+    hsl(20, 26%, 10%) 100%);
+  border-color: hsl(28, 45%, 28%);
+  box-shadow:
+    inset 0 2px 8px hsl(20, 30%, 6%),
+    0 0 15px hsl(35, 50%, 25% / 0.1);
+}
+
+:is(.dark .prose-roll-ttrpg) pre code {
+  color: hsl(35, 45%, 72%);
+}
+
+/* Dark mode blockquote - royal decree */
+:is(.dark .prose-roll-ttrpg) blockquote {
+  background: linear-gradient(180deg,
+    hsl(25, 32%, 16%) 0%,
+    hsl(23, 30%, 12%) 100%);
+  border-color: hsl(32, 60%, 38%);
+  color: hsl(35, 35%, 78%);
+  box-shadow:
+    inset 0 0 30px hsl(22, 28%, 8%),
+    3px 3px 12px hsl(0, 0%, 0% / 0.35),
+    0 0 20px hsl(35, 50%, 30% / 0.1);
+}
+
+:is(.dark .prose-roll-ttrpg) blockquote::before,
+:is(.dark .prose-roll-ttrpg) blockquote::after {
+  color: hsl(35, 70%, 50%);
+  opacity: 0.5;
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll-ttrpg) hr::before {
+  color: hsl(35, 65%, 50%);
+}
+
+/* Dark mode links - illuminated manuscript references */
+:is(.dark .prose-roll-ttrpg) a {
+  color: hsl(200, 55%, 65%);
+  border-bottom-color: hsl(200, 40%, 50%);
+}
+
+:is(.dark .prose-roll-ttrpg) a:hover {
+  color: hsl(35, 70%, 65%);
+  border-bottom-color: hsl(35, 60%, 50%);
+}
+
+/* Dark mode tables - chronicle ledger */
+:is(.dark .prose-roll-ttrpg) table {
+  border-color: hsl(28, 50%, 32%);
+  background: hsl(23, 28%, 11%);
+}
+
+:is(.dark .prose-roll-ttrpg) thead {
+  background: linear-gradient(180deg,
+    hsl(28, 40%, 22%) 0%,
+    hsl(26, 38%, 18%) 100%);
+}
+
+:is(.dark .prose-roll-ttrpg) th {
+  color: hsl(35, 65%, 72%);
+  border-bottom-color: hsl(32, 55%, 38%);
+}
+
+:is(.dark .prose-roll-ttrpg) td {
+  border-bottom-color: hsl(26, 30%, 22%);
+  color: hsl(35, 32%, 78%);
+}
+
+:is(.dark .prose-roll-ttrpg) tbody tr:hover {
+  background: hsl(26, 30%, 15%);
+}
+
+:is(.dark .prose-roll-ttrpg) tbody tr:nth-child(even) {
+  background: hsl(23, 26%, 9%);
+}
+
+:is(.dark .prose-roll-ttrpg) tbody tr:nth-child(even):hover {
+  background: hsl(26, 28%, 14%);
+}
+
+/* Dark mode images - aged frame */
+:is(.dark .prose-roll-ttrpg) img {
+  border-color: hsl(32, 55%, 35%);
+  box-shadow:
+    3px 3px 0 hsl(35, 50%, 30%),
+    4px 4px 15px hsl(0, 0%, 0% / 0.5);
+}
+
+/* Roll button styling for TTRPG theme - LIGHT MODE */
+.btn-roll-ttrpg {
+  font-family: 'Cinzel', Georgia, serif;
+  background: linear-gradient(180deg,
+    hsl(355, 50%, 38%) 0%,
+    hsl(355, 55%, 30%) 50%,
+    hsl(355, 50%, 25%) 100%);
+  color: hsl(40, 50%, 95%);
+  border: 2px solid hsl(32, 55%, 45%);
+  border-radius: 0.25rem;
+  text-shadow: 0 1px 2px hsl(0, 0%, 0% / 0.3);
+  box-shadow:
+    inset 0 1px 0 hsl(355, 40%, 50%),
+    0 3px 8px hsl(355, 40%, 20% / 0.3),
+    0 1px 2px hsl(0, 0%, 0% / 0.2);
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.btn-roll-ttrpg:hover:not(:disabled) {
+  background: linear-gradient(180deg,
+    hsl(355, 55%, 42%) 0%,
+    hsl(355, 58%, 34%) 50%,
+    hsl(355, 55%, 28%) 100%);
+  border-color: hsl(35, 65%, 55%);
+  box-shadow:
+    inset 0 1px 0 hsl(355, 45%, 55%),
+    0 4px 12px hsl(355, 45%, 25% / 0.4),
+    0 2px 4px hsl(0, 0%, 0% / 0.3);
+  transform: scale(1.02);
+}
+
+.btn-roll-ttrpg:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow:
+    inset 0 2px 4px hsl(355, 50%, 20%),
+    0 1px 2px hsl(0, 0%, 0% / 0.2);
+}
+
+.btn-roll-ttrpg:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Roll button styling for TTRPG theme - DARK MODE */
+.dark .btn-roll-ttrpg {
+  background: linear-gradient(180deg,
+    hsl(355, 45%, 32%) 0%,
+    hsl(355, 50%, 25%) 50%,
+    hsl(355, 45%, 18%) 100%);
+  color: hsl(40, 60%, 90%);
+  border-color: hsl(35, 65%, 40%);
+  box-shadow:
+    inset 0 1px 0 hsl(355, 40%, 40%),
+    0 0 15px hsl(35, 65%, 35% / 0.2),
+    0 4px 12px hsl(0, 0%, 0% / 0.4);
+}
+
+.dark .btn-roll-ttrpg:hover:not(:disabled) {
+  background: linear-gradient(180deg,
+    hsl(355, 50%, 38%) 0%,
+    hsl(355, 55%, 30%) 50%,
+    hsl(355, 50%, 22%) 100%);
+  border-color: hsl(35, 70%, 50%);
+  box-shadow:
+    inset 0 1px 0 hsl(355, 45%, 45%),
+    0 0 20px hsl(35, 70%, 40% / 0.3),
+    0 6px 16px hsl(0, 0%, 0% / 0.5);
+}
+
+/* ============================================================================
+   CYBERPUNK THEME - Neon-Drenched Future Tech
+   ============================================================================
+
+   Light mode: Corporate tech aesthetic - clean with sharp neon accents
+   Dark mode: Street-level cyberpunk - neon glows, scanlines, dystopian vibes
+
+   Fonts: Orbitron (headers), Rajdhani (body)
+   Colors: Cyan (#00f0ff), Magenta (#ff00ff), Electric Yellow (#ffff00)
+   ============================================================================ */
+
+/* Card styling for Cyberpunk theme - LIGHT MODE
+   Scanlines integrated into background for reliability */
+.card-result-cyberpunk {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(186, 100%, 50% / 0.06) 2px,
+      hsl(186, 100%, 50% / 0.06) 4px
+    ),
+    linear-gradient(135deg,
+      hsl(220, 20%, 97%) 0%,
+      hsl(220, 15%, 94%) 100%) !important;
+  border: 1px solid hsl(186, 100%, 40%);
+  border-radius: 0.25rem;
+  position: relative;
+  box-shadow:
+    0 0 0 1px hsl(186, 100%, 50% / 0.3),
+    0 4px 20px hsl(220, 50%, 20% / 0.1),
+    inset 0 1px 0 hsl(0, 0%, 100% / 0.8);
+  overflow: hidden;
+}
+
+/* Corner accent */
+.card-result-cyberpunk::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg,
+    transparent 50%,
+    hsl(186, 100%, 50% / 0.1) 50%);
+  pointer-events: none;
+}
+
+/* Card styling for Cyberpunk theme - DARK MODE */
+.dark .card-result-cyberpunk {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(186, 100%, 50% / 0.08) 2px,
+      hsl(186, 100%, 50% / 0.08) 4px
+    ),
+    linear-gradient(135deg,
+      hsl(260, 30%, 8%) 0%,
+      hsl(280, 25%, 6%) 50%,
+      hsl(260, 30%, 8%) 100%) !important;
+  border: 1px solid hsl(186, 100%, 50%);
+  box-shadow:
+    0 0 20px hsl(186, 100%, 50% / 0.3),
+    0 0 40px hsl(300, 100%, 50% / 0.1),
+    inset 0 0 60px hsl(260, 50%, 5%),
+    0 4px 20px hsl(0, 0%, 0% / 0.5);
+}
+
+.dark .card-result-cyberpunk::after {
+  background: linear-gradient(135deg,
+    transparent 50%,
+    hsl(186, 100%, 50% / 0.15) 50%);
+}
+
+/* History item styling for Cyberpunk theme - LIGHT MODE
+   Scanlines integrated into background for reliability */
+.history-item-cyberpunk {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(186, 100%, 50% / 0.06) 2px,
+      hsl(186, 100%, 50% / 0.06) 4px
+    ),
+    linear-gradient(90deg,
+      hsl(220, 15%, 96%) 0%,
+      hsl(220, 20%, 98%) 100%) !important;
+  border: 1px solid hsl(186, 80%, 45% / 0.5);
+  border-left: 3px solid hsl(186, 100%, 50%);
+  border-radius: 0.25rem;
+  box-shadow:
+    0 2px 8px hsl(220, 30%, 20% / 0.08);
+  position: relative;
+}
+
+/* History item styling for Cyberpunk theme - DARK MODE */
+.dark .history-item-cyberpunk {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      hsl(186, 100%, 50% / 0.1) 2px,
+      hsl(186, 100%, 50% / 0.1) 4px
+    ),
+    linear-gradient(90deg,
+      hsl(260, 30%, 10%) 0%,
+      hsl(280, 25%, 8%) 100%) !important;
+  border: 1px solid hsl(186, 100%, 50% / 0.4);
+  border-left: 3px solid hsl(186, 100%, 50%);
+  box-shadow:
+    0 0 15px hsl(186, 100%, 50% / 0.15),
+    0 2px 10px hsl(0, 0%, 0% / 0.3);
+}
+
+/* Main Cyberpunk prose styling - LIGHT MODE */
+.prose-roll-cyberpunk {
+  @apply leading-relaxed;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  font-family: 'Rajdhani', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 500;
+  color: hsl(220, 25%, 20%);
+  position: relative;
+  z-index: 2;
+}
+
+/* === HEADERS - Futuristic tech styling === */
+
+.prose-roll-cyberpunk h1 {
+  @apply text-2xl mt-5 mb-3 pb-2 first:mt-0;
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: hsl(186, 100%, 35%);
+  position: relative;
+  border-bottom: none;
+  text-shadow: 0 0 1px hsl(186, 100%, 50% / 0.5);
+}
+
+/* Glitch-style underline */
+.prose-roll-cyberpunk h1::after {
+  content: '▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰';
+  display: block;
+  font-size: 0.5rem;
+  letter-spacing: 0.3em;
+  color: hsl(186, 100%, 50%);
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+.prose-roll-cyberpunk h2 {
+  @apply text-xl mt-5 mb-2 first:mt-0;
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(300, 80%, 40%);
+  padding-left: 1em;
+  position: relative;
+}
+
+/* Neon bar accent for h2 */
+.prose-roll-cyberpunk h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 3px;
+  background: linear-gradient(180deg, hsl(186, 100%, 50%), hsl(300, 100%, 50%));
+  border-radius: 2px;
+}
+
+.prose-roll-cyberpunk h3 {
+  @apply text-lg mt-4 mb-2 first:mt-0;
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: hsl(186, 70%, 35%);
+}
+
+.prose-roll-cyberpunk h4 {
+  @apply text-base mt-3 mb-1 first:mt-0;
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  color: hsl(300, 60%, 40%);
+}
+
+.prose-roll-cyberpunk h5,
+.prose-roll-cyberpunk h6 {
+  @apply text-sm mt-3 mb-1 first:mt-0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.7rem;
+  color: hsl(186, 50%, 40%);
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll-cyberpunk p {
+  @apply my-3 first:mt-0 last:mb-0;
+}
+
+.prose-roll-cyberpunk strong {
+  font-weight: 700;
+  color: hsl(186, 100%, 30%);
+}
+
+.prose-roll-cyberpunk em {
+  font-style: italic;
+  color: hsl(300, 70%, 40%);
+}
+
+/* === LISTS - Tech/data styling === */
+
+.prose-roll-cyberpunk ul,
+.prose-roll-cyberpunk ol {
+  @apply my-3;
+  padding-left: 1.75em;
+  list-style: none;
+}
+
+.prose-roll-cyberpunk li {
+  @apply my-2;
+  position: relative;
+  padding-left: 0.5em;
+}
+
+/* Unordered list - chevron bullet */
+.prose-roll-cyberpunk ul > li::before {
+  content: '›';
+  position: absolute;
+  left: -1.2em;
+  color: hsl(186, 100%, 45%);
+  font-size: 1.2em;
+  font-weight: 700;
+  top: -0.1em;
+}
+
+/* Nested unordered */
+.prose-roll-cyberpunk ul ul > li::before {
+  content: '–';
+  color: hsl(300, 80%, 50%);
+  font-size: 1em;
+  top: 0;
+}
+
+/* Double nested */
+.prose-roll-cyberpunk ul ul ul > li::before {
+  content: '•';
+  color: hsl(60, 100%, 45%);
+  font-size: 0.8em;
+  top: 0.15em;
+}
+
+/* Ordered list - tech numbering */
+.prose-roll-cyberpunk ol {
+  counter-reset: cyber-counter;
+}
+
+.prose-roll-cyberpunk ol > li {
+  counter-increment: cyber-counter;
+}
+
+.prose-roll-cyberpunk ol > li::before {
+  content: '[' counter(cyber-counter, decimal-leading-zero) ']';
+  position: absolute;
+  left: -3em;
+  color: hsl(186, 100%, 40%);
+  font-weight: 600;
+  font-size: 0.85em;
+  font-family: 'Orbitron', monospace;
+  letter-spacing: -0.05em;
+}
+
+/* Nested ordered lists */
+.prose-roll-cyberpunk ol ol {
+  counter-reset: cyber-nested;
+}
+
+.prose-roll-cyberpunk ol ol > li {
+  counter-increment: cyber-nested;
+}
+
+.prose-roll-cyberpunk ol ol > li::before {
+  content: counter(cyber-nested, lower-alpha) '.';
+  color: hsl(300, 70%, 45%);
+  font-family: 'Rajdhani', sans-serif;
+  left: -2em;
+}
+
+/* Nested lists spacing */
+.prose-roll-cyberpunk li > ul,
+.prose-roll-cyberpunk li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items */
+.prose-roll-cyberpunk li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll-cyberpunk li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll-cyberpunk li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(186, 100%, 50%);
+}
+
+/* === CODE - Terminal style === */
+
+.prose-roll-cyberpunk code {
+  @apply px-1.5 py-0.5 rounded text-sm;
+  font-family: 'Share Tech Mono', 'Consolas', monospace;
+  background: hsl(220, 20%, 92%);
+  color: hsl(186, 100%, 30%);
+  border: 1px solid hsl(186, 50%, 70%);
+  font-size: 0.85em;
+}
+
+.prose-roll-cyberpunk pre {
+  @apply my-4 p-4 rounded overflow-x-auto;
+  background: hsl(220, 25%, 15%);
+  border: 1px solid hsl(186, 100%, 50% / 0.5);
+  box-shadow:
+    inset 0 0 30px hsl(260, 30%, 10%),
+    0 0 10px hsl(186, 100%, 50% / 0.2);
+}
+
+.prose-roll-cyberpunk pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: hsl(186, 100%, 70%);
+}
+
+/* === BLOCKQUOTES - Data transmission style === */
+
+.prose-roll-cyberpunk blockquote {
+  @apply my-4 py-4 px-5;
+  border: 1px solid hsl(186, 100%, 50% / 0.5);
+  border-left: 4px solid hsl(186, 100%, 50%);
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50% / 0.08) 0%,
+    transparent 100%);
+  color: hsl(220, 30%, 25%);
+  position: relative;
+}
+
+/* Data marker */
+.prose-roll-cyberpunk blockquote::before {
+  content: 'DATA://';
+  position: absolute;
+  top: -0.7em;
+  left: 1em;
+  font-size: 0.65rem;
+  font-family: 'Orbitron', monospace;
+  font-weight: 600;
+  color: hsl(186, 100%, 45%);
+  background: hsl(220, 20%, 97%);
+  padding: 0 0.5em;
+  letter-spacing: 0.1em;
+}
+
+.prose-roll-cyberpunk blockquote p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+/* === HORIZONTAL RULES - Circuit divider === */
+
+.prose-roll-cyberpunk hr {
+  @apply my-6;
+  border: none;
+  height: auto;
+  text-align: center;
+  background: none;
+  overflow: visible;
+}
+
+.prose-roll-cyberpunk hr::before {
+  content: '◢ ═══════════════════════ ◣';
+  display: block;
+  color: hsl(186, 100%, 50%);
+  font-size: 0.6rem;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.prose-roll-cyberpunk hr::after {
+  display: none;
+}
+
+/* === LINKS - Neon accent === */
+
+.prose-roll-cyberpunk a {
+  color: hsl(186, 100%, 35%);
+  text-decoration: none;
+  border-bottom: 1px solid hsl(186, 100%, 50% / 0.5);
+  transition: all 0.2s ease;
+}
+
+.prose-roll-cyberpunk a:hover {
+  color: hsl(300, 100%, 45%);
+  border-bottom-color: hsl(300, 100%, 50%);
+  text-shadow: 0 0 8px hsl(300, 100%, 50% / 0.5);
+}
+
+/* === TABLES - Data grid style === */
+
+.prose-roll-cyberpunk table {
+  @apply w-full text-sm my-4;
+  border-collapse: collapse;
+  border: 1px solid hsl(186, 100%, 50% / 0.5);
+  background: hsl(220, 15%, 97%);
+}
+
+.prose-roll-cyberpunk thead {
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50% / 0.15) 0%,
+    hsl(300, 100%, 50% / 0.1) 100%);
+}
+
+.prose-roll-cyberpunk th {
+  @apply px-4 py-2.5 text-left;
+  font-family: 'Orbitron', system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(186, 100%, 30%);
+  border-bottom: 2px solid hsl(186, 100%, 50%);
+  font-size: 0.75rem;
+}
+
+.prose-roll-cyberpunk td {
+  @apply px-4 py-2.5;
+  border-bottom: 1px solid hsl(186, 50%, 80%);
+  color: hsl(220, 25%, 25%);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+}
+
+.prose-roll-cyberpunk tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll-cyberpunk tbody tr:hover {
+  background: hsl(186, 100%, 50% / 0.08);
+}
+
+/* Alternating row colors */
+.prose-roll-cyberpunk tbody tr:nth-child(even) {
+  background: hsl(220, 20%, 95%);
+}
+
+.prose-roll-cyberpunk tbody tr:nth-child(even):hover {
+  background: hsl(186, 100%, 50% / 0.1);
+}
+
+/* === IMAGES === */
+
+.prose-roll-cyberpunk img {
+  @apply my-4 rounded;
+  border: 1px solid hsl(186, 100%, 50% / 0.5);
+  box-shadow: 0 0 20px hsl(186, 100%, 50% / 0.15);
+}
+
+/* ============================================================================
+   CYBERPUNK DARK MODE - Street-Level Neon
+   ============================================================================ */
+
+:is(.dark .prose-roll-cyberpunk) {
+  color: hsl(220, 20%, 85%);
+}
+
+/* Dark mode headers */
+:is(.dark .prose-roll-cyberpunk) h1 {
+  color: hsl(186, 100%, 60%);
+  text-shadow:
+    0 0 10px hsl(186, 100%, 50% / 0.8),
+    0 0 20px hsl(186, 100%, 50% / 0.4),
+    0 0 30px hsl(186, 100%, 50% / 0.2);
+}
+
+:is(.dark .prose-roll-cyberpunk) h1::after {
+  color: hsl(186, 100%, 60%);
+  opacity: 0.8;
+  text-shadow: 0 0 5px hsl(186, 100%, 50% / 0.5);
+}
+
+:is(.dark .prose-roll-cyberpunk) h2 {
+  color: hsl(300, 100%, 70%);
+  text-shadow:
+    0 0 8px hsl(300, 100%, 50% / 0.6),
+    0 0 15px hsl(300, 100%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll-cyberpunk) h2::before {
+  background: linear-gradient(180deg, hsl(186, 100%, 60%), hsl(300, 100%, 60%));
+  box-shadow: 0 0 8px hsl(186, 100%, 50% / 0.6);
+}
+
+:is(.dark .prose-roll-cyberpunk) h3 {
+  color: hsl(186, 100%, 65%);
+  text-shadow: 0 0 6px hsl(186, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) h4 {
+  color: hsl(300, 100%, 70%);
+  text-shadow: 0 0 5px hsl(300, 100%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll-cyberpunk) h5,
+:is(.dark .prose-roll-cyberpunk) h6 {
+  color: hsl(186, 80%, 60%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll-cyberpunk) strong {
+  color: hsl(186, 100%, 70%);
+  text-shadow: 0 0 4px hsl(186, 100%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll-cyberpunk) em {
+  color: hsl(300, 100%, 75%);
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll-cyberpunk) ul > li::before {
+  color: hsl(186, 100%, 60%);
+  text-shadow: 0 0 6px hsl(186, 100%, 50% / 0.5);
+}
+
+:is(.dark .prose-roll-cyberpunk) ul ul > li::before {
+  color: hsl(300, 100%, 70%);
+  text-shadow: 0 0 5px hsl(300, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) ul ul ul > li::before {
+  color: hsl(60, 100%, 60%);
+  text-shadow: 0 0 5px hsl(60, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) ol > li::before {
+  color: hsl(186, 100%, 60%);
+  text-shadow: 0 0 4px hsl(186, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) ol ol > li::before {
+  color: hsl(300, 100%, 70%);
+}
+
+:is(.dark .prose-roll-cyberpunk) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(186, 100%, 60%);
+}
+
+/* Dark mode code */
+:is(.dark .prose-roll-cyberpunk) code {
+  background: hsl(260, 30%, 15%);
+  color: hsl(186, 100%, 70%);
+  border-color: hsl(186, 100%, 50% / 0.4);
+  box-shadow: 0 0 5px hsl(186, 100%, 50% / 0.2);
+}
+
+:is(.dark .prose-roll-cyberpunk) pre {
+  background: linear-gradient(135deg,
+    hsl(260, 35%, 8%) 0%,
+    hsl(280, 30%, 6%) 100%);
+  border-color: hsl(186, 100%, 50% / 0.4);
+  box-shadow:
+    inset 0 0 40px hsl(260, 40%, 5%),
+    0 0 20px hsl(186, 100%, 50% / 0.15);
+}
+
+:is(.dark .prose-roll-cyberpunk) pre code {
+  color: hsl(186, 100%, 75%);
+  text-shadow: 0 0 2px hsl(186, 100%, 50% / 0.3);
+}
+
+/* Dark mode blockquote */
+:is(.dark .prose-roll-cyberpunk) blockquote {
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50% / 0.1) 0%,
+    transparent 100%);
+  border-color: hsl(186, 100%, 50% / 0.4);
+  border-left-color: hsl(186, 100%, 60%);
+  color: hsl(220, 20%, 80%);
+  box-shadow:
+    0 0 15px hsl(186, 100%, 50% / 0.1),
+    inset 0 0 30px hsl(260, 30%, 5% / 0.5);
+}
+
+:is(.dark .prose-roll-cyberpunk) blockquote::before {
+  color: hsl(186, 100%, 60%);
+  background: hsl(260, 30%, 8%);
+  text-shadow: 0 0 5px hsl(186, 100%, 50% / 0.5);
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll-cyberpunk) hr::before {
+  color: hsl(186, 100%, 60%);
+  text-shadow: 0 0 8px hsl(186, 100%, 50% / 0.6);
+}
+
+/* Dark mode links */
+:is(.dark .prose-roll-cyberpunk) a {
+  color: hsl(186, 100%, 65%);
+  border-bottom-color: hsl(186, 100%, 50% / 0.5);
+  text-shadow: 0 0 4px hsl(186, 100%, 50% / 0.3);
+}
+
+:is(.dark .prose-roll-cyberpunk) a:hover {
+  color: hsl(300, 100%, 70%);
+  border-bottom-color: hsl(300, 100%, 60%);
+  text-shadow: 0 0 12px hsl(300, 100%, 50% / 0.6);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll-cyberpunk) table {
+  border-color: hsl(186, 100%, 50% / 0.4);
+  background: hsl(260, 30%, 8%);
+  box-shadow: 0 0 15px hsl(186, 100%, 50% / 0.1);
+}
+
+:is(.dark .prose-roll-cyberpunk) thead {
+  background: linear-gradient(90deg,
+    hsl(186, 100%, 50% / 0.2) 0%,
+    hsl(300, 100%, 50% / 0.15) 100%);
+}
+
+:is(.dark .prose-roll-cyberpunk) th {
+  color: hsl(186, 100%, 70%);
+  border-bottom-color: hsl(186, 100%, 50%);
+  text-shadow: 0 0 4px hsl(186, 100%, 50% / 0.4);
+}
+
+:is(.dark .prose-roll-cyberpunk) td {
+  border-bottom-color: hsl(260, 30%, 20%);
+  color: hsl(220, 15%, 80%);
+}
+
+:is(.dark .prose-roll-cyberpunk) tbody tr:hover {
+  background: hsl(186, 100%, 50% / 0.1);
+}
+
+:is(.dark .prose-roll-cyberpunk) tbody tr:nth-child(even) {
+  background: hsl(260, 25%, 10%);
+}
+
+:is(.dark .prose-roll-cyberpunk) tbody tr:nth-child(even):hover {
+  background: hsl(186, 100%, 50% / 0.12);
+}
+
+/* Dark mode images */
+:is(.dark .prose-roll-cyberpunk) img {
+  border-color: hsl(186, 100%, 50% / 0.5);
+  box-shadow:
+    0 0 20px hsl(186, 100%, 50% / 0.25),
+    0 0 40px hsl(300, 100%, 50% / 0.1);
+}
+
+/* Roll button styling for Cyberpunk theme - LIGHT MODE */
+.btn-roll-cyberpunk {
+  font-family: 'Orbitron', 'Rajdhani', system-ui, sans-serif;
+  background: linear-gradient(135deg,
+    hsl(220, 20%, 95%) 0%,
+    hsl(220, 15%, 90%) 100%);
+  color: hsl(186, 100%, 30%);
+  border: 2px solid hsl(186, 100%, 45%);
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  box-shadow:
+    0 0 0 1px hsl(186, 100%, 50% / 0.3),
+    0 4px 15px hsl(186, 100%, 40% / 0.2),
+    inset 0 1px 0 hsl(0, 0%, 100% / 0.5);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Scanline effect */
+.btn-roll-cyberpunk::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsl(186, 100%, 50% / 0.05) 2px,
+    hsl(186, 100%, 50% / 0.05) 4px
+  );
+  pointer-events: none;
+}
+
+.btn-roll-cyberpunk:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    hsl(186, 100%, 97%) 0%,
+    hsl(186, 50%, 92%) 100%);
+  border-color: hsl(186, 100%, 50%);
+  color: hsl(186, 100%, 25%);
+  box-shadow:
+    0 0 0 1px hsl(186, 100%, 50% / 0.5),
+    0 0 20px hsl(186, 100%, 50% / 0.3),
+    0 6px 20px hsl(186, 100%, 40% / 0.25),
+    inset 0 1px 0 hsl(0, 0%, 100% / 0.6);
+  transform: scale(1.02);
+}
+
+.btn-roll-cyberpunk:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow:
+    0 0 0 1px hsl(186, 100%, 50% / 0.4),
+    inset 0 2px 8px hsl(186, 100%, 30% / 0.2);
+}
+
+.btn-roll-cyberpunk:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Roll button styling for Cyberpunk theme - DARK MODE */
+.dark .btn-roll-cyberpunk {
+  background: linear-gradient(135deg,
+    hsl(260, 30%, 12%) 0%,
+    hsl(280, 25%, 8%) 100%);
+  color: hsl(186, 100%, 65%);
+  border: 2px solid hsl(186, 100%, 50%);
+  text-shadow: 0 0 8px hsl(186, 100%, 50% / 0.5);
+  box-shadow:
+    0 0 20px hsl(186, 100%, 50% / 0.3),
+    0 0 40px hsl(300, 100%, 50% / 0.1),
+    inset 0 0 30px hsl(260, 40%, 5%);
+}
+
+.dark .btn-roll-cyberpunk::before {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsl(186, 100%, 50% / 0.08) 2px,
+    hsl(186, 100%, 50% / 0.08) 4px
+  );
+}
+
+.dark .btn-roll-cyberpunk:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    hsl(260, 35%, 15%) 0%,
+    hsl(280, 30%, 10%) 100%);
+  border-color: hsl(186, 100%, 60%);
+  color: hsl(186, 100%, 75%);
+  text-shadow: 0 0 12px hsl(186, 100%, 50% / 0.7);
+  box-shadow:
+    0 0 30px hsl(186, 100%, 50% / 0.4),
+    0 0 60px hsl(300, 100%, 50% / 0.15),
+    inset 0 0 40px hsl(260, 40%, 8%);
+  transform: scale(1.02);
+}
+
+.dark .btn-roll-cyberpunk:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow:
+    0 0 15px hsl(186, 100%, 50% / 0.3),
+    inset 0 3px 10px hsl(260, 50%, 5%);
+}
+
+/* ============================================================================
+   SLEEK THEME - Refined Editorial Elegance
+   A sophisticated, minimal design with exceptional typography and subtle depth.
+   Fonts: Sora (headers), Outfit (body)
+   Colors: Cool slate grays with refined indigo accents
+   ============================================================================ */
+
+/* Card styling for Sleek theme - LIGHT MODE */
+.card-result-sleek {
+  font-family: 'Outfit', system-ui, sans-serif;
+  background: linear-gradient(180deg,
+    hsl(220, 25%, 99%) 0%,
+    hsl(220, 20%, 97%) 100%);
+  border: 1px solid hsl(220, 20%, 90%);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px hsl(220, 30%, 85% / 0.3),
+    0 4px 12px hsl(220, 30%, 80% / 0.08),
+    0 8px 24px hsl(220, 30%, 70% / 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle accent line at top */
+.card-result-sleek::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    hsl(240, 50%, 65%) 0%,
+    hsl(260, 45%, 60%) 50%,
+    hsl(280, 40%, 65%) 100%);
+  opacity: 0.7;
+}
+
+/* Card styling for Sleek theme - DARK MODE */
+.dark .card-result-sleek {
+  background: linear-gradient(180deg,
+    hsl(230, 20%, 12%) 0%,
+    hsl(230, 22%, 10%) 100%);
+  border-color: hsl(230, 25%, 20%);
+  box-shadow:
+    0 1px 2px hsl(230, 30%, 5% / 0.4),
+    0 4px 16px hsl(230, 30%, 5% / 0.3),
+    0 8px 32px hsl(230, 30%, 5% / 0.2),
+    inset 0 1px 0 hsl(230, 20%, 18%);
+}
+
+.dark .card-result-sleek::before {
+  background: linear-gradient(90deg,
+    hsl(240, 60%, 70%) 0%,
+    hsl(260, 55%, 68%) 50%,
+    hsl(280, 50%, 72%) 100%);
+  opacity: 0.6;
+}
+
+/* History item styling for Sleek theme - LIGHT MODE */
+.history-item-sleek {
+  font-family: 'Outfit', system-ui, sans-serif;
+  background: hsl(220, 20%, 98%);
+  border: 1px solid hsl(220, 18%, 92%);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 3px hsl(220, 25%, 85% / 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.history-item-sleek:hover {
+  background: hsl(220, 22%, 97%);
+  border-color: hsl(250, 40%, 80%);
+  box-shadow:
+    0 2px 8px hsl(250, 30%, 75% / 0.15);
+}
+
+/* History item styling for Sleek theme - DARK MODE */
+.dark .history-item-sleek {
+  background: hsl(230, 18%, 11%);
+  border-color: hsl(230, 20%, 18%);
+  box-shadow:
+    0 1px 3px hsl(230, 25%, 5% / 0.3),
+    inset 0 1px 0 hsl(230, 18%, 15%);
+}
+
+.dark .history-item-sleek:hover {
+  background: hsl(230, 20%, 13%);
+  border-color: hsl(250, 45%, 45%);
+  box-shadow:
+    0 2px 12px hsl(250, 50%, 40% / 0.15);
+}
+
+/* ============================================================================
+   SLEEK PROSE STYLING - LIGHT MODE
+   Clean, editorial typography with refined spacing
+   ============================================================================ */
+
+.prose-roll-sleek {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.75;
+  font-weight: 400;
+  color: hsl(220, 20%, 20%);
+  letter-spacing: -0.01em;
+}
+
+/* === HEADERS - Clean hierarchy with Sora === */
+
+.prose-roll-sleek h1 {
+  @apply text-2xl mt-8 mb-4 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: hsl(252, 48%, 28%);  /* Rich royal violet */
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+/* Minimal underline accent */
+.prose-roll-sleek h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 2.5rem;
+  height: 2px;
+  background: linear-gradient(90deg,
+    hsl(252, 65%, 55%) 0%,
+    hsl(280, 55%, 58%) 100%);
+  border-radius: 1px;
+}
+
+.prose-roll-sleek h2 {
+  @apply text-xl mt-7 mb-3 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: hsl(248, 42%, 34%);  /* Violet with depth */
+}
+
+.prose-roll-sleek h3 {
+  @apply text-lg mt-6 mb-3 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: hsl(244, 36%, 40%);  /* Medium violet-indigo */
+}
+
+.prose-roll-sleek h4 {
+  @apply text-base mt-5 mb-2 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: hsl(240, 32%, 46%);  /* Softer indigo */
+}
+
+.prose-roll-sleek h5,
+.prose-roll-sleek h6 {
+  @apply text-sm mt-4 mb-2 first:mt-0;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(268, 28%, 50%);  /* Dusty violet for small caps */
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll-sleek p {
+  @apply my-4 first:mt-0 last:mb-0;
+}
+
+.prose-roll-sleek strong {
+  font-weight: 600;
+  color: hsl(225, 55%, 25%);  /* Deep sapphire-blue - anchoring emphasis */
+}
+
+.prose-roll-sleek em {
+  font-style: italic;
+  color: hsl(280, 32%, 42%);  /* Dusty orchid - ethereal and distinctive */
+}
+
+/* === LISTS - Clean minimal bullets === */
+
+.prose-roll-sleek ul,
+.prose-roll-sleek ol {
+  @apply my-4;
+  padding-left: 1.5rem;
+}
+
+.prose-roll-sleek li {
+  @apply my-2;
+  position: relative;
+}
+
+/* Unordered list - simple dot */
+.prose-roll-sleek ul {
+  list-style: none;
+}
+
+.prose-roll-sleek ul > li::before {
+  content: '';
+  position: absolute;
+  left: -1.25rem;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  background: linear-gradient(135deg,
+    hsl(252, 55%, 52%) 0%,
+    hsl(280, 45%, 50%) 100%);
+  border-radius: 50%;
+}
+
+.prose-roll-sleek ul ul > li::before {
+  background: hsl(244, 30%, 58%);
+  width: 4px;
+  height: 4px;
+}
+
+.prose-roll-sleek ul ul ul > li::before {
+  background: hsl(240, 20%, 68%);
+  width: 3px;
+  height: 3px;
+}
+
+/* Ordered list - clean numbers */
+.prose-roll-sleek ol {
+  list-style: none;
+  counter-reset: sleek-counter;
+}
+
+.prose-roll-sleek ol > li {
+  counter-increment: sleek-counter;
+}
+
+.prose-roll-sleek ol > li::before {
+  content: counter(sleek-counter);
+  position: absolute;
+  left: -1.5rem;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.85em;
+  color: hsl(252, 50%, 48%);  /* Rich violet numbers */
+}
+
+.prose-roll-sleek ol ol > li::before {
+  color: hsl(244, 35%, 52%);
+  font-size: 0.8em;
+}
+
+/* Nested lists spacing */
+.prose-roll-sleek li > ul,
+.prose-roll-sleek li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items */
+.prose-roll-sleek li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll-sleek li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll-sleek li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(250, 50%, 55%);
+}
+
+/* === CODE - Refined monospace === */
+
+.prose-roll-sleek code {
+  @apply px-1.5 py-0.5 rounded text-sm;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  background: hsl(252, 30%, 95%);
+  color: hsl(252, 55%, 42%);  /* Rich violet for inline code */
+  border: 1px solid hsl(252, 25%, 88%);
+  font-size: 0.875em;
+}
+
+.prose-roll-sleek pre {
+  @apply my-5 p-5 rounded-lg overflow-x-auto;
+  background: linear-gradient(180deg,
+    hsl(230, 25%, 97%) 0%,
+    hsl(230, 22%, 95%) 100%);
+  border: 1px solid hsl(230, 20%, 90%);
+  box-shadow:
+    inset 0 1px 3px hsl(230, 20%, 90% / 0.5);
+}
+
+.prose-roll-sleek pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: hsl(230, 20%, 25%);
+}
+
+/* === BLOCKQUOTES - Elegant sidebar accent === */
+
+.prose-roll-sleek blockquote {
+  @apply my-6 py-4 px-6;
+  background: hsl(252, 35%, 97%);
+  border: none;
+  border-left: 3px solid hsl(252, 55%, 55%);  /* Rich violet accent */
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: hsl(280, 25%, 38%);  /* Subtle orchid tone */
+  font-style: italic;
+  position: relative;
+}
+
+.prose-roll-sleek blockquote p {
+  margin: 0;
+}
+
+/* === HORIZONTAL RULES - Subtle divider === */
+
+.prose-roll-sleek hr {
+  @apply my-10;
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(252, 25%, 82%) 20%,
+    hsl(268, 40%, 65%) 50%,  /* Rich violet center */
+    hsl(252, 25%, 82%) 80%,
+    transparent 100%);
+}
+
+/* === LINKS - Refined underline === */
+
+.prose-roll-sleek a {
+  color: hsl(252, 58%, 48%);  /* Rich violet link */
+  text-decoration: none;
+  border-bottom: 1px solid hsl(252, 45%, 72%);
+  transition: all 0.2s ease;
+}
+
+.prose-roll-sleek a:hover {
+  color: hsl(280, 55%, 45%);  /* Shifts toward orchid on hover */
+  border-bottom-color: hsl(280, 50%, 55%);
+}
+
+/* === TABLES - Clean modern grid === */
+
+.prose-roll-sleek table {
+  @apply w-full text-sm my-6;
+  border-collapse: collapse;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px hsl(230, 20%, 85% / 0.3);
+}
+
+.prose-roll-sleek thead {
+  background: hsl(230, 25%, 96%);
+}
+
+.prose-roll-sleek th {
+  @apply px-4 py-3 text-left;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(230, 15%, 45%);
+  border-bottom: 1px solid hsl(230, 18%, 88%);
+}
+
+.prose-roll-sleek td {
+  @apply px-4 py-3;
+  border-bottom: 1px solid hsl(230, 15%, 92%);
+  color: hsl(230, 18%, 25%);
+}
+
+.prose-roll-sleek tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll-sleek tbody tr:hover {
+  background: hsl(250, 30%, 98%);
+}
+
+/* === IMAGES - Clean frame === */
+
+.prose-roll-sleek img {
+  @apply my-6 rounded-lg;
+  box-shadow:
+    0 2px 8px hsl(230, 20%, 80% / 0.3),
+    0 8px 24px hsl(230, 20%, 70% / 0.15);
+}
+
+/* ============================================================================
+   SLEEK DARK MODE
+   Deep slate with refined violet accents
+   ============================================================================ */
+
+:is(.dark .prose-roll-sleek) {
+  color: hsl(220, 15%, 85%);
+}
+
+/* Dark mode headers */
+:is(.dark .prose-roll-sleek) h1 {
+  color: hsl(252, 70%, 82%);  /* Luminous violet */
+}
+
+:is(.dark .prose-roll-sleek) h1::after {
+  background: linear-gradient(90deg,
+    hsl(252, 75%, 72%) 0%,
+    hsl(280, 65%, 74%) 100%);
+}
+
+:is(.dark .prose-roll-sleek) h2 {
+  color: hsl(248, 62%, 78%);  /* Soft violet */
+}
+
+:is(.dark .prose-roll-sleek) h3 {
+  color: hsl(244, 55%, 74%);  /* Medium violet */
+}
+
+:is(.dark .prose-roll-sleek) h4 {
+  color: hsl(240, 48%, 70%);  /* Light indigo */
+}
+
+:is(.dark .prose-roll-sleek) h5,
+:is(.dark .prose-roll-sleek) h6 {
+  color: hsl(268, 40%, 62%);  /* Dusty violet for small caps */
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll-sleek) strong {
+  color: hsl(200, 65%, 82%);  /* Cool cyan-white - pops against dark */
+}
+
+:is(.dark .prose-roll-sleek) em {
+  color: hsl(285, 50%, 75%);  /* Soft orchid/lavender */
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll-sleek) ul > li::before {
+  background: linear-gradient(135deg,
+    hsl(252, 65%, 70%) 0%,
+    hsl(280, 55%, 68%) 100%);
+}
+
+:is(.dark .prose-roll-sleek) ul ul > li::before {
+  background: hsl(244, 45%, 58%);
+}
+
+:is(.dark .prose-roll-sleek) ul ul ul > li::before {
+  background: hsl(240, 30%, 48%);
+}
+
+:is(.dark .prose-roll-sleek) ol > li::before {
+  color: hsl(252, 60%, 72%);  /* Luminous violet numbers */
+}
+
+:is(.dark .prose-roll-sleek) ol ol > li::before {
+  color: hsl(244, 45%, 62%);
+}
+
+:is(.dark .prose-roll-sleek) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(250, 55%, 65%);
+}
+
+/* Dark mode code */
+:is(.dark .prose-roll-sleek) code {
+  background: hsl(252, 28%, 15%);
+  color: hsl(252, 65%, 78%);  /* Luminous violet */
+  border-color: hsl(252, 25%, 22%);
+}
+
+:is(.dark .prose-roll-sleek) pre {
+  background: linear-gradient(180deg,
+    hsl(252, 25%, 11%) 0%,
+    hsl(252, 28%, 9%) 100%);
+  border-color: hsl(252, 22%, 18%);
+  box-shadow:
+    inset 0 1px 4px hsl(252, 30%, 5% / 0.4);
+}
+
+:is(.dark .prose-roll-sleek) pre code {
+  color: hsl(220, 18%, 82%);
+}
+
+/* Dark mode blockquote */
+:is(.dark .prose-roll-sleek) blockquote {
+  background: hsl(252, 30%, 12%);
+  border-left-color: hsl(252, 60%, 62%);  /* Luminous violet accent */
+  color: hsl(285, 35%, 78%);  /* Soft orchid tone */
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll-sleek) hr {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    hsl(252, 25%, 28%) 20%,
+    hsl(268, 50%, 55%) 50%,  /* Rich violet center */
+    hsl(252, 25%, 28%) 80%,
+    transparent 100%);
+}
+
+/* Dark mode links */
+:is(.dark .prose-roll-sleek) a {
+  color: hsl(252, 70%, 75%);  /* Luminous violet */
+  border-bottom-color: hsl(252, 50%, 55%);
+}
+
+:is(.dark .prose-roll-sleek) a:hover {
+  color: hsl(280, 65%, 80%);  /* Shifts toward orchid */
+  border-bottom-color: hsl(280, 55%, 65%);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll-sleek) table {
+  box-shadow: 0 1px 3px hsl(252, 30%, 5% / 0.4);
+}
+
+:is(.dark .prose-roll-sleek) thead {
+  background: hsl(252, 25%, 14%);
+}
+
+:is(.dark .prose-roll-sleek) th {
+  color: hsl(252, 40%, 68%);  /* Subtle violet for headers */
+  border-bottom-color: hsl(252, 22%, 20%);
+}
+
+:is(.dark .prose-roll-sleek) td {
+  border-bottom-color: hsl(252, 20%, 16%);
+  color: hsl(220, 18%, 82%);
+}
+
+:is(.dark .prose-roll-sleek) tbody tr:hover {
+  background: hsl(252, 35%, 14%);
+}
+
+/* Dark mode images */
+:is(.dark .prose-roll-sleek) img {
+  box-shadow:
+    0 2px 8px hsl(230, 25%, 5% / 0.4),
+    0 8px 24px hsl(230, 25%, 5% / 0.3);
+}
+
+/* Roll button styling for Sleek theme - LIGHT MODE */
+.btn-roll-sleek {
+  font-family: 'Sora', system-ui, sans-serif;
+  background: linear-gradient(180deg,
+    hsl(250, 50%, 55%) 0%,
+    hsl(255, 48%, 50%) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  box-shadow:
+    0 1px 2px hsl(250, 50%, 30% / 0.2),
+    0 4px 12px hsl(250, 50%, 40% / 0.25),
+    inset 0 1px 0 hsl(250, 60%, 70% / 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-roll-sleek:hover:not(:disabled) {
+  background: linear-gradient(180deg,
+    hsl(250, 55%, 58%) 0%,
+    hsl(255, 52%, 53%) 100%);
+  box-shadow:
+    0 2px 4px hsl(250, 50%, 30% / 0.2),
+    0 8px 20px hsl(250, 50%, 40% / 0.3),
+    inset 0 1px 0 hsl(250, 65%, 75% / 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-roll-sleek:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 2px hsl(250, 50%, 30% / 0.2),
+    inset 0 2px 4px hsl(250, 60%, 35% / 0.2);
+}
+
+.btn-roll-sleek:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Roll button styling for Sleek theme - DARK MODE */
+.dark .btn-roll-sleek {
+  background: linear-gradient(180deg,
+    hsl(250, 55%, 58%) 0%,
+    hsl(255, 50%, 52%) 100%);
+  box-shadow:
+    0 1px 2px hsl(230, 30%, 5% / 0.3),
+    0 4px 16px hsl(250, 60%, 40% / 0.25),
+    inset 0 1px 0 hsl(250, 70%, 75% / 0.2);
+}
+
+.dark .btn-roll-sleek:hover:not(:disabled) {
+  background: linear-gradient(180deg,
+    hsl(250, 60%, 62%) 0%,
+    hsl(255, 55%, 56%) 100%);
+  box-shadow:
+    0 2px 4px hsl(230, 30%, 5% / 0.3),
+    0 8px 24px hsl(250, 60%, 45% / 0.3),
+    inset 0 1px 0 hsl(250, 75%, 80% / 0.2);
+}
+
+/* ============================================================================
+   WHIMSICAL THEME - Playful Colors & Joy
+   A vibrant, colorful design bursting with complementary hues and playful energy.
+   Fonts: Fredoka (headers - bubbly & rounded), Nunito (body - soft & readable)
+   Colors: Coral, Teal, Sunny Yellow, Lavender, Mint - a joyful complementary palette
+   ============================================================================ */
+
+/* Card styling for Whimsical theme - LIGHT MODE */
+.card-result-whimsical {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: linear-gradient(135deg,
+    hsl(45, 100%, 97%) 0%,
+    hsl(180, 60%, 97%) 50%,
+    hsl(330, 70%, 97%) 100%);
+  border: 2px solid hsl(175, 65%, 55%);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 4px 0 hsl(175, 65%, 45%),
+    0 8px 20px hsl(175, 50%, 50% / 0.15),
+    inset 0 2px 0 hsl(45, 100%, 95%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Colorful corner decorations */
+.card-result-whimsical::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle,
+    hsl(10, 85%, 65%) 0%,
+    hsl(10, 85%, 65%) 30%,
+    transparent 30%),
+    radial-gradient(circle at 60% 60%,
+    hsl(45, 95%, 60%) 0%,
+    hsl(45, 95%, 60%) 20%,
+    transparent 20%),
+    radial-gradient(circle at 30% 70%,
+    hsl(280, 70%, 70%) 0%,
+    hsl(280, 70%, 70%) 15%,
+    transparent 15%);
+  opacity: 0.8;
+}
+
+.card-result-whimsical::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: -20px;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle,
+    hsl(160, 70%, 55%) 0%,
+    hsl(160, 70%, 55%) 25%,
+    transparent 25%),
+    radial-gradient(circle at 70% 30%,
+    hsl(200, 80%, 60%) 0%,
+    hsl(200, 80%, 60%) 18%,
+    transparent 18%);
+  opacity: 0.7;
+}
+
+/* Card styling for Whimsical theme - DARK MODE */
+.dark .card-result-whimsical {
+  background: linear-gradient(135deg,
+    hsl(260, 30%, 15%) 0%,
+    hsl(200, 35%, 12%) 50%,
+    hsl(340, 30%, 15%) 100%);
+  border-color: hsl(175, 70%, 50%);
+  box-shadow:
+    0 4px 0 hsl(175, 60%, 35%),
+    0 8px 25px hsl(175, 50%, 30% / 0.3),
+    0 0 40px hsl(280, 60%, 40% / 0.1),
+    inset 0 1px 0 hsl(260, 30%, 22%);
+}
+
+.dark .card-result-whimsical::before {
+  background: radial-gradient(circle,
+    hsl(10, 80%, 60%) 0%,
+    hsl(10, 80%, 60%) 30%,
+    transparent 30%),
+    radial-gradient(circle at 60% 60%,
+    hsl(45, 90%, 55%) 0%,
+    hsl(45, 90%, 55%) 20%,
+    transparent 20%),
+    radial-gradient(circle at 30% 70%,
+    hsl(280, 65%, 65%) 0%,
+    hsl(280, 65%, 65%) 15%,
+    transparent 15%);
+  opacity: 0.6;
+}
+
+.dark .card-result-whimsical::after {
+  background: radial-gradient(circle,
+    hsl(160, 65%, 50%) 0%,
+    hsl(160, 65%, 50%) 25%,
+    transparent 25%),
+    radial-gradient(circle at 70% 30%,
+    hsl(200, 75%, 55%) 0%,
+    hsl(200, 75%, 55%) 18%,
+    transparent 18%);
+  opacity: 0.5;
+}
+
+/* History item styling for Whimsical theme - LIGHT MODE */
+.history-item-whimsical {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: linear-gradient(90deg,
+    hsl(45, 100%, 96%) 0%,
+    hsl(180, 50%, 96%) 100%);
+  border: 2px solid hsl(10, 80%, 70%);
+  border-radius: 1rem;
+  box-shadow:
+    0 3px 0 hsl(10, 70%, 60%),
+    0 6px 12px hsl(10, 60%, 50% / 0.1);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.history-item-whimsical:hover {
+  border-color: hsl(280, 65%, 65%);
+  box-shadow:
+    0 3px 0 hsl(280, 55%, 55%),
+    0 8px 16px hsl(280, 50%, 50% / 0.15);
+  transform: translateY(-2px);
+}
+
+/* History item styling for Whimsical theme - DARK MODE */
+.dark .history-item-whimsical {
+  background: linear-gradient(90deg,
+    hsl(260, 25%, 14%) 0%,
+    hsl(200, 30%, 13%) 100%);
+  border-color: hsl(10, 75%, 60%);
+  box-shadow:
+    0 3px 0 hsl(10, 65%, 45%),
+    0 6px 15px hsl(0, 0%, 0% / 0.25);
+}
+
+.dark .history-item-whimsical:hover {
+  border-color: hsl(280, 60%, 60%);
+  box-shadow:
+    0 3px 0 hsl(280, 50%, 45%),
+    0 8px 20px hsl(280, 50%, 40% / 0.2);
+}
+
+/* ============================================================================
+   WHIMSICAL PROSE STYLING - LIGHT MODE
+   Colorful, playful typography with joyful accents
+   ============================================================================ */
+
+.prose-roll-whimsical {
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.8;
+  font-weight: 500;
+  color: hsl(220, 30%, 25%);
+}
+
+/* === HEADERS - Bubbly Fredoka with color variety === */
+
+.prose-roll-whimsical h1 {
+  @apply text-2xl mt-8 mb-4 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  color: hsl(10, 75%, 50%);
+  position: relative;
+  display: inline-block;
+}
+
+/* Decorative underline with gradient */
+.prose-roll-whimsical h1::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    hsl(10, 85%, 60%) 0%,
+    hsl(45, 95%, 55%) 33%,
+    hsl(175, 70%, 45%) 66%,
+    hsl(280, 65%, 60%) 100%);
+  border-radius: 2px;
+}
+
+.prose-roll-whimsical h2 {
+  @apply text-xl mt-7 mb-3 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  color: hsl(175, 65%, 40%);
+}
+
+.prose-roll-whimsical h3 {
+  @apply text-lg mt-6 mb-3 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 500;
+  color: hsl(280, 55%, 50%);
+}
+
+.prose-roll-whimsical h4 {
+  @apply text-base mt-5 mb-2 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 500;
+  color: hsl(45, 80%, 40%);
+}
+
+.prose-roll-whimsical h5,
+.prose-roll-whimsical h6 {
+  @apply text-sm mt-4 mb-2 first:mt-0;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 500;
+  color: hsl(200, 70%, 45%);
+}
+
+/* === PARAGRAPHS & TEXT === */
+
+.prose-roll-whimsical p {
+  @apply my-4 first:mt-0 last:mb-0;
+}
+
+.prose-roll-whimsical strong {
+  font-weight: 700;
+  color: hsl(10, 70%, 45%);
+}
+
+.prose-roll-whimsical em {
+  font-style: italic;
+  color: hsl(280, 50%, 45%);
+}
+
+/* === LISTS - Colorful playful bullets === */
+
+.prose-roll-whimsical ul,
+.prose-roll-whimsical ol {
+  @apply my-4;
+  padding-left: 1.75rem;
+}
+
+.prose-roll-whimsical li {
+  @apply my-2;
+  position: relative;
+}
+
+/* Unordered list - colorful circles */
+.prose-roll-whimsical ul {
+  list-style: none;
+}
+
+.prose-roll-whimsical ul > li::before {
+  content: '●';
+  position: absolute;
+  left: -1.5rem;
+  color: hsl(10, 80%, 60%);
+  font-size: 0.75em;
+  top: 0.35em;
+}
+
+.prose-roll-whimsical ul > li:nth-child(2n)::before {
+  color: hsl(175, 70%, 45%);
+}
+
+.prose-roll-whimsical ul > li:nth-child(3n)::before {
+  color: hsl(280, 60%, 60%);
+}
+
+.prose-roll-whimsical ul > li:nth-child(4n)::before {
+  color: hsl(45, 90%, 50%);
+}
+
+.prose-roll-whimsical ul ul > li::before {
+  content: '○';
+  color: hsl(200, 70%, 50%);
+  font-size: 0.7em;
+}
+
+.prose-roll-whimsical ul ul ul > li::before {
+  content: '◆';
+  color: hsl(160, 60%, 45%);
+  font-size: 0.55em;
+  top: 0.45em;
+}
+
+/* Ordered list - colorful numbers */
+.prose-roll-whimsical ol {
+  list-style: none;
+  counter-reset: whimsy-counter;
+}
+
+.prose-roll-whimsical ol > li {
+  counter-increment: whimsy-counter;
+}
+
+.prose-roll-whimsical ol > li::before {
+  content: counter(whimsy-counter);
+  position: absolute;
+  left: -1.75rem;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.9em;
+  color: hsl(175, 65%, 45%);
+  background: hsl(175, 65%, 92%);
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 0.15em;
+}
+
+.prose-roll-whimsical ol > li:nth-child(2n)::before {
+  color: hsl(10, 75%, 50%);
+  background: hsl(10, 80%, 92%);
+}
+
+.prose-roll-whimsical ol > li:nth-child(3n)::before {
+  color: hsl(280, 55%, 55%);
+  background: hsl(280, 60%, 92%);
+}
+
+.prose-roll-whimsical ol ol > li::before {
+  font-size: 0.75em;
+  width: 1.2em;
+  height: 1.2em;
+  background: hsl(45, 90%, 88%);
+  color: hsl(45, 80%, 40%);
+}
+
+/* Nested lists spacing */
+.prose-roll-whimsical li > ul,
+.prose-roll-whimsical li > ol {
+  @apply mt-2 mb-1;
+}
+
+/* Task list items */
+.prose-roll-whimsical li.task-list-item {
+  list-style: none;
+}
+
+.prose-roll-whimsical li.task-list-item::before {
+  display: none;
+}
+
+.prose-roll-whimsical li.task-list-item input[type="checkbox"] {
+  @apply mr-2;
+  accent-color: hsl(175, 70%, 45%);
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* === CODE - Playful code blocks === */
+
+.prose-roll-whimsical code {
+  @apply px-2 py-1 rounded-lg text-sm;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  background: linear-gradient(135deg,
+    hsl(280, 50%, 95%) 0%,
+    hsl(200, 50%, 95%) 100%);
+  color: hsl(280, 60%, 45%);
+  border: 1px solid hsl(280, 40%, 85%);
+  font-size: 0.875em;
+}
+
+.prose-roll-whimsical pre {
+  @apply my-5 p-5 rounded-2xl overflow-x-auto;
+  background: linear-gradient(135deg,
+    hsl(45, 60%, 97%) 0%,
+    hsl(175, 40%, 96%) 50%,
+    hsl(280, 40%, 97%) 100%);
+  border: 2px solid hsl(175, 50%, 70%);
+  box-shadow:
+    0 4px 0 hsl(175, 45%, 60%),
+    0 8px 16px hsl(175, 40%, 50% / 0.1);
+}
+
+.prose-roll-whimsical pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: hsl(220, 25%, 30%);
+}
+
+/* === BLOCKQUOTES - Fun colorful callout === */
+
+.prose-roll-whimsical blockquote {
+  @apply my-6 py-4 px-6;
+  background: linear-gradient(135deg,
+    hsl(45, 100%, 95%) 0%,
+    hsl(45, 90%, 92%) 100%);
+  border: 2px solid hsl(45, 85%, 60%);
+  border-left-width: 6px;
+  border-radius: 0 1rem 1rem 0;
+  color: hsl(30, 50%, 30%);
+  position: relative;
+  box-shadow:
+    0 3px 0 hsl(45, 75%, 50%),
+    0 6px 12px hsl(45, 60%, 50% / 0.1);
+}
+
+.prose-roll-whimsical blockquote::before {
+  content: '💬';
+  position: absolute;
+  top: -12px;
+  left: 12px;
+  font-size: 1.25rem;
+  background: hsl(45, 100%, 95%);
+  padding: 0 4px;
+}
+
+.prose-roll-whimsical blockquote p {
+  margin: 0;
+}
+
+/* === HORIZONTAL RULES - Rainbow divider === */
+
+.prose-roll-whimsical hr {
+  @apply my-10;
+  border: none;
+  height: 4px;
+  background: linear-gradient(90deg,
+    hsl(10, 85%, 60%) 0%,
+    hsl(45, 95%, 55%) 25%,
+    hsl(160, 70%, 50%) 50%,
+    hsl(200, 80%, 55%) 75%,
+    hsl(280, 65%, 60%) 100%);
+  border-radius: 2px;
+  box-shadow: 0 2px 4px hsl(200, 50%, 50% / 0.2);
+}
+
+/* === LINKS - Colorful bouncy links === */
+
+.prose-roll-whimsical a {
+  color: hsl(200, 75%, 45%);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 2px solid hsl(200, 60%, 70%);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.prose-roll-whimsical a:hover {
+  color: hsl(10, 80%, 50%);
+  border-bottom-color: hsl(10, 70%, 60%);
+  transform: translateY(-1px);
+}
+
+/* === TABLES - Colorful playful grid === */
+
+.prose-roll-whimsical table {
+  @apply w-full text-sm my-6;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 2px solid hsl(175, 60%, 55%);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow:
+    0 4px 0 hsl(175, 50%, 45%),
+    0 8px 16px hsl(175, 40%, 50% / 0.1);
+}
+
+.prose-roll-whimsical thead {
+  background: linear-gradient(90deg,
+    hsl(10, 80%, 65%) 0%,
+    hsl(45, 90%, 60%) 50%,
+    hsl(175, 65%, 50%) 100%);
+}
+
+.prose-roll-whimsical th {
+  @apply px-4 py-3 text-left;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px hsl(0, 0%, 0% / 0.2);
+}
+
+.prose-roll-whimsical td {
+  @apply px-4 py-3;
+  border-bottom: 1px solid hsl(175, 40%, 85%);
+  color: hsl(220, 25%, 30%);
+}
+
+.prose-roll-whimsical tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-roll-whimsical tbody tr:nth-child(even) {
+  background: hsl(175, 50%, 96%);
+}
+
+.prose-roll-whimsical tbody tr:hover {
+  background: hsl(45, 80%, 94%);
+}
+
+/* === IMAGES - Fun bordered frame === */
+
+.prose-roll-whimsical img {
+  @apply my-6 rounded-2xl;
+  border: 3px solid hsl(280, 55%, 60%);
+  box-shadow:
+    0 4px 0 hsl(280, 45%, 50%),
+    0 8px 20px hsl(280, 40%, 50% / 0.15);
+}
+
+/* ============================================================================
+   WHIMSICAL DARK MODE
+   Rich deep colors with vibrant accents
+   ============================================================================ */
+
+:is(.dark .prose-roll-whimsical) {
+  color: hsl(45, 30%, 88%);
+}
+
+/* Dark mode headers - vibrant colors */
+:is(.dark .prose-roll-whimsical) h1 {
+  color: hsl(10, 80%, 65%);
+}
+
+:is(.dark .prose-roll-whimsical) h1::after {
+  background: linear-gradient(90deg,
+    hsl(10, 80%, 60%) 0%,
+    hsl(45, 90%, 58%) 33%,
+    hsl(175, 65%, 50%) 66%,
+    hsl(280, 60%, 65%) 100%);
+}
+
+:is(.dark .prose-roll-whimsical) h2 {
+  color: hsl(175, 70%, 55%);
+}
+
+:is(.dark .prose-roll-whimsical) h3 {
+  color: hsl(280, 60%, 70%);
+}
+
+:is(.dark .prose-roll-whimsical) h4 {
+  color: hsl(45, 85%, 60%);
+}
+
+:is(.dark .prose-roll-whimsical) h5,
+:is(.dark .prose-roll-whimsical) h6 {
+  color: hsl(200, 75%, 60%);
+}
+
+/* Dark mode text */
+:is(.dark .prose-roll-whimsical) strong {
+  color: hsl(10, 75%, 65%);
+}
+
+:is(.dark .prose-roll-whimsical) em {
+  color: hsl(280, 55%, 72%);
+}
+
+/* Dark mode list bullets */
+:is(.dark .prose-roll-whimsical) ul > li::before {
+  color: hsl(10, 75%, 65%);
+}
+
+:is(.dark .prose-roll-whimsical) ul > li:nth-child(2n)::before {
+  color: hsl(175, 65%, 55%);
+}
+
+:is(.dark .prose-roll-whimsical) ul > li:nth-child(3n)::before {
+  color: hsl(280, 55%, 70%);
+}
+
+:is(.dark .prose-roll-whimsical) ul > li:nth-child(4n)::before {
+  color: hsl(45, 85%, 60%);
+}
+
+:is(.dark .prose-roll-whimsical) ul ul > li::before {
+  color: hsl(200, 70%, 60%);
+}
+
+:is(.dark .prose-roll-whimsical) ul ul ul > li::before {
+  color: hsl(160, 55%, 55%);
+}
+
+:is(.dark .prose-roll-whimsical) ol > li::before {
+  color: hsl(175, 60%, 50%);
+  background: hsl(175, 40%, 20%);
+}
+
+:is(.dark .prose-roll-whimsical) ol > li:nth-child(2n)::before {
+  color: hsl(10, 70%, 60%);
+  background: hsl(10, 50%, 20%);
+}
+
+:is(.dark .prose-roll-whimsical) ol > li:nth-child(3n)::before {
+  color: hsl(280, 50%, 68%);
+  background: hsl(280, 35%, 20%);
+}
+
+:is(.dark .prose-roll-whimsical) ol ol > li::before {
+  background: hsl(45, 60%, 22%);
+  color: hsl(45, 75%, 60%);
+}
+
+:is(.dark .prose-roll-whimsical) li.task-list-item input[type="checkbox"] {
+  accent-color: hsl(175, 65%, 50%);
+}
+
+/* Dark mode code */
+:is(.dark .prose-roll-whimsical) code {
+  background: linear-gradient(135deg,
+    hsl(280, 35%, 18%) 0%,
+    hsl(200, 35%, 18%) 100%);
+  color: hsl(280, 60%, 75%);
+  border-color: hsl(280, 35%, 30%);
+}
+
+:is(.dark .prose-roll-whimsical) pre {
+  background: linear-gradient(135deg,
+    hsl(260, 25%, 12%) 0%,
+    hsl(200, 30%, 11%) 50%,
+    hsl(340, 25%, 12%) 100%);
+  border-color: hsl(175, 55%, 45%);
+  box-shadow:
+    0 4px 0 hsl(175, 45%, 32%),
+    0 8px 20px hsl(0, 0%, 0% / 0.3);
+}
+
+:is(.dark .prose-roll-whimsical) pre code {
+  color: hsl(45, 30%, 85%);
+}
+
+/* Dark mode blockquote */
+:is(.dark .prose-roll-whimsical) blockquote {
+  background: linear-gradient(135deg,
+    hsl(45, 50%, 15%) 0%,
+    hsl(45, 40%, 12%) 100%);
+  border-color: hsl(45, 75%, 50%);
+  color: hsl(45, 40%, 80%);
+  box-shadow:
+    0 3px 0 hsl(45, 60%, 35%),
+    0 6px 15px hsl(0, 0%, 0% / 0.25);
+}
+
+:is(.dark .prose-roll-whimsical) blockquote::before {
+  background: hsl(45, 50%, 15%);
+}
+
+/* Dark mode horizontal rule */
+:is(.dark .prose-roll-whimsical) hr {
+  background: linear-gradient(90deg,
+    hsl(10, 75%, 55%) 0%,
+    hsl(45, 85%, 55%) 25%,
+    hsl(160, 60%, 45%) 50%,
+    hsl(200, 70%, 55%) 75%,
+    hsl(280, 55%, 60%) 100%);
+  box-shadow: 0 2px 6px hsl(200, 50%, 40% / 0.3);
+}
+
+/* Dark mode links */
+:is(.dark .prose-roll-whimsical) a {
+  color: hsl(200, 80%, 65%);
+  border-bottom-color: hsl(200, 60%, 50%);
+}
+
+:is(.dark .prose-roll-whimsical) a:hover {
+  color: hsl(10, 75%, 65%);
+  border-bottom-color: hsl(10, 65%, 55%);
+}
+
+/* Dark mode tables */
+:is(.dark .prose-roll-whimsical) table {
+  border-color: hsl(175, 55%, 45%);
+  box-shadow:
+    0 4px 0 hsl(175, 45%, 32%),
+    0 8px 20px hsl(0, 0%, 0% / 0.3);
+}
+
+:is(.dark .prose-roll-whimsical) thead {
+  background: linear-gradient(90deg,
+    hsl(10, 70%, 50%) 0%,
+    hsl(45, 80%, 48%) 50%,
+    hsl(175, 55%, 42%) 100%);
+}
+
+:is(.dark .prose-roll-whimsical) th {
+  color: white;
+}
+
+:is(.dark .prose-roll-whimsical) td {
+  border-bottom-color: hsl(200, 25%, 22%);
+  color: hsl(45, 25%, 82%);
+}
+
+:is(.dark .prose-roll-whimsical) tbody tr:nth-child(even) {
+  background: hsl(200, 30%, 13%);
+}
+
+:is(.dark .prose-roll-whimsical) tbody tr:hover {
+  background: hsl(45, 40%, 15%);
+}
+
+/* Dark mode images */
+:is(.dark .prose-roll-whimsical) img {
+  border-color: hsl(280, 50%, 55%);
+  box-shadow:
+    0 4px 0 hsl(280, 40%, 40%),
+    0 8px 24px hsl(0, 0%, 0% / 0.35);
+}
+
+/* Roll button styling for Whimsical theme - LIGHT MODE */
+.btn-roll-whimsical {
+  font-family: 'Fredoka', system-ui, sans-serif;
+  background: linear-gradient(135deg,
+    hsl(10, 85%, 60%) 0%,
+    hsl(25, 90%, 55%) 100%);
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow:
+    0 4px 0 hsl(10, 75%, 45%),
+    0 8px 16px hsl(10, 70%, 50% / 0.25);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-shadow: 0 1px 2px hsl(0, 0%, 0% / 0.2);
+}
+
+.btn-roll-whimsical:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    hsl(175, 70%, 45%) 0%,
+    hsl(185, 75%, 42%) 100%);
+  box-shadow:
+    0 5px 0 hsl(175, 60%, 35%),
+    0 10px 20px hsl(175, 60%, 40% / 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-roll-whimsical:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 hsl(175, 60%, 35%),
+    0 4px 8px hsl(175, 60%, 40% / 0.2);
+}
+
+.btn-roll-whimsical:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Roll button styling for Whimsical theme - DARK MODE */
+.dark .btn-roll-whimsical {
+  background: linear-gradient(135deg,
+    hsl(10, 75%, 55%) 0%,
+    hsl(25, 80%, 50%) 100%);
+  box-shadow:
+    0 4px 0 hsl(10, 65%, 38%),
+    0 8px 20px hsl(10, 60%, 35% / 0.35);
+}
+
+.dark .btn-roll-whimsical:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    hsl(175, 65%, 48%) 0%,
+    hsl(185, 70%, 45%) 100%);
+  box-shadow:
+    0 5px 0 hsl(175, 55%, 32%),
+    0 10px 24px hsl(175, 55%, 35% / 0.35);
+}
+
+/* Native dialogs inherit the app theme while the browser isolates modal focus. */
+dialog { color: inherit; padding: 0; }
+dialog[open] { position: fixed; inset: 0; margin: auto; }
+dialog::backdrop { background: rgb(0 0 0 / 0.65); backdrop-filter: blur(4px); }

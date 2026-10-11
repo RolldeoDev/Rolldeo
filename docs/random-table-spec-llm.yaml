@@ -1,0 +1,503 @@
+# Random Table JSON Specification v1.0 - LLM Reference
+# Purpose: Token-efficient spec for LLM-driven JSON generation
+# Schema: https://rolldeo.com/schemas/random-table-spec-v1.0.json
+
+# =============================================================================
+# DECISION GUIDE
+# =============================================================================
+supported_profile:
+  authority: "randomTableSpecV1.md; schema plus semantic and linked-dependency validation"
+  specVersion: "1.0"
+  compatibility: "Literal statics/range widths/ordered shared are errata. Local-only refs, reserved set restrictions and strict switch results require migration. Legacy one-segment namespaces read with LEGACY_NAMESPACE warning; new authored namespaces use >=2 segments. Future incompatible syntax needs a named version/profile."
+  obsolete_conditionals: "Root conditionals unsupported: OBSOLETE_CONDITIONALS; migrate rules to inline switches at output positions"
+  output: "Strings with captured properties/metadata; no typed-record or portable seeded-simulation guarantee"
+
+decision_guide:
+
+  table_type:
+    simple: "Flat list of items to pick randomly (most tables)"
+    composite: "Weighted selection BETWEEN categories, then roll on chosen category"
+    collection: "Merge multiple tables into one unified pool"
+
+  composite_vs_collection:
+    composite: "Use when text gives percentages/frequencies for categories ('70% common, 25% uncommon, 5% rare')"
+    collection: "Use when combining related tables without preference ('any weapon from swords, axes, or polearms')"
+
+  weight_vs_range:
+    weight: "Relative probability (weight:3 vs weight:1 = 75%/25%)"
+    range: "Inclusive width shorthand ('[1,50]' = weight 50); gaps add no empty outcome, overlaps still select one entry"
+
+  template_vs_table:
+    table_alone: "Output is picking one item"
+    template: "Output combines multiple rolls into formatted text"
+
+  when_to_use:
+    extends: "Creating variants, overriding specific entries, disabling entries (weight:0)"
+    hidden: "Helper tables not shown in UI but still functional"
+    again: "Entry triggers additional rolls on same table"
+    shared: "Value rolled once, used multiple times; supports property access"
+    sets: "Entries have associated properties beyond display text"
+
+# =============================================================================
+# FILE STRUCTURE
+# =============================================================================
+file_structure:
+  required: [metadata, tables]
+  tables_empty: "Allowed for template-only generators and reusable static-variable libraries"
+  optional: [imports, templates, variables, shared]
+  minimal: '{"metadata":{"name":"X","namespace":"x.y","version":"1.0.0","specVersion":"1.0"},"tables":[{"id":"t","name":"T","type":"simple","entries":[{"value":"v"}]}]}'
+
+# =============================================================================
+# METADATA
+# =============================================================================
+metadata:
+  required:
+    name: string
+    namespace: {format: "publisher.product[.category...]", minimum_segments_new_content: 2, legacy: "Single-segment reads accepted with LEGACY_NAMESPACE warning", example: "fantasy.core"}
+    version: {pattern: "semver", example: "1.0.0"}
+    specVersion: {const: "1.0"}
+  optional:
+    author: string
+    description: {type: string, markdown: true, guidance: "2-5 sentences explaining content, use case, key features"}
+    instructions: {type: string, markdown: true}
+    tags: {type: "string[]", guidance: "Include: game system, genre, content type, specifics"}
+    created: "ISO8601"
+    updated: "ISO8601"
+  source:
+    book: string
+    publisher: string
+    pages: {examples: ["47", "47-89", "12, 45-67", "Appendix A"]}
+    isbn: string
+    url: string
+    license: {examples: ["OGL 1.0a", "CC BY 4.0", "CC0"]}
+    copyright: {simple: string, or_structured: {year: string, holder: string, notice: string}}
+  rights:
+    type: {enum: [proprietary, open-content, fan-content, licensed]}
+    official: {type: boolean, default: false}
+    permissions: {commercialUse: false, modification: false, redistribution: false, derivativeWorks: false, attributionRequired: true}
+    productIdentity: "string[]"
+    trademarks: "string[]"
+    contact: {licensing: string, dmca: string}
+    termsUrl: string
+  engine_config:
+    maxRecursionDepth: {default: 50}
+    maxExplodingDice: {default: 100, min: 0, max: 1000}
+    maxInheritanceDepth: {default: 5}
+    uniqueOverflowBehavior:
+      stop: "Return available entries (default)"
+      cycle: "Refill pool and continue"
+      error: "Throw error"
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+imports:
+  structure:
+    path: {required: true, formats: ["./relative.json", "../parent.json"], profile: "Local supplied JSON/ZIP bundle; URLs are locators only, never fetched automatically"}
+    alias: {required: true, constraint: "unique, no periods"}
+    description: string
+  referencing:
+    table: "{{alias.tableId}}"
+    template: "{{alias.templateId}}"
+    variable: "{{$alias.variableName}}"
+    extends: '"extends": "alias.tableId"'
+  behavior:
+    - "Documents may be stored before dependencies arrive; generation requires valid linkage"
+    - "Normalize relative origin paths within bundle; persist alias-to-collection-ID bindings through save/export"
+    - "Missing/ambiguous linkage reports IMPORT_ERROR, never substitutes an unrelated bundle"
+    - "Circular linked dependencies report IMPORT_CYCLE in getImportDiagnostics; unused linkage diagnostics do not block local generation"
+    - "Imported shared blocks are NOT evaluated; only the entry-point file's shared block is processed"
+
+# =============================================================================
+# REFERENCE RESOLUTION (§2.6)
+# =============================================================================
+reference_resolution:
+  unqualified: "resolved locally only (no dot = current file's tables/templates/variables; never matched against imports or namespaces)"
+  dotted: "alias first; then exact namespace match (longest exact prefix, no partial/tail matches); alias wins on collision; declared alias has no namespace fallback; duplicate exact namespace is an ambiguity error"
+  unresolved: "REFERENCE_ERROR naming the unresolved prefix"
+  applies_to: ["table refs", "extends", "imported variables", "switch result bare identifiers"]
+
+# =============================================================================
+# TABLES
+# =============================================================================
+tables:
+  common_properties:
+    id: {required: true, constraint: "no periods, unique in namespace"}
+    name: {required: true}
+    type: {required: true, enum: [simple, composite, collection]}
+    description: {markdown: true}
+    tags: "string[]"
+    hidden: {default: false, note: "UI hint only"}
+    extends: "Simple tables only; parent and all ancestors must be simple (supports alias.tableId)"
+    defaultSets: "object - key-value pairs for all entries"
+    resultType: {case_insensitive: true}
+    shared: "table-level generation-time variables (lazy evaluation)"
+    source: {book: string, page: "int|string", section: string}
+
+  simple_table:
+    entries: {required: true, type: "Entry[]"}
+
+  composite_table:
+    desc: "Weighted selection BETWEEN tables, roll once on chosen table"
+    sources: [{tableId: {required: true}, weight: {default: 1}}]
+
+  collection_table:
+    desc: "Merges all entries from multiple tables"
+    collections: {type: "string[]", desc: "Simple source tableIds to combine; source shared executes in source collection scope"}
+
+# =============================================================================
+# ENTRY PROPERTIES
+# =============================================================================
+entry:
+  id: {optional: true, auto_format: "{tableId}{zero-based index padded to >=3 digits}", note: "Use authored explicit IDs for durable overrides; generated parent ID targets remain compatible but order-dependent"}
+  value: {required: "For new entries; optional only for explicit-ID inherited overrides", markdown: true, supports: "{{}} template syntax"}
+  weight: {default: 1, min: 0, note: "0 disables entry; mutually exclusive with range"}
+  range: {format: "[min, max]", conversion: "weight = max - min + 1"}
+  description: {markdown: true, accessed_via: "{{@self.description}}"}
+  tags: "string[]"
+  sets:
+    desc: "key-value pairs for @placeholder access"
+    note: "Values can contain {{patterns}} evaluated at selection"
+    RESERVED:
+      - "description - use entry's description field instead"
+      - "value - collides with capture accessor {{$var[0].value}} (raw rolled value)"
+      - "count - collides with capture aggregate accessor {{$var.count}} (item count)"
+      - "numeric-only keys (e.g. '0','1') - collide with capture index {{$var[0]}}; keys must start with a letter"
+  assets: {common_keys: [image, token, thumbnail, portrait, sound, music, handout, statblock]}
+  resultType: "overrides table resultType"
+
+# =============================================================================
+# TEMPLATES
+# =============================================================================
+template:
+  id: {required: true}
+  name: {required: true}
+  pattern: {required: true, markdown: true}
+  description: {markdown: true}
+  tags: "string[]"
+  resultType: "overrides all table resultTypes"
+  shared: "template-level generation-time variables"
+
+# =============================================================================
+# TEMPLATE SYNTAX REFERENCE
+# =============================================================================
+syntax:
+  # Table references
+  table_roll: "{{tableId}}"
+  imported_table: "{{alias.tableId}}"
+  multiple: "{{N*tableId}}"
+  multiple_unique: "{{N*unique*tableId}}"
+  unique_scope: "Invoked collection/table tracker for whole generation; source-qualified outcome IDs; stop returns remaining, cycle refills wrapper pool, error throws; distinct wrappers/source standalone rolls track independently"
+  multiple_separator: '{{N*tableId|"sep"}}'
+  dice_count: "{{dice:XdY*tableId}}"
+  variable_count: "{{$var*tableId}}"
+  instance: "{{tableId#instanceName}}"
+
+  # Again (in entry values only, auto-excludes self)
+  again: "{{again}}"
+  again_n: "{{N*again}}"
+  again_unique: "{{N*unique*again}}"
+  again_dice: "{{dice:XdY*again}}"
+  again_separator: '{{N*again|"sep"}}'
+
+  # Dice
+  dice: "{{dice:XdY}}"
+  dice_modifiers: "+Z, -Z, *Z"
+  dice_keep_high: "{{dice:XdYkN}} or {{dice:XdYkhN}}"
+  dice_keep_low: "{{dice:XdYklN}}"
+  dice_exploding: "{{dice:XdY!}}"
+  dice_order: "Initial faces -> append exploding faces -> keep high/low on flattened faces -> sum -> numeric modifier; 1d6kh1! faces[6,4] returns6"
+
+  # Math
+  math: "{{math:expression}}"
+  math_operators: "+ - * / (parentheses)"
+  math_operands: ["integers", "$variable", "@placeholder.property", "dice:XdY"]
+  math_notes:
+    - "Integer division rounds toward zero"
+    - "Division by zero = 0 with warning"
+    - "Non-numeric values coerce to 0"
+
+  # Variables & Placeholders
+  variable: "{{$variableName}}"
+  imported_variable: "{{$alias.varName}}"
+  placeholder: "{{@placeholder.property}}"
+
+  # Self reference
+  self_description: "{{@self.description}} - current entry's description field"
+  self_value: "{{@self.value}} - current entry's raw (unevaluated) value template string; useful for surfacing formulas/debugging"
+  self_notes: "Returns empty string if undefined; expressions in description are evaluated; in nested rolls refers to innermost entry"
+
+  # Captures
+  capture: "{{N*table >> $var}}"
+  capture_unique: "{{N*unique*table >> $var}}"
+  capture_silent: "{{N*table >> $var|silent}}"
+  capture_separator: '{{N*table >> $var|"sep"}}'
+
+  # Capture access
+  capture_all: "{{$var}}"
+  capture_all_sep: '{{$var|"sep"}}'
+  capture_count: "{{$var.count}}"
+  capture_index: "{{$var[0]}}"
+  capture_negative: "{{$var[-1]}} - last item"
+  capture_prop: "{{$var[0].@property}}"
+
+  # Property aggregation
+  collect: "{{collect:$var.@prop}}"
+  collect_unique: "{{collect:$var.@prop|unique}}"
+  collect_separator: '{{collect:$var.@prop|"sep"}}'
+
+  # Switch expressions
+  switch_standalone: '{{switch[cond:result].switch[cond2:result2].else[fallback]}}'
+  switch_attached: '{{expr.switch[cond:result].else[fallback]}}'
+  switch_implicit: "$ in attached switch refers to base expression result"
+  switch_operators: ["==", "!=", ">", "<", ">=", "<=", "contains", "matches", "&&", "||", "!", "()"]
+  switch_conditions:
+    precedence: "Comparison/value atoms; ! then && then ||; parentheses override"
+    literals: "Quoted empty/digit/$/@ strings remain literal; only complete finite bare numeric tokens become numbers"
+    escapes: "Escape matching quote/backslash; preserve other backslashes for regex; JSON escaping is an outer layer"
+    comparison: "Stringified case-sensitive equality; numeric relational comparisons; case-insensitive contains/matches"
+    regex_profile: "RE2JS case-insensitive search, no native backtracking fallback; unsupported lookarounds/backrefs and malformed patterns return false"
+    regex_bounds: "Pattern<=1024 UTF-16 units; input<=100000; exceeding bound throws; charge max(1,ceil((patternlen+inputlen)/128)) work before compilation; work errors propagate"
+    malformed: "False for malformed/unconsumed syntax or invalid regex; missing local values compare as empty string; invalid qualified refs throw REFERENCE_ERROR"
+    references: "Same resolver as interpolation: counts/indexed captures/deep @paths/qualified static variables/placeholders"
+  switch_results:
+    - '"literal string" (quoted)'
+    - '"interpolated {{$var}} string" - patterns in quotes are evaluated'
+    - '$var.@property'
+    - '{{tableReference}}'
+    - 'bare tableId (always interpreted as table reference, never as literal; REFERENCE_ERROR if unresolved)'
+  switch_literal_note: "Literals MUST be quoted to disambiguate from bare table identifiers"
+  switch_examples:
+    pronoun: '{{switch[$gender=="male":"he"].switch[$gender=="female":"she"].else["they"]}}'
+    dice: '{{dice:1d20.switch[$>=20:"Critical!"].switch[$>=10:"Hit"].else["Miss"]}}'
+    conditional_text: '{{switch[$danger=="high":"\n\n*Warning!*"].else[""]}}'
+
+  # Escaping
+  literal_braces: "\\{{ and \\}}"
+  separator_grammar: 'Double-quoted after pipe; \" encodes quote and \\ encodes backslash; other backslash sequences remain literal; JSON adds outer escaping'
+
+# =============================================================================
+# VARIABLES
+# =============================================================================
+variables:
+  desc: "Literal static strings; {{expressions}} are never evaluated inside these values"
+  reference: "{{$variableName}}"
+  constraint: "Cannot shadow or conflict with reserved words"
+
+# =============================================================================
+# SHARED BLOCK
+# =============================================================================
+shared:
+  document_level:
+    desc: "Evaluated once per generation, in declaration order"
+    rules:
+      - "Cannot shadow static variables"
+      - "Cannot forward-reference later shared variables"
+      - "Tools must preserve declaration order and must not sort shared keys; generic unordered JSON rewrites can change meaning"
+      - "Supports dice, table rolls, math, prior shared references"
+
+  table_template_level:
+    desc: "Lazy evaluation - only when that table/template is rolled"
+    rules:
+      - "Propagates to nested table references"
+      - "Parent shared takes precedence over child"
+      - "Cannot shadow document-level shared"
+      - "Invocation scope closes on return; repeated/sibling calls evaluate independently; parent means caller, not extends ancestor"
+      - "Composite/collection source-local shared runs for selected entries; source collection resolves unqualified refs"
+
+  property_access:
+    desc: "Plain table refs and winning plain table switch branches capture sets; mixed text/property projections/attached switches produce scalar output"
+    syntax: '"hero": "{{raceTable}}"'
+    access_value: "{{$hero}}"
+    access_property: "{{$hero.@firstName}}"
+    use_case: "Multiple independent instances from same table with isolated placeholder contexts"
+    chained_access: "{{$var.@prop1.@prop2}} - works when set values are single table references"
+
+# =============================================================================
+# INHERITANCE
+# =============================================================================
+inheritance:
+  syntax: '"extends": "parentTableId"'
+  cross_file: '"extends": "alias.tableId"'
+  rules:
+    - "Override explicitly names a resolved parent ID; authored parent IDs recommended, generated ID targets compatible but reorder-sensitive"
+    - "Single parent only (no diamond)"
+    - "Depth limited by maxInheritanceDepth"
+    - "Child values override parent"
+    - "Tags and resultType NOT inherited"
+
+  property_merge:
+    - "Unspecified properties inherited from parent"
+    - "assets and sets are deep-merged (child keys override)"
+    - "Null deletion only in matching inherited entry overrides, optional fields only; required value cannot be deleted"
+    - "sets/assets whole-map null removes map; null member removes key; defaultSets stays string-valued"
+    - "Explicit non-null weight clears inherited range and non-null range clears inherited weight"
+    - "defaultSets deep-merged through chain"
+
+  disable_entry: "Override with weight: 0"
+
+# =============================================================================
+# RESULT TYPES
+# =============================================================================
+result_types:
+  output: "Generated text with optional semantic classification/captures/assets; number/currency labels do not imply typed numeric output"
+  standard: [creature, npc, faction, item, loot, location, encounter, event, hook, complication, name, trait, effect, environment, ability, description, rumor, dialogue, statistic, number, currency, time, weather]
+  custom_format: "namespace/category/type"
+  precedence:
+    simple: "entry → table → undefined"
+    composite: "entry → sourceTable → compositeTable → undefined"
+    template: "template.resultType (always wins)"
+
+# =============================================================================
+# MARKDOWN SUPPORT
+# =============================================================================
+markdown:
+  enabled_fields: [metadata.description, metadata.instructions, table.description, entry.value, entry.description, template.pattern, template.description]
+  supported: ["**bold**", "*italic*", "`code`", "[link](url)", "- bullet", "1. numbered"]
+  note: "Template syntax resolved first, then markdown rendered"
+
+# =============================================================================
+# VALIDATION
+# =============================================================================
+validation:
+  reserved_words: [dice, unique, again, true, false, null, and, or, not, contains, matches, shared, math]
+
+  identifiers:
+    table_id: "alphanumeric+underscore, no digits first, no periods"
+    entry_id: "same as table_id; required for inheritance"
+    variable: "same as table_id"
+    namespace: "New content >=2 segments; legacy single-segment reads warn; each segment alphanumeric+underscore"
+    alias: "same as table_id, no periods"
+
+  weight: "Must be finite and >= 0; decimals allowed; 0 disables entry"
+  range: "Safe integer [min, max] where min <= max and width safe; mutually exclusive with weight; width sampling only"
+
+  circular_detection:
+    - "Import cycles - IMPORT_CYCLE linking diagnostics; runtime recursion separately bounded"
+    - "Inheritance cycles - rejected when dependencies are available"
+    - "Template cycles - detected at generation"
+    - "again auto-excludes self"
+
+# =============================================================================
+# COMMON PATTERNS
+# =============================================================================
+patterns:
+
+  # Sets with child table references - preferred for scalable designs
+  sets_based_routing:
+    desc: "Each entry contains sets pointing to its own sub-tables"
+    table_example: |
+      "entries": [
+        {"value": "Land", "sets": {"units": "{{landUnits}}", "attacks": "{{landAttacks}}"}},
+        {"value": "Sea", "sets": {"units": "{{seaUnits}}", "attacks": "{{seaAttacks}}"}}
+      ]
+    template_example: |
+      "shared": {"$region": "{{region}}"},
+      "pattern": "Deploy {{$region.@units}} using {{$region.@attacks}}"
+    benefit: "Adding new types = new entries, no template changes"
+
+  # Switch for simple conditionals
+  switch_routing:
+    when: "2-3 options, simple routing"
+    example: '{{switch[$gender=="male":{{maleNames}}].else[{{femaleNames}}]}}'
+
+  # Combining both
+  multi_factor:
+    desc: "Sets for primary factor, switch for secondary"
+    example: |
+      "$culture": "{{culture}}",  // has sets: maleNames, femaleNames
+      "$name": "{{switch[$gender==\"male\":$culture.@maleNames].else[$culture.@femaleNames]}}"
+
+  # Name generator
+  name_generator:
+    tables: "[firstNames, lastNames, titles]"
+    template: '"{{titles}} {{firstNames}} {{lastNames}}"'
+    with_gender: 'Use switch or culture sets with maleNames/femaleNames'
+
+  # Treasure
+  treasure:
+    simple: '"{{dice:3d6*10}}gp, {{dice:1d4*gems}}"'
+    tiered: "Use composite for common/uncommon/rare selection"
+
+  # Encounter
+  encounter:
+    pattern: '"{{dice:1d4+1}} {{creatures}} in {{location}}"'
+    scaled: 'shared: {"$count": "{{dice:2d4}}"}, pattern uses {{$count*monsters}}'
+
+  # Wild magic / roll again
+  roll_again: '{"value": "Roll twice! {{2*unique*again|\" AND \"}}", "weight": 1}'
+
+# =============================================================================
+# EXAMPLE (MINIMAL)
+# =============================================================================
+example: |
+  {
+    "metadata": {
+      "name": "Fantasy Encounters",
+      "namespace": "fantasy.encounters",
+      "version": "1.0.0",
+      "specVersion": "1.0",
+      "description": "Encounter generator with tiered creatures and treasure.",
+      "tags": ["fantasy", "encounters", "creatures"]
+    },
+    "shared": {
+      "encounterSize": "{{dice:1d4+1}}",
+      "$leader": "{{eliteCreatures}}"
+    },
+    "tables": [
+      {
+        "id": "creatures",
+        "name": "Common Creatures",
+        "type": "simple",
+        "resultType": "creature",
+        "defaultSets": {"terrain": "any"},
+        "entries": [
+          {"id": "goblin", "value": "Goblin", "weight": 5, "sets": {"hp": "{{dice:2d6}}"}},
+          {"value": "Wolf", "weight": 3, "sets": {"terrain": "forest"}},
+          {"value": "Skeleton", "range": [31, 50]}
+        ]
+      },
+      {
+        "id": "eliteCreatures",
+        "name": "Elite Creatures",
+        "type": "simple",
+        "entries": [
+          {"value": "Ogre", "sets": {"title": "Brute"}},
+          {"value": "Troll", "sets": {"title": "Regenerator"}}
+        ]
+      },
+      {
+        "id": "treasure",
+        "name": "Treasure",
+        "type": "simple",
+        "resultType": "loot",
+        "entries": [
+          {"id": "coins", "value": "{{dice:3d6*10}} gold coins", "weight": 5},
+          {"value": "{{dice:1d4}} gemstones", "weight": 2}
+        ]
+      },
+      {
+        "id": "allCreatures",
+        "name": "All Creatures",
+        "type": "collection",
+        "collections": ["creatures", "eliteCreatures"]
+      }
+    ],
+    "templates": [
+      {
+        "id": "encounter",
+        "name": "Full Encounter",
+        "resultType": "encounter",
+        "pattern": "**{{$encounterSize}} {{creatures}}** led by {{$leader.@title}} {{$leader}}.\n\nTreasure: {{$encounterSize*unique*treasure|\", \"}}"
+      }
+    ]
+  }
+
+# Runtime API features, not JSON metadata fields or portable replay guarantees.
+runtime:
+  config:
+    maxGenerationWork: {default: 10000, scope: "Shared generation work counter"}
+    maxOutputLength: {default: 1000000, scope: "Intermediate/final strings and cumulative materialized output"}
+  random: "RollOptions.random optional callback, finite samples in [0,1); context carries into all draws; no portable seed guarantee"
+  dice_limits: "Notation <=256 chars; count1..1000; explosion allowance0..1000; sides/modifiers/totals safe integers; keep1..count"
+  multi_count: "Numeric coercion; positive finite fractions truncate; negative/noncoercible become0; positive infinite/oversized counts resource-limit error; zero performs no rolls"

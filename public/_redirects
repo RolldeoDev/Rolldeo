@@ -1,0 +1,11 @@
+# Non-forced SPA rewrites preserve existing files and example downloads.
+/library                 /index.html  200
+/roll                    /index.html  200
+/roll/*                  /index.html  200
+/editor                  /index.html  200
+/editor/*                /index.html  200
+/guide                   /index.html  200
+/guide/quickstart         /index.html  200
+/guide/spec              /index.html  200
+/guide/schema            /index.html  200
+/guide/using-rolldeo      /index.html  200

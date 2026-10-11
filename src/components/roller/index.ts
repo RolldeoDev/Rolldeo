@@ -1,0 +1,42 @@
+/**
+ * Roller Components
+ *
+ * Components for the split-panel roller page layout.
+ */
+
+// Layout
+export { SplitPanelLayout } from './SplitPanelLayout'
+export { ResizeHandle } from './ResizeHandle'
+
+// Browser Panel
+export { BrowserPanel } from './BrowserPanel'
+export { CollectionAccordion } from './CollectionAccordion'
+export { CollectionAccordionItem } from './CollectionAccordionItem'
+export { BrowserTabs } from './BrowserTabs'
+export { BrowserSearchBar } from './BrowserSearchBar'
+export { BrowserViewToggle } from './BrowserViewToggle'
+export { VirtualizedItemList } from './VirtualizedItemList'
+export { BrowserListItem } from './BrowserListItem'
+export { TableTypeIcon } from './TableTypeIcon'
+export { FavoritesSection } from './FavoritesSection'
+export { QuickAccessSection } from './QuickAccessSection'
+
+// Results Panel
+export { ResultsPanel } from './ResultsPanel'
+export { SelectedItemInfo } from './SelectedItemInfo'
+export { CurrentRollResult } from './CurrentRollResult'
+export { RollHistoryList } from './RollHistoryList'
+
+// Trace & Inspection
+export { TraceViewer } from './TraceViewer'
+export { TraceToggle } from './TraceToggle'
+export { CaptureInspector } from './CaptureInspector'
+
+// Context Menu & Modals
+export { ContextMenu } from './ContextMenu'
+export { RollMultipleModal } from './RollMultipleModal'
+export { ViewDetailsModal } from './ViewDetailsModal'
+
+// Descriptions
+export { DescriptionsViewer } from './DescriptionsViewer'
+export { DescriptionsDrawer } from './DescriptionsDrawer'

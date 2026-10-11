@@ -1,0 +1,381 @@
+{
+  "metadata": {
+    "name": "Fey Wild Buildings Generator",
+    "namespace": "feyWild.buildings",
+    "version": "1.0.0",
+    "specVersion": "1.0",
+    "author": "Rolldeo",
+    "description": "A generator for magical buildings found in the Fey Wild. Showcases switch expressions for conditional text generation based on building size, material, and inhabitant mood. Includes size-based descriptions, mood-dependent greetings, and dice-based magical effects.",
+    "tags": ["fantasy", "fey", "buildings", "generators", "switch-demo"],
+    "source": {
+      "license": "CC0"
+    }
+  },
+  "shared": {
+    "$building": "{{buildingType}}",
+    "$inhabitant": "{{feyInhabitant}}",
+    "magicIntensity": "{{dice:1d20}}"
+  },
+  "tables": [
+    {
+      "id": "buildingType",
+      "name": "Fey Building Type",
+      "type": "simple",
+      "description": "The various magical structures found throughout the Fey Wild",
+      "resultType": "location",
+      "entries": [
+        {
+          "id": "mushroomTower",
+          "value": "Mushroom Tower",
+          "description": "A towering fungal spire with bioluminescent windows",
+          "sets": {
+            "size": "large",
+            "material": "organic",
+            "glowColor": "{{glowColors}}",
+            "quirk": "releases spores at midnight"
+          }
+        },
+        {
+          "id": "crystalPalace",
+          "value": "Crystal Palace",
+          "description": "A shimmering structure of living crystal that sings in the wind",
+          "sets": {
+            "size": "massive",
+            "material": "crystal",
+            "glowColor": "prismatic",
+            "quirk": "refracts moonlight into prophecies"
+          }
+        },
+        {
+          "id": "willowCottage",
+          "value": "Willow Cottage",
+          "description": "A cozy dwelling woven from living willow branches",
+          "sets": {
+            "size": "small",
+            "material": "organic",
+            "glowColor": "{{glowColors}}",
+            "quirk": "whispers secrets to those who sleep inside"
+          }
+        },
+        {
+          "id": "floatingIslet",
+          "value": "Floating Islet",
+          "description": "A tiny island suspended in midair by pure whimsy",
+          "sets": {
+            "size": "tiny",
+            "material": "earth",
+            "glowColor": "none",
+            "quirk": "drifts with the dreamer's mood"
+          }
+        },
+        {
+          "id": "webSpire",
+          "value": "Gossamer Spire",
+          "description": "An impossibly delicate tower spun from spider silk and starlight",
+          "sets": {
+            "size": "medium",
+            "material": "gossamer",
+            "glowColor": "silver",
+            "quirk": "only visible under certain stars"
+          }
+        },
+        {
+          "id": "hollowTree",
+          "value": "Hollow Tree Manor",
+          "description": "A grand residence carved within an ancient, still-living tree",
+          "sets": {
+            "size": "large",
+            "material": "organic",
+            "glowColor": "{{glowColors}}",
+            "quirk": "grows a new room each century"
+          }
+        },
+        {
+          "id": "petalPavilion",
+          "value": "Petal Pavilion",
+          "description": "An open-air structure with a roof of ever-blooming flowers",
+          "sets": {
+            "size": "medium",
+            "material": "floral",
+            "glowColor": "{{glowColors}}",
+            "quirk": "changes scent based on visitors' emotions"
+          }
+        },
+        {
+          "id": "icefolly",
+          "value": "Winter's Folly",
+          "description": "A fantastical ice sculpture that never melts, defying the seasons",
+          "sets": {
+            "size": "small",
+            "material": "ice",
+            "glowColor": "blue",
+            "quirk": "interior is paradoxically warm"
+          }
+        }
+      ]
+    },
+    {
+      "id": "glowColors",
+      "name": "Glow Colors",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "soft green" },
+        { "value": "pale blue" },
+        { "value": "warm amber" },
+        { "value": "rose pink" },
+        { "value": "violet" },
+        { "value": "golden" }
+      ]
+    },
+    {
+      "id": "feyInhabitant",
+      "name": "Fey Inhabitant",
+      "type": "simple",
+      "description": "The fey creatures who dwell in these magical structures",
+      "resultType": "creature",
+      "entries": [
+        {
+          "id": "pixie",
+          "value": "Pixie",
+          "sets": {
+            "mood": "mischievous",
+            "gender": "female",
+            "size": "tiny",
+            "gift": "a vial of pixie dust",
+            "threat": "endless pranks",
+            "greeting": "{{pixieGreetings}}"
+          }
+        },
+        {
+          "id": "dryad",
+          "value": "Dryad",
+          "sets": {
+            "mood": "serene",
+            "gender": "female",
+            "size": "medium",
+            "gift": "a living acorn",
+            "threat": "being bound to their tree",
+            "greeting": "{{dryadGreetings}}"
+          }
+        },
+        {
+          "id": "satyr",
+          "value": "Satyr",
+          "sets": {
+            "mood": "jovial",
+            "gender": "male",
+            "size": "medium",
+            "gift": "a enchanted wine",
+            "threat": "an irresistible dance",
+            "greeting": "{{satyrGreetings}}"
+          }
+        },
+        {
+          "id": "archfey",
+          "value": "Archfey",
+          "sets": {
+            "mood": "imperious",
+            "gender": "other",
+            "size": "medium",
+            "gift": "a cryptic prophecy",
+            "threat": "eternal servitude",
+            "greeting": "{{archfeyGreetings}}"
+          }
+        },
+        {
+          "id": "sprite",
+          "value": "Sprite",
+          "sets": {
+            "mood": "vigilant",
+            "gender": "male",
+            "size": "tiny",
+            "gift": "a tiny sword",
+            "threat": "sleep-inducing arrows",
+            "greeting": "{{spriteGreetings}}"
+          }
+        },
+        {
+          "id": "nixie",
+          "value": "Nixie",
+          "sets": {
+            "mood": "melancholy",
+            "gender": "female",
+            "size": "small",
+            "gift": "a pearl of water-breathing",
+            "threat": "drowning embrace",
+            "greeting": "{{nixieGreetings}}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pixieGreetings",
+      "name": "Pixie Greetings",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "giggles and tugs at your hair" },
+        { "value": "zooms around your head in excited circles" },
+        { "value": "offers you a suspiciously glowing berry" }
+      ]
+    },
+    {
+      "id": "dryadGreetings",
+      "name": "Dryad Greetings",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "emerges slowly from the bark, smiling gently" },
+        { "value": "beckons you closer with a vine-wrapped hand" },
+        { "value": "hums a melody that makes flowers bloom at your feet" }
+      ]
+    },
+    {
+      "id": "satyrGreetings",
+      "name": "Satyr Greetings",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "raises a goblet and bellows a toast to your arrival" },
+        { "value": "plays a jaunty tune on his pipes" },
+        { "value": "slaps you on the back and offers you a seat by the fire" }
+      ]
+    },
+    {
+      "id": "archfeyGreetings",
+      "name": "Archfey Greetings",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "regards you with ancient, unfathomable eyes" },
+        { "value": "speaks your true name, though you never gave it" },
+        { "value": "gestures languidly, and reality bends to accommodate your presence" }
+      ]
+    },
+    {
+      "id": "spriteGreetings",
+      "name": "Sprite Greetings",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "points a tiny sword at you suspiciously" },
+        { "value": "demands to know your intentions in a surprisingly deep voice" },
+        { "value": "reads your heart and nods approvingly" }
+      ]
+    },
+    {
+      "id": "nixieGreetings",
+      "name": "Nixie Greetings",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "surfaces from a nearby pool with a wistful sigh" },
+        { "value": "sings a hauntingly beautiful welcome" },
+        { "value": "offers a hand that shimmers with water droplets" }
+      ]
+    },
+    {
+      "id": "magicalEffects",
+      "name": "Magical Effects",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "time flows differently here—hours pass like minutes" },
+        { "value": "your reflection shows who you might have been" },
+        { "value": "forgotten memories resurface unbidden" },
+        { "value": "colors seem more vivid, sounds more musical" },
+        { "value": "you understand the speech of animals and plants" },
+        { "value": "gravity is merely a suggestion" }
+      ]
+    },
+    {
+      "id": "dangerousEffects",
+      "name": "Dangerous Magical Effects",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "the building tries to keep you forever" },
+        { "value": "your shadow begins acting independently" },
+        { "value": "you forget why you came here" },
+        { "value": "the walls whisper bargains you shouldn't accept" }
+      ]
+    },
+    {
+      "id": "wondrousEffects",
+      "name": "Wondrous Magical Effects",
+      "type": "simple",
+      "hidden": true,
+      "entries": [
+        { "value": "you are granted a single impossible wish" },
+        { "value": "your truest desire manifests before you" },
+        { "value": "you gain a glimpse of your happiest possible future" },
+        { "value": "the universe reveals a secret meant only for you" }
+      ]
+    }
+  ],
+  "templates": [
+    {
+      "id": "feyBuilding",
+      "name": "Fey Wild Building",
+      "description": "Generates a complete Fey Wild building with inhabitant and magical effects. Demonstrates switch expressions for size-based descriptions, mood-based interactions, and dice-outcome magical effects.",
+      "resultType": "location",
+      "pattern": "## {{$building}}\n\n*{{$building.@quirk}}*\n\n### Description\n\n{{switch[$building.@size==\"tiny\":\"This minuscule structure is barely larger than a breadbox, yet contains impossible depths within.\"].switch[$building.@size==\"small\":\"This cozy dwelling is intimate and welcoming, sized for comfort rather than grandeur.\"].switch[$building.@size==\"medium\":\"This moderately-sized structure balances grandeur with homeliness.\"].switch[$building.@size==\"large\":\"This imposing edifice dominates the landscape, its presence felt from afar.\"].else[\"This truly massive construction defies mortal architecture, stretching beyond comprehension.\"]}} The structure is made of {{$building.@material}}{{switch[$building.@glowColor==\"none\":\", lacking any magical luminescence\"].switch[$building.@glowColor==\"prismatic\":\", casting rainbow light in all directions\"].else[\", glowing with a \" + $building.@glowColor + \" light\"]}}.\n\n### The Inhabitant\n\nWithin dwells a **{{$inhabitant}}**. {{switch[$inhabitant.@mood==\"mischievous\":\"Beware—\"].switch[$inhabitant.@mood==\"imperious\":\"Show respect, for \"].switch[$inhabitant.@mood==\"melancholy\":\"Tread gently, as \"].else[\"\"]}}\n{{switch[$inhabitant.@gender==\"male\":\"he\"].switch[$inhabitant.@gender==\"female\":\"she\"].else[\"they\"]}} {{$inhabitant.@greeting}}.\n\n{{switch[$inhabitant.@mood==\"mischievous\":\"Expect endless tricks and tests of wit.\"].switch[$inhabitant.@mood==\"serene\":\"A peaceful encounter is likely, if you show proper reverence for nature.\"].switch[$inhabitant.@mood==\"jovial\":\"Prepare for celebration—refusing hospitality would be a grave insult.\"].switch[$inhabitant.@mood==\"imperious\":\"Every word is a contract. Speak carefully.\"].switch[$inhabitant.@mood==\"vigilant\":\"Your intentions will be judged before you speak a word.\"].else[\"Sorrow hangs heavy here. Your presence may be a welcome distraction... or an unwanted intrusion.\"]}}\n\n**Potential Gift:** {{$inhabitant.@gift}}\n**Potential Threat:** {{$inhabitant.@threat}}\n\n### Magical Aura (Intensity: {{$magicIntensity}})\n\n{{dice:1d20.switch[$>=20:\"**LEGENDARY:** \" + {{wondrousEffects}}].switch[$>=15:\"**Strong:** \" + {{magicalEffects}}].switch[$>=10:\"**Moderate:** \" + {{magicalEffects}}].switch[$>=5:\"**Faint:** The magic here is subtle, barely perceptible.\"].else[\"**Dangerous:** \" + {{dangerousEffects}}]}}"
+    },
+    {
+      "id": "quickBuilding",
+      "name": "Quick Building Description",
+      "description": "A shorter building generator showcasing attached switch on dice rolls",
+      "pattern": "A {{$building.@size}} {{$building}} made of {{$building.@material}}. Magic level: {{dice:1d6.switch[$>=5:\"High\"].switch[$>=3:\"Medium\"].else[\"Low\"]}}."
+    },
+    {
+      "id": "encounterMood",
+      "name": "Encounter by Mood",
+      "description": "Demonstrates switch for NPC reaction based on mood",
+      "shared": {
+        "$fey": "{{feyInhabitant}}"
+      },
+      "pattern": "You encounter a {{$fey}}. {{switch[$fey.@mood==\"mischievous\":\"Roll a Wisdom save or be pranked!\"].switch[$fey.@mood==\"imperious\":\"Bow immediately or face their wrath.\"].switch[$fey.@mood==\"jovial\":\"You're invited to a feast!\"].switch[$fey.@mood==\"serene\":\"Peace washes over you.\"].switch[$fey.@mood==\"vigilant\":\"You are being evaluated.\"].else[\"Melancholy fills the air.\"]}}"
+    },
+    {
+      "id": "buildingSizeGuide",
+      "name": "Building Size Reference",
+      "description": "Shows all size categories using switch",
+      "pattern": "**Size Guide:**\n- Tiny: {{switch[true:\"Fits in your hand\"]}}\n- Small: {{switch[true:\"Cottage-sized\"]}}\n- Medium: {{switch[true:\"Manor-sized\"]}}\n- Large: {{switch[true:\"Castle-sized\"]}}\n- Massive: {{switch[true:\"Beyond mortal scale\"]}}"
+    },
+    {
+      "id": "genderPronouns",
+      "name": "Pronoun Demo",
+      "description": "Demonstrates switch for pronoun selection based on captured fey gender",
+      "shared": {
+        "$creature": "{{feyInhabitant}}"
+      },
+      "pattern": "The {{$creature}} approaches. {{switch[$creature.@gender==\"male\":\"He carries himself with confidence.\"].switch[$creature.@gender==\"female\":\"She moves with ethereal grace.\"].else[\"They shift between forms as they walk.\"]}}\n\nWhen {{switch[$creature.@gender==\"male\":\"he\"].switch[$creature.@gender==\"female\":\"she\"].else[\"they\"]}} speak{{switch[$creature.@gender==\"other\":\"s\":\"\"].else[\"s\"]}}, {{switch[$creature.@gender==\"male\":\"his\"].switch[$creature.@gender==\"female\":\"her\"].else[\"their\"]}} voice carries the weight of ages."
+    },
+    {
+      "id": "magicRoll",
+      "name": "Magic Intensity Check",
+      "description": "Demonstrates attached switch on dice expressions with multiple thresholds",
+      "pattern": "**Detecting Magic...**\n\nYou rolled: {{dice:1d20.switch[$==20:\"**NATURAL 20!** The magic here is beyond mortal comprehension. Reality itself bends to your perception.\"].switch[$>=18:\"**Exceptional Success!** You sense layers upon layers of enchantment.\"].switch[$>=15:\"**Strong Reading:** Powerful magic permeates every surface.\"].switch[$>=10:\"**Clear Detection:** Magic is definitely present here.\"].switch[$>=5:\"**Faint Traces:** Something magical lingers, but it's hard to pinpoint.\"].switch[$==1:\"**NATURAL 1!** You sneeze loudly, alerting everything within earshot.\"].else[\"**Weak Reading:** If there's magic here, it's well hidden.\"]}}"
+    },
+    {
+      "id": "materialDescription",
+      "name": "Material Properties",
+      "description": "Uses switch to describe material properties",
+      "shared": {
+        "$structure": "{{buildingType}}"
+      },
+      "pattern": "The {{$structure}} is constructed of {{$structure.@material}}.\n\n{{switch[$structure.@material==\"organic\":\"The walls pulse gently, as if breathing. Touching them reveals warmth and a faint heartbeat.\"].switch[$structure.@material==\"crystal\":\"Light refracts endlessly through the crystalline surfaces, creating dancing rainbows.\"].switch[$structure.@material==\"gossamer\":\"So delicate you fear a harsh word might shatter it, yet it has stood for millennia.\"].switch[$structure.@material==\"floral\":\"The sweet perfume of a thousand blooms fills every room.\"].switch[$structure.@material==\"ice\":\"Despite its frozen appearance, the interior is inexplicably comfortable.\"].else[\"The material defies easy categorization—perhaps it is woven from dreams themselves.\"]}}"
+    },
+    {
+      "id": "complexConditions",
+      "name": "Complex Condition Demo",
+      "description": "Demonstrates switch with compound conditions using && and ||",
+      "shared": {
+        "$place": "{{buildingType}}",
+        "$dweller": "{{feyInhabitant}}"
+      },
+      "pattern": "**Compatibility Analysis**\n\nBuilding: {{$place}} ({{$place.@size}}, {{$place.@material}})\nInhabitant: {{$dweller}} ({{$dweller.@mood}})\n\n{{switch[$place.@size==\"tiny\" && $dweller.@size==\"medium\":\"⚠️ **Mismatch!** The {{$dweller}} is far too large for this {{$place}}. Magic must be at work.\"].switch[$place.@material==\"organic\" && $dweller.@mood==\"serene\":\"✨ **Perfect Harmony!** A nature-loving fey in an organic dwelling.\"].switch[$dweller.@mood==\"imperious\" && $place.@size==\"massive\":\"👑 **Fitting!** A grand fey deserves a grand residence.\"].switch[$place.@material==\"ice\" && $dweller.@mood==\"melancholy\":\"❄️ **Thematic!** Cold surroundings mirror a cold heart.\"].else[\"📋 **Standard Match.** Nothing unusual about this pairing.\"]}}"
+    }
+  ]
+}

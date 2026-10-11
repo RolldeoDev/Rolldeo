@@ -1,0 +1,400 @@
+/**
+ * usePatternEvaluation Hook
+ *
+ * Evaluates a pattern and builds segment mapping for inline highlighting.
+ */
+
+import { useMemo, useState, useCallback, useEffect, useRef, useContext } from 'react'
+import { PreviewContext } from '../PreviewContext'
+import { useCollectionStore } from '@/stores/collectionStore'
+import { extractExpressions, parseExpression } from '@/engine/core/parser'
+import type { ExpressionToken, RollTrace } from '@/engine/core'
+import { getExpressionType } from '@/lib/expressionUtils'
+import type {
+  EvaluatedSegment,
+  ExpressionType,
+  PatternEvaluationResult,
+} from './types'
+
+/**
+ * Count total nodes in a trace tree
+ */
+function countTraceNodes(trace: RollTrace | null): number {
+  if (!trace) return 0
+  return trace.stats.nodeCount
+}
+
+/**
+ * Determine the expression type from a parsed token.
+ * This provides more accurate type detection than string heuristics
+ * when a token is available from the parser.
+ *
+ * @param token - The parsed expression token
+ * @param templateIds - Optional set of template IDs to distinguish templates from tables
+ */
+function getExpressionTypeFromToken(token: ExpressionToken, templateIds?: Set<string>): ExpressionType {
+  // Check for switch modifiers on any token
+  if ('switchModifiers' in token && token.switchModifiers) {
+    return 'switch'
+  }
+
+  switch (token.type) {
+    case 'dice':
+      return 'dice'
+    case 'math':
+      return 'math'
+    case 'variable':
+      return 'variable'
+    case 'placeholder':
+      return 'placeholder'
+    case 'again':
+      return 'again'
+    case 'multiRoll':
+    case 'table':
+    case 'instance': {
+      // Check if the referenced table is actually a template
+      const tableId = token.tableId
+      if (templateIds && templateIds.has(tableId)) {
+        return 'template'
+      }
+      return 'table'
+    }
+    case 'captureMultiRoll':
+      return 'capture'
+    case 'captureAccess':
+      return 'capture-shared'
+    case 'collect':
+      return 'collect'
+    case 'switch':
+      return 'switch'
+    default:
+      return 'unknown'
+  }
+}
+
+interface UsePatternEvaluationOptions {
+  /** Whether to enable tracing */
+  enableTrace?: boolean
+  /** Debounce delay in ms (0 to disable) */
+  debounceMs?: number
+  /** Template/table-level shared variables to evaluate before the pattern */
+  sharedVariables?: Record<string, string>
+  /** Set of template IDs to distinguish templates from tables (lavender vs mint) */
+  templateIds?: Set<string>
+}
+
+interface UsePatternEvaluationReturn {
+  /** Evaluation result with segments */
+  result: PatternEvaluationResult | null
+  /** Whether currently evaluating */
+  isEvaluating: boolean
+  /** Force re-evaluation */
+  reroll: () => void
+  /** Number of trace nodes */
+  traceNodeCount: number
+  /** Number of capture variables */
+  captureCount: number
+}
+
+/**
+ * Hook for evaluating patterns and building segment mapping
+ */
+export function usePatternEvaluation(
+  pattern: string,
+  collectionId: string | undefined,
+  options: UsePatternEvaluationOptions = {}
+): UsePatternEvaluationReturn {
+  const { enableTrace = true, debounceMs = 300, sharedVariables, templateIds } = options
+
+  const committedEngine = useCollectionStore(state => state.engine)
+  const preview = useContext(PreviewContext)
+  const engine = preview?.engine ?? committedEngine
+  collectionId = preview?.collectionId ?? collectionId
+  const [result, setResult] = useState<PatternEvaluationResult | null>(null)
+  const [isEvaluating, setIsEvaluating] = useState(false)
+  const [evalKey, setEvalKey] = useState(0)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const versionRef = useRef(0)
+
+  /**
+   * Build segments from pattern and evaluation result.
+   * Uses expressionOutputs from the engine for accurate mapping.
+   */
+  const buildSegments = useCallback(
+    (
+      patternStr: string,
+      expressions: ReturnType<typeof extractExpressions>,
+      expressionOutputs: string[],
+      fullText: string,
+      templateIdsForType?: Set<string>
+    ): EvaluatedSegment[] => {
+      const segments: EvaluatedSegment[] = []
+
+      if (expressions.length === 0) {
+        // No expressions - entire pattern is literal
+        if (patternStr.length > 0) {
+          segments.push({
+            type: 'literal',
+            text: patternStr,
+            startInPattern: 0,
+            endInPattern: patternStr.length,
+          })
+        }
+        return segments
+      }
+
+      // If we don't have expression outputs but have fullText, we can't reliably
+      // map outputs back to expressions, so show the full text as result
+      const useFullTextFallback = expressionOutputs.length === 0 && fullText
+
+      let lastEnd = 0
+
+      for (let i = 0; i < expressions.length; i++) {
+        const match = expressions[i]
+
+        // Add literal segment before this expression
+        if (match.start > lastEnd) {
+          const literalText = patternStr.slice(lastEnd, match.start)
+          segments.push({
+            type: 'literal',
+            text: literalText,
+            startInPattern: lastEnd,
+            endInPattern: match.start,
+          })
+        }
+
+        // Get expression output
+        let exprOutput = ''
+        let exprType: ExpressionType = 'unknown'
+
+        try {
+          // Try to parse the expression to get its type
+          const token = parseExpression(match.expression)
+          exprType = getExpressionTypeFromToken(token, templateIdsForType)
+        } catch {
+          // Fallback to heuristic type detection
+          exprType = getExpressionType(match.expression, { templateIds: templateIdsForType })
+        }
+
+        // Use engine-provided expression output if available
+        if (i < expressionOutputs.length) {
+          exprOutput = expressionOutputs[i]
+          // If the output is empty, show a placeholder to indicate it was evaluated
+          if (exprOutput === '') {
+            exprOutput = `[empty]`
+          }
+        } else if (useFullTextFallback && i === 0 && expressions.length === 1) {
+          // Single expression with no output - use full text as the output
+          exprOutput = fullText || '[empty]'
+        } else if (expressionOutputs.length > 0 && i >= expressionOutputs.length) {
+          // We have some outputs but not enough - something went wrong
+          exprOutput = `[?]`
+        } else {
+          // No output available - show placeholder
+          exprOutput = `[${match.expression}]`
+        }
+
+        segments.push({
+          type: 'expression',
+          text: exprOutput,
+          originalExpression: match.raw,
+          expressionType: exprType,
+          startInPattern: match.start,
+          endInPattern: match.end,
+        })
+
+        lastEnd = match.end
+      }
+
+      // Add trailing literal segment
+      if (lastEnd < patternStr.length) {
+        const literalText = patternStr.slice(lastEnd)
+        segments.push({
+          type: 'literal',
+          text: literalText,
+          startInPattern: lastEnd,
+          endInPattern: patternStr.length,
+        })
+      }
+
+      return segments
+    },
+    []
+  )
+
+  /**
+   * Perform the evaluation
+   */
+  const evaluate = useCallback(() => {
+    const currentVersion = ++versionRef.current
+
+    if (!pattern) {
+      setResult({
+        segments: [],
+        fullText: '',
+        trace: null,
+        captures: null,
+        error: null,
+      })
+      setIsEvaluating(false)
+      return
+    }
+
+    if (!collectionId || !engine.hasCollection(collectionId)) {
+      // Can't evaluate without collection - build segments with placeholders
+      const expressions = extractExpressions(pattern)
+      const segments = buildSegments(pattern, expressions, [], '', templateIds)
+
+      setResult({
+        segments,
+        fullText: pattern,
+        trace: null,
+        captures: null,
+        error: null,
+      })
+      setIsEvaluating(false)
+      return
+    }
+
+    setIsEvaluating(true)
+
+    try {
+      // Evaluate the full pattern with optional shared variables
+      const evalResult = engine.evaluateRawPattern(pattern, collectionId, {
+        enableTrace,
+        shared: sharedVariables,
+      })
+
+      // Check if we're still the current version
+      if (currentVersion !== versionRef.current) return
+
+      // Extract expressions and build segments using engine-provided expression outputs
+      const expressions = extractExpressions(pattern)
+      const segments = buildSegments(
+        pattern,
+        expressions,
+        evalResult.expressionOutputs ?? [],
+        evalResult.text,
+        templateIds
+      )
+
+      setResult({
+        segments,
+        fullText: evalResult.text,
+        trace: evalResult.trace ?? null,
+        captures: evalResult.captures ?? null,
+        error: null,
+      })
+    } catch (err) {
+      // Check if we're still the current version
+      if (currentVersion !== versionRef.current) return
+
+      const errorMessage =
+        err instanceof Error ? err.message : 'Evaluation failed'
+
+      // Build segments with type info even on error
+      const expressions = extractExpressions(pattern)
+      const segments: EvaluatedSegment[] = []
+      let lastEnd = 0
+
+      for (const match of expressions) {
+        if (match.start > lastEnd) {
+          segments.push({
+            type: 'literal',
+            text: pattern.slice(lastEnd, match.start),
+            startInPattern: lastEnd,
+            endInPattern: match.start,
+          })
+        }
+
+        segments.push({
+          type: 'expression',
+          text: `[error]`,
+          originalExpression: match.raw,
+          expressionType: getExpressionType(match.expression, { templateIds }),
+          startInPattern: match.start,
+          endInPattern: match.end,
+        })
+
+        lastEnd = match.end
+      }
+
+      if (lastEnd < pattern.length) {
+        segments.push({
+          type: 'literal',
+          text: pattern.slice(lastEnd),
+          startInPattern: lastEnd,
+          endInPattern: pattern.length,
+        })
+      }
+
+      setResult({
+        segments,
+        fullText: '',
+        trace: null,
+        captures: null,
+        error: errorMessage,
+      })
+    } finally {
+      if (currentVersion === versionRef.current) {
+        setIsEvaluating(false)
+      }
+    }
+  }, [pattern, collectionId, engine, enableTrace, sharedVariables, templateIds, buildSegments])
+
+  /**
+   * Force re-evaluation (for re-roll button)
+   */
+  const reroll = useCallback(() => {
+    setEvalKey((k) => k + 1)
+  }, [])
+
+  /**
+   * Effect to evaluate pattern with debouncing
+   */
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+
+    if (debounceMs > 0) {
+      setIsEvaluating(true)
+      debounceRef.current = setTimeout(() => {
+        evaluate()
+      }, debounceMs)
+    } else {
+      evaluate()
+    }
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+    }
+  }, [evaluate, evalKey, debounceMs])
+
+  /**
+   * Computed trace node count
+   */
+  const traceNodeCount = useMemo(() => {
+    return countTraceNodes(result?.trace ?? null)
+  }, [result?.trace])
+
+  /**
+   * Computed capture count
+   */
+  const captureCount = useMemo(() => {
+    if (!result?.captures) return 0
+    return Object.keys(result.captures).length
+  }, [result?.captures])
+
+  return {
+    result,
+    isEvaluating,
+    reroll,
+    traceNodeCount,
+    captureCount,
+  }
+}
+
+export default usePatternEvaluation

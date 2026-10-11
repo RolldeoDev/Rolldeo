@@ -1,0 +1,701 @@
+/**
+ * EditorWorkspace Component
+ *
+ * Main layout container with sidebar, tabs, and content area.
+ */
+
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { EditorSidebar } from './EditorSidebar'
+import { EditorTabBar } from './EditorTabBar'
+import { MobileEditorNav } from './MobileEditorNav'
+import { useUIStore, type EditorTab } from '@/stores/uiStore'
+import { MetadataEditor } from './MetadataEditor'
+import { TableEditor } from './TableEditor'
+import { TemplateEditor } from './TemplateEditor'
+import { VariablesEditor } from './VariablesEditor'
+import { IncludesEditor } from './IncludesEditor'
+import { JsonEditor } from './JsonEditor'
+import { Plus, FileUp } from 'lucide-react'
+import { TableImportModal } from './TableImportModal'
+import type { ValidationError } from './JsonEditor'
+import type {
+  AuthoredRandomTableDocument as RandomTableDocument,
+  Metadata,
+  AuthoredTable as Table,
+  Template,
+  Import,
+  SimpleTable,
+} from '@/engine/types'
+import { useCollectionStore } from '@/stores/collectionStore'
+import { usePatternSuggestions } from '@/hooks/usePatternSuggestions'
+import { RandomTableEngine } from '@/engine/core'
+import { validateDocument } from '@/engine/core/validator'
+import { PreviewContext } from './PreviewContext'
+import { createSessionItemKeys, nextAvailableId } from './draftState'
+import type { TableInfo, TemplateInfo, ImportedTableInfo, ImportedTemplateInfo } from '@/engine/core'
+
+interface EditorWorkspaceProps {
+  document: RandomTableDocument
+  documentAvailable?: boolean
+  jsonContent: string
+  onDocumentChange: (doc: RandomTableDocument) => void
+  onJsonChange: (json: string) => void
+  onValidationChange?: (errors: ValidationError[]) => void
+  syncToJson: (doc: RandomTableDocument) => void
+  /** Collection ID for live preview in templates */
+  collectionId?: string
+}
+
+export function EditorWorkspace({
+  document,
+  documentAvailable = true,
+  jsonContent,
+  onDocumentChange,
+  onJsonChange,
+  onValidationChange,
+  syncToJson,
+  collectionId,
+}: EditorWorkspaceProps) {
+  // Use persisted state from UI store
+  const activeTab = useUIStore((state) => state.editorActiveTab)
+  const setActiveTab = useUIStore((state) => state.setEditorActiveTab)
+  const sidebarCollapsed = useUIStore((state) => state.editorSidebarCollapsed)
+  const setSidebarCollapsed = useUIStore((state) => state.setEditorSidebarCollapsed)
+  const setSelectedItemId = useUIStore((state) => state.setEditorSelectedItemId)
+  const focusedItemId = useUIStore((state) => state.editorFocusedItemId)
+  const setFocusedItemId = useUIStore((state) => state.setEditorFocusedItemId)
+  const lastExplicitItemId = useUIStore((state) => state.editorLastExplicitItemId)
+  const setLastExplicitItemId = useUIStore((state) => state.setEditorLastExplicitItemId)
+  const itemKeys = useRef(createSessionItemKeys<Table | Template>())
+  const contentRef = useRef<HTMLDivElement>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set())
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+  const [isScrollingToExplicit, setIsScrollingToExplicit] = useState(false)
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Handle expansion state changes from TableEditor/TemplateEditor
+  const handleExpandChange = useCallback(
+    (itemId: string, isExpanded: boolean) => {
+      setExpandedItems((prev) => {
+        const next = new Set(prev)
+        if (isExpanded) {
+          next.add(itemId)
+          // When manually expanding, also set as explicit selection
+          setLastExplicitItemId(itemId)
+        } else {
+          next.delete(itemId)
+        }
+        return next
+      })
+    },
+    [setLastExplicitItemId]
+  )
+
+  // Compute the currently selected item based on priority:
+  // 1. Explicit navigation in progress (scrolling to clicked item)
+  // 2. Focused item (highest priority during normal use)
+  // 3. First visible AND expanded item in viewport (by document order)
+  // 4. Last explicitly selected item (fallback)
+  const computedSelectedItemId = useMemo(() => {
+    // Only compute for tables/templates tabs
+    if (activeTab !== 'tables' && activeTab !== 'templates') {
+      return lastExplicitItemId
+    }
+
+    // Priority 1: If we're scrolling to an explicit selection, always use it
+    // This prevents viewport changes during scroll animation from hijacking selection
+    if (isScrollingToExplicit && lastExplicitItemId) {
+      return lastExplicitItemId
+    }
+
+    // Priority 2: Focused item
+    if (focusedItemId) return focusedItemId
+
+    // Priority 3: First visible AND expanded item (by document order)
+    // Only consider expanded items for viewport-based selection
+    const items =
+      activeTab === 'tables'
+        ? document.tables.map((t) => t.id)
+        : (document.templates || []).map((t) => t.id)
+
+    const firstVisibleExpanded = items.find(
+      (id) => visibleItems.has(id) && expandedItems.has(id)
+    )
+    if (firstVisibleExpanded) return firstVisibleExpanded
+
+    // Priority 4: Last explicitly selected
+    return lastExplicitItemId
+  }, [focusedItemId, visibleItems, expandedItems, activeTab, document.tables, document.templates, lastExplicitItemId, isScrollingToExplicit])
+
+  // Update the UIStore selectedItemId whenever computed value changes
+  useEffect(() => {
+    setSelectedItemId(computedSelectedItemId)
+  }, [computedSelectedItemId, setSelectedItemId])
+
+  // Scroll to item when explicitly selected from sidebar
+  useEffect(() => {
+    if (lastExplicitItemId && contentRef.current) {
+      const element = contentRef.current.querySelectorAll<HTMLElement>('[data-item-id]')
+      const matchingElement = Array.from(element).find(item => item.dataset.itemId === lastExplicitItemId)
+      if (matchingElement) {
+        // Set scrolling flag to prevent viewport changes from hijacking selection
+        setIsScrollingToExplicit(true)
+
+        // Clear any existing timeout
+        if (scrollTimeoutRef.current) {
+          clearTimeout(scrollTimeoutRef.current)
+        }
+
+        matchingElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+        // Clear the flag after scroll animation completes (generous timeout for smooth scroll)
+        scrollTimeoutRef.current = setTimeout(() => {
+          setIsScrollingToExplicit(false)
+        }, 800)
+      }
+    }
+
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [lastExplicitItemId])
+
+  // Track visible items with IntersectionObserver
+  useEffect(() => {
+    if (activeTab !== 'tables' && activeTab !== 'templates') {
+      return
+    }
+
+    // Reset visible items when tab or document changes
+    setVisibleItems(new Set())
+
+    // Small delay to allow DOM to render
+    const timeoutId = setTimeout(() => {
+      if (!contentRef.current) return
+
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          setVisibleItems((prev) => {
+            const next = new Set(prev)
+            entries.forEach((entry) => {
+              const id = entry.target.getAttribute('data-item-id')
+              if (id) {
+                if (entry.isIntersecting) {
+                  next.add(id)
+                } else {
+                  next.delete(id)
+                }
+              }
+            })
+            return next
+          })
+        },
+        { root: contentRef.current, threshold: 0.1 }
+      )
+
+      // Observe all item containers
+      contentRef.current.querySelectorAll('[data-item-id]').forEach((el) => {
+        observerRef.current?.observe(el)
+      })
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      observerRef.current?.disconnect()
+    }
+  }, [activeTab, document.tables, document.templates])
+
+  const committedEngine = useCollectionStore(state => state.engine)
+  const committedCollections = useCollectionStore(state => state.collections)
+  // Collection map changes signal commits made by other screens, even though
+  // the engine instance itself is stable. Capture both as one revision.
+  const committedRevision = useMemo(() => ({ engine: committedEngine, collections: committedCollections }), [committedEngine, committedCollections])
+  const previewId = collectionId ?? '__editor_preview__'
+  // A fresh engine per full draft revision keeps previews current and makes
+  // discarding edits incapable of changing the committed collection graph.
+  const previewEngine = useMemo(() => {
+    if (!documentAvailable || !validateDocument(document).valid) return new RandomTableEngine()
+    return committedRevision.engine.cloneForPreview(document, previewId)
+  }, [committedRevision, document, documentAvailable, previewId])
+  const previewContext = useMemo(() => ({ engine: previewEngine, collectionId: previewId }), [previewEngine, previewId])
+
+  // Available local tables for references (with full info for InsertDropdown)
+  const localTables = useMemo((): TableInfo[] => {
+    return document.tables.map((t) => ({
+      id: t.id,
+      name: t.name,
+      type: t.type,
+      description: t.description,
+      tags: t.tags,
+      hidden: t.hidden,
+      entryCount: t.type === 'simple' ? t.entries?.length : undefined,
+      resultType: t.resultType,
+    }))
+  }, [document.tables])
+
+  // Available local templates for references (with full info for InsertDropdown)
+  const localTemplates = useMemo((): TemplateInfo[] => {
+    return (document.templates || []).map((t) => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      tags: t.tags,
+      resultType: t.resultType,
+    }))
+  }, [document.templates])
+
+  // Available table IDs for references (simple string array for other components)
+  const availableTableIds = useMemo(() => {
+    return document.tables.map((t) => t.id)
+  }, [document.tables])
+
+  const importedTables = useMemo((): ImportedTableInfo[] => {
+    if (!previewEngine.hasCollection(previewId)) return []
+    return previewEngine.listImportedTables(previewId, true)
+  }, [previewEngine, previewId])
+  const importedTemplates = useMemo((): ImportedTemplateInfo[] => {
+    if (!previewEngine.hasCollection(previewId)) return []
+    return previewEngine.listImportedTemplates(previewId)
+  }, [previewEngine, previewId])
+
+  // Build table map for property lookups in autocomplete
+  const tableMap = useMemo(() => {
+    const map = new Map<string, import('@/engine/types').Table>()
+    for (const table of document.tables) {
+      // Autocomplete properties need inherited values, not nullable authored patches.
+      try {
+        const resolved = previewEngine.getResolvedTable(table.id, previewId)
+        if (resolved) map.set(table.id, resolved)
+      } catch {
+        // An incomplete inheritance reference is already shown in validation.
+      }
+    }
+    return map
+  }, [document.tables, previewEngine, previewId])
+
+  // Build template map for property lookups in autocomplete
+  const templateMap = useMemo(() => {
+    const map = new Map<string, Template>()
+    for (const template of document.templates || []) {
+      map.set(template.id, template)
+    }
+    return map
+  }, [document.templates])
+
+  // Build suggestions for pattern autocomplete
+  const suggestions = usePatternSuggestions({
+    localTables,
+    localTemplates,
+    importedTables,
+    importedTemplates,
+    variables: document.variables || {},
+    sharedVariables: document.shared || {},
+    tableMap,
+  })
+
+  // Update handlers
+  const updateMetadata = useCallback(
+    (metadata: Metadata) => {
+      const updated = { ...document, metadata }
+      onDocumentChange(updated)
+      syncToJson(updated)
+    },
+    [document, onDocumentChange, syncToJson]
+  )
+
+  const updateImports = useCallback(
+    (imports: Import[]) => {
+      const updated = { ...document, imports: imports.length > 0 ? imports : undefined }
+      onDocumentChange(updated)
+      syncToJson(updated)
+    },
+    [document, onDocumentChange, syncToJson]
+  )
+
+  const updateTables = useCallback(
+    (tables: Table[]) => {
+      const updated = { ...document, tables }
+      onDocumentChange(updated)
+      syncToJson(updated)
+    },
+    [document, onDocumentChange, syncToJson]
+  )
+
+  const updateTemplates = useCallback(
+    (templates: Template[]) => {
+      const updated = { ...document, templates: templates.length > 0 ? templates : undefined }
+      onDocumentChange(updated)
+      syncToJson(updated)
+    },
+    [document, onDocumentChange, syncToJson]
+  )
+
+  const updateVariables = useCallback(
+    (variables: Record<string, string>) => {
+      const updated = {
+        ...document,
+        variables: Object.keys(variables).length > 0 ? variables : undefined,
+      }
+      onDocumentChange(updated)
+      syncToJson(updated)
+    },
+    [document, onDocumentChange, syncToJson]
+  )
+
+  const updateShared = useCallback(
+    (shared: Record<string, string>) => {
+      const updated = {
+        ...document,
+        shared: Object.keys(shared).length > 0 ? shared : undefined,
+      }
+      onDocumentChange(updated)
+      syncToJson(updated)
+    },
+    [document, onDocumentChange, syncToJson]
+  )
+
+  // Add handlers
+  const addImport = useCallback(() => {
+    const imports = document.imports || []
+    const newImport: Import = {
+      path: '',
+      alias: nextAvailableId('import', imports.map(imp => imp.alias)),
+    }
+    updateImports([...imports, newImport])
+    setActiveTab('metadata')
+  }, [document.imports, updateImports, setActiveTab])
+
+  const addTable = useCallback(() => {
+    const newId = nextAvailableId('table', [...document.tables, ...(document.templates ?? [])].map(item => item.id))
+    const newTable: SimpleTable = {
+      id: newId,
+      name: 'New Table',
+      type: 'simple',
+      entries: [{ value: 'New entry' }],
+    }
+    updateTables([...document.tables, newTable])
+    setActiveTab('tables')
+    setLastExplicitItemId(newId)
+  }, [document.tables, document.templates, updateTables, setActiveTab, setLastExplicitItemId])
+
+  const handleImportTable = useCallback(
+    (table: SimpleTable) => {
+      // Ensure unique ID (append number if collision)
+      const existingIds = [...document.tables, ...(document.templates ?? [])].map((t) => t.id)
+      let uniqueId = table.id
+      let counter = 1
+      while (existingIds.includes(uniqueId)) {
+        uniqueId = `${table.id}${counter++}`
+      }
+
+      const tableWithUniqueId = { ...table, id: uniqueId }
+      updateTables([...document.tables, tableWithUniqueId])
+      setActiveTab('tables')
+      setLastExplicitItemId(uniqueId)
+    },
+    [document.tables, document.templates, updateTables, setActiveTab, setLastExplicitItemId]
+  )
+
+  const addTemplate = useCallback(() => {
+    const templates = document.templates || []
+    const newId = nextAvailableId('template', [...document.tables, ...templates].map(item => item.id))
+    const newTemplate: Template = {
+      id: newId,
+      name: 'New Template',
+      pattern: 'You encounter {{example}}!',
+    }
+    updateTemplates([...templates, newTemplate])
+    setActiveTab('templates')
+    setLastExplicitItemId(newId)
+  }, [document.tables, document.templates, updateTemplates, setActiveTab, setLastExplicitItemId])
+
+  // Delete handlers
+  const deleteImport = useCallback(
+    (index: number) => {
+      const imports = document.imports || []
+      updateImports(imports.filter((_, i) => i !== index))
+    },
+    [document.imports, updateImports]
+  )
+
+  const deleteTable = useCallback(
+    (index: number) => {
+      updateTables(document.tables.filter((_, i) => i !== index))
+    },
+    [document.tables, updateTables]
+  )
+
+  const deleteTemplate = useCallback(
+    (index: number) => {
+      const templates = document.templates || []
+      updateTemplates(templates.filter((_, i) => i !== index))
+    },
+    [document.templates, updateTemplates]
+  )
+
+  // Table/Template update handlers
+  const updateTable = useCallback(
+    (index: number, table: Table) => {
+      const tables = [...document.tables]
+      itemKeys.current.replace(tables[index], table)
+      tables[index] = table
+      updateTables(tables)
+    },
+    [document.tables, updateTables]
+  )
+
+  const updateTemplate = useCallback(
+    (index: number, template: Template) => {
+      const templates = [...(document.templates || [])]
+      itemKeys.current.replace(templates[index], template)
+      templates[index] = template
+      updateTemplates(templates)
+    },
+    [document.templates, updateTemplates]
+  )
+
+  // Navigation from sidebar
+  const handleNavigate = useCallback((tab: EditorTab, itemId?: string) => {
+    if (!documentAvailable && tab !== 'json') return
+    setActiveTab(tab)
+    if (itemId) {
+      setLastExplicitItemId(itemId)
+    }
+  }, [setActiveTab, setLastExplicitItemId, documentAvailable])
+
+  const tableCounts = {
+    tables: document.tables.length,
+    templates: document.templates?.length || 0,
+  }
+
+  const displayedTab = documentAvailable ? activeTab : 'json'
+
+  return (
+    <PreviewContext.Provider value={previewContext}>
+    <div className="flex h-[calc(100vh-12rem)] md:h-[calc(100vh-12rem)] h-[calc(100vh-8rem)] border rounded-2xl overflow-hidden bg-background">
+      {/* Sidebar - hidden on mobile */}
+      {documentAvailable && <div className="hidden md:flex h-full" style={!documentAvailable ? { pointerEvents: 'none', opacity: 0.5 } : undefined}>
+        <EditorSidebar
+          document={document}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onNavigate={handleNavigate}
+          onAddImport={addImport}
+          onAddTable={addTable}
+          onAddTemplate={addTemplate}
+          onDeleteImport={deleteImport}
+          onDeleteTable={deleteTable}
+          onDeleteTemplate={deleteTemplate}
+          selectedItemId={computedSelectedItemId ?? undefined}
+        />
+      </div>}
+
+      {/* Mobile Navigation FAB + Overlay */}
+      {documentAvailable && <MobileEditorNav
+        document={document}
+        activeTab={displayedTab}
+        onNavigate={handleNavigate}
+        onAddTable={addTable}
+        onAddTemplate={addTemplate}
+        onAddImport={addImport}
+        selectedItemId={computedSelectedItemId ?? undefined}
+      />}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Tab Bar */}
+        <EditorTabBar
+          activeTab={displayedTab}
+          onTabChange={(tab) => handleNavigate(tab)}
+          tableCounts={tableCounts}
+        />
+
+        {/* Content Area */}
+        <div ref={contentRef} className="flex-1 overflow-y-auto p-4 md:p-6">
+          {!documentAvailable && <p className="text-destructive mb-4" role="alert">Fix the JSON validation errors to resume visual editing. Your raw text is preserved.</p>}
+          {displayedTab === 'metadata' && (
+            <div className="space-y-8 animate-fade-in">
+              {/* Metadata */}
+              <section>
+                <h2 className="text-lg font-semibold mb-4">Collection Metadata</h2>
+                <MetadataEditor value={document.metadata} onChange={updateMetadata} />
+              </section>
+
+              {/* Includes */}
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Includes</h2>
+                  <button
+                    onClick={addImport}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Import
+                  </button>
+                </div>
+                <IncludesEditor
+                  imports={document.imports || []}
+                  onChange={updateImports}
+                  currentNamespace={document.metadata.namespace}
+                />
+              </section>
+            </div>
+          )}
+
+          {displayedTab === 'tables' && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Tables ({document.tables.length})</h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowImportModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <FileUp className="h-4 w-4" />
+                    Import Table
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 font-medium">
+                      BETA
+                    </span>
+                  </button>
+                  <button
+                    onClick={addTable}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Table
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {document.tables.map((table, index) => (
+                  <div key={itemKeys.current.get(table)} data-item-id={table.id}>
+                    <TableEditor
+                      table={table}
+                      onChange={(updated) => updateTable(index, updated)}
+                      onDelete={() => deleteTable(index)}
+                      availableTableIds={availableTableIds}
+                      defaultExpanded={lastExplicitItemId === table.id || document.tables.length === 1}
+                      collectionId={previewId}
+                      onFocus={() => setFocusedItemId(table.id)}
+                      onBlur={() => setFocusedItemId(null)}
+                      onExpandChange={(isExpanded) => handleExpandChange(table.id, isExpanded)}
+                      localTables={localTables}
+                      localTemplates={localTemplates}
+                      importedTables={importedTables}
+                      importedTemplates={importedTemplates}
+                      suggestions={suggestions}
+                      tableMap={tableMap}
+                      templateMap={templateMap}
+                      sharedVariables={document.shared}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {displayedTab === 'templates' && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">
+                  Templates ({document.templates?.length || 0})
+                </h2>
+                <button
+                  onClick={addTemplate}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg hover:bg-accent transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Template
+                </button>
+              </div>
+
+              {(document.templates?.length || 0) > 0 ? (
+                <div className="space-y-4">
+                  {document.templates?.map((template, index) => (
+                    <div key={itemKeys.current.get(template)} data-item-id={template.id}>
+                      <TemplateEditor
+                        template={template}
+                        onChange={(updated) => updateTemplate(index, updated)}
+                        onDelete={() => deleteTemplate(index)}
+                        localTables={localTables}
+                        localTemplates={localTemplates}
+                        importedTables={importedTables}
+                        importedTemplates={importedTemplates}
+                        suggestions={suggestions}
+                        tableMap={tableMap}
+                        templateMap={templateMap}
+                        documentShared={document.shared}
+                        defaultExpanded={lastExplicitItemId === template.id || (document.templates?.length || 0) === 1}
+                        collectionId={previewId}
+                        onFocus={() => setFocusedItemId(template.id)}
+                        onBlur={() => setFocusedItemId(null)}
+                        onExpandChange={(isExpanded) => handleExpandChange(template.id, isExpanded)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="border-2 border-dashed rounded-xl p-8 text-center text-muted-foreground">
+                  <p>No templates yet. Click "Add Template" to create one.</p>
+                  <p className="text-sm mt-2">
+                    Templates combine multiple tables using patterns like{' '}
+                    <code className="px-1.5 py-0.5 bg-muted rounded text-xs">
+                      {'{{tableId}}'}
+                    </code>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {displayedTab === 'variables' && (
+            <div className="animate-fade-in">
+              <h2 className="text-lg font-semibold mb-4">Variables</h2>
+              <VariablesEditor
+                variables={document.variables || {}}
+                shared={document.shared || {}}
+                onVariablesChange={updateVariables}
+                onSharedChange={updateShared}
+                collectionId={previewId}
+                localTables={localTables}
+                localTemplates={localTemplates}
+                importedTables={importedTables}
+                importedTemplates={importedTemplates}
+                suggestions={suggestions}
+                tableMap={tableMap}
+                templateMap={templateMap}
+              />
+            </div>
+          )}
+
+          {displayedTab === 'json' && (
+            <div className="animate-fade-in h-full flex flex-col">
+              <JsonEditor
+                value={jsonContent}
+                onChange={onJsonChange}
+                onValidationChange={onValidationChange}
+                height="calc(100vh - 20rem)"
+                filename={`${document.metadata.namespace || 'untitled'}.json`}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Table Import Modal */}
+      <TableImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={handleImportTable}
+      />
+    </div>
+    </PreviewContext.Provider>
+  )
+}
+
+export default EditorWorkspace

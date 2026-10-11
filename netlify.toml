@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Match the CI runtime and the package.json minimum supported Node major.
+  NODE_VERSION = "22"
+
+# public/_redirects is copied into dist for repository builds and manual uploads.
